@@ -863,5 +863,66 @@ exports.default = {
                 interaction.editReply({ embeds: [replyEmbed] });
             }
         }
+        else if (subCommand === "удалить") {
+            const raidId = options.getInteger("id_рейда");
+            function getRaid(raidId) {
+                return __awaiter(this, void 0, void 0, function* () {
+                    if (raidId === null) {
+                        const raidData = yield sequelize_1.raids.findAll({
+                            where: { creator: interaction.user.id },
+                            attributes: ["id", "chnId", "msgId", "creator"],
+                        });
+                        if (raidData[1] === undefined) {
+                            throw {
+                                name: "Ошибка. Укажите Id рейда для удаления",
+                                message: `Id рейдов доступные вам для удаления: ${raidData
+                                    .map((raidData) => raidData.id)
+                                    .join(", ")
+                                    .toString()}`,
+                                falseAlarm: true,
+                            };
+                        }
+                        else {
+                            return raidData[0];
+                        }
+                    }
+                    else {
+                        const raidData = yield sequelize_1.raids.findOne({
+                            where: { id: raidId },
+                            attributes: ["id", "chnId", "msgId", "creator"],
+                        });
+                        if (raidData === null) {
+                            throw { name: `Рейд ${raidId} не найден`, falseAlarm: true };
+                        }
+                        else {
+                            return raidData;
+                        }
+                    }
+                });
+            }
+            const raidData = yield getRaid(raidId);
+            if (raidData.creator !== interaction.user.id &&
+                !interaction.memberPermissions.has("Administrator")) {
+                throw {
+                    name: "Недостаточно прав для удаления набора",
+                    message: `Удаление набора ${raidId} доступно лишь ${guild.members.cache.get(raidData.creator).displayName}`,
+                    falseAlarm: true,
+                };
+            }
+            yield sequelize_1.raids.destroy({ where: { id: raidData.id } }).then(() => __awaiter(void 0, void 0, void 0, function* () {
+                var _f;
+                yield ((_f = guild.channels.cache
+                    .get(raidData.chnId)) === null || _f === void 0 ? void 0 : _f.delete(`${interaction.user.username} удалил рейд`));
+                yield guild.channels.fetch(ids_1.ids.raidChn).then((chn) => __awaiter(void 0, void 0, void 0, function* () {
+                    if (chn && chn.type === discord_js_1.ChannelType.GuildText) {
+                        (yield chn.messages.fetch(raidData.msgId)).delete();
+                    }
+                }));
+                const embed = new discord_js_1.EmbedBuilder()
+                    .setColor("Green")
+                    .setTitle(`Рейд ${raidData.id}-${raidData.raid} был удален`);
+                interaction.editReply({ embeds: [embed] });
+            }));
+        }
     }),
 };
