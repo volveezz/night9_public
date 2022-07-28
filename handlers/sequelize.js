@@ -1,0 +1,117 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.raids = exports.discord_acitvity = exports.role_data = exports.lost_data = exports.init_data = exports.auth_data = exports.db = void 0;
+const sequelize_1 = require("sequelize");
+const sequelize = new sequelize_1.Sequelize(String(process.env.DATABASE_URL), {
+    dialect: "postgres",
+    ssl: true,
+    dialectOptions: { ssl: { require: true, rejectUnauthorized: false } },
+    pool: {
+        max: 20,
+    },
+});
+exports.db = sequelize;
+class auth_data extends sequelize_1.Model {
+}
+exports.auth_data = auth_data;
+auth_data.init({
+    discord_id: { type: sequelize_1.DataTypes.BIGINT, primaryKey: true, unique: true },
+    bungie_id: { type: sequelize_1.DataTypes.BIGINT, primaryKey: true, unique: true },
+    platform: { type: sequelize_1.DataTypes.SMALLINT },
+    clan: { type: sequelize_1.DataTypes.BOOLEAN },
+    displayname: { type: sequelize_1.DataTypes.TEXT },
+    access_token: { type: sequelize_1.DataTypes.TEXT, primaryKey: true },
+    refresh_token: { type: sequelize_1.DataTypes.TEXT, primaryKey: true },
+    membership_id: {
+        type: sequelize_1.DataTypes.INTEGER,
+        primaryKey: true,
+        unique: true,
+    },
+    tz: { type: sequelize_1.DataTypes.SMALLINT, allowNull: false },
+    roles_cat: { type: sequelize_1.DataTypes.BOOLEAN },
+}, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
+class init_data extends sequelize_1.Model {
+}
+exports.init_data = init_data;
+init_data.init({
+    discord_id: { type: sequelize_1.DataTypes.BIGINT, primaryKey: true, unique: true },
+    state: { type: sequelize_1.DataTypes.UUID },
+}, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
+class lost_data extends sequelize_1.Model {
+}
+exports.lost_data = lost_data;
+lost_data.init({
+    discord_id: { type: sequelize_1.DataTypes.BIGINT, primaryKey: true, unique: true },
+    bungie_id: { type: sequelize_1.DataTypes.BIGINT, primaryKey: true, unique: true },
+    displayname: { type: sequelize_1.DataTypes.TEXT, primaryKey: true, unique: true },
+    platform: { type: sequelize_1.DataTypes.SMALLINT },
+    access_token: { type: sequelize_1.DataTypes.TEXT, primaryKey: true, unique: true },
+    refresh_token: { type: sequelize_1.DataTypes.TEXT, primaryKey: true, unique: true },
+    membership_id: {
+        type: sequelize_1.DataTypes.INTEGER,
+        primaryKey: true,
+        unique: true,
+    },
+}, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
+class role_data extends sequelize_1.Model {
+}
+exports.role_data = role_data;
+role_data.init({
+    hash: { type: sequelize_1.DataTypes.INTEGER, primaryKey: true, unique: true },
+    role_id: { type: sequelize_1.DataTypes.BIGINT },
+    category: { type: sequelize_1.DataTypes.SMALLINT },
+}, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
+class discord_acitvity extends sequelize_1.Model {
+}
+exports.discord_acitvity = discord_acitvity;
+discord_acitvity.init({
+    discord_id: { type: sequelize_1.DataTypes.BIGINT, primaryKey: true, unique: true },
+    messages: { type: sequelize_1.DataTypes.INTEGER, defaultValue: 0 },
+    voice: { type: sequelize_1.DataTypes.INTEGER, defaultValue: 0 },
+    raids: { type: sequelize_1.DataTypes.INTEGER, defaultValue: 0 },
+    dungeons: { type: sequelize_1.DataTypes.INTEGER, defaultValue: 0 },
+    updatedAt: { type: sequelize_1.DataTypes.INTEGER },
+}, { sequelize, timestamps: true, createdAt: false, updatedAt: true });
+class raids extends sequelize_1.Model {
+}
+exports.raids = raids;
+raids.init({
+    id: {
+        type: sequelize_1.DataTypes.SMALLINT,
+        primaryKey: true,
+        unique: true,
+        autoIncrement: true,
+    },
+    chnId: {
+        type: sequelize_1.DataTypes.BIGINT,
+        primaryKey: true,
+        unique: true,
+        allowNull: false,
+    },
+    inChnMsg: {
+        type: sequelize_1.DataTypes.BIGINT,
+        primaryKey: true,
+        unique: true,
+        allowNull: false,
+    },
+    msgId: {
+        type: sequelize_1.DataTypes.BIGINT,
+        primaryKey: true,
+        unique: true,
+        allowNull: false,
+    },
+    creator: { type: sequelize_1.DataTypes.BIGINT, allowNull: false },
+    joined: { type: sequelize_1.DataTypes.BIGINT },
+    hotJoined: { type: sequelize_1.DataTypes.BIGINT },
+    alt: { type: sequelize_1.DataTypes.BIGINT },
+    time: { type: sequelize_1.DataTypes.INTEGER, allowNull: false },
+    raid: { type: sequelize_1.DataTypes.CHAR },
+    reqClears: {
+        type: sequelize_1.DataTypes.SMALLINT,
+        defaultValue: 0,
+    },
+    difficulty: {
+        type: sequelize_1.DataTypes.SMALLINT,
+        defaultValue: 1,
+    },
+}, { sequelize, timestamps: false, createdAt: false, updatedAt: false });

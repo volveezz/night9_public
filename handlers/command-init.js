@@ -1,0 +1,86 @@
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Command = void 0;
+const discord_js_1 = require("discord.js");
+const ids_1 = require("../base/ids");
+const file_reader_1 = __importDefault(require("./file-reader"));
+const commands = {};
+class Command {
+}
+exports.Command = Command;
+exports.default = (client, commandDir) => __awaiter(void 0, void 0, void 0, function* () {
+    const files = (0, file_reader_1.default)(commandDir);
+    yield new Promise((res) => setTimeout(res, 1000));
+    for (const command of files) {
+        const { default: commandFile } = require(`../commands/${command}`);
+        const { name: commandName, description: commandDescription, global, options, defaultMemberPermissions, type, nameLocalizations, } = commandFile;
+        commands[commandName.toLowerCase()] = commandFile;
+    }
+    client.on("interactionCreate", (interaction) => __awaiter(void 0, void 0, void 0, function* () {
+        if ((!interaction.isChatInputCommand() &&
+            !interaction.isUserContextMenuCommand() &&
+            !interaction.isMessageContextMenuCommand()) ||
+            interaction.channel === null)
+            return;
+        const { commandName } = interaction;
+        const guild = interaction.guild ||
+            client.guilds.cache.get(ids_1.guildId) ||
+            (yield client.guilds.fetch(ids_1.guildId));
+        const member = interaction.member ||
+            (guild === null || guild === void 0 ? void 0 : guild.members.cache.get(interaction.user.id)) ||
+            (yield guild.members.fetch(interaction.user.id));
+        const channel = interaction.channel;
+        if (!commands[commandName])
+            return;
+        try {
+            commands[commandName]
+                .callback(client, interaction, member, guild, channel)
+                .catch((err) => {
+                var _a, _b, _c, _d;
+                const embed = new discord_js_1.EmbedBuilder().setColor("Red");
+                if (!err.stack) {
+                    embed.setTitle(err.name);
+                    if (err.message)
+                        embed.setDescription(err.message);
+                    if (!err.falseAlarm) {
+                        console.error(`Interaction command ${interaction.commandName} error. UserId: ${interaction.user.id}\nReason: ${err.name}`);
+                    }
+                }
+                else {
+                    console.error(err);
+                    embed
+                        .setTitle(`${(err === null || err === void 0 ? void 0 : err.code)
+                        ? `Error ${err.code}`
+                        : ((_a = err.error) === null || _a === void 0 ? void 0 : _a.ErrorCode)
+                            ? `Bungie request error ${(_b = err.error) === null || _b === void 0 ? void 0 : _b.ErrorCode}`
+                            : ((_c = err.parent) === null || _c === void 0 ? void 0 : _c.code)
+                                ? `DB error ${(_d = err.parent) === null || _d === void 0 ? void 0 : _d.code}`
+                                : `Error ${err.name}`}`)
+                        .setDescription(err.toString() || err.error.toString());
+                }
+                if (interaction.deferred) {
+                    interaction.editReply({ embeds: [embed] });
+                }
+                else {
+                    interaction.reply({ embeds: [embed] });
+                }
+                return;
+            });
+        }
+        catch (error) {
+            console.error("Command error:" + error);
+        }
+    }));
+});
