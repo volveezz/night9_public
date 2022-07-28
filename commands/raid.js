@@ -731,19 +731,36 @@ exports.default = {
                 }, { where: { id: raidData.id }, transaction: t });
             }
             if (newRaidLeader) {
-                embedChanges.push({
-                    raidLeader: newRaidLeader,
-                });
-                changesForChannel.push({
-                    name: "Создатель рейда",
-                    value: raidData.creator === interaction.user.id
-                        ? `${interaction.user.username} передал права создателя рейда ${newRaidLeader.username}`
-                        : `Права создателя были переданы ${newRaidLeader.username}`,
-                });
-                changes.push(`Создатель рейда был изменен`);
-                yield sequelize_1.raids.update({
-                    creator: newRaidLeader.id,
-                }, { where: { id: raidData.id }, transaction: t });
+                if (!newRaidLeader.bot) {
+                    guild.channels.cache.get(raidData.chnId).edit({
+                        permissionOverwrites: [
+                            {
+                                deny: "ManageMessages",
+                                id: raidData.creator,
+                            },
+                            {
+                                allow: "ManageMessages",
+                                id: newRaidLeader.id,
+                            },
+                        ],
+                    });
+                    embedChanges.push({
+                        raidLeader: newRaidLeader,
+                    });
+                    changesForChannel.push({
+                        name: "Создатель рейда",
+                        value: raidData.creator === interaction.user.id
+                            ? `${interaction.user.username} передал права создателя рейда ${newRaidLeader.username}`
+                            : `Права создателя были переданы ${newRaidLeader.username}`,
+                    });
+                    changes.push(`Создатель рейда был изменен`);
+                    yield sequelize_1.raids.update({
+                        creator: newRaidLeader.id,
+                    }, { where: { id: raidData.id }, transaction: t });
+                }
+                else {
+                    changes.push(`Создатель рейда не был изменен - нельзя назначить бота создателем`);
+                }
             }
             const raidEmbed = discord_js_1.EmbedBuilder.from(yield embed());
             embedChanges.forEach((change) => __awaiter(void 0, void 0, void 0, function* () {
