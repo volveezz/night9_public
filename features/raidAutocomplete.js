@@ -14,8 +14,7 @@ const sequelize_1 = require("../handlers/sequelize");
 exports.default = (client) => {
     client.on("interactionCreate", (interaction) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
-        if (interaction.type === discord_js_1.InteractionType.ApplicationCommandAutocomplete &&
-            interaction.commandName === "рейд") {
+        if (interaction.type === discord_js_1.InteractionType.ApplicationCommandAutocomplete && interaction.commandName === "рейд") {
             if ((_a = interaction.memberPermissions) === null || _a === void 0 ? void 0 : _a.has("Administrator")) {
                 const raidData = yield sequelize_1.raids.findAll({
                     attributes: ["id", "raid"],

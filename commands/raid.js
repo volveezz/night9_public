@@ -9,111 +9,91 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.raidMsgUpdate = exports.timerConverter = void 0;
 const discord_js_1 = require("discord.js");
 const colors_1 = require("../base/colors");
 const ids_1 = require("../base/ids");
 const roles_1 = require("../base/roles");
 const sequelize_1 = require("../handlers/sequelize");
 function timerConverter(time, data) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        const args = time.split(" ");
-        const error = {
-            name: "Ошибка времени",
-            message: 'Время должно быть указано в формате (без ""): "ДЕНЬ/МЕСЯЦ ЧАС:МИНУТА"\nПробел обязателен если указывается и дата, и время. Знак / и : также обязательны.',
-        };
-        if (args.length === 0 ||
-            (args.length === 1 && ((_a = args[0]) === null || _a === void 0 ? void 0 : _a.split(":").length) === 0) ||
-            args.length >= 3 ||
-            (args.length === 2 &&
-                ((_b = args[0]) === null || _b === void 0 ? void 0 : _b.split(":").length) === 0 &&
-                ((_c = args[1]) === null || _c === void 0 ? void 0 : _c.split(":").length) === 0 &&
-                args.length === 2 &&
-                ((_d = args[0]) === null || _d === void 0 ? void 0 : _d.split("/").length) === 0 &&
-                ((_e = args[1]) === null || _e === void 0 ? void 0 : _e.split("/").length) === 0)) {
-            throw { error };
-        }
+        const args = time.replace(/\s+/g, " ").trim().split(" ");
         const date = new Date();
-        if (((_f = args[0]) === null || _f === void 0 ? void 0 : _f.split(":").length) === 2 && ((_g = args[1]) === null || _g === void 0 ? void 0 : _g.split("/").length) === 2) {
-            var hhmm = args[0];
-            var ddmm = args[1];
+        function timeSpliter(args) {
+            var _a, _b, _c, _d, _e;
+            if (((_a = args[0]) === null || _a === void 0 ? void 0 : _a.split(":").length) === 2 && ((_b = args[1]) === null || _b === void 0 ? void 0 : _b.split("/").length) === 2) {
+                var hhmm = args[0];
+                var ddmm = args[1];
+                return { hhmm, ddmm };
+            }
+            else if (((_c = args[1]) === null || _c === void 0 ? void 0 : _c.split(":").length) === 2 && ((_d = args[0]) === null || _d === void 0 ? void 0 : _d.split("/").length) === 2) {
+                var hhmm = args[1];
+                var ddmm = args[0];
+                return { hhmm, ddmm };
+            }
+            else if (args.length === 1 && ((_e = args[0]) === null || _e === void 0 ? void 0 : _e.split(":").length) === 2) {
+                var hhmm = args[0];
+                var ddmm = `${date.getDate() + `/` + (date.getMonth() + 1)}`;
+                return { hhmm, ddmm };
+            }
+            else {
+                return {};
+            }
         }
-        else if (((_h = args[1]) === null || _h === void 0 ? void 0 : _h.split(":").length) === 2 &&
-            ((_j = args[0]) === null || _j === void 0 ? void 0 : _j.split("/").length) === 2) {
-            var hhmm = args[1];
-            var ddmm = args[0];
+        const { hhmm, ddmm } = timeSpliter(args);
+        const daymonth = ddmm === null || ddmm === void 0 ? void 0 : ddmm.split("/");
+        const hoursmins = hhmm === null || hhmm === void 0 ? void 0 : hhmm.split(":");
+        if (!daymonth || !hoursmins) {
+            throw {
+                name: "Ошибка времени",
+                message: 'Время должно быть указано в формате (без ""): "ДЕНЬ/МЕСЯЦ ЧАС:МИНУТА"\nПробел обязателен если указывается и дата, и время. Знак / и : также обязательны.',
+                falseAlarm: true,
+            };
         }
-        else if (args.length === 1 && ((_k = args[0]) === null || _k === void 0 ? void 0 : _k.split(":").length) === 2) {
-            var hhmm = args[0];
-            var ddmm = `${date.getDate() + `/` + (date.getMonth() + 1)}`;
-        }
-        else {
-            throw { error };
-        }
-        const daymonth = ddmm.split("/");
-        const hoursmins = hhmm.split(":");
-        date.setHours(date.getTimezoneOffset() === 0
-            ? ((_l = (yield data)) === null || _l === void 0 ? void 0 : _l.tz)
-                ? Number(hoursmins[0]) + ((yield data).tz || 3)
-                : Number(hoursmins[0])
-            : Number(hoursmins[0]), Number(hoursmins[1]), 0, 0);
+        date.setHours(date.getTimezoneOffset() === 0 ? (((_a = (yield data)) === null || _a === void 0 ? void 0 : _a.tz) ? Number(hoursmins[0]) + ((yield data).tz || 3) : Number(hoursmins[0])) : Number(hoursmins[0]), Number(hoursmins[1]), 0, 0);
         date.setMonth(Math.round(Number(daymonth[1]) - 1), Number(daymonth[0]));
         const returnTime = date.getTime() / 1000;
         if (isNaN(returnTime)) {
             throw {
                 name: "Ошибка времени",
-                message: "Проверьте правильность введенного времени",
+                message: `Проверьте правильность введенного времени, дата: ${daymonth.toString()}, время: ${hoursmins.toString()}`,
                 falseAlarm: true,
             };
         }
         return returnTime;
     });
 }
+exports.timerConverter = timerConverter;
 function raidDataFetcher(raid, difficulty) {
     switch (raid) {
         case "kf":
             return {
                 raid: raid,
-                raidName: difficulty === 3
-                    ? "King's Fall: Day One"
-                    : difficulty === 2
-                        ? "King's Fall: Master"
-                        : "King's Fall",
+                raidName: difficulty === 3 ? "King's Fall: Day One" : difficulty === 2 ? "King's Fall: Master" : "King's Fall",
                 maxDifficulty: 3,
                 raidBanner: "https://www.bungie.net/img/theme/destiny/bgs/pgcrs/kings_fall.jpg",
-                raidColor: difficulty === 3
-                    ? "#FF7600"
-                    : difficulty === 2
-                        ? "#FF063A"
-                        : "#565656",
+                raidColor: difficulty === 3 ? "#FF7600" : difficulty === 2 ? "#FF063A" : "#565656",
                 channelName: "-kings-fall",
                 requiredRole: null,
             };
         case "votd":
             return {
                 raid: raid,
-                raidName: difficulty === 2
-                    ? "Клятва послушника: Мастер"
-                    : "Клятва послушника",
+                raidName: difficulty === 2 ? "Клятва послушника: Мастер" : "Клятва послушника",
                 maxDifficulty: 2,
                 raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/raid_nemesis.jpg",
-                raidColor: difficulty === 2
-                    ? "#FF063A"
-                    : "#52E787",
+                raidColor: difficulty === 2 ? "#FF063A" : "#52E787",
                 channelName: "-клятва-послушника",
                 requiredRole: roles_1.roles.dlcs.twq,
             };
         case "vog":
             return {
                 raid: raid,
-                raidName: difficulty === 2
-                    ? "Хрустальный чертог: Мастер"
-                    : "Хрустальный чертог",
+                raidName: difficulty === 2 ? "Хрустальный чертог: Мастер" : "Хрустальный чертог",
                 maxDifficulty: 2,
                 raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/vault_of_glass.jpg",
-                raidColor: difficulty === 2
-                    ? "#FF063A"
-                    : "#52E787",
+                raidColor: difficulty === 2 ? "#FF063A" : "#52E787",
                 channelName: "-хрустальный-чертог",
                 requiredRole: null,
             };
@@ -149,6 +129,130 @@ function raidDataFetcher(raid, difficulty) {
             };
     }
 }
+function getRaid(raidId, interaction) {
+    var _a, _b, _c;
+    return __awaiter(this, void 0, void 0, function* () {
+        if (raidId === null) {
+            const raidData = yield sequelize_1.raids.findAll({
+                where: { creator: interaction.user.id },
+                attributes: ["id", "chnId", "msgId", "creator", "raid", "joined", "hotJoined", "alt"],
+            });
+            if (!raidData || !raidData[0] || !((_a = raidData[0]) === null || _a === void 0 ? void 0 : _a.creator)) {
+                throw { name: `У вас нет ни одного рейда, создателем которого вы являетесь`, falseAlarm: true };
+            }
+            else if (raidData[1] !== undefined) {
+                throw {
+                    name: "Ошибка. Укажите Id рейда для удаления",
+                    message: `Id рейдов доступные вам для удаления: ${raidData
+                        .map((raidData) => raidData.id)
+                        .join(", ")
+                        .toString()}`,
+                    falseAlarm: true,
+                };
+            }
+            else {
+                if (raidData[0].creator !== interaction.user.id && !((_b = interaction.memberPermissions) === null || _b === void 0 ? void 0 : _b.has("Administrator"))) {
+                    throw {
+                        name: "Недостаточно прав",
+                        message: `Управление рейдом ${raidId} доступно лишь ${interaction.guild.members.cache.get(raidData[0].creator).displayName}`,
+                        falseAlarm: true,
+                    };
+                }
+                else {
+                    return raidData[0];
+                }
+            }
+        }
+        else {
+            const raidData = yield sequelize_1.raids.findOne({
+                where: { id: raidId },
+                attributes: ["id", "chnId", "msgId", "creator", "raid", "joined", "hotJoined", "alt"],
+            });
+            if (raidData === null || !(raidData === null || raidData === void 0 ? void 0 : raidData.creator)) {
+                throw { name: `Рейд ${raidId} не найден`, falseAlarm: true };
+            }
+            else {
+                if (raidData.creator !== interaction.user.id && !((_c = interaction.memberPermissions) === null || _c === void 0 ? void 0 : _c.has("Administrator"))) {
+                    throw {
+                        name: "Недостаточно прав",
+                        message: `Управление рейдом ${raidId} доступно лишь ${interaction.guild.members.cache.get(raidData.creator).displayName}`,
+                        falseAlarm: true,
+                    };
+                }
+                else {
+                    return raidData;
+                }
+            }
+        }
+    });
+}
+function raidMsgUpdate(raidData, guild) {
+    return __awaiter(this, void 0, void 0, function* () {
+        guild.channels
+            .fetch(ids_1.ids.raidChn)
+            .then((chn) => __awaiter(this, void 0, void 0, function* () {
+            var _a, _b, _c, _d;
+            if ((chn === null || chn === void 0 ? void 0 : chn.type) === discord_js_1.ChannelType.GuildText) {
+                const msg = yield chn.messages.fetch(raidData.msgId);
+                const embed = discord_js_1.EmbedBuilder.from(msg.embeds[0]);
+                const joined = raidData.joined && raidData.joined.length >= 1 ? raidData.joined.map((data) => `<@${data}>`).join(", ") : "Никого";
+                const hotJoined = raidData.hotJoined && raidData.hotJoined.length >= 1 ? raidData.hotJoined.map((data) => `<@${data}>`).join(", ") : "Никого";
+                const alt = raidData.alt && raidData.alt.length >= 1 ? raidData.alt.map((data) => `<@${data}>`).join(", ") : "Никого";
+                if (((_a = raidData.joined) === null || _a === void 0 ? void 0 : _a.length) && raidData.joined.length == 6) {
+                    embed.setColor(null);
+                }
+                else if (embed.data.color === undefined) {
+                    embed.setColor(raidDataFetcher(raidData.raid, raidData.difficulty).raidColor);
+                }
+                const findK = (k) => {
+                    var _a;
+                    const index = (_a = embed.data.fields) === null || _a === void 0 ? void 0 : _a.findIndex((d) => d.name.startsWith(k));
+                    if (index === -1) {
+                        if (k === "Участники")
+                            return 2;
+                        if (k === "Замена")
+                            return 3;
+                        if (k === "Возможно")
+                            return 4;
+                    }
+                    else {
+                        return index;
+                    }
+                };
+                if (((_b = raidData.joined) === null || _b === void 0 ? void 0 : _b.length) && raidData.joined.length >= 1) {
+                    embed.spliceFields(findK("Участники") || 2, findK("Участники") !== -1 ? 1 : 0, {
+                        name: `Участники: ${raidData.joined.length}/6`,
+                        value: joined,
+                    });
+                }
+                else {
+                    embed.spliceFields(findK("Участники") || 2, findK("Участники") !== -1 ? 1 : 0);
+                }
+                if (((_c = raidData.hotJoined) === null || _c === void 0 ? void 0 : _c.length) && raidData.hotJoined.length >= 1) {
+                    embed.spliceFields(findK("Замена") || 3, findK("Замена") !== -1 ? 1 : 0, { name: `Замена: ${raidData.hotJoined.length}`, value: hotJoined });
+                }
+                else {
+                    embed.spliceFields(findK("Замена") || 3, findK("Замена") !== -1 ? 1 : 0);
+                }
+                if (((_d = raidData.alt) === null || _d === void 0 ? void 0 : _d.length) && raidData.alt.length >= 1) {
+                    embed.spliceFields(findK("Возможно") || 4, findK("Возможно") !== -1 ? 1 : 0, {
+                        name: `Возможно буд${raidData.alt.length === 1 ? "ет" : "ут"}: ${raidData.alt.length}`,
+                        value: alt,
+                    });
+                }
+                else {
+                    embed.spliceFields(findK("Возможно") || 4, findK("Возможно") !== -1 ? 1 : 0);
+                }
+                yield msg.edit({ embeds: [embed] });
+            }
+        }))
+            .catch((e) => {
+            console.error(e);
+            console.error(`raidMsgUpdate during chn fetch`, raidData.id, guild.id, guild.available);
+        });
+    });
+}
+exports.raidMsgUpdate = raidMsgUpdate;
 exports.default = {
     name: "рейд",
     description: "Создание и управление наборами на рейды",
@@ -331,6 +435,11 @@ exports.default = {
                     required: true,
                 },
                 {
+                    type: discord_js_1.ApplicationCommandOptionType.Boolean,
+                    name: "альтернатива",
+                    description: "Укажите группу добавляемого участника",
+                },
+                {
                     type: discord_js_1.ApplicationCommandOptionType.Integer,
                     min_value: 1,
                     max_value: 100,
@@ -378,7 +487,7 @@ exports.default = {
         },
     ],
     callback: (_client, interaction, member, guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
         yield interaction.deferReply({ ephemeral: true });
         const { options } = interaction;
         const subCommand = options.getSubcommand(true);
@@ -428,22 +537,11 @@ exports.default = {
                 });
             }
             const mainComponents = [
-                new discord_js_1.ButtonBuilder()
-                    .setCustomId("raid_btn_join")
-                    .setLabel("Записаться")
-                    .setStyle(discord_js_1.ButtonStyle.Success),
-                new discord_js_1.ButtonBuilder()
-                    .setCustomId("raid_btn_leave")
-                    .setLabel("Выйти")
-                    .setStyle(discord_js_1.ButtonStyle.Danger),
-                new discord_js_1.ButtonBuilder()
-                    .setCustomId("raid_btn_alt")
-                    .setLabel("Возможно буду")
-                    .setStyle(discord_js_1.ButtonStyle.Secondary),
+                new discord_js_1.ButtonBuilder().setCustomId("raid_btn_join").setLabel("Записаться").setStyle(discord_js_1.ButtonStyle.Success),
+                new discord_js_1.ButtonBuilder().setCustomId("raid_btn_leave").setLabel("Выйти").setStyle(discord_js_1.ButtonStyle.Danger),
+                new discord_js_1.ButtonBuilder().setCustomId("raid_btn_alt").setLabel("Возможно буду").setStyle(discord_js_1.ButtonStyle.Secondary),
             ];
-            const content = `Открыт набор в рейд: ${raidData.raidName} ${raidData.requiredRole !== null
-                ? `<@&${raidData.requiredRole}>`
-                : member.guild.roles.everyone}`;
+            const content = `Открыт набор в рейд: ${raidData.raidName} ${raidData.requiredRole !== null ? `<@&${raidData.requiredRole}>` : member.guild.roles.everyone}`;
             const raidChannel = yield member.guild.channels.fetch(ids_1.ids.raidChn);
             if ((raidChannel === null || raidChannel === void 0 ? void 0 : raidChannel.type) === discord_js_1.ChannelType.GuildText) {
                 const msg = raidChannel.send({
@@ -474,28 +572,12 @@ exports.default = {
                     reason: `New raid by ${member.displayName}`,
                 })
                     .then((chn) => __awaiter(void 0, void 0, void 0, function* () {
-                    const premiumEmbed = new discord_js_1.EmbedBuilder()
-                        .setColor("#F3AD0C")
-                        .addFields([
-                        { name: "Испытание этой недели", value: `TBD` },
-                    ]);
+                    const premiumEmbed = new discord_js_1.EmbedBuilder().setColor("#F3AD0C").addFields([{ name: "Испытание этой недели", value: `TBD` }]);
                     const components = [
-                        new discord_js_1.ButtonBuilder()
-                            .setCustomId("raid_btn_notify")
-                            .setLabel("Оповестить участников")
-                            .setStyle(discord_js_1.ButtonStyle.Secondary),
-                        new discord_js_1.ButtonBuilder()
-                            .setCustomId("raid_btn_transfer")
-                            .setLabel("Переместить участников в рейд-войс")
-                            .setStyle(discord_js_1.ButtonStyle.Secondary),
-                        new discord_js_1.ButtonBuilder()
-                            .setCustomId("raid_btn_unlock")
-                            .setLabel("Закрыть набор")
-                            .setStyle(discord_js_1.ButtonStyle.Danger),
-                        new discord_js_1.ButtonBuilder()
-                            .setCustomId("raid_btn_delete")
-                            .setLabel("Удалить набор")
-                            .setStyle(discord_js_1.ButtonStyle.Danger),
+                        new discord_js_1.ButtonBuilder().setCustomId("raid_btn_notify").setLabel("Оповестить участников").setStyle(discord_js_1.ButtonStyle.Secondary),
+                        new discord_js_1.ButtonBuilder().setCustomId("raid_btn_transfer").setLabel("Переместить участников в рейд-войс").setStyle(discord_js_1.ButtonStyle.Secondary),
+                        new discord_js_1.ButtonBuilder().setCustomId("raid_btn_unlock").setLabel("Закрыть набор").setStyle(discord_js_1.ButtonStyle.Danger),
+                        new discord_js_1.ButtonBuilder().setCustomId("raid_btn_delete").setLabel("Удалить набор").setStyle(discord_js_1.ButtonStyle.Danger),
                     ];
                     const inChnMsg = chn.send({
                         embeds: [premiumEmbed],
@@ -525,71 +607,11 @@ exports.default = {
             const newDescription = options.getString("новое_описание");
             const newDifficulty = options.getInteger("новая_сложность");
             const newReqClears = options.getInteger("новое_количество_закрытий");
-            function getRaid(raidId) {
-                if (raidId === null) {
-                    return sequelize_1.raids.findAll({
-                        where: { creator: interaction.user.id },
-                        attributes: [
-                            "id",
-                            "chnId",
-                            "msgId",
-                            "creator",
-                            "time",
-                            "raid",
-                            "reqClears",
-                            "difficulty",
-                        ],
-                    });
-                }
-                else {
-                    return sequelize_1.raids.findOne({
-                        where: { id: raidId },
-                        attributes: [
-                            "id",
-                            "chnId",
-                            "msgId",
-                            "creator",
-                            "time",
-                            "raid",
-                            "reqClears",
-                            "difficulty",
-                        ],
-                    });
-                }
-            }
-            var raidData = yield getRaid(raidId);
-            if (raidData === null ||
-                (raidData instanceof Array && raidData.length === 0)) {
+            var raidData = yield getRaid(raidId, interaction);
+            if (raidData === null || (raidData instanceof Array && raidData.length === 0)) {
                 throw {
                     name: "Ошибка. Рейд не найден",
                 };
-            }
-            if (raidData instanceof sequelize_1.raids) {
-                if (raidData.creator !== interaction.user.id &&
-                    !member.permissions.has("Administrator")) {
-                    throw {
-                        name: "Ошибка доступа",
-                        message: "Для изменения рейдов необходимо быть их создателем",
-                        userId: interaction.user.id,
-                        commandName: interaction.commandName,
-                    };
-                }
-            }
-            if (raidData instanceof Array) {
-                if (raidData.length > 1) {
-                    const raidIds = [];
-                    raidData.forEach((raidData) => {
-                        raidIds.push(`[${raidData.id}](https://discord.com/channels/${interaction.guildId}/${ids_1.ids.raidChn}/${raidData.msgId})`);
-                    });
-                    throw {
-                        name: "Ошибка. Укажите Id рейда для изменения",
-                        message: `Id рейдов доступные вам для изменения: ${raidIds
-                            .join(`, `)
-                            .toString()}`,
-                        falseAlarm: true,
-                    };
-                }
-                raidData = raidData[0];
             }
             const raidInfo = raidDataFetcher(newRaid || raidData.raid, newDifficulty || raidData.difficulty);
             const time = raidData.time;
@@ -613,9 +635,7 @@ exports.default = {
             });
             const t = yield sequelize_1.db.transaction();
             const changesForChannel = [];
-            if (newRaid !== null ||
-                newDifficulty !== null ||
-                newReqClears !== null) {
+            if (newRaid !== null || newDifficulty !== null || newReqClears !== null) {
                 changes.push(`Рейд был измнен`);
                 newRaid
                     ? changesForChannel.push({
@@ -637,23 +657,14 @@ exports.default = {
                 newDifficulty && newDifficulty <= raidInfo.maxDifficulty
                     ? changesForChannel.push({
                         name: "Сложность рейда",
-                        value: `Сложность рейда была изменена - \`${newDifficulty === 3
-                            ? "Day One"
-                            : newDifficulty === 2
-                                ? "Мастер"
-                                : newDifficulty === 1
-                                    ? "Легенда"
-                                    : "*неизвестная сложность*"}\``,
+                        value: `Сложность рейда была изменена - \`${newDifficulty === 3 ? "Day One" : newDifficulty === 2 ? "Мастер" : newDifficulty === 1 ? "Легенда" : "*неизвестная сложность*"}\``,
                     })
                     : "";
                 embedChanges.push({
                     color: raidInfo.raidColor,
                 }, {
-                    title: newReqClears !== null ||
-                        reqClears >= 1 ||
-                        newDifficulty !== null
-                        ? `Рейд: ${raidInfo.raidName}${(newReqClears !== null && newReqClears === 0) ||
-                            (newReqClears === null && reqClears === 0)
+                    title: newReqClears !== null || reqClears >= 1 || newDifficulty !== null
+                        ? `Рейд: ${raidInfo.raidName}${(newReqClears !== null && newReqClears === 0) || (newReqClears === null && reqClears === 0)
                             ? ""
                             : newReqClears !== null
                                 ? ` от ${newReqClears} закрытий`
@@ -670,13 +681,9 @@ exports.default = {
                         transaction: t,
                     });
                 }
-                if ((newDifficulty !== null &&
-                    raidInfo.maxDifficulty >= newDifficulty) ||
-                    newRaid !== null) {
+                if ((newDifficulty !== null && raidInfo.maxDifficulty >= newDifficulty) || newRaid !== null) {
                     yield sequelize_1.raids.update({
-                        difficulty: newDifficulty && raidInfo.maxDifficulty >= newDifficulty
-                            ? newDifficulty
-                            : 1,
+                        difficulty: newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : 1,
                     }, {
                         where: { id: raidData.id },
                         transaction: t,
@@ -764,7 +771,7 @@ exports.default = {
             }
             const raidEmbed = discord_js_1.EmbedBuilder.from(yield embed());
             embedChanges.forEach((change) => __awaiter(void 0, void 0, void 0, function* () {
-                var _c, _d, _e;
+                var _r, _s, _t;
                 if (change.color) {
                     raidEmbed.setColor(change.color);
                 }
@@ -780,10 +787,9 @@ exports.default = {
                         value: change.description,
                     };
                     var checker = false;
-                    (_c = raidEmbed.data.fields) === null || _c === void 0 ? void 0 : _c.map((k, v) => {
+                    (_r = raidEmbed.data.fields) === null || _r === void 0 ? void 0 : _r.map((k, v) => {
                         if (k.name === "Описание") {
-                            if (change.description !== " " &&
-                                change.description !== "-") {
+                            if (change.description !== " " && change.description !== "-") {
                                 raidEmbed.spliceFields(v, 1, field);
                                 checker = true;
                             }
@@ -800,7 +806,7 @@ exports.default = {
                 if (change.raidLeader) {
                     raidEmbed.setFooter({
                         text: `Создатель рейда: ${change.raidLeader.username}`,
-                        iconURL: (_d = raidEmbed.data.footer) === null || _d === void 0 ? void 0 : _d.icon_url,
+                        iconURL: (_s = raidEmbed.data.footer) === null || _s === void 0 ? void 0 : _s.icon_url,
                     });
                 }
                 if (change.time) {
@@ -809,7 +815,7 @@ exports.default = {
                         value: `<t:${change.time}>`,
                         inline: true,
                     };
-                    (_e = raidEmbed.data.fields) === null || _e === void 0 ? void 0 : _e.map((k, v) => {
+                    (_t = raidEmbed.data.fields) === null || _t === void 0 ? void 0 : _t.map((k, v) => {
                         if (k.name.startsWith("Начало")) {
                             raidEmbed.spliceFields(v, 1, field);
                         }
@@ -841,9 +847,7 @@ exports.default = {
                     .setColor(colors_1.colors.default)
                     .setTimestamp()
                     .setFooter({
-                    text: `Изменение ${raidData.creator === interaction.user.id
-                        ? "создателем рейда"
-                        : "Администратором"}`,
+                    text: `Изменение ${raidData.creator === interaction.user.id ? "создателем рейда" : "Администратором"}`,
                 });
                 changesForChannel.forEach((chng) => {
                     editedEmbedReplyInChn.addFields(chng);
@@ -857,72 +861,176 @@ exports.default = {
             }
             else {
                 t.rollback();
-                const replyEmbed = new discord_js_1.EmbedBuilder()
-                    .setColor("DarkRed")
-                    .setTitle("Никакие из параметров не были введены");
+                const replyEmbed = new discord_js_1.EmbedBuilder().setColor("DarkRed").setTitle("Никакие из параметров не были введены");
                 interaction.editReply({ embeds: [replyEmbed] });
             }
         }
         else if (subCommand === "удалить") {
             const raidId = options.getInteger("id_рейда");
-            function getRaid(raidId) {
-                return __awaiter(this, void 0, void 0, function* () {
-                    if (raidId === null) {
-                        const raidData = yield sequelize_1.raids.findAll({
-                            where: { creator: interaction.user.id },
-                            attributes: ["id", "chnId", "msgId", "creator"],
+            const raidData = yield getRaid(raidId, interaction);
+            yield sequelize_1.raids
+                .destroy({ where: { id: raidData.id } })
+                .then(() => __awaiter(void 0, void 0, void 0, function* () {
+                var _u;
+                try {
+                    yield ((_u = guild.channels.cache.get(raidData.chnId)) === null || _u === void 0 ? void 0 : _u.delete(`${interaction.user.username} удалил рейд`));
+                }
+                catch (e) {
+                    console.error(`Channel during raid manual delete for raidId ${raidData.id} wasn't found`);
+                    e.code !== 10008 ? console.error(e) : "";
+                }
+                try {
+                    yield guild.channels.fetch(ids_1.ids.raidChn).then((chn) => __awaiter(void 0, void 0, void 0, function* () {
+                        if (chn && chn.type === discord_js_1.ChannelType.GuildText) {
+                            (yield chn.messages.fetch(raidData.msgId)).delete();
+                        }
+                    }));
+                }
+                catch (e) {
+                    console.error(`Message during raid manual delete for raidId ${raidData.id} wasn't found`);
+                    e.code !== 10008 ? console.error(e) : "";
+                }
+                const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTitle(`Рейд ${raidData.id}-${raidData.raid} был удален`);
+                interaction.editReply({ embeds: [embed] });
+            }))
+                .catch((e) => console.log(`/raid delete error`, e.code));
+        }
+        else if (subCommand === "добавить") {
+            const addedUser = options.getUser("участник", true);
+            const raidId = options.getInteger("id_рейда");
+            const isAlt = options.getBoolean("альтернатива");
+            const raidData = yield getRaid(raidId, interaction);
+            if (isAlt === true) {
+                if (!((_c = raidData.alt) === null || _c === void 0 ? void 0 : _c.includes(addedUser.id))) {
+                    if ((_d = raidData.joined) === null || _d === void 0 ? void 0 : _d.includes(addedUser.id)) {
+                        raidData.joined.splice(raidData.joined.indexOf(addedUser.id), 1);
+                    }
+                    if ((_e = raidData.hotJoined) === null || _e === void 0 ? void 0 : _e.includes(addedUser.id)) {
+                        raidData.hotJoined.splice(raidData.hotJoined.indexOf(addedUser.id), 1);
+                    }
+                    raidData.alt.push(addedUser.id);
+                    guild.channels.fetch(raidData.chnId).then((chn) => {
+                        if (!chn)
+                            throw { name: "Критическая ошибка", userId: interaction.user.id, commandName: interaction.commandName, raidId: raidData.id };
+                        chn.edit({
+                            permissionOverwrites: [
+                                {
+                                    allow: "ViewChannel",
+                                    id: addedUser.id,
+                                },
+                            ],
                         });
-                        if (raidData[1] === undefined) {
+                    });
+                    yield sequelize_1.raids.update({
+                        joined: `{${raidData.joined}}`,
+                        hotJoined: `{${raidData.hotJoined}}`,
+                        alt: `{${raidData.alt}}`,
+                    }, {
+                        where: { id: raidData.id },
+                    });
+                    yield raidMsgUpdate(raidData, interaction.guild);
+                    const embed = new discord_js_1.EmbedBuilder()
+                        .setColor("Green")
+                        .setTitle(`${addedUser.username} был записан как возможный участник на ${raidData.id}-${raidData.raid}`);
+                    interaction.editReply({ embeds: [embed] });
+                }
+                else {
+                    throw {
+                        name: "Ошибка",
+                        message: "Пользователь уже находится в возможных участниках",
+                        falseAlarm: true,
+                    };
+                }
+            }
+            else {
+                if (!((_f = raidData.joined) === null || _f === void 0 ? void 0 : _f.includes(addedUser.id))) {
+                    if (((_g = raidData.joined) === null || _g === void 0 ? void 0 : _g.length) === 6) {
+                        if ((_h = raidData.hotJoined) === null || _h === void 0 ? void 0 : _h.includes(addedUser.id)) {
                             throw {
-                                name: "Ошибка. Укажите Id рейда для удаления",
-                                message: `Id рейдов доступные вам для удаления: ${raidData
-                                    .map((raidData) => raidData.id)
-                                    .join(", ")
-                                    .toString()}`,
+                                name: "Ошибка",
+                                message: `Набор ${raidData.id}-${raidData.raid} полон, а ${addedUser.username} уже добавлен в запас`,
                                 falseAlarm: true,
                             };
                         }
-                        else {
-                            return raidData[0];
-                        }
+                        (_j = raidData.hotJoined) === null || _j === void 0 ? void 0 : _j.push(addedUser.id);
                     }
                     else {
-                        const raidData = yield sequelize_1.raids.findOne({
-                            where: { id: raidId },
-                            attributes: ["id", "chnId", "msgId", "creator"],
+                        (_k = raidData.joined) === null || _k === void 0 ? void 0 : _k.push(addedUser.id);
+                        if ((_l = raidData.hotJoined) === null || _l === void 0 ? void 0 : _l.includes(addedUser.id)) {
+                            raidData.hotJoined.splice(raidData.hotJoined.indexOf(addedUser.id), 1);
+                        }
+                    }
+                    if ((_m = raidData.alt) === null || _m === void 0 ? void 0 : _m.includes(addedUser.id)) {
+                        raidData.alt.splice(raidData.alt.indexOf(addedUser.id), 1);
+                    }
+                    guild.channels.fetch(raidData.chnId).then((chn) => {
+                        if (!chn)
+                            throw { name: "Критическая ошибка", userId: interaction.user.id, commandName: interaction.commandName, raidId: raidData.id };
+                        chn.permissionOverwrites.create(addedUser.id, {
+                            ViewChannel: true,
                         });
-                        if (raidData === null) {
-                            throw { name: `Рейд ${raidId} не найден`, falseAlarm: true };
-                        }
-                        else {
-                            return raidData;
-                        }
-                    }
-                });
+                    });
+                    yield sequelize_1.raids.update({
+                        joined: `{${raidData.joined}}`,
+                        hotJoined: `{${raidData.hotJoined}}`,
+                        alt: `{${raidData.alt}}`,
+                    }, {
+                        where: { id: raidData.id },
+                    });
+                    yield raidMsgUpdate(raidData, interaction.guild);
+                    const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTitle(`${addedUser.username} был записан на ${raidData.id}-${raidData.raid}`);
+                    interaction.editReply({ embeds: [embed] });
+                }
+                else {
+                    throw {
+                        name: "Пользователь уже записан как участник",
+                        falseAlarm: true,
+                    };
+                }
             }
-            const raidData = yield getRaid(raidId);
-            if (raidData.creator !== interaction.user.id &&
-                !interaction.memberPermissions.has("Administrator")) {
-                throw {
-                    name: "Недостаточно прав для удаления набора",
-                    message: `Удаление набора ${raidId} доступно лишь ${guild.members.cache.get(raidData.creator).displayName}`,
-                    falseAlarm: true,
-                };
+        }
+        else if (subCommand === "исключить") {
+            const kickableUser = options.getUser("участник", true);
+            const raidId = options.getInteger("id_рейда");
+            const raidData = yield getRaid(raidId, interaction);
+            const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTitle("Пользователь исключен"), inChnEmbed = new discord_js_1.EmbedBuilder()
+                .setColor(colors_1.colors.default)
+                .setTitle("Пользователь был исключен с рейда")
+                .setTimestamp()
+                .setFooter({ text: `Исключитель: ${raidData.creator === interaction.user.id ? "Создатель рейда" : "Администратор"}` });
+            if (raidData.creator === kickableUser.id) {
+                throw { name: "Ошибка", message: "Вы не можете исключить с рейда сами себя\nДля выхода с рейда нажмите на соответствующую кнопку" };
             }
-            yield sequelize_1.raids.destroy({ where: { id: raidData.id } }).then(() => __awaiter(void 0, void 0, void 0, function* () {
-                var _f;
-                yield ((_f = guild.channels.cache
-                    .get(raidData.chnId)) === null || _f === void 0 ? void 0 : _f.delete(`${interaction.user.username} удалил рейд`));
-                yield guild.channels.fetch(ids_1.ids.raidChn).then((chn) => __awaiter(void 0, void 0, void 0, function* () {
-                    if (chn && chn.type === discord_js_1.ChannelType.GuildText) {
-                        (yield chn.messages.fetch(raidData.msgId)).delete();
-                    }
-                }));
-                const embed = new discord_js_1.EmbedBuilder()
-                    .setColor("Green")
-                    .setTitle(`Рейд ${raidData.id}-${raidData.raid} был удален`);
-                interaction.editReply({ embeds: [embed] });
-            }));
+            if ((_o = raidData.joined) === null || _o === void 0 ? void 0 : _o.includes(kickableUser.id)) {
+                raidData.joined.splice(raidData.joined.indexOf(kickableUser.id), 1);
+                inChnEmbed.setDescription(`${kickableUser.username} исключен будучи участником рейда`);
+            }
+            if ((_p = raidData.alt) === null || _p === void 0 ? void 0 : _p.includes(kickableUser.id)) {
+                raidData.alt.splice(raidData.alt.indexOf(kickableUser.id), 1);
+                inChnEmbed.setDescription(`${kickableUser.username} исключен будучи возможным участником рейда`);
+            }
+            if ((_q = raidData.hotJoined) === null || _q === void 0 ? void 0 : _q.includes(kickableUser.id)) {
+                raidData.hotJoined.splice(raidData.hotJoined.indexOf(kickableUser.id), 1);
+                inChnEmbed.setDescription(`${kickableUser.username} исключен будучи заменой участников рейда`);
+            }
+            yield raidMsgUpdate(raidData, interaction.guild);
+            yield sequelize_1.raids.update({
+                joined: `{${raidData.joined}}`,
+                hotJoined: `{${raidData.hotJoined}}`,
+                alt: `{${raidData.alt}}`,
+            }, {
+                where: { id: raidData.id },
+            });
+            yield interaction.guild.channels.fetch(raidData.chnId).then((chn) => {
+                if (chn && chn.type === discord_js_1.ChannelType.GuildText) {
+                    chn.send({ embeds: [inChnEmbed] });
+                }
+                else {
+                    throw { name: "Критическая ошибка", message: "Произошла критическая ошибка во время отправки сообщения в канал", userId: interaction.user.id };
+                }
+            });
+            embed.setDescription(`${kickableUser.username} был исключен с рейда ${raidData.id}-${raidData.raid}`);
+            interaction.editReply({ embeds: [embed] });
         }
     }),
 };

@@ -25,37 +25,29 @@ exports.default = (client, commandDir) => __awaiter(void 0, void 0, void 0, func
     yield new Promise((res) => setTimeout(res, 1000));
     for (const command of files) {
         const { default: commandFile } = require(`../commands/${command}`);
-        const { name: commandName, description: commandDescription, global, options, defaultMemberPermissions, type, nameLocalizations, } = commandFile;
+        const { name: commandName, description: commandDescription, global, options, defaultMemberPermissions, type, nameLocalizations } = commandFile;
         commands[commandName.toLowerCase()] = commandFile;
     }
     client.on("interactionCreate", (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-        if ((!interaction.isChatInputCommand() &&
-            !interaction.isUserContextMenuCommand() &&
-            !interaction.isMessageContextMenuCommand()) ||
+        if ((!interaction.isChatInputCommand() && !interaction.isUserContextMenuCommand() && !interaction.isMessageContextMenuCommand()) ||
             interaction.channel === null)
             return;
         const { commandName } = interaction;
-        const guild = interaction.guild ||
-            client.guilds.cache.get(ids_1.guildId) ||
-            (yield client.guilds.fetch(ids_1.guildId));
-        const member = interaction.member ||
-            (guild === null || guild === void 0 ? void 0 : guild.members.cache.get(interaction.user.id)) ||
-            (yield guild.members.fetch(interaction.user.id));
+        const guild = interaction.guild || client.guilds.cache.get(ids_1.guildId) || (yield client.guilds.fetch(ids_1.guildId));
+        const member = interaction.member || (guild === null || guild === void 0 ? void 0 : guild.members.cache.get(interaction.user.id)) || (yield guild.members.fetch(interaction.user.id));
         const channel = interaction.channel;
         if (!commands[commandName])
             return;
         try {
-            commands[commandName]
-                .callback(client, interaction, member, guild, channel)
-                .catch((err) => {
+            commands[commandName].callback(client, interaction, member, guild, channel).catch((err) => {
                 var _a, _b, _c, _d;
                 const embed = new discord_js_1.EmbedBuilder().setColor("Red");
                 if (!err.stack) {
-                    embed.setTitle(err.name);
+                    embed.setTitle(err === null || err === void 0 ? void 0 : err.name);
                     if (err.message)
-                        embed.setDescription(err.message);
+                        embed.setDescription(err === null || err === void 0 ? void 0 : err.message);
                     if (!err.falseAlarm) {
-                        console.error(`Interaction command ${interaction.commandName} error. UserId: ${interaction.user.id}\nReason: ${err.name}`);
+                        console.error(`Interaction command ${interaction.commandName} error. UserId: ${interaction.user.id}\nReason: ${err === null || err === void 0 ? void 0 : err.name}`);
                     }
                 }
                 else {

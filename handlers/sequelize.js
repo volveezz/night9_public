@@ -101,9 +101,12 @@ raids.init({
         allowNull: false,
     },
     creator: { type: sequelize_1.DataTypes.BIGINT, allowNull: false },
-    joined: { type: sequelize_1.DataTypes.BIGINT },
-    hotJoined: { type: sequelize_1.DataTypes.BIGINT },
-    alt: { type: sequelize_1.DataTypes.BIGINT },
+    joined: { type: sequelize_1.DataTypes.BIGINT, defaultValue: "{}" },
+    hotJoined: {
+        type: sequelize_1.DataTypes.BIGINT,
+        defaultValue: "{}",
+    },
+    alt: { type: sequelize_1.DataTypes.BIGINT, defaultValue: "{}" },
     time: { type: sequelize_1.DataTypes.INTEGER, allowNull: false },
     raid: { type: sequelize_1.DataTypes.CHAR },
     reqClears: {
