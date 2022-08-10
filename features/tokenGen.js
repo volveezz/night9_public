@@ -48,7 +48,7 @@ exports.default = () => {
                                 console.error(`[tokenGen error]`, request.toString(), query);
                         });
                     }
-                    yield timer(300);
+                    yield timer(100);
                 }
                 try {
                     yield t.commit();

@@ -68,7 +68,6 @@ exports.init_register = init_register;
 function clan_joinLeave(client, result, join) {
     return __awaiter(this, void 0, void 0, function* () {
         const member = client.guilds.cache.get(ids_1.guildId).members.cache.get(result.discord_id);
-        console.log(result.bungie_id, result.displayname);
         const embed = new discord_js_1.EmbedBuilder().addFields([
             { name: "BungieId", value: result.bungie_id, inline: true },
             { name: "Ник в игре", value: result.displayname, inline: true },
@@ -344,8 +343,7 @@ exports.default = (client) => {
             }
         }
         if (((_a = embed.data.author) === null || _a === void 0 ? void 0 : _a.name) === "guildMemberUpdate") {
-            console.log(oldMember);
-            console.log(newMember);
+            console.log(oldMember.id + ` same as before ` + newMember.id);
         }
         else {
             guildMemberChannel.send({ embeds: [embed] });

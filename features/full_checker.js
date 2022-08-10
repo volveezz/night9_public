@@ -213,7 +213,7 @@ exports.default = (client) => {
                     member.roles.add(give_roles, "+Autorole").catch((e) => {
                         console.error(`Error with givin these roles: ${give_roles}`);
                     });
-                }, remove_roles.length > 0 ? 2000 : 0);
+                }, remove_roles.length > 0 ? 6000 : 0);
             }
             if (remove_roles.length > 0)
                 member.roles.remove(remove_roles, "-Autorole").catch((e) => {
@@ -405,7 +405,7 @@ exports.default = (client) => {
                 };
                 const votd = filter(1441982566);
                 const votdMaster = filter(4217492330);
-                const dsc = filter(910380154);
+                const dsc = filter(910380154) + filter(3976949817);
                 const gos = filter(3458480158) + filter(2497200493) + filter(2659723068) + filter(3845997235);
                 const vog = filter(3881495763);
                 const vogMaster = filter(1681562271) + filter(1485585878);
@@ -418,12 +418,12 @@ exports.default = (client) => {
                         gos >= step.individualClears &&
                         lw >= step.individualClears) {
                         member.roles.add(step.roleId);
-                        setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 2000);
+                        setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 6000);
                         break;
                     }
                     else if (votdMaster + votd + dsc + gos + lw >= step.totalClears) {
                         member.roles.add(step.roleId);
-                        setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 2000);
+                        setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 6000);
                         break;
                     }
                 }
@@ -434,6 +434,7 @@ exports.default = (client) => {
     }
     let kd = 0, raids = 5;
     setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
         kd >= 5 ? (kd = 0) : kd++;
         raids >= 7 ? (raids = 0) : raids++;
         const t = yield sequelize_1.db.transaction();
@@ -450,21 +451,20 @@ exports.default = (client) => {
         }
         if ((db_plain === null || db_plain === void 0 ? void 0 : db_plain.length) === 0)
             return console.error(`[Checker error] DB is empty or missing data`);
-        const bungie_array = db_plain;
-        db_plain.forEach((db_row) => {
-            var _a;
+        for (let i = 0; i < db_plain.length; i++) {
+            const db_row = db_plain[i];
             const member = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(db_row.discord_id);
             role_manager(db_row, member, role_db);
-            console.log(kd, raids);
             kd === 5 ? kdChecker(db_row, member) : [];
             raids === 6 ? raidChecker(db_row, member) : [];
-        });
-        clan(bungie_array);
+            yield timer(555);
+        }
+        clan(db_plain);
     }), 1000 * 59 * 2);
     setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         const data = (yield sequelize_1.auth_data.findAll({
             attributes: ["discord_id", "displayname", "tz"],
-        })).filter((data) => { var _a; return (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.has(data.discord_id); });
+        })).filter((data) => client.guilds.cache.get(ids_1.guildId).members.cache.has(data.discord_id));
         client.guilds.cache
             .get(ids_1.guildId)
             .members.cache.filter((member) => member.roles.cache.has(roles_1.statusRoles.verified))
@@ -472,7 +472,7 @@ exports.default = (client) => {
             var _a, _b, _c;
             const db_name = (_a = data.find((d) => d.discord_id === member.id)) === null || _a === void 0 ? void 0 : _a.displayname;
             if (!db_name) {
-                console.error("[Checker error] No data was found for", member.id);
+                console.error("[Checker error] No data was found for", member.id, db_name);
             }
             else if (member.displayName !== db_name &&
                 !((_b = data.find((d) => d.discord_id === member.id)) === null || _b === void 0 ? void 0 : _b.displayname.startsWith("⁣")) &&
