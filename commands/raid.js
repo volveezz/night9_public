@@ -86,7 +86,7 @@ function raidDataInChnMsg(raidData) {
 }
 exports.raidDataInChnMsg = raidDataInChnMsg;
 function timerConverter(time, data) {
-    var _a, _b;
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const args = time.replace(/\s+/g, " ").trim().split(" ");
         const date = new Date();
@@ -121,8 +121,8 @@ function timerConverter(time, data) {
                 falseAlarm: true,
             };
         }
-        date.setHours(date.getTimezoneOffset() === 0 ? (((_a = (yield data)) === null || _a === void 0 ? void 0 : _a.tz) ? Number(hoursmins[0]) + (((_b = (yield data)) === null || _b === void 0 ? void 0 : _b.tz) || 3) : Number(hoursmins[0])) : Number(hoursmins[0]), Number(hoursmins[1]), 0, 0);
         date.setMonth(Math.round(Number(daymonth[1]) - 1), Number(daymonth[0]));
+        date.setTime(date.getTime() - (((_a = (yield data)) === null || _a === void 0 ? void 0 : _a.tz) || 3) * 60 * 60 * 1000);
         const returnTime = date.getTime() / 1000;
         if (isNaN(returnTime)) {
             throw {
