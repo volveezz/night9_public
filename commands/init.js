@@ -30,7 +30,7 @@ exports.default = {
             throw {
                 name: "Вы уже зарегистрированы",
                 userId: interaction.user.id,
-                command: interaction.commandName,
+                falseAlarm: true,
             };
         }
         const [request, created] = yield sequelize_1.init_data.findOrCreate({
