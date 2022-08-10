@@ -28,39 +28,19 @@ exports.default = {
     ],
     callback: (_client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
         yield interaction.deferReply({ ephemeral: true });
-        var id = "blankId";
-        if (interaction.isChatInputCommand()) {
-            var id = interaction.options.get("id", true).value.toString();
-            id === "me" ? (id = interaction.user.id) : [];
-        }
-        else if (interaction.isUserContextMenuCommand()) {
-            var id = interaction.targetId;
-        }
+        var id = interaction.options.getString("id", true) === "me" ? interaction.user.id : interaction.options.getString("id", true);
         try {
             BigInt(id);
         }
         catch (error) {
-            const embed = new discord_js_1.EmbedBuilder()
-                .setColor("Red")
-                .setTitle(`Проверьте правильность введенного Id`)
-                .setDescription(error.toString());
-            return interaction.editReply({ embeds: [embed] });
+            throw { name: "Ошибка Id", message: error.toString() };
         }
-        const data = yield sequelize_2.auth_data
-            .findOne({
+        const data = yield sequelize_2.auth_data.findOne({
             where: { [sequelize_1.Op.or]: [{ discord_id: id }, { bungie_id: id }] },
             attributes: ["refresh_token"],
-        })
-            .then((auth_data) => {
-            return auth_data === null || auth_data === void 0 ? void 0 : auth_data.toJSON();
         });
         if (!data) {
-            const embed = new discord_js_1.EmbedBuilder()
-                .setColor("Red")
-                .setTitle("Запись в БД отсутствует")
-                .setFooter({ text: `Id: ${id}` })
-                .setTimestamp();
-            return interaction.editReply({ embeds: [embed] });
+            throw { name: "Запись в БД отсутствует", message: `Id: ${id}`, falseAlarm: true };
         }
         try {
             var token = yield (0, request_promise_native_1.post)(`https://www.bungie.net/Platform/App/OAuth/Token/`, {
@@ -76,17 +56,10 @@ exports.default = {
             });
         }
         catch (err) {
-            const embed = new discord_js_1.EmbedBuilder()
-                .setColor("Red")
-                .setTimestamp()
-                .setFooter({ text: `Id: ${id}` })
-                .setTitle(`Error: ${err.error.error}`)
-                .setDescription(`${err.error.error_description || "no description"}`);
-            interaction.editReply({ embeds: [embed] });
-            return console.error(err.error);
+            throw { name: "Request error", message: err.error.error_description || "no description available" };
         }
         if (token) {
-            sequelize_2.auth_data.update({
+            yield sequelize_2.auth_data.update({
                 access_token: token.access_token,
                 refresh_token: token.refresh_token,
             }, {
@@ -102,13 +75,7 @@ exports.default = {
             interaction.editReply({ embeds: [embed] });
         }
         else {
-            const embed = new discord_js_1.EmbedBuilder()
-                .setColor("Red")
-                .setTimestamp()
-                .setFooter({ text: `Id: ${id}` })
-                .setTitle("Произошла ошибка");
-            interaction.editReply({ embeds: [embed] });
-            console.error(`[Auth command error]`, token);
+            throw { name: `${id} not updated`, userId: interaction.user.id };
         }
     }),
 };

@@ -9,12 +9,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.completedRaidsData = void 0;
 const sequelize_1 = require("../handlers/sequelize");
 const request_promise_native_1 = require("request-promise-native");
 const logger_1 = require("../handlers/logger");
 const ids_1 = require("../base/ids");
 const roles_1 = require("../base/roles");
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
+exports.completedRaidsData = new Map();
 exports.default = (client) => {
     const character_data = new Map();
     function role_manager(data, member, role_db) {
@@ -36,25 +38,25 @@ exports.default = (client) => {
             if (!character_data.get(data.discord_id)) {
                 character_data.set(data.discord_id, Response["profile"]["data"]["characterIds"]);
             }
-            function seasonalRoles() {
+            function seasonalRolesChecker() {
                 return __awaiter(this, void 0, void 0, function* () {
                     if (Response.profile.data.seasonHashes.includes(Response.profile.data.currentSeasonHash)) {
-                        if (!c.has(roles_1.roles.curSeasonRole))
-                            give_roles.push(roles_1.roles.curSeasonRole);
-                        if (c.has(roles_1.roles.nonCurSeasonRole))
-                            remove_roles.push(roles_1.roles.nonCurSeasonRole);
+                        if (!c.has(roles_1.seasonalRoles.curSeasonRole))
+                            give_roles.push(roles_1.seasonalRoles.curSeasonRole);
+                        if (c.has(roles_1.seasonalRoles.nonCurSeasonRole))
+                            remove_roles.push(roles_1.seasonalRoles.nonCurSeasonRole);
                         return [true];
                     }
                     else {
-                        if (!c.has(roles_1.roles.nonCurSeasonRole))
-                            give_roles.push(roles_1.roles.nonCurSeasonRole);
-                        if (c.has(roles_1.roles.curSeasonRole))
-                            remove_roles.push(roles_1.roles.curSeasonRole);
+                        if (!c.has(roles_1.seasonalRoles.nonCurSeasonRole))
+                            give_roles.push(roles_1.seasonalRoles.nonCurSeasonRole);
+                        if (c.has(roles_1.seasonalRoles.curSeasonRole))
+                            remove_roles.push(roles_1.seasonalRoles.curSeasonRole);
                         return [true];
                     }
                 });
             }
-            function dlc_roles(version) {
+            function dlc_rolesChecker(version) {
                 return __awaiter(this, void 0, void 0, function* () {
                     let dlcs = [false, false, false, false, false];
                     switch (version) {
@@ -126,37 +128,33 @@ exports.default = (client) => {
                             break;
                     }
                     if (dlcs.includes(true))
-                        c.has(roles_1.roles.dlcs.vanilla)
-                            ? remove_roles.push(roles_1.roles.dlcs.vanilla)
-                            : member.roles.cache.has(roles_1.roles.dlcs.vanilla)
-                                ? give_roles.push(roles_1.roles.dlcs.vanilla)
+                        c.has(roles_1.dlcsRoles.vanilla)
+                            ? remove_roles.push(roles_1.dlcsRoles.vanilla)
+                            : member.roles.cache.has(roles_1.dlcsRoles.vanilla)
+                                ? give_roles.push(roles_1.dlcsRoles.vanilla)
                                 : "";
                     if (dlcs[0])
-                        !c.has(roles_1.roles.dlcs.frs) ? give_roles.push(roles_1.roles.dlcs.frs) : "";
+                        !c.has(roles_1.dlcsRoles.frs) ? give_roles.push(roles_1.dlcsRoles.frs) : "";
                     if (dlcs[1])
-                        !c.has(roles_1.roles.dlcs.sk) ? give_roles.push(roles_1.roles.dlcs.sk) : "";
+                        !c.has(roles_1.dlcsRoles.sk) ? give_roles.push(roles_1.dlcsRoles.sk) : "";
                     if (dlcs[2])
-                        !c.has(roles_1.roles.dlcs.bl) ? give_roles.push(roles_1.roles.dlcs.bl) : "";
+                        !c.has(roles_1.dlcsRoles.bl) ? give_roles.push(roles_1.dlcsRoles.bl) : "";
                     if (dlcs[3])
-                        !c.has(roles_1.roles.dlcs.anni)
-                            ? give_roles.push(roles_1.roles.dlcs.anni)
-                            : "";
+                        !c.has(roles_1.dlcsRoles.anni) ? give_roles.push(roles_1.dlcsRoles.anni) : "";
                     if (dlcs[4])
-                        !c.has(roles_1.roles.dlcs.twq) ? give_roles.push(roles_1.roles.dlcs.twq) : "";
+                        !c.has(roles_1.dlcsRoles.twq) ? give_roles.push(roles_1.dlcsRoles.twq) : "";
                 });
             }
-            function triumphs() {
+            function triumphsChecker() {
                 return __awaiter(this, void 0, void 0, function* () {
                     const activeTriumphs = Response.profileRecords.data.activeScore;
-                    for (const triumphScore of roles_1.rStats.active) {
-                        if (activeTriumphs >= triumphScore[1]) {
-                            if (!c.has(String(triumphScore[0]))) {
+                    for (const step of roles_1.rStats.active) {
+                        if (activeTriumphs >= step.triumphScore) {
+                            if (!c.has(String(step.roleId))) {
                                 if (!c.has(String(roles_1.rStats.category)))
                                     give_roles.push(roles_1.rStats.category);
-                                give_roles.push(String(triumphScore[0]));
-                                remove_roles.push(roles_1.rStats.allActive
-                                    .filter((r) => r !== triumphScore[0])
-                                    .toString());
+                                give_roles.push(String(step.roleId));
+                                remove_roles.push(roles_1.rStats.allActive.filter((r) => r !== step.roleId).toString());
                             }
                             break;
                         }
@@ -165,12 +163,10 @@ exports.default = (client) => {
                         const checkArray = [];
                         role.hash.forEach((hashArray) => {
                             var _a, _b, _c, _d;
-                            if (Response.profileRecords.data.records[hashArray] !==
-                                undefined) {
+                            if (Response.profileRecords.data.records[hashArray] !== undefined) {
                                 const triumphRecord = Response.profileRecords.data.records[hashArray];
                                 if (triumphRecord.objectives
-                                    ? ((_b = (_a = triumphRecord.objectives) === null || _a === void 0 ? void 0 : _a.pop()) === null || _b === void 0 ? void 0 : _b.complete) ===
-                                        true
+                                    ? ((_b = (_a = triumphRecord.objectives) === null || _a === void 0 ? void 0 : _a.pop()) === null || _b === void 0 ? void 0 : _b.complete) === true
                                     : ((_d = (_c = triumphRecord.intervalObjectives) === null || _c === void 0 ? void 0 : _c.pop()) === null || _d === void 0 ? void 0 : _d.complete) === true) {
                                     checkArray.push(true);
                                 }
@@ -179,8 +175,7 @@ exports.default = (client) => {
                                 }
                             }
                         });
-                        if (checkArray.includes(false) ||
-                            checkArray.length !== role.hash.length) {
+                        if (checkArray.includes(false) || checkArray.length !== role.hash.length) {
                             if (c.has(String(role.role_id)))
                                 remove_roles.push(String(role.role_id));
                         }
@@ -193,18 +188,16 @@ exports.default = (client) => {
                     });
                 });
             }
-            function trials(metrics) {
+            function trialsChecker(metrics) {
                 return __awaiter(this, void 0, void 0, function* () {
                     if (metrics >= 1) {
-                        for (const progress of roles_1.rTrials.roles) {
-                            if (progress[1] <= metrics) {
-                                if (!member.roles.cache.has(String(progress[0]))) {
+                        for (const step of roles_1.rTrials.roles) {
+                            if (step.totalFlawless <= metrics) {
+                                if (!member.roles.cache.has(step.roleId)) {
                                     if (!member.roles.cache.has(roles_1.rTrials.category))
                                         give_roles.push(roles_1.rTrials.category);
-                                    give_roles.push(String(progress[0]));
-                                    remove_roles.push(roles_1.rTrials.allRoles
-                                        .filter((r) => r != progress[0])
-                                        .toString());
+                                    give_roles.push(step.roleId);
+                                    remove_roles.push(roles_1.rTrials.allRoles.filter((r) => r != step.roleId).toString());
                                 }
                                 break;
                             }
@@ -212,30 +205,30 @@ exports.default = (client) => {
                     }
                 });
             }
-            seasonalRoles();
-            dlc_roles(Response.profile.data.versionsOwned);
-            triumphs();
+            seasonalRolesChecker();
+            dlc_rolesChecker(Response.profile.data.versionsOwned);
+            triumphsChecker();
             if (give_roles.length > 0) {
                 setTimeout(() => {
-                    member.roles.add(give_roles, "+Autorole");
+                    member.roles.add(give_roles, "+Autorole").catch((e) => {
+                        console.error(`Error with givin these roles: ${give_roles}`);
+                    });
                 }, remove_roles.length > 0 ? 2000 : 0);
             }
             if (remove_roles.length > 0)
-                member.roles.remove(remove_roles, "-Autorole");
+                member.roles.remove(remove_roles, "-Autorole").catch((e) => {
+                    console.error(`Error with takin these roles: ${remove_roles}`);
+                });
         }))
             .catch((e) => console.log(`roleManager error`, e.statusCode, data.displayname));
     }
     function name_change(discord_id, name) {
         var _a;
         try {
-            (_a = client.guilds.cache
-                .get(ids_1.guildId)
-                .members.cache.get(discord_id)) === null || _a === void 0 ? void 0 : _a.setNickname(name, "GlobalNickname changed");
-            return;
+            (_a = client.guilds.cache.get(ids_1.guildId).members.cache.get(discord_id)) === null || _a === void 0 ? void 0 : _a.setNickname(name, "GlobalNickname changed");
         }
         catch (error) {
             console.error("[Checker error] Name change error", error);
-            return;
         }
     }
     function clan(bungie_array) {
@@ -248,8 +241,7 @@ exports.default = (client) => {
                 },
                 json: true,
             }).catch((e) => {
-                console.log(`clan error`, e.statusCode);
-                return undefined;
+                throw { name: "Clan checker error", message: `StatusCode: ${e.statusCode}, ${e.message}` };
             });
             if (clanList === undefined) {
                 console.log("Clan checker restarts");
@@ -271,9 +263,7 @@ exports.default = (client) => {
             yield Promise.all(clanList.Response.results.map((result) => __awaiter(this, void 0, void 0, function* () {
                 if (bungie_array.some((e) => e.bungie_id === result.destinyUserInfo.membershipId)) {
                     const [clan_member] = bungie_array.splice(bungie_array.findIndex((e) => e.bungie_id === result.destinyUserInfo.membershipId), 1);
-                    if (clan_member.displayname !==
-                        result.destinyUserInfo.bungieGlobalDisplayName &&
-                        !clan_member.displayname.startsWith("⁣")) {
+                    if (clan_member.displayname !== result.destinyUserInfo.bungieGlobalDisplayName && !clan_member.displayname.startsWith("⁣")) {
                         yield sequelize_1.auth_data.update({
                             displayname: result.destinyUserInfo.bungieGlobalDisplayName,
                         }, {
@@ -284,19 +274,21 @@ exports.default = (client) => {
                         });
                         name_change(clan_member.discord_id, result.destinyUserInfo.bungieGlobalDisplayName);
                     }
-                    if (clan_member.clan === false)
+                    if (clan_member.clan === false) {
                         yield sequelize_1.auth_data.update({ clan: true }, {
                             where: {
                                 bungie_id: result.destinyUserInfo.membershipId,
                             },
                             transaction: t,
                         });
+                        (0, logger_1.clan_joinLeave)(client, clan_member, true);
+                    }
                 }
             })));
             yield Promise.all(bungie_array.map((result) => __awaiter(this, void 0, void 0, function* () {
                 if (result.clan === true) {
                     yield sequelize_1.auth_data.update({ clan: false }, { where: { bungie_id: result.bungie_id }, transaction: t });
-                    (0, logger_1.clan_logout)(result.bungie_id);
+                    (0, logger_1.clan_joinLeave)(client, result, false);
                 }
             })));
             try {
@@ -319,13 +311,12 @@ exports.default = (client) => {
             json: true,
         })
             .then((data) => {
-            for (const kd of roles_1.rStats.kd) {
-                if (kd[1] <=
-                    data["Response"]["allPvP"]["allTime"]["killsDeathsRatio"]["basic"]["value"]) {
-                    if (!member.roles.cache.has(String(kd[0]))) {
-                        member.roles.remove(roles_1.rStats.allKd.filter((r) => r !== kd[0]));
+            for (const step of roles_1.rStats.kd) {
+                if (step.kd <= data["Response"]["allPvP"]["allTime"]["killsDeathsRatio"]["basic"]["value"]) {
+                    if (!member.roles.cache.has(step.roleId)) {
+                        member.roles.remove(roles_1.rStats.allKd.filter((r) => r !== step.roleId));
                         setTimeout(() => {
-                            member.roles.add(String(kd[0]));
+                            member.roles.add(step.roleId);
                         }, 2500);
                     }
                     break;
@@ -351,6 +342,7 @@ exports.default = (client) => {
                 })
                     .then((chars) => {
                     character_data.set(data.discord_id, Object.keys(chars["Response"]["characters"]["data"]));
+                    raidChecker(data, member);
                 })
                     .catch((e) => console.log(`raidChecker character error`, e.statusCode));
             }
@@ -367,9 +359,7 @@ exports.default = (client) => {
                                     "X-API-KEY": process.env.XAPI,
                                 },
                                 auth: {
-                                    bearer: data.access_token
-                                        ? data.access_token
-                                        : undefined,
+                                    bearer: data.access_token ? data.access_token : undefined,
                                 },
                                 json: true,
                             })
@@ -382,13 +372,13 @@ exports.default = (client) => {
                         });
                     }
                     function checker() {
+                        var _a;
                         return __awaiter(this, void 0, void 0, function* () {
                             const response = yield activities(page);
-                            if ((response === null || response === void 0 ? void 0 : response.Response.activities.length) > 0) {
+                            if (((_a = response === null || response === void 0 ? void 0 : response.Response.activities) === null || _a === void 0 ? void 0 : _a.length) > 0) {
                                 response === null || response === void 0 ? void 0 : response.Response.activities.forEach((activity) => {
                                     if (activity.values.completed.basic.value) {
-                                        if (new Date(activity.period).getTime() >
-                                            new Date().getTime() - 1000 * 60 * 10) {
+                                        if (new Date(activity.period).getTime() > new Date().getTime() - 1000 * 60 * 10) {
                                             (0, logger_1.activityReporter)(activity.activityDetails.instanceId);
                                         }
                                         if (!ids_1.forbiddenRaidIds.includes(activity.activityDetails.referenceId)) {
@@ -412,26 +402,24 @@ exports.default = (client) => {
                 const votd = filter(1441982566);
                 const votdMaster = filter(4217492330);
                 const dsc = filter(910380154);
-                const gos = filter(3458480158) +
-                    filter(2497200493) +
-                    filter(2659723068) +
-                    filter(3845997235);
+                const gos = filter(3458480158) + filter(2497200493) + filter(2659723068) + filter(3845997235);
                 const vog = filter(3881495763);
                 const vogMaster = filter(1681562271) + filter(1485585878);
                 const lw = filter(2122313384) + filter(1661734046);
-                for (const raid of roles_1.rRaids.roles) {
-                    if (votdMaster + votd >= raid[1] &&
-                        vog + vogMaster >= raid[1] &&
-                        dsc >= raid[1] &&
-                        gos >= raid[1] &&
-                        lw >= raid[1]) {
-                        member.roles.add(String(raid[0]));
-                        setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== raid[0])), 2000);
+                exports.completedRaidsData.set(member.id, { votd: votd, votdMaster: votdMaster, dsc: dsc, gos: gos, vog: vog, vogMaster: vogMaster, lw: lw });
+                for (const step of roles_1.rRaids.roles) {
+                    if (votdMaster + votd >= step.individualClears &&
+                        vog + vogMaster >= step.individualClears &&
+                        dsc >= step.individualClears &&
+                        gos >= step.individualClears &&
+                        lw >= step.individualClears) {
+                        member.roles.add(step.roleId);
+                        setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 2000);
                         break;
                     }
-                    else if (votdMaster + votd + dsc + gos + lw >= raid[2]) {
-                        member.roles.add(String(raid[0]));
-                        setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== raid[0])), 2000);
+                    else if (votdMaster + votd + dsc + gos + lw >= step.totalClears) {
+                        member.roles.add(step.roleId);
+                        setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 2000);
                         break;
                     }
                 }
@@ -440,24 +428,15 @@ exports.default = (client) => {
             }
         });
     }
-    let kd = 0, raids = 0;
+    let kd = 0, raids = 5;
     setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
-        kd >= 6 ? (kd = 0) : kd++;
+        kd >= 5 ? (kd = 0) : kd++;
         raids >= 7 ? (raids = 0) : raids++;
         const t = yield sequelize_1.db.transaction();
         const role_db = yield sequelize_1.role_data.findAll({ transaction: t });
-        const db_plain = yield sequelize_1.auth_data.findAll({
-            where: { discord_id: ids_1.ownerId },
-            attributes: [
-                "discord_id",
-                "platform",
-                "bungie_id",
-                "clan",
-                "displayname",
-                "access_token",
-            ],
+        const db_plain = (yield sequelize_1.auth_data.findAll({
             transaction: t,
-        });
+        })).filter((data) => { var _a; return (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.has(data.discord_id); });
         try {
             yield t.commit();
         }
@@ -467,35 +446,24 @@ exports.default = (client) => {
         }
         if ((db_plain === null || db_plain === void 0 ? void 0 : db_plain.length) === 0)
             return console.error(`[Checker error] DB is empty or missing data`);
-        const bungie_array = [];
-        db_plain.forEach((result) => {
-            bungie_array.push({
-                bungie_id: result.bungie_id,
-                clan: result.clan,
-                displayname: result.displayname,
-                discord_id: result.discord_id,
-            });
-        });
+        const bungie_array = db_plain;
         db_plain.forEach((db_row) => {
-            const member = client.guilds.cache
-                .get(ids_1.guildId)
-                .members.cache.get(db_row.discord_id);
+            var _a;
+            const member = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(db_row.discord_id);
             role_manager(db_row, member, role_db);
             console.log(kd, raids);
             kd === 5 ? kdChecker(db_row, member) : [];
-            raids === 6 && !member.roles.cache.has(String(roles_1.rRaids.roles[0][0]))
-                ? raidChecker(db_row, member)
-                : [];
+            raids === 6 ? raidChecker(db_row, member) : [];
         });
         clan(bungie_array);
-    }), 1000 * 59 * 23);
+    }), 1000 * 59 * 2);
     setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
-        const data = yield sequelize_1.auth_data.findAll({
+        const data = (yield sequelize_1.auth_data.findAll({
             attributes: ["discord_id", "displayname", "tz"],
-        });
+        })).filter((data) => { var _a; return (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.has(data.discord_id); });
         client.guilds.cache
             .get(ids_1.guildId)
-            .members.cache.filter((member) => member.roles.cache.has(roles_1.regedRole))
+            .members.cache.filter((member) => member.roles.cache.has(roles_1.statusRoles.verified))
             .forEach((member) => {
             var _a, _b, _c;
             const db_name = (_a = data.find((d) => d.discord_id === member.id)) === null || _a === void 0 ? void 0 : _a.displayname;
@@ -503,21 +471,17 @@ exports.default = (client) => {
                 console.error("[Checker error] No data was found for", member.id);
             }
             else if (member.displayName !== db_name &&
-                !((_b = data
-                    .find((d) => d.discord_id === member.id)) === null || _b === void 0 ? void 0 : _b.displayname.startsWith("⁣")) &&
+                !((_b = data.find((d) => d.discord_id === member.id)) === null || _b === void 0 ? void 0 : _b.displayname.startsWith("⁣")) &&
                 member.displayName.slice(5) !== db_name &&
                 member.displayName.slice(6) !== db_name) {
                 if (!member.permissions.has("Administrator")) {
                     member
-                        .setNickname(((_c = data.find((d) => d.discord_id === member.id)) === null || _c === void 0 ? void 0 : _c.tz)
-                        ? `[+${data.find((d) => d.discord_id === member.id)
-                            .tz}] ${db_name}`
-                        : db_name)
+                        .setNickname(((_c = data.find((d) => d.discord_id === member.id)) === null || _c === void 0 ? void 0 : _c.tz) ? `[+${data.find((d) => d.discord_id === member.id).tz}] ${db_name}` : db_name)
                         .catch((e) => {
                         console.error("[Checker error] Name autochange error", e);
                     });
                 }
             }
         });
-    }), 1000 * 70 * 33);
+    }), 1000 * 70 * 5);
 };

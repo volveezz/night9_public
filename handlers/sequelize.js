@@ -52,6 +52,7 @@ lost_data.init({
         primaryKey: true,
         unique: true,
     },
+    tz: { type: sequelize_1.DataTypes.SMALLINT, defaultValue: 3 },
 }, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
 class role_data extends sequelize_1.Model {
 }

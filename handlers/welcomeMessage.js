@@ -1,25 +1,32 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.welcomeMessage = void 0;
 const discord_js_1 = require("discord.js");
 const roles_1 = require("../base/roles");
 const colors_1 = require("../base/colors");
 const ids_1 = require("../base/ids");
 const channels_1 = require("../base/channels");
-const sequelize_1 = require("../handlers/sequelize");
-exports.default = (client) => {
-    client.on("guildMemberAdd", (member) => {
-        var _a, _b;
-        member.roles.add(roles_1.welcomeRole).catch((err) => {
-            console.error(err.code === 50013
-                ? `welcomeMessage err: Missing permissions to give role to ${member.displayName}`
-                : err);
+const sequelize_1 = require("./sequelize");
+function welcomeMessage(client, member) {
+    var _a, _b;
+    return __awaiter(this, void 0, void 0, function* () {
+        member.roles.add(roles_1.statusRoles.newbie).catch((err) => {
+            console.error(err.code === 50013 ? `welcomeMessage err: Missing permissions to give role to ${member.displayName}` : err);
         });
         const embed = new discord_js_1.EmbedBuilder()
             .setColor(colors_1.colors.default)
             .setAuthor({
             name: "Добро пожаловать на сервер клана Night 9",
-            iconURL: String(((_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.iconURL()) ||
-                ((_b = client.user) === null || _b === void 0 ? void 0 : _b.displayAvatarURL())),
+            iconURL: String(((_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.iconURL()) || ((_b = client.user) === null || _b === void 0 ? void 0 : _b.displayAvatarURL())),
         })
             .setTimestamp()
             .addFields([
@@ -62,9 +69,8 @@ exports.default = (client) => {
             }, 3333);
         })
             .catch((err) => {
-            console.error(err.code === 50007
-                ? `welcomeMessage err: ${member.displayName} blocked DMs from server members`
-                : err);
+            console.error(err.code === 50007 ? `welcomeMessage err: ${member.displayName} blocked DMs from server members` : err);
         });
     });
-};
+}
+exports.welcomeMessage = welcomeMessage;

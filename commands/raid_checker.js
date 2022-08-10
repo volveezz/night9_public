@@ -26,9 +26,7 @@ exports.default = {
             attributes: ["bungie_id", "platform", "access_token"],
         });
         if (db_data === null) {
-            const embed = new discord_js_1.EmbedBuilder()
-                .setColor("Red")
-                .setTitle("Для использования этой команды необходимо зарегистрироваться");
+            const embed = new discord_js_1.EmbedBuilder().setColor("Red").setTitle("Для использования этой команды необходимо зарегистрироваться");
             return interaction.editReply({ embeds: [embed] });
         }
         const characters_list = yield (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/${db_data.platform}/Profile/${db_data.bungie_id}/?components=200`, {
@@ -42,7 +40,10 @@ exports.default = {
             json: true,
             headers: { "X-API-KEY": process.env.XAPI },
         }).then((manifest) => __awaiter(void 0, void 0, void 0, function* () {
-            return yield (0, request_promise_native_1.get)(`https://www.bungie.net${manifest.Response.jsonWorldComponentContentPaths.ru.DestinyActivityDefinition}`, { json: true, headers: { "X-API-KEY": process.env.XAPI } }).then((activity_manifest) => {
+            return yield (0, request_promise_native_1.get)(`https://www.bungie.net${manifest.Response.jsonWorldComponentContentPaths.ru.DestinyActivityDefinition}`, {
+                json: true,
+                headers: { "X-API-KEY": process.env.XAPI },
+            }).then((activity_manifest) => {
                 return Object.keys(activity_manifest).reduce(function (acc, val) {
                     if (activity_manifest[val].activityTypeHash === 2043403989)
                         acc[val] = activity_manifest[val];
@@ -111,10 +112,7 @@ exports.default = {
                 }));
             }));
         })));
-        const embed = new discord_js_1.EmbedBuilder()
-            .setColor("Green")
-            .setTitle("Статистка закрытых рейдов по классам")
-            .setTimestamp();
+        const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTitle("Статистка закрытых рейдов по классам").setTimestamp();
         const embed_map = new Map([...activity_map].sort());
         embed_map.forEach((_activity_name, key) => {
             var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;

@@ -64,19 +64,14 @@ function webHandler(code, state, client, res) {
                             try {
                                 for (var _b = __asyncValues(Response.destinyMemberships), _c; _c = yield _b.next(), !_c.done;) {
                                     const membership = _c.value;
-                                    if (membership.crossSaveOverride ===
-                                        membership.membershipType) {
+                                    if (membership.crossSaveOverride === membership.membershipType) {
                                         platform = membership.membershipType;
                                         bungie_id = membership.membershipId;
-                                        displayname =
-                                            membership.bungieGlobalDisplayName ||
-                                                membership.displayName;
+                                        displayname = membership.bungieGlobalDisplayName || membership.displayName;
                                         break;
                                     }
                                     else if (Response.destinyMemberships.length === 0) {
-                                        displayname =
-                                            membership.bungieGlobalDisplayName ||
-                                                membership.displayName;
+                                        displayname = membership.bungieGlobalDisplayName || membership.displayName;
                                         platform = membership.membershipType;
                                         bungie_id = membership.membershipId;
                                     }
@@ -130,10 +125,9 @@ function webHandler(code, state, client, res) {
                                         inline: true,
                                     },
                                 ]);
-                                if (((_a = clanResponse.results[0]) === null || _a === void 0 ? void 0 : _a.group.groupId) !==
-                                    "4123712") {
+                                if (((_a = clanResponse.results[0]) === null || _a === void 0 ? void 0 : _a.group.groupId) !== "4123712") {
                                     const component = new discord_js_1.ButtonBuilder()
-                                        .setCustomId("webhandler_clan_request")
+                                        .setCustomId("webhandlerEvent_clan_request")
                                         .setLabel("Отправить приглашение")
                                         .setStyle(3);
                                     embed.setDescription(`Нажмите кнопку для получения приглашения в клан`);

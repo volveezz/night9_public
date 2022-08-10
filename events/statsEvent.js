@@ -12,13 +12,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const request_promise_native_1 = require("request-promise-native");
 const sequelize_1 = require("../handlers/sequelize");
-exports.default = (client) => {
-    client.on("interactionCreate", (interaction) => __awaiter(void 0, void 0, void 0, function* () {
+exports.default = {
+    callback: (client, interaction, member, guild, channel) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
         if (!interaction.isButton())
             return;
-        if (interaction.customId === "stats_old_events" ||
-            interaction.customId === "stats_pinnacle") {
+        if (interaction.customId === "statsEvent_old_events" || interaction.customId === "statsEvent_pinnacle") {
             yield interaction.deferReply({ ephemeral: true });
             const id = (_a = interaction.message.embeds[0].footer) === null || _a === void 0 ? void 0 : _a.text.slice(4);
             const data = yield sequelize_1.auth_data.findOne({
@@ -34,7 +33,7 @@ exports.default = (client) => {
                 var { platform, access_token, bungie_id } = parsedData;
             }
             switch (interaction.customId) {
-                case "stats_old_events":
+                case "statsEvent_old_events":
                     (0, request_promise_native_1.get)("https://www.bungie.net/Platform/Destiny2/Manifest/", { json: true }, function (err, _response, body) {
                         return __awaiter(this, void 0, void 0, function* () {
                             if (err)
@@ -74,10 +73,8 @@ exports.default = (client) => {
                                     ]);
                                 }
                                 else {
-                                    const embedName = DestinyProgressionDefinition[d.progressionHash]
-                                        .displayProperties.name ||
-                                        DestinyProgressionDefinition[d.progressionHash]
-                                            .displayProperties.displayUnitsName ||
+                                    const embedName = DestinyProgressionDefinition[d.progressionHash].displayProperties.name ||
+                                        DestinyProgressionDefinition[d.progressionHash].displayProperties.displayUnitsName ||
                                         "blank";
                                     embed.addFields([
                                         {
@@ -92,7 +89,7 @@ exports.default = (client) => {
                         });
                     });
                     break;
-                case "stats_pinnacle":
+                case "statsEvent_pinnacle":
                     const manifest = yield (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/Manifest/`, {
                         json: true,
                     }).then((data) => __awaiter(void 0, void 0, void 0, function* () {
@@ -109,34 +106,28 @@ exports.default = (client) => {
                         components[i] = new discord_js_1.ButtonBuilder({
                             style: discord_js_1.ButtonStyle.Secondary,
                             label: `${i + 1} персонаж`,
-                            customId: `stats_pinnacle_char_${i}`,
+                            customId: `statsEvent_pinnacle_char_${i}`,
                         });
                     });
                     chars.forEach((char, i) => {
                         chars[i] = `${i + 1} персонаж\n`;
                     });
                     chars.length === 0 ? (chars = ["персонажи отсутствуют"]) : [];
-                    const embed = new discord_js_1.EmbedBuilder()
-                        .setTitle("Выберите персонажа")
-                        .setDescription(chars.join("").toString())
-                        .setTimestamp()
-                        .setColor("DarkGreen");
+                    const embed = new discord_js_1.EmbedBuilder().setTitle("Выберите персонажа").setDescription(chars.join("").toString()).setTimestamp().setColor("DarkGreen");
                     const int = yield interaction.editReply({
                         embeds: [embed],
-                        components: [
-                            { type: discord_js_1.ComponentType.ActionRow, components: components },
-                        ],
+                        components: [{ type: discord_js_1.ComponentType.ActionRow, components: components }],
                     });
                     const collector = int.createMessageComponentCollector({
                         filter: ({ user }) => user.id == interaction.user.id,
                     });
                     collector.on("collect", (collected) => {
-                        const obj = data.Response.characterProgressions.data[Object.keys(data.Response.characterProgressions.data)[Number(collected.customId.slice(-1))]].milestones;
+                        const obj = data.Response.characterProgressions.data[Object.keys(data.Response.characterProgressions.data)[Number(collected.customId.slice(-1))]]
+                            .milestones;
                         const dataMile = [];
                         Object.entries(obj).forEach(([k, milestone]) => {
                             var _a;
-                            if ((milestone === null || milestone === void 0 ? void 0 : milestone.rewards) === undefined ||
-                                ((_a = milestone === null || milestone === void 0 ? void 0 : milestone.rewards[0]) === null || _a === void 0 ? void 0 : _a.rewardCategoryHash) !== 326786556)
+                            if ((milestone === null || milestone === void 0 ? void 0 : milestone.rewards) === undefined || ((_a = milestone === null || milestone === void 0 ? void 0 : milestone.rewards[0]) === null || _a === void 0 ? void 0 : _a.rewardCategoryHash) !== 326786556)
                                 return;
                             dataMile.push({
                                 milestoneHash: milestone.milestoneHash,
@@ -161,14 +152,8 @@ exports.default = (client) => {
                                         return;
                                     embed.addFields([
                                         {
-                                            name: `${manifest[mile.milestoneHash]
-                                                .displayProperties.name +
-                                                `\n` +
-                                                manifest[mile.milestoneHash]
-                                                    .displayProperties.description}`,
-                                            value: `Условие ${subRew.earned ? "выполнено" : "не выполнено"}${!subRew.redeemed && subRew.earned
-                                                ? ", но не получено"
-                                                : ""}`,
+                                            name: `${manifest[mile.milestoneHash].displayProperties.name + `\n` + manifest[mile.milestoneHash].displayProperties.description}`,
+                                            value: `Условие ${subRew.earned ? "выполнено" : "не выполнено"}${!subRew.redeemed && subRew.earned ? ", но не получено" : ""}`,
                                         },
                                     ]);
                                 });
@@ -179,5 +164,5 @@ exports.default = (client) => {
                     break;
             }
         }
-    }));
+    }),
 };

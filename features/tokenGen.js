@@ -15,9 +15,7 @@ const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 exports.default = () => {
     function generator() {
         return __awaiter(this, void 0, void 0, function* () {
-            sequelize_1.auth_data
-                .findAll({ attributes: ["bungie_id", "refresh_token"] })
-                .then((data) => __awaiter(this, void 0, void 0, function* () {
+            sequelize_1.auth_data.findAll({ attributes: ["bungie_id", "refresh_token"] }).then((data) => __awaiter(this, void 0, void 0, function* () {
                 const t = yield sequelize_1.db.transaction();
                 for (const row of data) {
                     const request = yield (0, request_promise_native_1.post)("https://www.bungie.net/Platform/App/OAuth/Token/", {

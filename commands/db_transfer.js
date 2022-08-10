@@ -17,7 +17,8 @@ const sequelize_1 = require("../handlers/sequelize");
 exports.default = {
     name: "db_transfer",
     defaultMemberPermissions: ["Administrator"],
-    callback: (_client, _interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
+    callback: (_client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
+        yield interaction.deferReply({ ephemeral: true });
         const mysql = mysql2_1.default.createConnection({
             database: process.env.MYSQL_DB,
             user: process.env.MYSQL_USER,
@@ -25,22 +26,22 @@ exports.default = {
             host: process.env.MYSQL_HOST,
         });
         mysql.connect();
-        mysql.query(`SELECT discord_id,bungie_id,platform,displayname,access_token,refresh_token,membership_id FROM discord WHERE refresh_token IS NOT NULL`, function (_err, result) {
+        mysql.query(`SELECT discord_id,bungie_id,platform,clan,displayname,access_token,refresh_token,membership_id,tz FROM discord WHERE refresh_token IS NOT NULL`, function (_err, result) {
             return __awaiter(this, void 0, void 0, function* () {
-                const arr = [];
-                result.forEach((row) => {
-                    arr.push({
+                const db = yield sequelize_1.auth_data.bulkCreate(result.map((row) => {
+                    return {
                         discord_id: row.discord_id,
                         bungie_id: row.bungie_id,
                         platform: row.platform,
+                        clan: row.clan === 2 ? true : false,
                         displayname: row.displayname,
                         access_token: row.access_token,
                         refresh_token: row.refresh_token,
                         membership_id: row.membership_id,
-                    });
-                });
-                const db = yield sequelize_1.auth_data.bulkCreate(arr);
-                console.log(db.length);
+                        tz: row.tz,
+                    };
+                }));
+                interaction.editReply(`${db.length} строк было импортировано`);
             });
         });
         mysql.end();

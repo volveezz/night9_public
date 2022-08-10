@@ -9,59 +9,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.clan_logout = exports.init_register = exports.activityReporter = exports.chnSetup = void 0;
+exports.clan_joinLeave = exports.init_register = exports.activityReporter = void 0;
 const discord_js_1 = require("discord.js");
 const colors_1 = require("../base/colors");
 const ids_1 = require("../base/ids");
-const roles_1 = require("../base/roles");
 const sequelize_1 = require("./sequelize");
 const sequelize_2 = require("./sequelize");
 const request_promise_native_1 = require("request-promise-native");
+const roles_1 = require("../base/roles");
+const channels_1 = require("../base/channels");
+const welcomeMessage_1 = require("./welcomeMessage");
 const pgcrIds = new Set();
-var guildMemberChannel, guildChannel, messageChannel, voiceChannel, destinyClanChannel, discordBotChannel;
-function chnSetup(client) {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield client.guilds.fetch(ids_1.guildId).then((guild) => __awaiter(this, void 0, void 0, function* () {
-            guildMemberChannel = yield guild.channels
-                .fetch(ids_1.ids.guildUsersChn)
-                .then((chn) => __awaiter(this, void 0, void 0, function* () {
-                if (chn.isTextBased())
-                    return chn;
-            }));
-            guildChannel = yield guild.channels
-                .fetch(ids_1.ids.guildChn)
-                .then((chn) => __awaiter(this, void 0, void 0, function* () {
-                if (chn.isTextBased())
-                    return chn;
-            }));
-            messageChannel = yield guild.channels
-                .fetch(ids_1.ids.messagesChn)
-                .then((chn) => __awaiter(this, void 0, void 0, function* () {
-                if (chn.isTextBased())
-                    return chn;
-            }));
-            voiceChannel = yield guild.channels
-                .fetch(ids_1.ids.voiceChn)
-                .then((chn) => __awaiter(this, void 0, void 0, function* () {
-                if (chn.isTextBased())
-                    return chn;
-            }));
-            destinyClanChannel = yield guild.channels
-                .fetch(ids_1.ids.clanChn)
-                .then((chn) => __awaiter(this, void 0, void 0, function* () {
-                if (chn.isTextBased())
-                    return chn;
-            }));
-            discordBotChannel = yield guild.channels
-                .fetch(ids_1.ids.botChn)
-                .then((chn) => __awaiter(this, void 0, void 0, function* () {
-                if (chn.isTextBased())
-                    return chn;
-            }));
-        }));
-    });
-}
-exports.chnSetup = chnSetup;
+const guildMemberChannel = (0, channels_1.chnFetcher)(ids_1.ids.guildMemberChnId), guildChannel = (0, channels_1.chnFetcher)(ids_1.ids.guildChnId), messageChannel = (0, channels_1.chnFetcher)(ids_1.ids.messagesChnId), voiceChannel = (0, channels_1.chnFetcher)(ids_1.ids.voiceChnId), destinyClanChannel = (0, channels_1.chnFetcher)(ids_1.ids.clanChnId), discordBotChannel = (0, channels_1.chnFetcher)(ids_1.ids.botChnId), activityChannel = (0, channels_1.chnFetcher)(ids_1.ids.activityChnId);
 function activityReporter(pgcrId) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!pgcrIds.has(pgcrId)) {
@@ -82,16 +41,58 @@ function init_register(state, user, rowCreated) {
         .setTimestamp()
         .setFooter({ text: `Id: ${user.id}` })
         .addFields([
-        { name: `State`, value: state, inline: true },
-        { name: "rowCreated", value: String(rowCreated), inline: true },
+        { name: "State", value: state, inline: true },
+        { name: "Повторно", value: String(rowCreated), inline: true },
     ]);
-    discordBotChannel === null || discordBotChannel === void 0 ? void 0 : discordBotChannel.send({ embeds: [embed] });
+    discordBotChannel.send({ embeds: [embed] });
 }
 exports.init_register = init_register;
-function clan_logout(bungie_id) {
-    console.log("User left clan", bungie_id);
+function clan_joinLeave(client, result, join) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const member = client.guilds.cache.get(ids_1.guildId).members.cache.get(result.discord_id);
+        console.log(result.bungie_id, result.displayname);
+        const embed = new discord_js_1.EmbedBuilder().addFields([
+            { name: "BungieId", value: result.bungie_id, inline: true },
+            { name: "Ник в игре", value: result.displayname, inline: true },
+        ]);
+        if (member) {
+            if (join) {
+                embed
+                    .setAuthor({
+                    name: `${member.displayName} вступил в клан`,
+                    iconURL: member.displayAvatarURL(),
+                })
+                    .setColor("Green");
+            }
+            else {
+                embed
+                    .setAuthor({
+                    name: `${member.displayName} покинул клан`,
+                    iconURL: member.displayAvatarURL(),
+                })
+                    .setColor(colors_1.colors.kicked);
+            }
+        }
+        else {
+            if (join) {
+                embed
+                    .setAuthor({
+                    name: `Неизвестный на сервере пользователь вступил в клан`,
+                })
+                    .setColor("Green");
+            }
+            else {
+                embed
+                    .setAuthor({
+                    name: `Неизвестный на сервере пользователь покинул клан`,
+                })
+                    .setColor(colors_1.colors.kicked);
+            }
+        }
+        destinyClanChannel.send({ embeds: [embed] });
+    });
 }
-exports.clan_logout = clan_logout;
+exports.clan_joinLeave = clan_joinLeave;
 exports.default = (client) => {
     const voiceUsers = new Map();
     process.on("unhandledRejection", (error) => {
@@ -101,6 +102,7 @@ exports.default = (client) => {
         console.error("Unhandled exception:", error);
     });
     client.on("guildMemberAdd", (member) => __awaiter(void 0, void 0, void 0, function* () {
+        (0, welcomeMessage_1.welcomeMessage)(client, member);
         const embed = new discord_js_1.EmbedBuilder()
             .setColor(colors_1.colors.default)
             .setAuthor({
@@ -125,45 +127,45 @@ exports.default = (client) => {
             ]);
         }
         guildMemberChannel.send({ embeds: [embed] }).then((m) => __awaiter(void 0, void 0, void 0, function* () {
-            let data = yield sequelize_1.lost_data.findOne({
+            const data = yield sequelize_1.lost_data.findOne({
                 where: { discord_id: member.id },
             });
-            if (data !== null) {
-                data = data.toJSON();
-                const transaction = yield sequelize_1.db.transaction();
-                const embed = m.embeds[0];
-                try {
-                    yield sequelize_2.auth_data.create({
-                        discord_id: data.discord_id,
-                        bungie_id: data.bungie_id,
-                        displayname: data.displayname,
-                        platform: data.platform || 3,
-                        access_token: data.access_token,
-                        refresh_token: data.refresh_token,
-                        membership_id: data.membership_id,
-                        tz: 3,
-                        transaction: transaction,
-                    });
-                    yield sequelize_1.lost_data.destroy({
-                        where: { discord_id: data.discord_id },
-                        transaction: transaction,
-                    });
-                    embed.fields.push({
-                        name: "Данные аккаунта восстановлены",
-                        value: `${data.displayname} (${data.platform}/${data.bungie_id})`,
-                    });
-                    yield transaction.commit();
-                    m.edit({ embeds: [embed] });
-                }
-                catch (error) {
-                    yield transaction.rollback();
-                    embed.fields.push({
-                        name: "error",
-                        value: "something really bad happened",
-                    });
-                    console.log(error, data, transaction);
-                    m.edit({ embeds: [embed] });
-                }
+            if (!data)
+                return;
+            const transaction = yield sequelize_1.db.transaction();
+            const embed = m.embeds[0];
+            try {
+                yield sequelize_2.auth_data.create({
+                    discord_id: data.discord_id,
+                    bungie_id: data.bungie_id,
+                    displayname: data.displayname,
+                    platform: data.platform || 3,
+                    access_token: data.access_token,
+                    refresh_token: data.refresh_token,
+                    membership_id: data.membership_id,
+                    tz: data.tz || 3,
+                }, {
+                    transaction: transaction,
+                });
+                yield sequelize_1.lost_data.destroy({
+                    where: { discord_id: data.discord_id },
+                    transaction: transaction,
+                });
+                embed.fields.push({
+                    name: "Данные аккаунта восстановлены",
+                    value: `${data.displayname} (${data.platform}/${data.bungie_id})`,
+                });
+                yield transaction.commit();
+                m.edit({ embeds: [embed] });
+            }
+            catch (error) {
+                yield transaction.rollback();
+                embed.fields.push({
+                    name: "Ошибка",
+                    value: "Во время восстановления данных произошла ошибка",
+                });
+                console.error(error, data, transaction);
+                m.edit({ embeds: [embed] });
             }
         }));
     }));
@@ -171,9 +173,8 @@ exports.default = (client) => {
         if (member.guild.bans.cache.has(member.id))
             return;
         const embed = new discord_js_1.EmbedBuilder()
-            .setAuthor({ name: "Участник покинул сервер" })
+            .setAuthor({ name: "Участник покинул сервер", iconURL: member.displayAvatarURL() })
             .setColor("Red")
-            .setThumbnail(member.displayAvatarURL())
             .setTimestamp()
             .addFields([
             {
@@ -181,103 +182,92 @@ exports.default = (client) => {
                 value: String(`<t:` + Math.round(member.joinedTimestamp / 1000) + ">"),
             },
         ])
-            .setFooter({ text: String(`Id: ` + member.id) });
-        if (member.roles.cache.hasAny(roles_1.roles.clanmember, roles_1.roles.noclan, roles_1.roles.kicked, roles_1.roles.joined)) {
+            .setFooter({ text: `Id: ${member.id}` });
+        if (member.roles.cache.hasAny(roles_1.statusRoles.clanmember, roles_1.statusRoles.member, roles_1.statusRoles.kicked, roles_1.statusRoles.newbie)) {
             embed.addFields([
                 {
-                    name: "Основные роли",
-                    value: `Роль: ${member.roles.cache.has(roles_1.roles.clanmember)
-                        ? `<@&${roles_1.roles.clanmember}>`
-                        : []}
-					${member.roles.cache.has(roles_1.roles.noclan) ? `<@&${roles_1.roles.noclan}>` : []}
-						${member.roles.cache.has(roles_1.roles.kicked) ? `<@&${roles_1.roles.kicked}>` : []}
-						${member.roles.cache.has(roles_1.roles.joined) ? `<@&${roles_1.roles.joined}>` : []}`,
+                    name: "Статус пользователя",
+                    value: `Роль: ${member.roles.cache.has(roles_1.statusRoles.clanmember) ? `<@&${roles_1.statusRoles.clanmember}>` : []}
+					${member.roles.cache.has(roles_1.statusRoles.member) ? `<@&${roles_1.statusRoles.member}>` : []}
+						${member.roles.cache.has(roles_1.statusRoles.kicked) ? `<@&${roles_1.statusRoles.kicked}>` : []}
+						${member.roles.cache.has(roles_1.statusRoles.newbie) ? `<@&${roles_1.statusRoles.newbie}>` : []}`,
                 },
             ]);
         }
         guildMemberChannel.send({ embeds: [embed] }).then((m) => __awaiter(void 0, void 0, void 0, function* () {
-            let data = yield sequelize_2.auth_data.findOne({
+            const data = yield sequelize_2.auth_data.findOne({
                 where: { discord_id: member.id },
             });
-            if (data !== null) {
-                data = data.toJSON();
-                const transaction = yield sequelize_1.db.transaction();
-                const embed = m.embeds[0];
-                try {
-                    yield sequelize_2.auth_data.destroy({
-                        where: { discord_id: data.discord_id },
-                        transaction: transaction,
-                    });
-                    yield sequelize_1.lost_data.create({
-                        discord_id: data.discord_id,
-                        bungie_id: data.bungie_id,
-                        displayname: data.displayname,
-                        platform: data.platform,
-                        access_token: data.access_token,
-                        refresh_token: data.refresh_token,
-                        membership_id: data.membership_id,
-                        transaction: transaction,
-                    });
-                    yield transaction.commit();
-                    embed.fields.push({
-                        name: "bungie",
-                        value: `${data.platform}/${data.bungie_id}` || "blank",
-                        inline: true,
-                    }, {
-                        name: "displayname",
-                        value: data.displayname || "blank",
-                        inline: true,
-                    }, {
-                        name: "membership_id",
-                        value: String(data.membership_id) || "blank",
-                        inline: true,
-                    });
-                    m.edit({ embeds: [embed] });
-                }
-                catch (error) {
-                    yield transaction.rollback();
-                    embed.fields.push({
-                        name: "error",
-                        value: "something really bad happened",
-                    });
-                    console.log(error, data, transaction);
-                    m.edit({ embeds: [embed] });
-                }
+            if (!data)
+                return;
+            const transaction = yield sequelize_1.db.transaction();
+            const embed = m.embeds[0];
+            try {
+                yield sequelize_2.auth_data.destroy({
+                    where: { discord_id: data.discord_id },
+                    transaction: transaction,
+                });
+                yield sequelize_1.lost_data.create({
+                    discord_id: data.discord_id,
+                    bungie_id: data.bungie_id,
+                    displayname: data.displayname,
+                    platform: data.platform,
+                    access_token: data.access_token,
+                    refresh_token: data.refresh_token,
+                    membership_id: data.membership_id,
+                    tz: data.tz,
+                }, {
+                    transaction: transaction,
+                });
+                yield transaction.commit();
+                embed.fields.push({
+                    name: "BungieId",
+                    value: `${data.platform}/${data.bungie_id}`,
+                    inline: true,
+                }, {
+                    name: "Ник в игре",
+                    value: data.displayname,
+                    inline: true,
+                }, {
+                    name: "MembershipId",
+                    value: String(data.membership_id),
+                    inline: true,
+                });
+                m.edit({ embeds: [embed] });
+            }
+            catch (error) {
+                yield transaction.rollback();
+                embed.fields.push({
+                    name: "Ошибка",
+                    value: "Произошла ошибка во время удаления данных в БД",
+                });
+                console.error(error, data, transaction);
+                m.edit({ embeds: [embed] });
             }
         }));
     });
     client.on("guildMemberUpdate", (oldMember, newMember) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
-        if (oldMember.joinedTimestamp === null &&
-            oldMember.nickname === null &&
-            oldMember.roles.cache.size === 0)
+        if (oldMember.joinedTimestamp === null && oldMember.nickname === null && oldMember.roles.cache.size === 0)
             return;
         const embed = new discord_js_1.EmbedBuilder()
             .setAuthor({ name: "guildMemberUpdate" })
             .setColor(colors_1.colors.default)
-            .setFooter({ text: String("Id: " + oldMember.id) })
+            .setFooter({ text: `Id: ${oldMember.id}` })
             .setTimestamp();
         if (oldMember.roles !== newMember.roles) {
             const removedRoles = [], gotRoles = [];
             oldMember.roles.cache.forEach((role) => {
-                !newMember.roles.cache.has(role.id)
-                    ? removedRoles.push(`<@&${role.id}>`)
-                    : [];
+                !newMember.roles.cache.has(role.id) ? removedRoles.push(`<@&${role.id}>`) : [];
             });
             newMember.roles.cache.forEach((role) => {
-                !oldMember.roles.cache.has(role.id)
-                    ? gotRoles.push(`<@&${role.id}>`)
-                    : [];
+                !oldMember.roles.cache.has(role.id) ? gotRoles.push(`<@&${role.id}>`) : [];
             });
             if (removedRoles.length > 0) {
                 embed
                     .setAuthor({
-                    name: `У ${newMember.displayName ||
-                        newMember.nickname ||
-                        newMember.user.username} ${removedRoles.length === 1
-                        ? "была удалена роль"
-                        : "были удалены роли"}`,
-                    iconURL: String(newMember.displayAvatarURL()),
+                    name: `У ${newMember.displayName} ${removedRoles.length === 1 ? "была удалена роль" : "были удалены роли"}`,
+                    iconURL: newMember.displayAvatarURL(),
                 })
                     .addFields([
                     {
@@ -289,12 +279,8 @@ exports.default = (client) => {
             else if (gotRoles.length > 0) {
                 embed
                     .setAuthor({
-                    name: `${newMember.displayName ||
-                        newMember.nickname ||
-                        newMember.user.username} ${gotRoles.length === 1
-                        ? "была выдана роль"
-                        : "были выданы роли"}`,
-                    iconURL: String(newMember.displayAvatarURL()),
+                    name: `${newMember.displayName} ${gotRoles.length === 1 ? "была выдана роль" : "были выданы роли"}`,
+                    iconURL: newMember.displayAvatarURL(),
                 })
                     .addFields([
                     {
@@ -307,27 +293,26 @@ exports.default = (client) => {
         if (oldMember.displayName !== newMember.displayName) {
             embed
                 .setAuthor({
-                name: `${newMember.displayName || newMember.nickname} обновил никнейм`,
-                iconURL: String(newMember.displayAvatarURL()),
+                name: `${newMember.displayName} обновил никнейм`,
+                iconURL: newMember.displayAvatarURL(),
             })
                 .addFields([
-                { name: "До", value: `\`` + oldMember.displayName + `\`` },
+                { name: "До изменения", value: `\`` + oldMember.displayName + `\`` },
                 { name: "После", value: `\`` + newMember.displayName + `\`` },
             ]);
         }
-        if (oldMember.communicationDisabledUntilTimestamp !==
-            newMember.communicationDisabledUntilTimestamp) {
+        if (oldMember.communicationDisabledUntilTimestamp !== newMember.communicationDisabledUntilTimestamp) {
             if (oldMember.communicationDisabledUntilTimestamp === null) {
                 embed
                     .setAuthor({
                     name: `${newMember.displayName} был выдан тайм-аут`,
-                    iconURL: String(newMember.displayAvatarURL()),
+                    iconURL: newMember.displayAvatarURL(),
                 })
                     .setColor(colors_1.colors.default)
                     .addFields([
                     {
                         name: "Тайм-аут до",
-                        value: String(`<t:${Math.round(newMember.communicationDisabledUntilTimestamp / 1000)}>`),
+                        value: `<t:${Math.round(newMember.communicationDisabledUntilTimestamp / 1000)}>`,
                     },
                 ]);
             }
@@ -335,7 +320,7 @@ exports.default = (client) => {
                 embed
                     .setAuthor({
                     name: `${newMember.displayName} был снят тайм-аут`,
-                    iconURL: String(newMember.displayAvatarURL()),
+                    iconURL: newMember.displayAvatarURL(),
                 })
                     .setColor(colors_1.colors.default);
             }
@@ -354,7 +339,7 @@ exports.default = (client) => {
         const embed = new discord_js_1.EmbedBuilder()
             .setAuthor({
             name: `${member.user.username} был забанен`,
-            iconURL: String(member.user.displayAvatarURL()),
+            iconURL: member.user.displayAvatarURL(),
         })
             .setColor("Red")
             .setFooter({ text: `Id: ${member.user.id}` })
@@ -370,9 +355,7 @@ exports.default = (client) => {
             embed.addFields([
                 {
                     name: "Причина бана",
-                    value: member.reason !== null && member.reason !== undefined
-                        ? member.reason.toString()
-                        : "не указана",
+                    value: member.reason ? member.reason : "не указана",
                 },
             ]);
         }
@@ -383,24 +366,22 @@ exports.default = (client) => {
             .setColor("Green")
             .setAuthor({
             name: `${member.user.username} разбанен`,
-            iconURL: String(member.user.displayAvatarURL()),
+            iconURL: member.user.displayAvatarURL(),
         })
             .setTimestamp()
             .setFooter({ text: `Id: ${member.user.id}` });
-        if (member.reason != null) {
+        if (member.reason) {
             embed.addFields([
                 {
                     name: "Причина бана",
-                    value: member.reason.length > 1000
-                        ? "*слишком длинная причина бана*"
-                        : member.reason,
+                    value: member.reason.length > 1000 ? "*слишком длинная причина бана*" : member.reason,
                 },
             ]);
         }
         guildMemberChannel.send({ embeds: [embed] });
     });
-    client.on("guildUpdate", (oldGuild, newGuild) => {
-        var _a;
+    client.on("guildUpdate", (oldGuild, newGuild) => __awaiter(void 0, void 0, void 0, function* () {
+        var _c;
         const embed = new discord_js_1.EmbedBuilder()
             .setColor(colors_1.colors.default)
             .setAuthor({
@@ -419,7 +400,7 @@ exports.default = (client) => {
             embed.addFields([
                 {
                     name: "Иконка обновлена",
-                    value: String(`[До](${oldGuild.iconURL() || "https://discord.gg/"}) -> [После](${newGuild.iconURL() || "https://discord.gg/"})`),
+                    value: String(`[До изменения](${oldGuild.iconURL() || "https://natribu.org/"}) -> [После](${newGuild.iconURL() || "https://natribu.org/"})`),
                 },
             ]);
         }
@@ -435,22 +416,20 @@ exports.default = (client) => {
             embed.addFields([
                 {
                     name: "Владелец сервера обновлен",
-                    value: String(newGuild
-                        .fetchOwner()
-                        .then((own) => `\`` + own.displayName + `\``)),
+                    value: String(yield newGuild.fetchOwner().then((own) => `\`` + own.displayName + `\``)),
                 },
             ]);
         }
-        if (((_a = embed.data.fields) === null || _a === void 0 ? void 0 : _a.length) > 0)
+        if (((_c = embed.data.fields) === null || _c === void 0 ? void 0 : _c.length) > 0)
             guildChannel.send({ embeds: [embed] });
-    });
+    }));
     client.on("channelCreate", (createdChannel) => {
         var _a;
         const embed = new discord_js_1.EmbedBuilder()
             .setColor("Green")
             .setAuthor({ name: `Канал ${createdChannel.name} создан` })
             .setTimestamp()
-            .setFooter({ text: `ChannelId: ${createdChannel.id}` })
+            .setFooter({ text: `ChnId: ${createdChannel.id}` })
             .addFields([
             {
                 name: `Тип`,
@@ -458,8 +437,8 @@ exports.default = (client) => {
                 inline: true,
             },
             {
-                name: "Категория",
-                value: String(createdChannel.position),
+                name: "Позиция",
+                value: `${createdChannel.position}/raw ${createdChannel.rawPosition}`,
                 inline: true,
             },
         ]);
@@ -468,17 +447,12 @@ exports.default = (client) => {
     });
     client.on("channelDelete", (deletedChannel) => {
         var _a;
-        const embed = new discord_js_1.EmbedBuilder()
-            .setColor("Red")
-            .setAuthor({ name: `Канал удален` })
-            .setTimestamp();
+        const embed = new discord_js_1.EmbedBuilder().setColor("Red").setAuthor({ name: `Канал удален` }).setTimestamp();
         if (!deletedChannel.isDMBased()) {
-            embed
-                .setFooter({ text: `ChannelId: ` + deletedChannel.id })
-                .addFields([
+            embed.setFooter({ text: `ChnId: ${deletedChannel.id}` }).addFields([
                 {
                     name: "Название",
-                    value: deletedChannel.name.toString(),
+                    value: deletedChannel.name,
                     inline: true,
                 },
                 {
@@ -487,14 +461,14 @@ exports.default = (client) => {
                     inline: true,
                 },
                 {
-                    name: "Создан",
+                    name: "Дата создания",
                     value: `<t:${Math.round(deletedChannel.createdTimestamp / 1000)}>`,
                     inline: true,
                 },
             ]);
         }
         else
-            console.log(`Deleted channel found in DM`, deletedChannel);
+            console.log(`Deleted channel found as DM`, deletedChannel);
         if (((_a = embed.data.fields) === null || _a === void 0 ? void 0 : _a.length) > 0)
             guildChannel.send({ embeds: [embed] });
     });
@@ -505,7 +479,7 @@ exports.default = (client) => {
         const embed = new discord_js_1.EmbedBuilder()
             .setAuthor({
             name: `${(_b = invite.inviter) === null || _b === void 0 ? void 0 : _b.username} создал приглашение`,
-            iconURL: String((_c = invite.inviter) === null || _c === void 0 ? void 0 : _c.displayAvatarURL()),
+            iconURL: (_c = invite.inviter) === null || _c === void 0 ? void 0 : _c.displayAvatarURL(),
         })
             .setTimestamp()
             .setFooter({ text: `Id: ${invite.inviterId}` })
@@ -513,18 +487,12 @@ exports.default = (client) => {
             { name: `Ссылка`, value: `https://discord.gg/${invite.code}` },
             {
                 name: "Использований",
-                value: String(invite.maxUses
-                    ? invite.uses + `/` + invite.maxUses
-                    : "без ограничений"),
+                value: String(invite.maxUses ? invite.uses + `/` + invite.maxUses : "без ограничений"),
                 inline: true,
             },
             {
                 name: "Действительно до",
-                value: String(`${invite.expiresTimestamp
-                    ? `<t:` +
-                        Math.round(invite.expiresTimestamp / 1000) +
-                        `>`
-                    : "бессрочно"}`),
+                value: String(`${invite.expiresTimestamp ? `<t:` + Math.round(invite.expiresTimestamp / 1000) + `>` : "бессрочно"}`),
                 inline: true,
             },
             {
@@ -551,26 +519,22 @@ exports.default = (client) => {
         guildChannel.send({ embeds: [embed] });
     });
     client.on("messageDelete", (message) => {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        var _a, _b, _c, _d, _e;
         if (message.system ||
             ((_a = message.author) === null || _a === void 0 ? void 0 : _a.id) === ((_b = client.user) === null || _b === void 0 ? void 0 : _b.id) ||
-            (((_c = message.content) === null || _c === void 0 ? void 0 : _c.length) === 0 &&
-                message.attachments.size === 0 &&
-                message.stickers.size === 0) ||
+            (((_c = message.content) === null || _c === void 0 ? void 0 : _c.length) === 0 && message.attachments.size === 0 && message.stickers.size === 0) ||
             message.author === null)
             return;
         const embed = new discord_js_1.EmbedBuilder()
             .setColor("DarkRed")
             .setAuthor({ name: "Сообщение удалено" })
-            .setFooter({ text: `MessageId: ${message.id}` })
+            .setFooter({ text: `MsgId: ${message.id}` })
             .setTimestamp();
         if (message.author !== null) {
             embed.addFields([
                 {
                     name: "Автор",
-                    value: `<@${((_d = message.author) === null || _d === void 0 ? void 0 : _d.id) ||
-                        ((_e = message.author) === null || _e === void 0 ? void 0 : _e.fetch().then((a) => a.id))}> (${((_f = message.author) === null || _f === void 0 ? void 0 : _f.id) ||
-                        ((_g = message.author) === null || _g === void 0 ? void 0 : _g.fetch().then((a) => a.id))})`,
+                    value: `<@${message.author.id}> (${message.author.id})`,
                     inline: true,
                 },
                 {
@@ -581,26 +545,18 @@ exports.default = (client) => {
             ]);
         }
         else {
-            embed
-                .setAuthor({ name: "Неизвестное сообщение удалено" })
-                .addFields([
-                { name: "Удалено в", value: `<#${message.channelId}>` },
-            ]);
+            embed.setAuthor({ name: "Неизвестное сообщение удалено" }).addFields([{ name: "Удалено в", value: `<#${message.channelId}>` }]);
         }
-        if (((_h = message.content) === null || _h === void 0 ? void 0 : _h.length) > 0) {
+        if (((_d = message.content) === null || _d === void 0 ? void 0 : _d.length) > 0) {
             embed.addFields([
                 {
-                    name: "Содержание",
-                    value: `\`${((_j = message.content) === null || _j === void 0 ? void 0 : _j.length) > 1000
-                        ? "слишком большое сообщение"
-                        : message.content}\``,
+                    name: "Текст",
+                    value: `\`${((_e = message.content) === null || _e === void 0 ? void 0 : _e.length) > 1000 ? "слишком длинное сообщение" : message.content}\``,
                 },
             ]);
         }
         if (message.embeds.length > 0) {
-            embed.addFields([
-                { name: "Embed-вложения", value: `\`${message.embeds.length}\`` },
-            ]);
+            embed.addFields([{ name: "Embed-вложения", value: `\`${message.embeds.length}\`` }]);
         }
         if (message.attachments.size !== 0) {
             const arrayAttachment = [];
@@ -630,32 +586,22 @@ exports.default = (client) => {
     });
     client.on("messageDeleteBulk", (message) => {
         var _a, _b, _c;
-        const embed = new discord_js_1.EmbedBuilder()
-            .setColor("DarkRed")
-            .setAuthor({ name: "Группа сообщений удалена" })
-            .setTimestamp();
+        const embed = new discord_js_1.EmbedBuilder().setColor("DarkRed").setAuthor({ name: "Группа сообщений удалена" }).setTimestamp();
         for (let i = 0; i < message.size && i < 24; i++) {
             const m = message.at(i);
             embed.addFields([
                 {
                     name: `Сообщение ${(_a = m === null || m === void 0 ? void 0 : m.member) === null || _a === void 0 ? void 0 : _a.displayName} (${m === null || m === void 0 ? void 0 : m.id})`,
-                    value: `${((_b = m === null || m === void 0 ? void 0 : m.content) === null || _b === void 0 ? void 0 : _b.length) > 0
-                        ? `\`${((_c = m === null || m === void 0 ? void 0 : m.content) === null || _c === void 0 ? void 0 : _c.length) > 1000
-                            ? "*в сообщении слишком много текста*"
-                            : m === null || m === void 0 ? void 0 : m.content}\``
-                        : "в сообщении нет текста"}`,
+                    value: `${((_b = m === null || m === void 0 ? void 0 : m.content) === null || _b === void 0 ? void 0 : _b.length) > 0 ? `\`${((_c = m === null || m === void 0 ? void 0 : m.content) === null || _c === void 0 ? void 0 : _c.length) > 1000 ? "*в сообщении слишком много текста*" : m === null || m === void 0 ? void 0 : m.content}\`` : "в сообщении нет текста"}`,
                 },
             ]);
         }
-        message.size > 24
-            ? embed.setFooter({ text: `И ещё ${message.size - 24} сообщений` })
-            : [];
+        message.size > 24 ? embed.setFooter({ text: `И ещё ${message.size - 24} сообщений` }) : [];
         messageChannel.send({ embeds: [embed] });
     });
     client.on("messageUpdate", (oldMessage, newMessage) => {
         var _a, _b;
-        if (((_a = oldMessage.content) === null || _a === void 0 ? void 0 : _a.length) <= 0 ||
-            oldMessage.content === newMessage.content)
+        if (((_a = oldMessage.content) === null || _a === void 0 ? void 0 : _a.length) <= 0 || oldMessage.content === newMessage.content)
             return;
         const embed = new discord_js_1.EmbedBuilder()
             .setColor(colors_1.colors.default)
@@ -664,11 +610,8 @@ exports.default = (client) => {
             .setDescription(`<@${newMessage.author.id}> изменил сообщение в <#${newMessage.channelId}>. [Перейти к сообщению](https://discord.com/channels/${newMessage.guildId}/${newMessage.channelId}/${newMessage.id})`)
             .addFields([
             {
-                name: "До",
-                value: oldMessage.content === null ||
-                    ((_b = oldMessage.content) === null || _b === void 0 ? void 0 : _b.length) <= 0
-                    ? "не закэшированное сообщение"
-                    : "`" + oldMessage.content + "`",
+                name: "До изменения",
+                value: oldMessage.content === null || ((_b = oldMessage.content) === null || _b === void 0 ? void 0 : _b.length) <= 0 ? "сообщение не было в кеше" : "`" + oldMessage.content + "`",
             },
             { name: "После", value: "`" + newMessage.content + "`" },
         ]);
@@ -678,7 +621,7 @@ exports.default = (client) => {
         const embed = new discord_js_1.EmbedBuilder()
             .setColor(colors_1.colors.default)
             .setAuthor({ name: "Роль была создана" })
-            .setFooter({ text: "RoleId: " + role.id })
+            .setFooter({ text: `RoleId: ${role.id}` })
             .setTimestamp()
             .addFields([
             { name: "Название", value: role.name, inline: true },
@@ -736,11 +679,8 @@ exports.default = (client) => {
             });
             embed
                 .setAuthor({
-                name: `${((_b = oldState.member) === null || _b === void 0 ? void 0 : _b.displayName) ||
-                    ((_c = newState.member) === null || _c === void 0 ? void 0 : _c.displayName) ||
-                    "пользователь не найден"} присоединился к голосовому каналу`,
-                iconURL: ((_d = oldState.member) === null || _d === void 0 ? void 0 : _d.displayAvatarURL()) ||
-                    ((_e = newState.member) === null || _e === void 0 ? void 0 : _e.displayAvatarURL()),
+                name: `${((_b = oldState.member) === null || _b === void 0 ? void 0 : _b.displayName) || ((_c = newState.member) === null || _c === void 0 ? void 0 : _c.displayName) || "пользователь не найден"} присоединился к голосовому каналу`,
+                iconURL: ((_d = oldState.member) === null || _d === void 0 ? void 0 : _d.displayAvatarURL()) || ((_e = newState.member) === null || _e === void 0 ? void 0 : _e.displayAvatarURL()),
             })
                 .setFooter({
                 text: `UId: ${(_f = newState.member) === null || _f === void 0 ? void 0 : _f.id} | ChnId: ${newState.channelId}`,
@@ -751,11 +691,8 @@ exports.default = (client) => {
             const getTimestamp = (_h = voiceUsers.get((_g = oldState.member) === null || _g === void 0 ? void 0 : _g.id)) === null || _h === void 0 ? void 0 : _h.joinTimestamp;
             embed
                 .setAuthor({
-                name: `${((_j = oldState.member) === null || _j === void 0 ? void 0 : _j.displayName) ||
-                    ((_k = newState.member) === null || _k === void 0 ? void 0 : _k.displayName) ||
-                    "пользователь не найден"} вышел из голосового канала`,
-                iconURL: ((_l = oldState.member) === null || _l === void 0 ? void 0 : _l.displayAvatarURL()) ||
-                    ((_m = newState.member) === null || _m === void 0 ? void 0 : _m.displayAvatarURL()),
+                name: `${((_j = oldState.member) === null || _j === void 0 ? void 0 : _j.displayName) || ((_k = newState.member) === null || _k === void 0 ? void 0 : _k.displayName) || "пользователь не найден"} вышел из голосового канала`,
+                iconURL: ((_l = oldState.member) === null || _l === void 0 ? void 0 : _l.displayAvatarURL()) || ((_m = newState.member) === null || _m === void 0 ? void 0 : _m.displayAvatarURL()),
             })
                 .setFooter({
                 text: `UId: ${(_o = oldState.member) === null || _o === void 0 ? void 0 : _o.id} | ChnId: ${oldState.channelId}`,
@@ -783,16 +720,11 @@ exports.default = (client) => {
             }
             voiceUsers.delete((_p = oldState.member) === null || _p === void 0 ? void 0 : _p.id);
         }
-        if (oldState.channelId !== null &&
-            newState.channelId !== null &&
-            oldState.channelId !== newState.channelId) {
+        if (oldState.channelId !== null && newState.channelId !== null && oldState.channelId !== newState.channelId) {
             embed
                 .setAuthor({
-                name: `${((_q = oldState.member) === null || _q === void 0 ? void 0 : _q.displayName) ||
-                    ((_r = newState.member) === null || _r === void 0 ? void 0 : _r.displayName) ||
-                    "пользователь не найден"} сменил голосовой канал`,
-                iconURL: ((_s = oldState.member) === null || _s === void 0 ? void 0 : _s.displayAvatarURL()) ||
-                    ((_t = newState.member) === null || _t === void 0 ? void 0 : _t.displayAvatarURL()),
+                name: `${((_q = oldState.member) === null || _q === void 0 ? void 0 : _q.displayName) || ((_r = newState.member) === null || _r === void 0 ? void 0 : _r.displayName) || "пользователь не найден"} сменил голосовой канал`,
+                iconURL: ((_s = oldState.member) === null || _s === void 0 ? void 0 : _s.displayAvatarURL()) || ((_t = newState.member) === null || _t === void 0 ? void 0 : _t.displayAvatarURL()),
             })
                 .setFooter({
                 text: `UId: ${(_u = newState.member) === null || _u === void 0 ? void 0 : _u.id} | ChnId: ${newState.channelId}`,

@@ -14,7 +14,7 @@ const sequelize_1 = require("../handlers/sequelize");
 const sequelize_2 = require("sequelize");
 const colors_1 = require("../base/colors");
 const ids_1 = require("../base/ids");
-const request_promise_native_1 = require("request-promise-native");
+const manifestHandler_1 = require("../handlers/manifestHandler");
 exports.default = {
     name: "db",
     description: "Database",
@@ -77,7 +77,7 @@ exports.default = {
                         },
                         {
                             type: discord_js_1.ApplicationCommandOptionType.String,
-                            name: "id",
+                            name: "roleId",
                             description: "ROLE ID",
                         },
                         {
@@ -135,14 +135,12 @@ exports.default = {
         },
     ],
     callback: (client, interaction, member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         yield interaction.deferReply({ ephemeral: true });
         const start = new Date().getTime();
         const { options } = interaction;
         const Subcommand = options.getSubcommand();
-        let id = options.getString("id");
-        if (id === "me")
-            id = member.id;
+        const id = options.getString("id") === "me" ? member.id : options.getSubcommandGroup() !== "role" ? options.getString("id", true) : [];
         switch (Subcommand) {
             case "select": {
                 const middle = new Date().getTime();
@@ -157,17 +155,12 @@ exports.default = {
                     var response = request.toJSON();
                 }
                 else if (request === null) {
-                    const embed = new discord_js_1.EmbedBuilder()
-                        .setColor("Red")
-                        .setTitle(`Запись не найдена`);
+                    const embed = new discord_js_1.EmbedBuilder().setColor("Red").setTitle(`Запись не найдена`);
                     interaction.editReply({ embeds: [embed] });
                     break;
                 }
                 else {
-                    const embed = new discord_js_1.EmbedBuilder()
-                        .setColor("Red")
-                        .setTitle(`Ошибка ${request.code}`)
-                        .setDescription(`${request.message}`);
+                    const embed = new discord_js_1.EmbedBuilder().setColor("Red").setTitle(`Ошибка ${request.code}`).setDescription(`${request.message}`);
                     interaction.editReply({ embeds: [embed] });
                     break;
                 }
@@ -176,8 +169,7 @@ exports.default = {
                     .setColor(colors_1.colors.default)
                     .setAuthor({
                     name: `${response.displayname} (${response.discord_id})`,
-                    iconURL: (_b = (_a = client.guilds.cache
-                        .get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(response.discord_id)) === null || _b === void 0 ? void 0 : _b.displayAvatarURL(),
+                    iconURL: (_b = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(response.discord_id)) === null || _b === void 0 ? void 0 : _b.displayAvatarURL(),
                 })
                     .setFooter({
                     text: `Query took: ${after - middle}ms, full interaction: ${after - start}ms`,
@@ -201,16 +193,12 @@ exports.default = {
                     },
                     {
                         name: "nameChangeStatus",
-                        value: String(response.displayname.startsWith("⁣")
-                            ? "enabled"
-                            : "disabled"),
+                        value: String(response.displayname.startsWith("⁣") ? "enabled" : "disabled"),
                         inline: true,
                     },
                     {
                         name: "refreshToken",
-                        value: String(response.refresh_token.length > 35
-                            ? "cached"
-                            : response.refresh_token.length),
+                        value: String(response.refresh_token.length > 35 ? "cached" : response.refresh_token.length),
                         inline: true,
                     },
                 ]);
@@ -233,12 +221,8 @@ exports.default = {
                     interaction.editReply({ embeds: [embed] });
                     break;
                 }
-                const embed = new discord_js_1.EmbedBuilder()
-                    .setColor(colors_1.colors.default)
-                    .setAuthor({
-                    name: `${request === 1
-                        ? `Успех. Удалено ${request} строк`
-                        : `Удалено ${request} строк`}`,
+                const embed = new discord_js_1.EmbedBuilder().setColor(colors_1.colors.default).setAuthor({
+                    name: `${request === 1 ? `Успех. Удалено ${request} строк` : `Удалено ${request} строк`}`,
                 });
                 interaction.editReply({ embeds: [embed] });
                 break;
@@ -251,9 +235,7 @@ exports.default = {
                 })
                     .then((data) => {
                     if (!data) {
-                        const embed = new discord_js_1.EmbedBuilder()
-                            .setColor("Red")
-                            .setTitle(`${id} not found in DB`);
+                        const embed = new discord_js_1.EmbedBuilder().setColor("Red").setTitle(`${id} not found in DB`);
                         return interaction.editReply({ embeds: [embed] });
                     }
                     if (data.displayname.startsWith("⁣")) {
@@ -264,9 +246,7 @@ exports.default = {
                             where: { displayname: data.displayname },
                         })
                             .then((_resp) => {
-                            const embed = new discord_js_1.EmbedBuilder()
-                                .setColor("Green")
-                                .setTitle(`Autonickname disabled for ${data.displayname}`);
+                            const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTitle(`Autonickname disabled for ${data.displayname}`);
                             interaction.editReply({ embeds: [embed] });
                         });
                     }
@@ -276,9 +256,7 @@ exports.default = {
                             displayname: `⁣${data.displayname}`,
                         }, { where: { displayname: data.displayname } })
                             .then((_resp) => {
-                            const embed = new discord_js_1.EmbedBuilder()
-                                .setColor("Green")
-                                .setTitle(`Autonickname enabled for ${data.displayname}`);
+                            const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTitle(`Autonickname enabled for ${data.displayname}`);
                             return interaction.editReply({ embeds: [embed] });
                         });
                     }
@@ -286,207 +264,184 @@ exports.default = {
                 break;
             }
             case "add": {
-                const hash = options.getInteger("hash");
-                (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/Manifest/`, {
-                    json: true,
-                }).then((manifest) => {
-                    (0, request_promise_native_1.get)(`https://www.bungie.net/${manifest.Response.jsonWorldComponentContentPaths.ru.DestinyRecordDefinition}`, { json: true }).then((record_manifest) => __awaiter(void 0, void 0, void 0, function* () {
-                        var _a;
-                        if (record_manifest[hash] === undefined) {
-                            const embed = new discord_js_1.EmbedBuilder()
-                                .setColor("Red")
-                                .setTitle("Триумф под таким хешем не найден")
-                                .setFooter({ text: `Hash: ${hash}` });
-                            return interaction.editReply({ embeds: [embed] });
-                        }
-                        const db_query = yield sequelize_1.role_data.findOne({
-                            where: { role_id: id },
-                        });
-                        const title = record_manifest[hash].titleInfo.hasTitle;
-                        if (title) {
-                            var title_name = record_manifest[hash].titleInfo.titlesByGender.Male;
+                const hash = options.getInteger("hash", true);
+                const roleId = options.getString("roleId");
+                const record_manifest = yield manifestHandler_1.DestinyRecordDefinition;
+                if ((yield record_manifest[hash]) === undefined) {
+                    throw { name: "Триумф под таким хешем не найден", message: `Hash: ${hash}`, falseAlarm: true };
+                }
+                const db_query = yield sequelize_1.role_data.findOne({
+                    where: { role_id: roleId },
+                });
+                const title = record_manifest[hash].titleInfo.hasTitle;
+                if (title) {
+                    var title_name = record_manifest[hash].titleInfo.titlesByGender.Male;
+                }
+                else {
+                    var title_name = record_manifest[hash].displayProperties.name;
+                }
+                var category = db_query ? db_query.category : title ? 3 : options.getInteger("category") || 4;
+                const embed = new discord_js_1.EmbedBuilder().setColor(colors_1.colors.default);
+                if (db_query) {
+                    embed.setTitle(`Дополнение существующей авто-роли`);
+                    embed.setDescription(`Добавление условия ${hash} к <@&${db_query.role_id}>`);
+                }
+                else {
+                    embed.setTitle(`Создание авто-роли`);
+                }
+                if (record_manifest[hash].displayProperties.hasIcon) {
+                    embed.setThumbnail(`https://www.bungie.net${record_manifest[hash].displayProperties.icon}`);
+                }
+                if (title_name) {
+                    embed.addFields([
+                        {
+                            name: "Название",
+                            value: title_name,
+                            inline: true,
+                        },
+                    ]);
+                }
+                if (title && !db_query) {
+                    category = 3;
+                    embed.addFields([
+                        {
+                            name: "Категория",
+                            value: String(category),
+                            inline: true,
+                        },
+                    ]);
+                }
+                else {
+                    embed.addFields([
+                        {
+                            name: "Категория",
+                            value: String((db_query === null || db_query === void 0 ? void 0 : db_query.category) || category),
+                            inline: true,
+                        },
+                    ]);
+                }
+                if (record_manifest[hash].displayProperties.description) {
+                    embed.addFields([
+                        {
+                            name: "Описание роли",
+                            value: yield record_manifest[hash].displayProperties.description,
+                        },
+                    ]);
+                }
+                const components = [
+                    new discord_js_1.ButtonBuilder().setCustomId("db_roles_add_confirm").setLabel("Создать").setStyle(discord_js_1.ButtonStyle.Primary),
+                    new discord_js_1.ButtonBuilder()
+                        .setCustomId("db_roles_add_change_name")
+                        .setLabel("Изменить название")
+                        .setStyle(discord_js_1.ButtonStyle.Secondary)
+                        .setDisabled((db_query === null || db_query === void 0 ? void 0 : db_query.role_id) ? true : false),
+                    new discord_js_1.ButtonBuilder().setCustomId("db_roles_add_cancel").setLabel("Отменить").setStyle(discord_js_1.ButtonStyle.Danger),
+                ];
+                yield interaction.editReply({
+                    embeds: [embed],
+                    components: [
+                        {
+                            type: discord_js_1.ComponentType.ActionRow,
+                            components: components,
+                        },
+                    ],
+                });
+                const interactionUId = interaction.user.id;
+                const collector = (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.createMessageComponentCollector({
+                    time: 50000,
+                    max: 5,
+                    filter: (interaction) => interaction.user.id == interactionUId,
+                });
+                collector
+                    .on("collect", (collected) => __awaiter(void 0, void 0, void 0, function* () {
+                    var _f;
+                    if (!collected.deferred)
+                        yield collected.deferUpdate().catch((e) => console.log(e));
+                    if (collected.customId === "db_roles_add_cancel") {
+                        interaction.editReply({ components: [] });
+                        collector.stop("Canceled");
+                    }
+                    else if (collected.customId === "db_roles_add_confirm") {
+                        var role, embed;
+                        if (!(db_query === null || db_query === void 0 ? void 0 : db_query.role_id)) {
+                            role = yield interaction.guild.roles.create({
+                                name: title_name,
+                                reason: "Creating auto-role",
+                            });
                         }
                         else {
-                            var title_name = record_manifest[hash].displayProperties.name;
+                            role = member.guild.roles.cache.get(String(db_query.role_id));
                         }
-                        var category = db_query
-                            ? db_query.category
-                            : title
-                                ? 3
-                                : options.getInteger("category") || 4;
-                        const embed = new discord_js_1.EmbedBuilder().setColor(colors_1.colors.default);
-                        if (db_query) {
-                            embed.setTitle(`Дополнение существующей авто-роли`);
-                            embed.setDescription(`Добавление условия ${hash} к <@&${db_query.role_id}>`);
+                        if (!db_query) {
+                            yield sequelize_1.role_data.findOrCreate({
+                                where: {
+                                    hash: { [sequelize_2.Op.contains]: `{${hash}}` },
+                                },
+                                defaults: {
+                                    hash: `{${hash}}`,
+                                    role_id: role.id,
+                                    category: category,
+                                },
+                            });
+                            embed = new discord_js_1.EmbedBuilder()
+                                .setColor("Green")
+                                .setTitle("Роль была создана")
+                                .setDescription(`<@&${role.id}>`)
+                                .setFooter({
+                                text: `Role Id: ${role.id}`,
+                            });
                         }
                         else {
-                            embed.setTitle(`Создание авто-роли`);
+                            var newHash = db_query.hash;
+                            newHash.push(String(hash));
+                            yield sequelize_1.role_data.update({
+                                hash: `{${newHash.toString()}}`,
+                            }, {
+                                where: { role_id: db_query.role_id },
+                            });
+                            embed = new discord_js_1.EmbedBuilder()
+                                .setColor("Green")
+                                .setTitle("Требования к роли были дополнены")
+                                .setDescription(`<@&${role.id}>`)
+                                .setFooter({
+                                text: `Role Id: ${role.id}`,
+                            });
                         }
-                        if (record_manifest[hash].displayProperties.hasIcon) {
-                            embed.setThumbnail(`https://www.bungie.net${record_manifest[hash].displayProperties.icon}`);
-                        }
-                        if (title_name) {
-                            embed.addFields([
-                                {
-                                    name: "Название",
-                                    value: title_name,
-                                    inline: true,
-                                },
-                            ]);
-                        }
-                        if (title && !db_query) {
-                            category = 3;
-                            embed.addFields([
-                                {
-                                    name: "Категория",
-                                    value: String(category),
-                                    inline: true,
-                                },
-                            ]);
-                        }
-                        else {
-                            embed.addFields([
-                                {
-                                    name: "Категория",
-                                    value: String((db_query === null || db_query === void 0 ? void 0 : db_query.category) || category),
-                                    inline: true,
-                                },
-                            ]);
-                        }
-                        if (record_manifest[hash].displayProperties.description) {
-                            embed.addFields([
-                                {
-                                    name: "Описание роли",
-                                    value: yield record_manifest[hash].displayProperties
-                                        .description,
-                                },
-                            ]);
-                        }
-                        const components = [
-                            new discord_js_1.ButtonBuilder()
-                                .setCustomId("db_roles_add_confirm")
-                                .setLabel("Создать")
-                                .setStyle(discord_js_1.ButtonStyle.Primary),
-                            new discord_js_1.ButtonBuilder()
-                                .setCustomId("db_roles_add_change_name")
-                                .setLabel("Изменить название")
-                                .setStyle(discord_js_1.ButtonStyle.Secondary)
-                                .setDisabled((db_query === null || db_query === void 0 ? void 0 : db_query.role_id) ? true : false),
-                            new discord_js_1.ButtonBuilder()
-                                .setCustomId("db_roles_add_cancel")
-                                .setLabel("Отменить")
-                                .setStyle(discord_js_1.ButtonStyle.Danger),
-                        ];
-                        yield interaction.editReply({
+                        collector.stop("Completed");
+                        interaction.editReply({
                             embeds: [embed],
-                            components: [
-                                {
-                                    type: discord_js_1.ComponentType.ActionRow,
-                                    components: components,
-                                },
-                            ],
+                            components: [],
                         });
-                        const collector = (_a = interaction.channel) === null || _a === void 0 ? void 0 : _a.createMessageComponentCollector({
-                            time: 50000,
-                            max: 5,
-                            filter: (interaction) => interaction.user.id == interaction.member.id,
-                        });
-                        collector
-                            .on("collect", (collected) => __awaiter(void 0, void 0, void 0, function* () {
-                            var _b;
-                            if (!collected.deferred)
-                                yield collected
-                                    .deferUpdate()
-                                    .catch((e) => console.log(e));
-                            if (collected.customId === "db_roles_add_cancel") {
-                                interaction.editReply({ components: [] });
-                                collector.stop("Canceled");
-                            }
-                            else if (collected.customId === "db_roles_add_confirm") {
-                                var role, embed;
-                                if (!(db_query === null || db_query === void 0 ? void 0 : db_query.role_id)) {
-                                    role = yield interaction.guild.roles.create({
-                                        name: title_name,
-                                        reason: "Creating auto-role",
-                                    });
-                                }
-                                else {
-                                    role = member.guild.roles.cache.get(String(db_query.role_id));
-                                }
-                                if (!db_query) {
-                                    yield sequelize_1.role_data.findOrCreate({
-                                        where: {
-                                            hash: { [sequelize_2.Op.contains]: "{" + hash + "}" },
-                                        },
-                                        defaults: {
-                                            hash: "{" + hash + "}",
-                                            role_id: role.id,
-                                            category: category,
-                                        },
-                                    });
-                                    embed = new discord_js_1.EmbedBuilder()
-                                        .setColor("Green")
-                                        .setTitle("Роль была создана")
-                                        .setDescription(`<@&${role.id}>`)
-                                        .setFooter({
-                                        text: `Role Id: ${role.id}`,
-                                    });
-                                }
-                                else {
-                                    var newHash = db_query.hash;
-                                    newHash.push(String(hash));
-                                    yield sequelize_1.role_data.update({
-                                        hash: "{" + newHash.toString() + "}",
-                                    }, {
-                                        where: { role_id: db_query.role_id },
-                                    });
-                                    embed = new discord_js_1.EmbedBuilder()
-                                        .setColor("Green")
-                                        .setTitle("Требования к роли были дополнены")
-                                        .setDescription(`<@&${role.id}>`)
-                                        .setFooter({
-                                        text: `Role Id: ${role.id}`,
-                                    });
-                                }
-                                collector.stop("Completed");
-                                interaction.editReply({
-                                    embeds: [embed],
-                                    components: [],
-                                });
-                            }
-                            else if (collected.customId === "db_roles_add_change_name") {
-                                (_b = interaction.channel) === null || _b === void 0 ? void 0 : _b.createMessageCollector({
-                                    time: 15000,
-                                    max: 1,
-                                    filter: (message) => message.author.id === interaction.user.id,
-                                }).on("collect", (msg) => {
-                                    msg.delete();
-                                    interaction.fetchReply().then((m) => {
-                                        const embed = m.embeds[0];
-                                        embed.fields[0].value = `${msg.cleanContent}`;
-                                        title_name = msg.cleanContent;
-                                        interaction.editReply({ embeds: [embed] });
-                                    });
-                                });
-                            }
-                        }))
-                            .on("end", () => {
-                            interaction.editReply({
-                                components: [],
+                    }
+                    else if (collected.customId === "db_roles_add_change_name") {
+                        (_f = interaction.channel) === null || _f === void 0 ? void 0 : _f.createMessageCollector({
+                            time: 15000,
+                            max: 1,
+                            filter: (message) => message.author.id === interaction.user.id,
+                        }).on("collect", (msg) => {
+                            msg.delete();
+                            interaction.fetchReply().then((m) => {
+                                const embed = m.embeds[0];
+                                embed.fields[0].value = `${msg.cleanContent}`;
+                                title_name = msg.cleanContent;
+                                interaction.editReply({ embeds: [embed] });
                             });
                         });
-                    }));
+                    }
+                }))
+                    .on("end", () => {
+                    interaction.editReply({
+                        components: [],
+                    });
                 });
                 break;
             }
             case "fetch": {
                 const data = yield sequelize_1.role_data.findAll();
-                const embed = new discord_js_1.EmbedBuilder()
-                    .setColor(colors_1.colors.default)
-                    .setTitle("Auto roles");
+                const embed = new discord_js_1.EmbedBuilder().setColor(colors_1.colors.default).setTitle("Auto roles");
                 data.forEach((d) => __awaiter(void 0, void 0, void 0, function* () {
-                    var _e;
-                    if (((_e = embed.data.fields) === null || _e === void 0 ? void 0 : _e.length) === 25) {
+                    var _g;
+                    if (((_g = embed.data.fields) === null || _g === void 0 ? void 0 : _g.length) === 25) {
                         return embed.setFooter({
                             text: `and ${data.length - 25} more`,
                         });
@@ -499,13 +454,15 @@ exports.default = {
                         },
                     ]);
                 }));
-                if (((_c = embed.data.fields) === null || _c === void 0 ? void 0 : _c.length) === 0)
+                if (((_d = embed.data.fields) === null || _d === void 0 ? void 0 : _d.length) === 0)
                     embed.setDescription("There are no auto-roles");
                 interaction.editReply({ embeds: [embed] });
                 break;
             }
             case "remove": {
-                if ((_d = interaction.guild) === null || _d === void 0 ? void 0 : _d.roles.cache.has(id)) {
+                if (typeof id !== "string")
+                    return;
+                if ((_e = interaction.guild) === null || _e === void 0 ? void 0 : _e.roles.cache.has(id)) {
                     var query = yield sequelize_1.role_data.destroy({ where: { role_id: id } });
                 }
                 else {
@@ -514,17 +471,11 @@ exports.default = {
                     });
                 }
                 if (query) {
-                    const embed = new discord_js_1.EmbedBuilder()
-                        .setColor("Green")
-                        .setTitle(`Удалена ${query} авто-роль`);
+                    const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTitle(`Удалена ${query} авто-роль`);
                     interaction.editReply({ embeds: [embed] });
                 }
                 else {
-                    const embed = new discord_js_1.EmbedBuilder()
-                        .setColor("Red")
-                        .setTitle(`Удалено ${query} авто-ролей`)
-                        .setFooter({ text: `Hash: ${id}` });
-                    interaction.editReply({ embeds: [embed] });
+                    throw { name: `Удалено ${query} авто-ролей`, message: `Hash: ${id}`, falseAlarm: true };
                 }
                 break;
             }

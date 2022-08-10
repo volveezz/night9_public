@@ -59,15 +59,11 @@ exports.default = {
                 if (isNaN(parseInt(id))) {
                     id =
                         ((_b = (_a = client.application) === null || _a === void 0 ? void 0 : _a.commands.cache.find((command) => command.name == id)) === null || _b === void 0 ? void 0 : _b.id) ||
-                            ((_d = (_c = client.guilds.cache
-                                .get(ids_1.guildId)) === null || _c === void 0 ? void 0 : _c.commands.cache.find((command) => command.name == id)) === null || _d === void 0 ? void 0 : _d.id) ||
-                            id;
+                            ((_d = (_c = client.guilds.cache.get(ids_1.guildId)) === null || _c === void 0 ? void 0 : _c.commands.cache.find((command) => command.name == id)) === null || _d === void 0 ? void 0 : _d.id) ||
+                            "NaN";
                 }
-                if (isNaN(parseInt(id))) {
-                    const embed = new discord_js_1.EmbedBuilder()
-                        .setColor("Red")
-                        .setTitle(`Command \`${id}\` wasn't found`);
-                    return interaction.editReply({ embeds: [embed] });
+                if (id === "NaN" || isNaN(parseInt(id))) {
+                    throw { name: `Command \`${id}\` not found` };
                 }
                 (_e = client.application) === null || _e === void 0 ? void 0 : _e.commands.delete(id).then((resp) => {
                     const embed = new discord_js_1.EmbedBuilder()
@@ -103,11 +99,7 @@ exports.default = {
                             interaction.editReply({ embeds: [embed] });
                         }).catch((e) => {
                             if (e.code === 10063) {
-                                const embed = new discord_js_1.EmbedBuilder()
-                                    .setColor("Red")
-                                    .setTitle("Command wasn't found")
-                                    .setFooter({ text: `Id: ${id}` });
-                                interaction.editReply({ embeds: [embed] });
+                                throw { name: `Command \`${id}\` not found as global or guild command`, falseAlarm: true };
                             }
                             else {
                                 console.error(e);
@@ -146,9 +138,7 @@ exports.default = {
                         });
                     }));
                 }
-                const embed = new discord_js_1.EmbedBuilder()
-                    .setColor(colors_1.colors.default)
-                    .setTitle(global ? "Global command list" : "Guild command list");
+                const embed = new discord_js_1.EmbedBuilder().setColor(colors_1.colors.default).setTitle(global ? "Global command list" : "Guild command list");
                 commandArray.forEach((command) => {
                     var _a;
                     if (((_a = embed.data.fields) === null || _a === void 0 ? void 0 : _a.length) >= 24) {
