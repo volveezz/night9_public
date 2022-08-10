@@ -64,7 +64,6 @@ function raidDataInChnMsg(raidData) {
         const index1 = findK("основной группы");
         const index2 = findK("запасных участников");
         const index3 = findK("возможных участников");
-        console.log(index1, index2, index3);
         embed.spliceFields(1, 3);
         if (raidData.joined.length > 0) {
             embed.spliceFields(1, 0, { name: "Успешные закрытия рейдов у основной группы", value: joined.join("\n") });
@@ -816,8 +815,8 @@ exports.default = {
                     changesForChannel.push({
                         name: "Создатель рейда",
                         value: raidData.creator === interaction.user.id
-                            ? `${interaction.user.username} передал права создателя рейда ${newRaidLeader.username}`
-                            : `Права создателя были переданы ${newRaidLeader.username}`,
+                            ? `${interaction.guild.members.cache.get(interaction.user.id).displayName} передал права создателя рейда ${interaction.guild.members.cache.get(newRaidLeader.id).displayName}`
+                            : `Права создателя были переданы ${interaction.guild.members.cache.get(newRaidLeader.id).displayName}`,
                     });
                     changes.push(`Создатель рейда был изменен`);
                     yield sequelize_1.raids.update({
@@ -864,7 +863,7 @@ exports.default = {
                 }
                 if (change.raidLeader) {
                     raidEmbed.setFooter({
-                        text: `Создатель рейда: ${change.raidLeader.username}`,
+                        text: `Создатель рейда: ${interaction.guild.members.cache.get(change.raidLeader.id).displayName}`,
                         iconURL: (_b = raidEmbed.data.footer) === null || _b === void 0 ? void 0 : _b.icon_url,
                     });
                 }
@@ -922,7 +921,8 @@ exports.default = {
                 .then(() => __awaiter(void 0, void 0, void 0, function* () {
                 var _d;
                 try {
-                    yield ((_d = guild.channels.cache.get(raidData.chnId)) === null || _d === void 0 ? void 0 : _d.delete(`${interaction.user.username} удалил рейд`));
+                    yield ((_d = guild.channels.cache
+                        .get(raidData.chnId)) === null || _d === void 0 ? void 0 : _d.delete(`${interaction.guild.members.cache.get(interaction.user.id).displayName} удалил рейд`));
                 }
                 catch (e) {
                     console.error(`Channel during raid manual delete for raidId ${raidData.id} wasn't found`);
@@ -945,6 +945,7 @@ exports.default = {
             const raidId = options.getInteger("id_рейда");
             const isAlt = options.getBoolean("альтернатива");
             const raidData = yield getRaid(raidId, interaction);
+            const embedReply = new discord_js_1.EmbedBuilder().setColor("Green");
             if (isAlt === true) {
                 if (!raidData.alt.includes(addedUser.id)) {
                     if (raidData.joined.includes(addedUser.id)) {
@@ -954,6 +955,10 @@ exports.default = {
                         raidData.hotJoined.splice(raidData.hotJoined.indexOf(addedUser.id), 1);
                     }
                     raidData.alt.push(addedUser.id);
+                    embedReply.setAuthor({
+                        name: `${interaction.guild.members.cache.get(addedUser.id).displayName} был записан на рейд как возможный участник`,
+                        iconURL: addedUser.displayAvatarURL(),
+                    });
                     guild.channels.fetch(raidData.chnId).then((chn) => {
                         if (!chn)
                             throw { name: "Критическая ошибка", userId: interaction.user.id, commandName: interaction.commandName, raidId: raidData.id };
@@ -974,9 +979,10 @@ exports.default = {
                         where: { id: raidData.id },
                     });
                     yield raidMsgUpdate(raidData, interaction);
+                    (0, channels_1.chnFetcher)(raidData.chnId).send({ embeds: [embedReply] });
                     const embed = new discord_js_1.EmbedBuilder()
                         .setColor("Green")
-                        .setTitle(`${addedUser.username} был записан как возможный участник на ${raidData.id}-${raidData.raid}`);
+                        .setTitle(`${interaction.guild.members.cache.get(addedUser.id).displayName} был записан как возможный участник на ${raidData.id}-${raidData.raid}`);
                     interaction.editReply({ embeds: [embed] });
                     raidDataInChnMsg(raidData);
                 }
@@ -994,13 +1000,21 @@ exports.default = {
                         if (raidData.hotJoined.includes(addedUser.id)) {
                             throw {
                                 name: "Ошибка",
-                                message: `Набор ${raidData.id}-${raidData.raid} полон, а ${addedUser.username} уже добавлен в запас`,
+                                message: `Набор ${raidData.id}-${raidData.raid} полон, а ${interaction.guild.members.cache.get(addedUser.id).displayName} уже добавлен в запас`,
                                 falseAlarm: true,
                             };
                         }
                         raidData.hotJoined.push(addedUser.id);
+                        embedReply.setAuthor({
+                            name: `${interaction.guild.members.cache.get(addedUser.id).displayName} был записан на рейд как запасной участник`,
+                            iconURL: addedUser.displayAvatarURL(),
+                        });
                     }
                     else {
+                        embedReply.setAuthor({
+                            name: `${interaction.guild.members.cache.get(addedUser.id).displayName} был записан на рейд как участник`,
+                            iconURL: addedUser.displayAvatarURL(),
+                        });
                         raidData.joined.push(addedUser.id);
                         if (raidData.hotJoined.includes(addedUser.id)) {
                             raidData.hotJoined.splice(raidData.hotJoined.indexOf(addedUser.id), 1);
@@ -1009,6 +1023,7 @@ exports.default = {
                     if (raidData.alt.includes(addedUser.id)) {
                         raidData.alt.splice(raidData.alt.indexOf(addedUser.id), 1);
                     }
+                    (0, channels_1.chnFetcher)(raidData.chnId).send({ embeds: [embedReply] });
                     guild.channels.fetch(raidData.chnId).then((chn) => {
                         if (!chn)
                             throw { name: "Критическая ошибка", userId: interaction.user.id, commandName: interaction.commandName, raidId: raidData.id };
@@ -1024,7 +1039,9 @@ exports.default = {
                         where: { id: raidData.id },
                     });
                     yield raidMsgUpdate(raidData, interaction);
-                    const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTitle(`${addedUser.username} был записан на ${raidData.id}-${raidData.raid}`);
+                    const embed = new discord_js_1.EmbedBuilder()
+                        .setColor("Green")
+                        .setTitle(`${interaction.guild.members.cache.get(addedUser.id).displayName} был записан на ${raidData.id}-${raidData.raid}`);
                     interaction.editReply({ embeds: [embed] });
                     raidDataInChnMsg(raidData);
                 }
@@ -1042,24 +1059,21 @@ exports.default = {
             const raidId = options.getInteger("id_рейда");
             const raidData = yield getRaid(raidId, interaction);
             const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTitle("Пользователь исключен"), inChnEmbed = new discord_js_1.EmbedBuilder()
-                .setColor(colors_1.colors.default)
+                .setColor("Red")
                 .setTitle("Пользователь был исключен с рейда")
                 .setTimestamp()
                 .setFooter({ text: `Исключитель: ${raidData.creator === interaction.user.id ? "Создатель рейда" : "Администратор"}` });
-            if (raidData.creator === kickableUser.id) {
-                throw { name: "Ошибка", message: "Вы не можете исключить с рейда сами себя\nДля выхода с рейда нажмите на соответствующую кнопку" };
-            }
             if (raidData.joined.includes(kickableUser.id)) {
                 raidData.joined.splice(raidData.joined.indexOf(kickableUser.id), 1);
-                inChnEmbed.setDescription(`${kickableUser.username} исключен будучи участником рейда`);
+                inChnEmbed.setDescription(`${interaction.guild.members.cache.get(kickableUser.id).displayName} исключен будучи участником рейда`);
             }
             if (raidData.alt.includes(kickableUser.id)) {
                 raidData.alt.splice(raidData.alt.indexOf(kickableUser.id), 1);
-                inChnEmbed.setDescription(`${kickableUser.username} исключен будучи возможным участником рейда`);
+                inChnEmbed.setDescription(`${interaction.guild.members.cache.get(kickableUser.id).displayName} исключен будучи возможным участником рейда`);
             }
             if (raidData.hotJoined.includes(kickableUser.id)) {
                 raidData.hotJoined.splice(raidData.hotJoined.indexOf(kickableUser.id), 1);
-                inChnEmbed.setDescription(`${kickableUser.username} исключен будучи заменой участников рейда`);
+                inChnEmbed.setDescription(`${interaction.guild.members.cache.get(kickableUser.id).displayName} исключен будучи заменой участников рейда`);
             }
             yield raidMsgUpdate(raidData, interaction);
             yield sequelize_1.raids.update({
@@ -1077,7 +1091,7 @@ exports.default = {
                     throw { name: "Критическая ошибка", message: "Произошла критическая ошибка во время отправки сообщения в канал", userId: interaction.user.id };
                 }
             });
-            embed.setDescription(`${kickableUser.username} был исключен с рейда ${raidData.id}-${raidData.raid}`);
+            embed.setDescription(`${interaction.guild.members.cache.get(kickableUser.id).displayName} был исключен с рейда ${raidData.id}-${raidData.raid}`);
             interaction.editReply({ embeds: [embed] });
             raidDataInChnMsg(raidData);
         }
