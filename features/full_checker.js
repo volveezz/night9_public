@@ -463,7 +463,7 @@ exports.default = (client) => {
             yield timer(555);
         }
         clan(db_plain);
-    }), 1000 * 59 * 22);
+    }), 1000 * 61 * 2);
     setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         const data = (yield sequelize_1.auth_data.findAll({
             attributes: ["discord_id", "displayname", "tz"],
@@ -475,7 +475,7 @@ exports.default = (client) => {
             var _a, _b;
             const db_data_ind = data.find((d) => d.discord_id === member.id);
             if (!db_data_ind) {
-                return console.error("[Checker error] No data was found for", member.id, db_data_ind);
+                return;
             }
             const db_name = db_data_ind.displayname;
             if (member.displayName !== db_name &&
@@ -491,5 +491,5 @@ exports.default = (client) => {
                 }
             }
         });
-    }), 1000 * 70 * 1);
+    }), 1000 * 70 * 5);
 };
