@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.raidMsgUpdate = exports.raidDataFetcher = exports.timerConverter = exports.raidDataInChnMsg = void 0;
+exports.raidMsgUpdate = exports.raidDataFetcher = exports.timerConverter = exports.raidDataInChnMsg = exports.raidInGameChecker = void 0;
 const discord_js_1 = require("discord.js");
 const channels_1 = require("../base/channels");
 const colors_1 = require("../base/colors");
@@ -17,7 +17,11 @@ const sequelize_1 = require("../handlers/sequelize");
 const full_checker_1 = require("../features/full_checker");
 const roles_1 = require("../base/roles");
 const ids_1 = require("../base/ids");
-const blankData = { votd: 0, votdMaster: 0, vog: 0, vogMaster: 0, dsc: 0, gos: 0, lw: 0 };
+const runningRaids = new Map();
+function raidInGameChecker(raidDb) {
+    runningRaids.set(raidDb.id, raidDb.time);
+}
+exports.raidInGameChecker = raidInGameChecker;
 function raidDataInChnMsg(raidData) {
     return __awaiter(this, void 0, void 0, function* () {
         const inChnMsg = yield (0, channels_1.msgFetcher)(raidData.chnId, raidData.inChnMsg);
@@ -606,7 +610,7 @@ exports.default = {
                 new discord_js_1.ButtonBuilder().setCustomId("raidEvent_btn_leave").setLabel("Выйти").setStyle(discord_js_1.ButtonStyle.Danger),
                 new discord_js_1.ButtonBuilder().setCustomId("raidEvent_btn_alt").setLabel("Возможно буду").setStyle(discord_js_1.ButtonStyle.Secondary),
             ];
-            const content = `Открыт набор в рейд: ${raidData.raidName} ${raidData.requiredRole !== null ? `<@&${raidData.requiredRole}>` : member.guild.roles.everyone}`;
+            const content = `Открыт набор в рейд: ${raidData.raidName} ${raidData.requiredRole !== null ? `<@&${raidData.requiredRole}>` : raidData.raid !== "kf" ? member.guild.roles.everyone : ""}`;
             const raidChannel = (0, channels_1.chnFetcher)(ids_1.ids.raidChnId);
             const msg = raidChannel.send({
                 content: content,
@@ -660,6 +664,7 @@ exports.default = {
                 interaction.editReply({
                     content: `Рейд успешно создан. <#${chn.id}>, [ссылка на набор](https://discord.com/channels/${guild.id}/${chn.id}/${(yield msg).id})`,
                 });
+                raidInGameChecker(raidDb);
                 raidDataInChnMsg((yield insertedRaidData)[1][0]);
             }));
         }
@@ -789,6 +794,7 @@ exports.default = {
                 yield sequelize_1.raids.update({
                     time: changedTime,
                 }, { where: { id: raidData.id }, transaction: t });
+                raidInGameChecker(raidData);
             }
             if (newRaidLeader) {
                 if (!newRaidLeader.bot) {

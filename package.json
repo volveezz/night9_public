@@ -8,6 +8,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "prepush": "npx tsc --watch",
     "dev": "concurrently \"npx tsc --watch\" \"nodemon -q index.js\""
   },
   "author": "Volve",
@@ -23,10 +24,5 @@
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
     "sequelize": "^6.21.1"
-  },
-  "devDependencies": {
-    "@types/request-promise-native": "^1.0.18",
-    "concurrently": "^7.2.2",
-    "nodemon": "^2.0.19"
   }
 }

@@ -22,12 +22,10 @@ exports.default = {
             return;
         yield interaction.deferReply({ ephemeral: true });
         if (inviteCd.has(interaction.user.id) || interaction.user.id === ids_1.ownerId) {
-            const embed = new discord_js_1.EmbedBuilder()
-                .setColor("Red")
-                .setTitle("Время вышло")
-                .setDescription(`Приглашения действуют лишь в течении 15-ти минут\nДля вступления в клан вручную подайте заявку через [сайт bungie.net](https://www.bungie.net/ru/ClanV2?groupid=4123712)`);
-            interaction.editReply({ embeds: [embed] });
-            return;
+            throw {
+                name: "Время вышло",
+                message: `Приглашения действуют лишь в течении 15-ти минут\nДля вступления в клан вручную подайте заявку через [сайт bungie.net](https://www.bungie.net/ru/ClanV2?groupid=4123712)`,
+            };
         }
         const authData = yield sequelize_2.auth_data.findAll({
             attributes: ["clan", "bungie_id", "platform", "access_token"],
@@ -45,7 +43,6 @@ exports.default = {
         }
         if (authData.length === 2) {
             if (invitee_clan === true) {
-                const embed = new discord_js_1.EmbedBuilder().setColor("DarkGreen").setTitle("Вы уже состоите в клане :)").setTimestamp();
                 (_a = interaction.channel) === null || _a === void 0 ? void 0 : _a.messages.fetch(interaction.message.id).then((msg) => {
                     const reEmbed = discord_js_1.EmbedBuilder.from(msg.embeds[0]);
                     reEmbed.setDescription(null);
@@ -59,7 +56,7 @@ exports.default = {
                     headers: { "X-API-Key": process.env.XAPI },
                     auth: { bearer: inviter_access_token },
                     json: true,
-                    body: { message: "message" },
+                    body: { message: "IndividualInvite" },
                 });
             }
             catch (err) {

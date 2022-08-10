@@ -34,6 +34,7 @@ exports.default = (client) => {
             json: true,
         })
             .then((response) => __awaiter(this, void 0, void 0, function* () {
+            var _a;
             const { Response } = response;
             if (!character_data.get(data.discord_id)) {
                 character_data.set(data.discord_id, Response["profile"]["data"]["characterIds"]);
@@ -208,6 +209,7 @@ exports.default = (client) => {
             seasonalRolesChecker();
             dlc_rolesChecker(Response.profile.data.versionsOwned);
             triumphsChecker();
+            trialsChecker((_a = Response.metrics.data.metrics["1765255052"]) === null || _a === void 0 ? void 0 : _a.objectiveProgress.progress);
             if (give_roles.length > 0) {
                 setTimeout(() => {
                     console.log(`Givin roles ${give_roles} to ${member.displayName}`);
@@ -420,13 +422,17 @@ exports.default = (client) => {
                         dsc >= step.individualClears &&
                         gos >= step.individualClears &&
                         lw >= step.individualClears) {
-                        member.roles.add(step.roleId);
-                        setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 6000);
+                        if (!member.roles.cache.has(step.roleId)) {
+                            member.roles.add(step.roleId);
+                            setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 6000);
+                        }
                         break;
                     }
                     else if (votdMaster + votd + dsc + gos + lw >= step.totalClears) {
-                        member.roles.add(step.roleId);
-                        setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 6000);
+                        if (!member.roles.cache.has(step.roleId)) {
+                            member.roles.add(step.roleId);
+                            setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 6000);
+                        }
                         break;
                     }
                 }
