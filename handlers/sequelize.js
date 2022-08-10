@@ -9,6 +9,7 @@ const sequelize = new sequelize_1.Sequelize(String(process.env.DATABASE_URL), {
     pool: {
         max: 20,
     },
+    logging: false,
 });
 exports.db = sequelize;
 class auth_data extends sequelize_1.Model {
