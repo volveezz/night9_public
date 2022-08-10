@@ -10,8 +10,8 @@ exports.ids = {
     voiceChnId: "780514966930718773",
     clanChnId: "1006745445613174814",
     botChnId: "804642826330570753",
-    raidChnId: "677551388514844682",
-    raidChnCategoryId: "677551288967233550",
+    raidChnId: "679191036849029167",
+    raidChnCategoryId: "932923197555347478",
     dmMsgsChnId: "972852961636155392",
     activityChnId: "679191036849029167",
 };

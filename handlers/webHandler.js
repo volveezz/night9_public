@@ -30,6 +30,8 @@ function webHandler(code, state, client, res) {
             (0, request_promise_native_1.post)("https://www.bungie.net/Platform/App/OAuth/Token/", {
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
+                    grant_type: "authorization_code",
+                    code: code,
                     Authorization: `Basic ${process.env.AUTH}`,
                 },
                 form: {
