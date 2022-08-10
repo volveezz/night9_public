@@ -73,9 +73,7 @@ exports.default = {
                         new discord_js_1.ButtonBuilder().setCustomId("raidAddFunc_notify_cancel").setLabel("Отменить оповещение").setStyle(discord_js_1.ButtonStyle.Danger),
                     ];
                     const linkComponent = [];
-                    invite
-                        ? linkComponent.push(new discord_js_1.ButtonBuilder({ style: discord_js_1.ButtonStyle.Link, url: (invite === null || invite === void 0 ? void 0 : invite.url) || "https://discord.gg/", label: "Перейти к создателю рейда" }))
-                        : [];
+                    invite ? linkComponent.push(new discord_js_1.ButtonBuilder({ style: discord_js_1.ButtonStyle.Link, url: invite.url, label: "Перейти к создателю рейда" })) : "";
                     (yield raidChnInvite[0]) && raidChnInvite[0] !== undefined
                         ? linkComponent.push(new discord_js_1.ButtonBuilder({
                             style: discord_js_1.ButtonStyle.Link,
@@ -137,6 +135,12 @@ exports.default = {
                                         });
                                     }
                                 })));
+                                const compCont = [
+                                    {
+                                        type: discord_js_1.ComponentType.ActionRow,
+                                        components: linkComponent,
+                                    },
+                                ];
                                 yield Promise.all(raidData.joined.map((id) => __awaiter(void 0, void 0, void 0, function* () {
                                     const member = interaction.guild.members.cache.get(id);
                                     if (!member || member.id === raidData.creator)
@@ -144,12 +148,7 @@ exports.default = {
                                     yield member
                                         .send({
                                         embeds: [embedForLeader],
-                                        components: [
-                                            {
-                                                type: discord_js_1.ComponentType.ActionRow,
-                                                components: linkComponent,
-                                            },
-                                        ],
+                                        components: linkComponent.length > 0 ? compCont : undefined,
                                     })
                                         .then((d) => sendedTo.push(`${member.displayName} получил оповещение`))
                                         .catch((e) => __awaiter(void 0, void 0, void 0, function* () {
@@ -159,7 +158,7 @@ exports.default = {
                                                 .then((d) => sendedTo.push(`${member.displayName} получил текстовое оповещение`));
                                         }
                                         else {
-                                            console.error(`raid member notify err`, e);
+                                            console.error(`raid member notify err`, e.requestBody.json.components);
                                         }
                                     }));
                                 })));
@@ -218,7 +217,7 @@ exports.default = {
                         const member = membersCollection.find((m) => m.id === jId);
                         if (member) {
                             if (!freeRaidVC || freeRaidVC.type !== discord_js_1.ChannelType.GuildVoice)
-                                return console.error(`raidChntransfer err, chn is broken`);
+                                return console.error(`raidChntransfer err, chn is broken`, freeRaidVC);
                             if (!freeRaidVC.members.has(member.id)) {
                                 yield member.voice.setChannel(freeRaidVC, `${interaction.user.username} переместил участников в рейдовый голосовой`);
                                 movedUsers.push(`${member.displayName} был перемещен`);

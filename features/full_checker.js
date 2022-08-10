@@ -150,10 +150,10 @@ exports.default = (client) => {
                     const activeTriumphs = Response.profileRecords.data.activeScore;
                     for (const step of roles_1.rStats.active) {
                         if (activeTriumphs >= step.triumphScore) {
-                            if (!c.has(String(step.roleId))) {
-                                if (!c.has(String(roles_1.rStats.category)))
+                            if (!c.has(step.roleId)) {
+                                if (!c.has(roles_1.rStats.category))
                                     give_roles.push(roles_1.rStats.category);
-                                give_roles.push(String(step.roleId));
+                                give_roles.push(step.roleId);
                                 remove_roles.push(roles_1.rStats.allActive.filter((r) => r !== step.roleId).toString());
                             }
                             break;
@@ -210,15 +210,18 @@ exports.default = (client) => {
             triumphsChecker();
             if (give_roles.length > 0) {
                 setTimeout(() => {
+                    console.log(`Givin roles ${give_roles} to ${member.displayName}`);
                     member.roles.add(give_roles, "+Autorole").catch((e) => {
                         console.error(`Error with givin these roles: ${give_roles}`);
                     });
                 }, remove_roles.length > 0 ? 6000 : 0);
             }
-            if (remove_roles.length > 0)
+            if (remove_roles.length > 0) {
+                console.log(`Removin roles ${give_roles} from ${member.displayName}`);
                 member.roles.remove(remove_roles, "-Autorole").catch((e) => {
                     console.error(`Error with takin these roles: ${remove_roles}`);
                 });
+            }
         }))
             .catch((e) => console.log(`roleManager error`, e.statusCode, data.displayname));
     }
@@ -321,7 +324,7 @@ exports.default = (client) => {
                         member.roles.remove(roles_1.rStats.allKd.filter((r) => r !== step.roleId));
                         setTimeout(() => {
                             member.roles.add(step.roleId);
-                        }, 2500);
+                        }, 6000);
                     }
                     break;
                 }
@@ -460,7 +463,7 @@ exports.default = (client) => {
             yield timer(555);
         }
         clan(db_plain);
-    }), 1000 * 59 * 2);
+    }), 1000 * 59 * 22);
     setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         const data = (yield sequelize_1.auth_data.findAll({
             attributes: ["discord_id", "displayname", "tz"],
@@ -469,23 +472,24 @@ exports.default = (client) => {
             .get(ids_1.guildId)
             .members.cache.filter((member) => member.roles.cache.has(roles_1.statusRoles.verified))
             .forEach((member) => {
-            var _a, _b, _c;
-            const db_name = (_a = data.find((d) => d.discord_id === member.id)) === null || _a === void 0 ? void 0 : _a.displayname;
-            if (!db_name) {
-                console.error("[Checker error] No data was found for", member.id, db_name);
+            var _a, _b;
+            const db_data_ind = data.find((d) => d.discord_id === member.id);
+            if (!db_data_ind) {
+                return console.error("[Checker error] No data was found for", member.id, db_data_ind);
             }
-            else if (member.displayName !== db_name &&
-                !((_b = data.find((d) => d.discord_id === member.id)) === null || _b === void 0 ? void 0 : _b.displayname.startsWith("⁣")) &&
+            const db_name = db_data_ind.displayname;
+            if (member.displayName !== db_name &&
+                !((_a = data.find((d) => d.discord_id === member.id)) === null || _a === void 0 ? void 0 : _a.displayname.startsWith("⁣")) &&
                 member.displayName.slice(5) !== db_name &&
                 member.displayName.slice(6) !== db_name) {
                 if (!member.permissions.has("Administrator")) {
                     member
-                        .setNickname(((_c = data.find((d) => d.discord_id === member.id)) === null || _c === void 0 ? void 0 : _c.tz) ? `[+${data.find((d) => d.discord_id === member.id).tz}] ${db_name}` : db_name)
+                        .setNickname(((_b = data.find((d) => d.discord_id === member.id)) === null || _b === void 0 ? void 0 : _b.tz) ? `[+${data.find((d) => d.discord_id === member.id).tz}] ${db_name}` : db_name)
                         .catch((e) => {
                         console.error("[Checker error] Name autochange error", e);
                     });
                 }
             }
         });
-    }), 1000 * 70 * 5);
+    }), 1000 * 70 * 1);
 };

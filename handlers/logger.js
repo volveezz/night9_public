@@ -342,10 +342,7 @@ exports.default = (client) => {
                     .setColor(colors_1.colors.default);
             }
         }
-        if (((_a = embed.data.author) === null || _a === void 0 ? void 0 : _a.name) === "guildMemberUpdate") {
-            console.log(oldMember.id + ` same as before ` + newMember.id);
-        }
-        else {
+        if (((_a = embed.data.author) === null || _a === void 0 ? void 0 : _a.name) !== "guildMemberUpdate") {
             guildMemberChannel.send({ embeds: [embed] });
         }
     }));

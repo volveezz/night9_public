@@ -59,5 +59,6 @@ exports.default = () => {
             }));
         });
     }
+    generator();
     setInterval(generator, 1000 * 60 * 50);
 };

@@ -125,7 +125,7 @@ exports.default = {
                     options: [
                         {
                             type: discord_js_1.ApplicationCommandOptionType.String,
-                            name: "id",
+                            name: "removeroleid",
                             description: "ROLE_ID or HASH",
                             required: true,
                         },
@@ -140,7 +140,7 @@ exports.default = {
         const start = new Date().getTime();
         const { options } = interaction;
         const Subcommand = options.getSubcommand();
-        const id = options.getString("id") === "me" ? member.id : options.getSubcommandGroup() !== "role" ? options.getString("id", true) : [];
+        const id = options.getString("id") === "me" ? member.id : [];
         switch (Subcommand) {
             case "select": {
                 const middle = new Date().getTime();
@@ -460,14 +460,16 @@ exports.default = {
                 break;
             }
             case "remove": {
-                if (typeof id !== "string")
+                const removeroleid = options.getString("removeroleid", true);
+                console.log(removeroleid, typeof removeroleid);
+                if (typeof removeroleid !== "string")
                     return;
-                if ((_e = interaction.guild) === null || _e === void 0 ? void 0 : _e.roles.cache.has(id)) {
-                    var query = yield sequelize_1.role_data.destroy({ where: { role_id: id } });
+                if ((_e = interaction.guild) === null || _e === void 0 ? void 0 : _e.roles.cache.has(removeroleid)) {
+                    var query = yield sequelize_1.role_data.destroy({ where: { role_id: removeroleid } });
                 }
                 else {
                     var query = yield sequelize_1.role_data.destroy({
-                        where: { hash: "{" + id + "}" },
+                        where: { hash: "{" + removeroleid + "}" },
                     });
                 }
                 if (query) {
@@ -475,7 +477,7 @@ exports.default = {
                     interaction.editReply({ embeds: [embed] });
                 }
                 else {
-                    throw { name: `Удалено ${query} авто-ролей`, message: `Hash: ${id}`, falseAlarm: true };
+                    throw { name: `Удалено ${query} авто-ролей`, message: `Hash: ${removeroleid}`, falseAlarm: true };
                 }
                 break;
             }
