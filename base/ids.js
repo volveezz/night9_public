@@ -1,25 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.forbiddenRaidIds = exports.ownerId = exports.guildId = exports.ids = void 0;
-const guildId = "810427373471268904";
-exports.guildId = guildId;
-const ownerId = "298353895258980362";
-exports.ownerId = ownerId;
-const ids = {
-    guildMemberChnId: "990953929540005909",
-    guildChnId: "990953974259671090",
-    messagesChnId: "990954005108760616",
-    voiceChnId: "810427374554185795",
-    clanChnId: "810427374554185791",
-    botChnId: "810427374318649403",
-    raidChnId: "810427374125973542",
-    raidChnCategoryId: "810427374125973541",
-    dmMsgsChnId: "1003653935405473872",
-    activityChnId: "1006332540191256586",
+exports.forbiddenRaidIds = exports.ids = exports.ownerId = exports.guildId = void 0;
+exports.guildId = "604967226243809302";
+exports.ownerId = "298353895258980362";
+exports.ids = {
+    guildMemberChnId: "694120346923827251",
+    guildChnId: "780515663398567966",
+    messagesChnId: "780515348864434197",
+    voiceChnId: "780514966930718773",
+    clanChnId: "1006745445613174814",
+    botChnId: "804642826330570753",
+    raidChnId: "677551388514844682",
+    raidChnCategoryId: "677551288967233550",
+    dmMsgsChnId: "972852961636155392",
+    activityChnId: "679191036849029167",
 };
-exports.ids = ids;
-const forbiddenRaidIds = [
+exports.forbiddenRaidIds = [
     548750096, 960175301, 3213556450, 757116822, 2693136601, 417231112, 809170886, 3333172150, 119944200, 3446541099, 2693136602, 3879860661, 2693136604,
     2693136603, 2812525063, 2693136605, 2693136600, 3089205900, 2449714930, 1685065161,
 ];
-exports.forbiddenRaidIds = forbiddenRaidIds;

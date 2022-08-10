@@ -26,21 +26,21 @@ function welcomeMessage(client, member) {
             .setColor(colors_1.colors.default)
             .setAuthor({
             name: "Добро пожаловать на сервер клана Night 9",
-            iconURL: String(((_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.iconURL()) || ((_b = client.user) === null || _b === void 0 ? void 0 : _b.displayAvatarURL())),
+            iconURL: ((_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.iconURL()) || ((_b = client.user) === null || _b === void 0 ? void 0 : _b.displayAvatarURL()),
         })
             .setTimestamp()
             .addFields([
             {
                 name: "Вступление в клан",
-                value: `⁣　⁣Для вступления в клан перейдите в канал <#${channels_1.clan.join}> и следуйте [инструкции](https://discord.com/channels/${ids_1.guildId}/${channels_1.clan.join}/${channels_1.clan.joinMessage})`,
+                value: `⁣　⁣Для вступления в клан перейдите в канал <#${channels_1.clan.joinRequest.chnId}> и следуйте [инструкции](https://discord.com/channels/${ids_1.guildId}/${channels_1.clan.joinRequest.chnId}/${channels_1.clan.joinRequest.joinRequestGuideMessageId})`,
             },
             {
                 name: "Общение без вступления",
-                value: `⁣　⁣Для получения доступа к каналам у нас необязательно быть участником клана. Достаточно зарегистрироваться в канале <#${channels_1.clan.register}> после этого вам будут выданы временные права`,
+                value: `⁣　⁣Для получения доступа к каналам у нас необязательно быть участником клана. Достаточно зарегистрироваться в канале <#${channels_1.clan.registerChnId}> после этого вам будут выданы временные права`,
             },
             {
                 name: "FAQ",
-                value: `⁣　⁣При вопросах заходите в канал <#${channels_1.clan.question}> или задайте их напрямую одному из администраторов клана`,
+                value: `⁣　⁣При вопросах заходите в канал <#${channels_1.clan.questionChnId}> или задайте их напрямую одному из администраторов клана`,
             },
         ]);
         member

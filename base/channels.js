@@ -9,21 +9,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loggers = exports.clan = exports.chnFetcher = exports.msgFetcher = void 0;
+exports.chnFetcher = exports.msgFetcher = exports.clan = void 0;
 const discord_js_1 = require("discord.js");
 const __1 = require("..");
 const ids_1 = require("./ids");
-const clan = {
-    join: "696622137028640839",
-    joinMessage: "698597909825847446",
-    register: "749679238591938661",
-    question: "694119710677008425",
+exports.clan = {
+    joinRequest: { chnId: "696622137028640839", joinRequestGuideMessageId: "698597909825847446" },
+    registerChnId: "749679238591938661",
+    questionChnId: "694119710677008425",
 };
-exports.clan = clan;
-const loggers = {
-    init: "810427373638909987",
-};
-exports.loggers = loggers;
 function msgFetcher(unresChn, msgId) {
     return __awaiter(this, void 0, void 0, function* () {
         const chn = chnFetcher(unresChn).messages;

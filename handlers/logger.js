@@ -24,8 +24,26 @@ const guildMemberChannel = (0, channels_1.chnFetcher)(ids_1.ids.guildMemberChnId
 function activityReporter(pgcrId) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!pgcrIds.has(pgcrId)) {
+            pgcrIds.add(pgcrId);
             (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`, { headers: { "X-API-KEY": process.env.XAPI }, json: true })
-                .then((response) => { })
+                .then((response) => {
+                const embed = new discord_js_1.EmbedBuilder()
+                    .setColor("Green")
+                    .setTimestamp()
+                    .setFooter({ text: `Активность была начата ${response.Response.activityWasStartedFromBeginning === true ? "с начала" : "с чекпоинта"}` })
+                    .setAuthor({ name: `Raid Report`, url: `https://raid.report/pgcr/${pgcrId}` });
+                response.Response.entries.forEach((entry) => {
+                    if (entry.values.completed.basic.value !== 1)
+                        return;
+                    embed.addFields([
+                        {
+                            name: `${entry.player.destinyUserInfo.bungieGlobalDisplayName}`,
+                            value: `У: ${entry.values.kills.basic.displayValue}, С: ${entry.values.deaths.basic.displayValue}, П: ${entry.values.assists.basic.displayValue}\nПрохождение заняло: ${entry.values.timePlayedSeconds.basic.displayValue}`,
+                        },
+                    ]);
+                });
+                activityChannel.send({ embeds: [embed] });
+            })
                 .catch((e) => console.log(`activityReporter error`, pgcrId, e.statusCode));
         }
     });

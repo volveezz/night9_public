@@ -259,6 +259,10 @@ exports.default = (client) => {
                 console.error("[Clan checker error]", clanList.ErrorStatus, clanList.Message);
                 return;
             }
+            const onlineCounter = clanList.Response.results.filter((f) => f.isOnline === true).length;
+            onlineCounter == 0
+                ? client.user.setActivity(`${clanList.Response.results.length} участников в клане`, { type: 3 })
+                : client.user.setActivity(`${onlineCounter} онлайн из ${clanList.Response.results.length}`, { type: 3 });
             const t = yield sequelize_1.db.transaction();
             yield Promise.all(clanList.Response.results.map((result) => __awaiter(this, void 0, void 0, function* () {
                 if (bungie_array.some((e) => e.bungie_id === result.destinyUserInfo.membershipId)) {
