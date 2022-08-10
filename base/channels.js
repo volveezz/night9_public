@@ -45,7 +45,7 @@ function chnFetcher(chn) {
             return basedChannel;
         }
         else {
-            throw { name: "chnFetcher error", chn: chn };
+            throw { name: "chnFetcher error", chn: `${chn}, ${basedChannel}` };
         }
     }
     else {
@@ -53,7 +53,7 @@ function chnFetcher(chn) {
             return chn;
         }
         else {
-            throw { name: "chnFetcher error", chn: chn };
+            throw { name: "chnFetcher error", chn: `${chn}, ${chn.name}` };
         }
     }
 }

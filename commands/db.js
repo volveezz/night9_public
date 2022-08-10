@@ -77,7 +77,7 @@ exports.default = {
                         },
                         {
                             type: discord_js_1.ApplicationCommandOptionType.String,
-                            name: "roleId",
+                            name: "roleid",
                             description: "ROLE ID",
                         },
                         {
@@ -265,7 +265,7 @@ exports.default = {
             }
             case "add": {
                 const hash = options.getInteger("hash", true);
-                const roleId = options.getString("roleId");
+                const roleId = options.getString("roleid");
                 const record_manifest = yield manifestHandler_1.DestinyRecordDefinition;
                 if ((yield record_manifest[hash]) === undefined) {
                     throw { name: "Триумф под таким хешем не найден", message: `Hash: ${hash}`, falseAlarm: true };
