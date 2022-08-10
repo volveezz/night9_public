@@ -60,34 +60,41 @@ function webHandler(code, state, client, res) {
                         },
                         json: true,
                     }, function (err, _response, subBody) {
-                        var e_1, _a;
                         return __awaiter(this, void 0, void 0, function* () {
                             const { Response } = subBody;
-                            var bungie_id, platform, displayname;
-                            try {
-                                for (var _b = __asyncValues(Response.destinyMemberships), _c; _c = yield _b.next(), !_c.done;) {
-                                    const membership = _c.value;
-                                    if (membership.crossSaveOverride === membership.membershipType) {
-                                        platform = membership.membershipType;
-                                        bungie_id = membership.membershipId;
-                                        displayname = membership.bungieGlobalDisplayName || membership.displayName;
-                                        break;
+                            function getData() {
+                                var e_1, _a;
+                                return __awaiter(this, void 0, void 0, function* () {
+                                    try {
+                                        for (var _b = __asyncValues(Response.destinyMemberships), _c; _c = yield _b.next(), !_c.done;) {
+                                            const membership = _c.value;
+                                            if (membership.crossSaveOverride === membership.membershipType) {
+                                                const platform = membership.membershipType;
+                                                const bungie_id = membership.membershipId;
+                                                const displayname = membership.bungieGlobalDisplayName || membership.displayName;
+                                                return [platform, bungie_id, displayname];
+                                            }
+                                            else if (Response.destinyMemberships.length === 0) {
+                                                const displayname = membership.bungieGlobalDisplayName || membership.displayName;
+                                                const platform = membership.membershipType;
+                                                const bungie_id = membership.membershipId;
+                                                return [platform, bungie_id, displayname];
+                                            }
+                                        }
                                     }
-                                    else if (Response.destinyMemberships.length === 0) {
-                                        displayname = membership.bungieGlobalDisplayName || membership.displayName;
-                                        platform = membership.membershipType;
-                                        bungie_id = membership.membershipId;
+                                    catch (e_1_1) { e_1 = { error: e_1_1 }; }
+                                    finally {
+                                        try {
+                                            if (_c && !_c.done && (_a = _b.return)) yield _a.call(_b);
+                                        }
+                                        finally { if (e_1) throw e_1.error; }
                                     }
-                                }
+                                });
                             }
-                            catch (e_1_1) { e_1 = { error: e_1_1 }; }
-                            finally {
-                                try {
-                                    if (_c && !_c.done && (_a = _b.return)) yield _a.call(_b);
-                                }
-                                finally { if (e_1) throw e_1.error; }
-                            }
-                            sequelize_1.auth_data.create({
+                            const platform = (yield getData())[0];
+                            const bungie_id = (yield getData())[1];
+                            const displayname = (yield getData())[2];
+                            yield sequelize_1.auth_data.create({
                                 discord_id: json.discord_id,
                                 bungie_id: bungie_id,
                                 platform: platform,
@@ -97,7 +104,7 @@ function webHandler(code, state, client, res) {
                                 refresh_token: body.refresh_token,
                                 membership_id: body.membership_id,
                             });
-                            sequelize_1.init_data.destroy({
+                            yield sequelize_1.init_data.destroy({
                                 where: { discord_id: json.discord_id },
                             });
                             res.send(`<script>location.replace('index.html')</script>`).end();
