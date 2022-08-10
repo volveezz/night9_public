@@ -26,8 +26,7 @@ exports.default = {
             attributes: ["bungie_id", "platform", "access_token"],
         });
         if (db_data === null) {
-            const embed = new discord_js_1.EmbedBuilder().setColor("Red").setTitle("Для использования этой команды необходимо зарегистрироваться");
-            return interaction.editReply({ embeds: [embed] });
+            throw { name: "Ошибка", message: "Для использования этой команды необходимо зарегистрироваться" };
         }
         const characters_list = yield (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/${db_data.platform}/Profile/${db_data.bungie_id}/?components=200`, {
             json: true,

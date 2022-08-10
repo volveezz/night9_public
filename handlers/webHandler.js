@@ -20,14 +20,13 @@ const sequelize_1 = require("./sequelize");
 const request_promise_native_1 = require("request-promise-native");
 const discord_js_1 = require("discord.js");
 function webHandler(code, state, client, res) {
-    sequelize_1.init_data
-        .findOne({ where: { state: state } })
-        .then((data) => {
-        if (data === null) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const json = yield sequelize_1.init_data.findOne({ where: { state: state } });
+        if (json === null) {
             return console.log("No data found");
         }
-        const json = data.toJSON();
-        if (json.discord_id !== null) {
+        if (json.discord_id !== null && json.discord_id !== undefined) {
+            console.log(code);
             (0, request_promise_native_1.post)("https://www.bungie.net/Platform/App/OAuth/Token/", {
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
@@ -39,12 +38,14 @@ function webHandler(code, state, client, res) {
                 },
                 json: true,
             }, function (err, _response, body) {
+                if (err)
+                    return console.error(`${body.error_description} for: ${state}\nCode:${code}`);
                 if (body.error === "invalid_request") {
                     return console.log(`There is problem with fetching authData from state: ${state}`, body);
                 }
                 else if (body.error === "invalid_grant") {
                     res.send(`<script>location.replace('error.html')</script>`);
-                    return console.log(`${body.error_description} for: ${state}`);
+                    return console.log(`${body.error_description} for: ${state}\nCode:${code}`);
                 }
                 else {
                     (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/User/GetMembershipsForCurrentUser/`, {
@@ -126,10 +127,7 @@ function webHandler(code, state, client, res) {
                                     },
                                 ]);
                                 if (((_a = clanResponse.results[0]) === null || _a === void 0 ? void 0 : _a.group.groupId) !== "4123712") {
-                                    const component = new discord_js_1.ButtonBuilder()
-                                        .setCustomId("webhandlerEvent_clan_request")
-                                        .setLabel("Отправить приглашение")
-                                        .setStyle(3);
+                                    const component = new discord_js_1.ButtonBuilder().setCustomId("webhandlerEvent_clan_request").setLabel("Отправить приглашение").setStyle(3);
                                     embed.setDescription(`Нажмите кнопку для получения приглашения в клан`);
                                     user === null || user === void 0 ? void 0 : user.send({
                                         embeds: [embed],
@@ -151,15 +149,6 @@ function webHandler(code, state, client, res) {
                     });
                 }
             });
-        }
-    })
-        .catch((err) => {
-        var _a, _b;
-        if (((_a = err.parent) === null || _a === void 0 ? void 0 : _a.code) === "22P02") {
-            return "Ошибка";
-        }
-        else {
-            console.log("webHandler err", ((_b = err.parent) === null || _b === void 0 ? void 0 : _b.code) || err.message || err);
         }
     });
 }

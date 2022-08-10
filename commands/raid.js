@@ -624,7 +624,7 @@ exports.default = {
             });
             member.guild.channels
                 .create({
-                name: `${raidDb.id}-${raidData.channelName}`,
+                name: `├💪${raidDb.id}-${raidData.channelName}`,
                 parent: raidChannel.parent,
                 position: raidChannel.rawPosition + 1,
                 permissionOverwrites: [
