@@ -140,7 +140,7 @@ exports.default = {
         const start = new Date().getTime();
         const { options } = interaction;
         const Subcommand = options.getSubcommand();
-        const id = options.getString("id") === "me" ? member.id : [];
+        const id = options.getString("id", true) === "me" ? member.id : options.getString("id", true);
         switch (Subcommand) {
             case "select": {
                 const middle = new Date().getTime();
@@ -155,14 +155,10 @@ exports.default = {
                     var response = request.toJSON();
                 }
                 else if (request === null) {
-                    const embed = new discord_js_1.EmbedBuilder().setColor("Red").setTitle(`Запись не найдена`);
-                    interaction.editReply({ embeds: [embed] });
-                    break;
+                    throw { name: "Запись не найдена" };
                 }
                 else {
-                    const embed = new discord_js_1.EmbedBuilder().setColor("Red").setTitle(`Ошибка ${request.code}`).setDescription(`${request.message}`);
-                    interaction.editReply({ embeds: [embed] });
-                    break;
+                    throw { name: `Ошибка ${request.code}`, message: request.message };
                 }
                 const after = new Date().getTime();
                 const embed = new discord_js_1.EmbedBuilder()
@@ -193,12 +189,12 @@ exports.default = {
                     },
                     {
                         name: "nameChangeStatus",
-                        value: String(response.displayname.startsWith("⁣") ? "enabled" : "disabled"),
+                        value: response.displayname.startsWith("⁣") ? "disabled" : "enabled",
                         inline: true,
                     },
                     {
                         name: "refreshToken",
-                        value: String(response.refresh_token.length > 35 ? "cached" : response.refresh_token.length),
+                        value: response.refresh_token.length > 35 ? "cached" : response.refresh_token.length,
                         inline: true,
                     },
                 ]);
@@ -214,12 +210,7 @@ exports.default = {
                     return err.parent;
                 });
                 if ((request === null || request === void 0 ? void 0 : request.code) === "22P02") {
-                    const embed = new discord_js_1.EmbedBuilder()
-                        .setColor("Red")
-                        .setAuthor({ name: `Ошибка ${request.code}` })
-                        .setDescription(`${request.message}`);
-                    interaction.editReply({ embeds: [embed] });
-                    break;
+                    throw { name: `Ошибка ${request.code}`, message: request.message };
                 }
                 const embed = new discord_js_1.EmbedBuilder().setColor(colors_1.colors.default).setAuthor({
                     name: `${request === 1 ? `Успех. Удалено ${request} строк` : `Удалено ${request} строк`}`,
