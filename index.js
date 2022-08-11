@@ -50,6 +50,8 @@ client.on("ready", (client) => {
     const date = new Date();
     date.setHours(23, 0, 0, 0);
     date.getTime() - new Date().getTime() < 0 ? date.setDate(date.getDate() + 1) : [];
-    setTimeout(() => process.exit(0), date.getTime() - new Date().getTime());
+    const timeBefDead = date.getTime() - new Date().getTime();
+    console.log(timeBefDead);
+    setTimeout(() => process.exit(0), timeBefDead);
 });
-setTimeout(() => client.login(process.env.TOKEN), 1500);
+client.login(process.env.TOKEN);
