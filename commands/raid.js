@@ -323,16 +323,21 @@ function raidMsgUpdate(raidData, interaction) {
 exports.raidMsgUpdate = raidMsgUpdate;
 exports.default = {
     name: "рейд",
+    name_localizations: {
+        "en-US": "raid",
+    },
     description: "Создание и управление наборами на рейды",
     options: [
         {
             type: discord_js_1.ApplicationCommandOptionType.Subcommand,
             name: "создать",
+            nameLocalizations: { "en-US": "create" },
             description: "Создание набора на рейд",
             options: [
                 {
                     type: discord_js_1.ApplicationCommandOptionType.String,
                     name: "рейд",
+                    nameLocalizations: { "en-US": "raid" },
                     description: "Укажите рейд",
                     required: true,
                     choices: [
@@ -365,12 +370,14 @@ exports.default = {
                 {
                     type: discord_js_1.ApplicationCommandOptionType.String,
                     name: "время",
+                    nameLocalizations: { "en-US": "time" },
                     description: "Укажите время старта. Формат (без ''): 'ЧАС:МИНУТА ДЕНЬ/МЕСЯЦ'",
                     required: true,
                 },
                 {
                     type: discord_js_1.ApplicationCommandOptionType.String,
                     name: "описание",
+                    nameLocalizations: { "en-US": "description" },
                     maxLength: 1024,
                     description: "Укажите описание",
                 },
@@ -379,6 +386,7 @@ exports.default = {
                     minValue: 1,
                     maxValue: 3,
                     name: "сложность",
+                    nameLocalizations: { "en-US": "difficulty" },
                     description: "Легенда/Мастер",
                     choices: [
                         {
@@ -400,6 +408,7 @@ exports.default = {
                     minValue: 0,
                     maxValue: 1000,
                     name: "требуемых_закрытий",
+                    nameLocalizations: { "en-US": "req_clears" },
                     description: "Укажите минимальное количество закрытий этого рейда для записи",
                 },
             ],
@@ -407,6 +416,7 @@ exports.default = {
         {
             type: discord_js_1.ApplicationCommandOptionType.Subcommand,
             name: "изменить",
+            nameLocalizations: { "en-US": "edit" },
             description: "Изменение созданного набора",
             options: [
                 {
@@ -414,12 +424,14 @@ exports.default = {
                     min_value: 1,
                     max_value: 100,
                     name: "id_рейда",
+                    nameLocalizations: { "en-US": "raid_id" },
                     autocomplete: true,
                     description: "Укажите Id редактируемого рейда",
                 },
                 {
                     type: discord_js_1.ApplicationCommandOptionType.String,
                     name: "новый_рейд",
+                    nameLocalizations: { "en-US": "new_raid" },
                     description: "Укажите измененный рейд",
                     choices: [
                         {
@@ -451,21 +463,25 @@ exports.default = {
                 {
                     type: discord_js_1.ApplicationCommandOptionType.String,
                     name: "новое_время",
+                    nameLocalizations: { "en-US": "new_time" },
                     description: "Укажите измененное время старта. Формат (без ''): 'ЧАС:МИНУТА ДЕНЬ/МЕСЯЦ'",
                 },
                 {
                     type: discord_js_1.ApplicationCommandOptionType.User,
                     name: "новый_создатель",
+                    nameLocalizations: { "en-US": "new_creator" },
                     description: "Укажите нового создателя рейда",
                 },
                 {
                     type: discord_js_1.ApplicationCommandOptionType.String,
                     name: "новое_описание",
+                    nameLocalizations: { "en-US": "new_description" },
                     description: "Укажите измененное описание",
                 },
                 {
                     type: discord_js_1.ApplicationCommandOptionType.Integer,
                     name: "новая_сложность",
+                    nameLocalizations: { "en-US": "new_difficulty" },
                     description: "Легенда/Мастер",
                     choices: [
                         {
@@ -487,6 +503,7 @@ exports.default = {
                     minValue: 0,
                     maxValue: 1000,
                     name: "новое_количество_закрытий",
+                    nameLocalizations: { "en-US": "new_req_clears" },
                     description: "Укажите измененное минимальное количество закрытий для записи",
                 },
             ],
@@ -494,17 +511,20 @@ exports.default = {
         {
             type: discord_js_1.ApplicationCommandOptionType.Subcommand,
             name: "добавить",
+            nameLocalizations: { "en-US": "add" },
             description: "Добавление участника на набор",
             options: [
                 {
                     type: discord_js_1.ApplicationCommandOptionType.User,
                     name: "участник",
+                    nameLocalizations: { "en-US": "user" },
                     description: "Укажите добавляемого участника",
                     required: true,
                 },
                 {
                     type: discord_js_1.ApplicationCommandOptionType.Boolean,
                     name: "альтернатива",
+                    nameLocalizations: { "en-US": "alt" },
                     description: "Укажите группу добавляемого участника",
                 },
                 {
@@ -512,6 +532,7 @@ exports.default = {
                     min_value: 1,
                     max_value: 100,
                     name: "id_рейда",
+                    nameLocalizations: { "en-US": "raid_id" },
                     autocomplete: true,
                     description: "Укажите Id рейда, на который добавляем участника",
                 },
@@ -520,11 +541,13 @@ exports.default = {
         {
             type: discord_js_1.ApplicationCommandOptionType.Subcommand,
             name: "исключить",
+            nameLocalizations: { "en-US": "kick" },
             description: "Исключение участника из набора",
             options: [
                 {
                     type: discord_js_1.ApplicationCommandOptionType.User,
                     name: "участник",
+                    nameLocalizations: { "en-US": "user" },
                     description: "Укажите исключаемого участника",
                     required: true,
                 },
@@ -533,6 +556,7 @@ exports.default = {
                     min_value: 1,
                     max_value: 100,
                     name: "id_рейда",
+                    nameLocalizations: { "en-US": "raid_id" },
                     autocomplete: true,
                     description: "Укажите Id рейда, из которого исключаем участника",
                 },
@@ -541,6 +565,7 @@ exports.default = {
         {
             type: discord_js_1.ApplicationCommandOptionType.Subcommand,
             name: "удалить",
+            nameLocalizations: { "en-US": "delete" },
             description: "Удаление созданного набора",
             options: [
                 {
@@ -548,6 +573,7 @@ exports.default = {
                     min_value: 1,
                     max_value: 100,
                     name: "id_рейда",
+                    nameLocalizations: { "en-US": "raid_id" },
                     autocomplete: true,
                     description: "Укажите Id удаляемого рейда",
                 },

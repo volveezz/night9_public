@@ -12,6 +12,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 exports.default = {
     name: "purge",
+    name_localizations: {
+        ru: "чистка",
+    },
     description: "Удаляет пачку сообщений за одну команду",
     defaultMemberPermissions: ["Administrator"],
     options: [

@@ -15,6 +15,7 @@ const sequelize_1 = require("../handlers/sequelize");
 exports.default = {
     name: "stats",
     name_localizations: {
+        "en-US": "statistic",
         ru: "статистика",
     },
     description: "Подробная статистика об аккаунте",

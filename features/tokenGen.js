@@ -45,7 +45,7 @@ exports.default = () => {
                         })
                             .then((query) => {
                             if (!query || query[0] !== 1)
-                                console.error(`[tokenGen error]`, request.toString(), query);
+                                console.error(`[tokenGen error] ${row.bungie_id} data`, request.toString(), query);
                         });
                     }
                     yield timer(100);

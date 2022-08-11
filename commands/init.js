@@ -18,6 +18,7 @@ exports.default = {
     name: "init",
     name_localizations: {
         ru: "регистрация",
+        "en-US": "register",
     },
     description: "Свяжите свой аккаунт Destiny с аккаунтом Discord",
     global: true,

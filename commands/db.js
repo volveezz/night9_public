@@ -15,6 +15,7 @@ const sequelize_2 = require("sequelize");
 const colors_1 = require("../base/colors");
 const ids_1 = require("../base/ids");
 const manifestHandler_1 = require("../handlers/manifestHandler");
+const roles_1 = require("../base/roles");
 exports.default = {
     name: "db",
     description: "Database",
@@ -23,6 +24,7 @@ exports.default = {
         {
             type: discord_js_1.ApplicationCommandOptionType.Subcommand,
             name: "select",
+            nameLocalizations: { "en-US": "get", ru: "выбрать" },
             description: "SELECT",
             options: [
                 {
@@ -36,6 +38,7 @@ exports.default = {
         {
             type: discord_js_1.ApplicationCommandOptionType.Subcommand,
             name: "delete",
+            nameLocalizations: { "en-US": "drop", ru: "удалить" },
             description: "DELETE",
             options: [
                 {
@@ -49,6 +52,7 @@ exports.default = {
         {
             type: discord_js_1.ApplicationCommandOptionType.Subcommand,
             name: "name_change",
+            nameLocalizations: { "en-US": "change_name", ru: "смена_ника" },
             description: "NAME CHANGE",
             options: [
                 {
@@ -62,6 +66,7 @@ exports.default = {
         {
             type: discord_js_1.ApplicationCommandOptionType.SubcommandGroup,
             name: "role",
+            nameLocalizations: { "en-US": "roles", ru: "роль" },
             description: "ROLE",
             options: [
                 {
@@ -90,12 +95,8 @@ exports.default = {
                                     value: 0,
                                 },
                                 {
-                                    name: "PVE Stats",
+                                    name: "Stats",
                                     value: 1,
-                                },
-                                {
-                                    name: "PVP Stats",
-                                    value: 2,
                                 },
                                 {
                                     name: "Titles",
@@ -116,11 +117,13 @@ exports.default = {
                 {
                     type: discord_js_1.ApplicationCommandOptionType.Subcommand,
                     name: "fetch",
+                    nameLocalizations: { "en-US": "find", ru: "найти" },
                     description: "FETCH",
                 },
                 {
                     type: discord_js_1.ApplicationCommandOptionType.Subcommand,
                     name: "remove",
+                    nameLocalizations: { "en-US": "drop", ru: "удалить" },
                     description: "REMOVE",
                     options: [
                         {
@@ -349,7 +352,7 @@ exports.default = {
                     if (!collected.deferred)
                         yield collected.deferUpdate().catch((e) => console.log(e));
                     if (collected.customId === "db_roles_add_cancel") {
-                        interaction.editReply({ components: [] });
+                        interaction.editReply({ components: [], embeds: [], content: "Отменено" });
                         collector.stop("Canceled");
                     }
                     else if (collected.customId === "db_roles_add_confirm") {
@@ -358,6 +361,15 @@ exports.default = {
                             role = yield interaction.guild.roles.create({
                                 name: title_name,
                                 reason: "Creating auto-role",
+                                position: interaction.guild.roles.cache.get(category === 5
+                                    ? roles_1.rActivity.category
+                                    : category === 4
+                                        ? roles_1.rTriumphs.category
+                                        : category === 3
+                                            ? roles_1.rTitles.category
+                                            : category === 1
+                                                ? roles_1.rStats.category
+                                                : roles_1.rRaids.roles[0].roleId).position || undefined,
                             });
                         }
                         else {
@@ -374,13 +386,7 @@ exports.default = {
                                     category: category,
                                 },
                             });
-                            embed = new discord_js_1.EmbedBuilder()
-                                .setColor("Green")
-                                .setTitle("Роль была создана")
-                                .setDescription(`<@&${role.id}>`)
-                                .setFooter({
-                                text: `Role Id: ${role.id}`,
-                            });
+                            embed = new discord_js_1.EmbedBuilder().setColor("Green").addFields([{ name: "Роль была создана", value: `<@&${role.id}>` }]);
                         }
                         else {
                             var newHash = db_query.hash;
@@ -390,13 +396,7 @@ exports.default = {
                             }, {
                                 where: { role_id: db_query.role_id },
                             });
-                            embed = new discord_js_1.EmbedBuilder()
-                                .setColor("Green")
-                                .setTitle("Требования к роли были дополнены")
-                                .setDescription(`<@&${role.id}>`)
-                                .setFooter({
-                                text: `Role Id: ${role.id}`,
-                            });
+                            embed = new discord_js_1.EmbedBuilder().setColor("Green").addFields([{ name: "Требования к роли были дополнены", value: `<@&${role.id}>` }]);
                         }
                         collector.stop("Completed");
                         interaction.editReply({
@@ -406,7 +406,7 @@ exports.default = {
                     }
                     else if (collected.customId === "db_roles_add_change_name") {
                         (_f = interaction.channel) === null || _f === void 0 ? void 0 : _f.createMessageCollector({
-                            time: 15000,
+                            time: 15 * 1000,
                             max: 1,
                             filter: (message) => message.author.id === interaction.user.id,
                         }).on("collect", (msg) => {

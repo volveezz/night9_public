@@ -16,6 +16,7 @@ const colors_1 = require("../base/colors");
 const sequelize_2 = require("../handlers/sequelize");
 exports.default = {
     name: "auth",
+    nameLocalizations: { "en-US": "access", ru: "авторизация" },
     description: "Manual auth renewal",
     defaultMemberPermissions: ["Administrator"],
     options: [

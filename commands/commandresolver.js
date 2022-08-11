@@ -14,6 +14,7 @@ const colors_1 = require("../base/colors");
 const ids_1 = require("../base/ids");
 exports.default = {
     name: "commandresolver",
+    nameLocalizations: { "en-US": "commands", ru: "команды" },
     description: "commandresolver",
     defaultMemberPermissions: ["Administrator"],
     options: [

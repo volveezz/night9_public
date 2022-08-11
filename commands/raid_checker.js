@@ -16,6 +16,7 @@ exports.default = {
     name: "raid_checker",
     nameLocalizations: {
         ru: "закрытия_рейдов",
+        "en-US": "raid_clears",
     },
     description: "Ваша статистика по рейдам",
     callback: (_client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {

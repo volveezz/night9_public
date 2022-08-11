@@ -105,9 +105,8 @@ exports.default = {
                     const charKeys = Object.keys(data.Response.characters.data);
                     charKeys.forEach((charKey, i) => {
                         const char = data.Response.characters.data[charKey];
-                        console.log(`statsEvent debug data index: ${i}`);
                         components[i] = new discord_js_1.ButtonBuilder({
-                            style: discord_js_1.ButtonStyle.Secondary,
+                            style: char.classHash === 671679327 ? discord_js_1.ButtonStyle.Primary : char.classHash === 2271682572 ? discord_js_1.ButtonStyle.Secondary : discord_js_1.ButtonStyle.Danger,
                             label: char.classHash === 671679327 ? "Охотник" : char.classHash === 2271682572 ? "Варлок" : "Титан",
                             customId: `statsEvent_pinnacle_char_${i}`,
                         });
