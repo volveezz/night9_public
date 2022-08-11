@@ -214,14 +214,12 @@ exports.default = (client) => {
             trialsChecker((_a = Response.metrics.data.metrics["1765255052"]) === null || _a === void 0 ? void 0 : _a.objectiveProgress.progress);
             if (give_roles.length > 0) {
                 setTimeout(() => {
-                    console.log(`Givin roles ${give_roles} to ${member.displayName}`);
                     member.roles.add(give_roles, "+Autorole").catch((e) => {
                         console.error(`Error with givin these roles: ${give_roles}`);
                     });
                 }, remove_roles.length > 0 ? 6000 : 0);
             }
             if (remove_roles.length > 0) {
-                console.log(`Removin roles ${give_roles} from ${member.displayName}`);
                 member.roles.remove(remove_roles, "-Autorole").catch((e) => {
                     console.error(`Error with takin these roles: ${remove_roles}`);
                 });
@@ -332,7 +330,7 @@ exports.default = (client) => {
                 }
             }
         })
-            .catch((e) => console.log(`kdChecker error`, e.message));
+            .catch((e) => console.log(`kdChecker`, e.message, member.displayName));
     }
     function activityStatsChecker(data, member, mode) {
         return __awaiter(this, void 0, void 0, function* () {

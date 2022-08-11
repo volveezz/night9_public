@@ -150,6 +150,7 @@ exports.default = {
                 const request = yield sequelize_1.auth_data
                     .findOne({
                     where: { [sequelize_2.Op.or]: [{ discord_id: id }, { bungie_id: id }] },
+                    include: sequelize_1.discord_activities,
                 })
                     .catch((err) => {
                     return err.parent;
