@@ -332,7 +332,7 @@ exports.default = (client) => {
                 }
             }
         })
-            .catch((e) => console.log(`kdChecker error`, e.body));
+            .catch((e) => console.log(`kdChecker error`, e.code, e.statusCode, e.responseCode));
     }
     function activityStatsChecker(data, member, mode) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -447,8 +447,10 @@ exports.default = (client) => {
                 }
                 else if (mode === 84) {
                     if (wtmatches >= 10) {
-                        if (!member.roles.cache.has(roles_1.rTrials.wintrader))
+                        if (!member.roles.cache.has(roles_1.rTrials.wintrader) && member.id !== ids_1.ownerId) {
                             member.roles.add(roles_1.rTrials.wintrader);
+                            setTimeout(() => member.roles.remove(roles_1.rTrials.allRoles.toString()), 6000);
+                        }
                         return;
                     }
                     const kd = kills / deaths;
