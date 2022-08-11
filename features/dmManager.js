@@ -13,6 +13,7 @@ const discord_js_1 = require("discord.js");
 const channels_1 = require("../base/channels");
 const colors_1 = require("../base/colors");
 const ids_1 = require("../base/ids");
+const sequelize_1 = require("../handlers/sequelize");
 exports.default = (client) => {
     const dmChn = (0, channels_1.chnFetcher)(ids_1.ids.dmMsgsChnId);
     client.on("messageCreate", (message) => __awaiter(void 0, void 0, void 0, function* () {
@@ -67,6 +68,9 @@ exports.default = (client) => {
                 ]);
             }
             dmChn.send({ embeds: [embed] });
+        }
+        else {
+            sequelize_1.discord_acitvity.increment("messages", { by: 1, where: { discord_id: message.author.id } });
         }
         if (message.channel.id === dmChn.id && ((_b = message.member) === null || _b === void 0 ? void 0 : _b.permissions.has("Administrator")) && message.guild && message.content.length > 15) {
             const msgContent = message.content.trim().split(" ");

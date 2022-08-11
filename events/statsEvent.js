@@ -13,7 +13,7 @@ const discord_js_1 = require("discord.js");
 const request_promise_native_1 = require("request-promise-native");
 const sequelize_1 = require("../handlers/sequelize");
 exports.default = {
-    callback: (client, interaction, member, guild, channel) => __awaiter(void 0, void 0, void 0, function* () {
+    callback: (_client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
         if (!interaction.isButton())
             return;
@@ -25,7 +25,7 @@ exports.default = {
                 attributes: ["bungie_id", "platform", "access_token"],
             });
             if (data === null) {
-                console.log(data, interaction);
+                console.log(`statsEventError`, data, interaction);
                 return;
             }
             else {
@@ -95,25 +95,24 @@ exports.default = {
                     }).then((data) => __awaiter(void 0, void 0, void 0, function* () {
                         return yield (0, request_promise_native_1.get)(`https://www.bungie.net${data.Response.jsonWorldComponentContentPaths.ru.DestinyMilestoneDefinition}`, { json: true });
                     }));
-                    const data = yield (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/${platform}/Profile/${bungie_id}/?components=202`, {
+                    const data = yield (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/${platform}/Profile/${bungie_id}/?components=200,202`, {
                         headers: { "X-API-Key": process.env.XAPI },
                         auth: { bearer: access_token },
                         json: true,
                     });
-                    var chars = Object.keys(data.Response.characterProgressions.data);
+                    let chars = [];
                     const components = [];
-                    chars.forEach((char, i) => {
+                    data.Response.characters.data.forEach((char, i) => {
+                        console.log(`statsEvent debug data index: ${i}`);
                         components[i] = new discord_js_1.ButtonBuilder({
                             style: discord_js_1.ButtonStyle.Secondary,
-                            label: `${i + 1} персонаж`,
+                            label: char.classHash === 671679327 ? "Охотник" : char.classHash === 2271682572 ? "Варлок" : "Титан",
                             customId: `statsEvent_pinnacle_char_${i}`,
                         });
-                    });
-                    chars.forEach((char, i) => {
-                        chars[i] = `${i + 1} персонаж\n`;
+                        chars[i] = char.classHash === 671679327 ? "Охотник" : char.classHash === 2271682572 ? "Варлок" : "Титан";
                     });
                     chars.length === 0 ? (chars = ["персонажи отсутствуют"]) : [];
-                    const embed = new discord_js_1.EmbedBuilder().setTitle("Выберите персонажа").setDescription(chars.join("").toString()).setTimestamp().setColor("DarkGreen");
+                    const embed = new discord_js_1.EmbedBuilder().setTitle("Выберите персонажа").setDescription(chars.join("\n").toString()).setTimestamp().setColor("DarkGreen");
                     const int = yield interaction.editReply({
                         embeds: [embed],
                         components: [{ type: discord_js_1.ComponentType.ActionRow, components: components }],

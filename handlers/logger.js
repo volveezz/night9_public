@@ -684,7 +684,7 @@ exports.default = (client) => {
             guildMemberChannel.send({ embeds: [embed] });
     });
     client.on("voiceStateUpdate", (oldState, newState) => {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
         const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTimestamp();
         if (!oldState.channelId) {
             voiceUsers.set((_a = newState.member) === null || _a === void 0 ? void 0 : _a.id, {
@@ -730,17 +730,18 @@ exports.default = (client) => {
                         inline: true,
                     },
                 ]);
+                sequelize_1.discord_acitvity.increment("voice", { by: difference, where: { discord_id: oldState.member.id } });
             }
-            voiceUsers.delete((_p = oldState.member) === null || _p === void 0 ? void 0 : _p.id);
+            voiceUsers.delete(oldState.member.id);
         }
         if (oldState.channelId !== null && newState.channelId !== null && oldState.channelId !== newState.channelId) {
             embed
                 .setAuthor({
-                name: `${((_q = oldState.member) === null || _q === void 0 ? void 0 : _q.displayName) || ((_r = newState.member) === null || _r === void 0 ? void 0 : _r.displayName) || "пользователь не найден"} сменил голосовой канал`,
-                iconURL: ((_s = oldState.member) === null || _s === void 0 ? void 0 : _s.displayAvatarURL()) || ((_t = newState.member) === null || _t === void 0 ? void 0 : _t.displayAvatarURL()),
+                name: `${((_p = oldState.member) === null || _p === void 0 ? void 0 : _p.displayName) || ((_q = newState.member) === null || _q === void 0 ? void 0 : _q.displayName) || "пользователь не найден"} сменил голосовой канал`,
+                iconURL: ((_r = oldState.member) === null || _r === void 0 ? void 0 : _r.displayAvatarURL()) || ((_s = newState.member) === null || _s === void 0 ? void 0 : _s.displayAvatarURL()),
             })
                 .setFooter({
-                text: `UId: ${(_u = newState.member) === null || _u === void 0 ? void 0 : _u.id} | ChnId: ${newState.channelId}`,
+                text: `UId: ${(_t = newState.member) === null || _t === void 0 ? void 0 : _t.id} | ChnId: ${newState.channelId}`,
             })
                 .addFields([
                 { name: "До", value: `<#${oldState.channelId}>`, inline: true },
@@ -751,10 +752,10 @@ exports.default = (client) => {
                 },
             ]);
         }
-        if (((_v = embed.data.fields) === null || _v === void 0 ? void 0 : _v.length) > 0)
+        if (((_u = embed.data.fields) === null || _u === void 0 ? void 0 : _u.length) > 0)
             voiceChannel.send({ embeds: [embed] });
     });
     client.rest.on("rateLimited", (rateLimit) => {
-        console.error(rateLimit);
+        console.error(`Bot was rateLimited for ${rateLimit.timeToReset}, route: ${rateLimit.route}, parameter: ${rateLimit.majorParameter}`);
     });
 };

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.completedRaidsData = void 0;
+exports.character_data = exports.completedRaidsData = void 0;
 const sequelize_1 = require("../handlers/sequelize");
 const request_promise_native_1 = require("request-promise-native");
 const logger_1 = require("../handlers/logger");
@@ -17,12 +17,10 @@ const ids_1 = require("../base/ids");
 const roles_1 = require("../base/roles");
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 exports.completedRaidsData = new Map();
+exports.character_data = new Map();
 exports.default = (client) => {
-    const character_data = new Map();
     function role_manager(data, member, role_db) {
-        const give_roles = [];
-        const remove_roles = [];
-        const c = member.roles.cache;
+        const give_roles = [], remove_roles = [], c = member.roles.cache;
         (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/${data.platform}/Profile/${data.bungie_id}/?components=100,900,1100`, {
             headers: {
                 "Content-Type": "application/json",
@@ -36,8 +34,8 @@ exports.default = (client) => {
             .then((response) => __awaiter(this, void 0, void 0, function* () {
             var _a;
             const { Response } = response;
-            if (!character_data.get(data.discord_id)) {
-                character_data.set(data.discord_id, Response["profile"]["data"]["characterIds"]);
+            if (!exports.character_data.get(data.discord_id)) {
+                exports.character_data.set(data.discord_id, Response["profile"]["data"]["characterIds"]);
             }
             function seasonalRolesChecker() {
                 return __awaiter(this, void 0, void 0, function* () {
@@ -181,8 +179,12 @@ exports.default = (client) => {
                                 remove_roles.push(String(role.role_id));
                         }
                         else {
-                            if (!c.has(roles_1.rStats.category))
-                                give_roles.push(roles_1.rStats.category);
+                            if (role.category === 3 && !c.has(roles_1.rTitles.category))
+                                give_roles.push(roles_1.rTitles.category);
+                            if (role.category === 4 && !c.has(roles_1.rTriumphs.category))
+                                give_roles.push(roles_1.rTriumphs.category);
+                            if (role.category === 5 && !c.has(roles_1.rActivity.category))
+                                give_roles.push(roles_1.rActivity.category);
                             if (!c.has(String(role.role_id)))
                                 give_roles.push(String(role.role_id));
                         }
@@ -315,7 +317,7 @@ exports.default = (client) => {
                 "X-API-KEY": process.env.XAPI,
             },
             auth: {
-                bearer: db_row.access_token ? db_row.access_token : undefined,
+                bearer: db_row.access_token,
             },
             json: true,
         })
@@ -324,21 +326,17 @@ exports.default = (client) => {
                 if (step.kd <= data["Response"]["allPvP"]["allTime"]["killsDeathsRatio"]["basic"]["value"]) {
                     if (!member.roles.cache.has(step.roleId)) {
                         member.roles.remove(roles_1.rStats.allKd.filter((r) => r !== step.roleId));
-                        setTimeout(() => {
-                            member.roles.add(step.roleId);
-                        }, 6000);
+                        setTimeout(() => member.roles.add(step.roleId), 6000);
                     }
                     break;
                 }
             }
         })
-            .catch((e) => {
-            console.log(`kdChecker error`, e.statusCode);
-        });
+            .catch((e) => console.log(`kdChecker error`, e.body));
     }
-    function raidChecker(data, member) {
+    function activityStatsChecker(data, member, mode) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!character_data.get(member.id)) {
+            if (!exports.character_data.get(member.id)) {
                 (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/${data.platform}/Profile/${data.bungie_id}/?components=200`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -350,19 +348,20 @@ exports.default = (client) => {
                     json: true,
                 })
                     .then((chars) => {
-                    character_data.set(data.discord_id, Object.keys(chars["Response"]["characters"]["data"]));
-                    raidChecker(data, member);
+                    exports.character_data.set(data.discord_id, Object.keys(chars["Response"]["characters"]["data"]));
+                    activityStatsChecker(data, member, mode);
                 })
-                    .catch((e) => console.log(`raidChecker character error`, e.statusCode));
+                    .catch((e) => console.log(`activityStatsChecker character error`, e.statusCode));
             }
             else {
                 let completedActivities = [];
-                for (const character of character_data.get(member.id)) {
+                let kills = 0, deaths = 0, wtmatches = 0;
+                for (const character of exports.character_data.get(member.id)) {
                     let page = 0;
                     yield checker();
                     function activities(page) {
                         return __awaiter(this, void 0, void 0, function* () {
-                            return (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Character/${character}/Stats/Activities/?count=250&mode=4&page=${page}`, {
+                            return (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Character/${character}/Stats/Activities/?count=250&mode=${mode}&page=${page}`, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     "X-API-KEY": process.env.XAPI,
@@ -376,7 +375,7 @@ exports.default = (client) => {
                                 return response;
                             })
                                 .catch((e) => {
-                                console.log(`raidChecker error`, e.statusCode);
+                                console.log(`activityStatsChecker error`, e.statusCode);
                             });
                         });
                     }
@@ -386,13 +385,19 @@ exports.default = (client) => {
                             const response = yield activities(page);
                             if (((_a = response === null || response === void 0 ? void 0 : response.Response.activities) === null || _a === void 0 ? void 0 : _a.length) > 0) {
                                 response === null || response === void 0 ? void 0 : response.Response.activities.forEach((activity) => {
-                                    if (activity.values.completed.basic.value) {
-                                        if (new Date(activity.period).getTime() > new Date().getTime() - 1000 * 60 * 10) {
+                                    if (mode === 4 && activity.values.completed.basic.value) {
+                                        if (new Date(activity.period).getTime() > new Date().getTime() - 1000 * 60 * 15) {
                                             (0, logger_1.activityReporter)(activity.activityDetails.instanceId);
                                         }
                                         if (!ids_1.forbiddenRaidIds.includes(activity.activityDetails.referenceId)) {
                                             completedActivities.push(activity.activityDetails.referenceId);
                                         }
+                                    }
+                                    else if (mode === 84) {
+                                        if (activity.values.completionReason.basic.value === 3)
+                                            wtmatches++;
+                                        kills += activity.values.kills.basic.value;
+                                        deaths += activity.values.deaths.basic.value;
                                     }
                                 });
                                 if (response.Response.activities.length === 250) {
@@ -403,41 +408,64 @@ exports.default = (client) => {
                         });
                     }
                 }
-                const filter = (activity) => {
-                    const filtered = completedActivities.filter((a) => a === activity).length;
-                    completedActivities = completedActivities.filter((a) => a !== activity);
-                    return filtered;
-                };
-                const votd = filter(1441982566);
-                const votdMaster = filter(4217492330);
-                const dsc = filter(910380154) + filter(3976949817);
-                const gos = filter(3458480158) + filter(2497200493) + filter(2659723068) + filter(3845997235);
-                const vog = filter(3881495763);
-                const vogMaster = filter(1681562271) + filter(1485585878);
-                const lw = filter(2122313384) + filter(1661734046);
-                exports.completedRaidsData.set(member.id, { votd: votd, votdMaster: votdMaster, dsc: dsc, gos: gos, vog: vog, vogMaster: vogMaster, lw: lw });
-                for (const step of roles_1.rRaids.roles) {
-                    if (votdMaster + votd >= step.individualClears &&
-                        vog + vogMaster >= step.individualClears &&
-                        dsc >= step.individualClears &&
-                        gos >= step.individualClears &&
-                        lw >= step.individualClears) {
-                        if (!member.roles.cache.has(step.roleId)) {
-                            member.roles.add(step.roleId);
-                            setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 6000);
+                if (mode === 4) {
+                    const filter = (activity) => {
+                        const filtered = completedActivities.filter((a) => a === activity).length;
+                        completedActivities = completedActivities.filter((a) => a !== activity);
+                        return filtered;
+                    };
+                    const votd = filter(1441982566);
+                    const votdMaster = filter(4217492330);
+                    const dsc = filter(910380154) + filter(3976949817);
+                    const gos = filter(3458480158) + filter(2497200493) + filter(2659723068) + filter(3845997235);
+                    const vog = filter(3881495763);
+                    const vogMaster = filter(1681562271) + filter(1485585878);
+                    const lw = filter(2122313384) + filter(1661734046);
+                    exports.completedRaidsData.set(member.id, { votd: votd, votdMaster: votdMaster, dsc: dsc, gos: gos, vog: vog, vogMaster: vogMaster, lw: lw });
+                    for (const step of roles_1.rRaids.roles) {
+                        if (votdMaster + votd >= step.individualClears &&
+                            vog + vogMaster >= step.individualClears &&
+                            dsc >= step.individualClears &&
+                            gos >= step.individualClears &&
+                            lw >= step.individualClears) {
+                            if (!member.roles.cache.has(step.roleId)) {
+                                member.roles.add(step.roleId);
+                                setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 6000);
+                            }
+                            break;
                         }
-                        break;
+                        else if (votdMaster + votd + dsc + gos + lw >= step.totalClears) {
+                            if (!member.roles.cache.has(step.roleId)) {
+                                member.roles.add(step.roleId);
+                                setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 6000);
+                            }
+                            break;
+                        }
                     }
-                    else if (votdMaster + votd + dsc + gos + lw >= step.totalClears) {
-                        if (!member.roles.cache.has(step.roleId)) {
-                            member.roles.add(step.roleId);
-                            setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 6000);
+                    if (completedActivities.length > 0)
+                        console.log(`Found new raidIds`, completedActivities);
+                }
+                else if (mode === 84) {
+                    if (wtmatches >= 10) {
+                        if (!member.roles.cache.has(roles_1.rTrials.wintrader))
+                            member.roles.add(roles_1.rTrials.wintrader);
+                        return;
+                    }
+                    const kd = kills / deaths;
+                    if (!isNaN(kd)) {
+                        for (const step of roles_1.rTrials.kd) {
+                            if (kd >= step.kd) {
+                                if (!member.roles.cache.has(roles_1.rTrials.category))
+                                    member.roles.add(roles_1.rTrials.category);
+                                if (!member.roles.cache.has(step.roleId)) {
+                                    member.roles.add(step.roleId);
+                                    setTimeout(() => member.roles.remove(roles_1.rTrials.allRoles.filter((r) => r !== step.roleId)), 6000);
+                                }
+                                break;
+                            }
                         }
-                        break;
                     }
                 }
-                if (completedActivities.length > 0)
-                    console.log(`Found new raidIds`, completedActivities);
             }
         });
     }
@@ -465,8 +493,9 @@ exports.default = (client) => {
             const member = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(db_row.discord_id);
             role_manager(db_row, member, role_db);
             kd === 5 ? kdChecker(db_row, member) : [];
-            raids === 6 ? raidChecker(db_row, member) : [];
-            yield timer(555);
+            raids === 6 ? activityStatsChecker(db_row, member, 4) : [];
+            raids === 5 && !member.roles.cache.has(roles_1.rTrials.wintrader) ? activityStatsChecker(db_row, member, 84) : [];
+            yield timer(700);
         }
         clan(db_plain);
     }), 1000 * 61 * 2);
