@@ -102,7 +102,9 @@ exports.default = {
                     });
                     let chars = [];
                     const components = [];
-                    data.Response.characters.data.forEach((char, i) => {
+                    const charKeys = Object.keys(data.Response.characters.data);
+                    charKeys.forEach((charKey, i) => {
+                        const char = data.Response.characters.data[charKey];
                         console.log(`statsEvent debug data index: ${i}`);
                         components[i] = new discord_js_1.ButtonBuilder({
                             style: discord_js_1.ButtonStyle.Secondary,

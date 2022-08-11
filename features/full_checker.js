@@ -367,7 +367,7 @@ exports.default = (client) => {
                                     "X-API-KEY": process.env.XAPI,
                                 },
                                 auth: {
-                                    bearer: data.access_token ? data.access_token : undefined,
+                                    bearer: data.access_token,
                                 },
                                 json: true,
                             })
