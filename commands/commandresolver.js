@@ -44,25 +44,6 @@ exports.default = {
                 },
             ],
         },
-        {
-            type: discord_js_1.ApplicationCommandOptionType.Subcommand,
-            name: "datalog",
-            description: "datalog",
-            options: [
-                {
-                    type: discord_js_1.ApplicationCommandOptionType.Boolean,
-                    name: "global",
-                    description: "global?",
-                    required: true,
-                },
-                {
-                    type: discord_js_1.ApplicationCommandOptionType.String,
-                    description: "command",
-                    name: "id",
-                    required: true,
-                },
-            ],
-        },
     ],
     callback: (client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
         yield interaction.deferReply({ ephemeral: true });
@@ -72,9 +53,6 @@ exports.default = {
         }
         else if (subCommand === "delete") {
             commandDelete(interaction.options.getString("id", true));
-        }
-        else if (subCommand === "datalog") {
-            commandDataFetch(interaction.options.getString("id", true), interaction.options.getBoolean("global", true));
         }
         function commandDelete(id) {
             var _a, _b, _c, _d, _e;
@@ -182,13 +160,6 @@ exports.default = {
                 if (((_c = embed.data.fields) === null || _c === void 0 ? void 0 : _c.length) === 0)
                     embed.setDescription("0 commands");
                 interaction.editReply({ embeds: [embed] });
-            });
-        }
-        function commandDataFetch(id, global) {
-            var _a, _b;
-            return __awaiter(this, void 0, void 0, function* () {
-                const fetchedCommand = global ? (_a = client.application) === null || _a === void 0 ? void 0 : _a.commands.fetch(id) : (_b = interaction.guild) === null || _b === void 0 ? void 0 : _b.commands.fetch(id);
-                console.log(fetchedCommand);
             });
         }
     }),

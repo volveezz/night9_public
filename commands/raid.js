@@ -323,7 +323,7 @@ function raidMsgUpdate(raidData, interaction) {
 exports.raidMsgUpdate = raidMsgUpdate;
 exports.default = {
     name: "рейд",
-    name_localizations: {
+    nameLocalizations: {
         "en-US": "raid",
     },
     description: "Создание и управление наборами на рейды",

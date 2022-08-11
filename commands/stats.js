@@ -14,7 +14,7 @@ const request_promise_native_1 = require("request-promise-native");
 const sequelize_1 = require("../handlers/sequelize");
 exports.default = {
     name: "stats",
-    name_localizations: {
+    nameLocalizations: {
         "en-US": "statistic",
         ru: "статистика",
     },
@@ -31,13 +31,13 @@ exports.default = {
         var _a, _b;
         yield interaction.deferReply({ ephemeral: true });
         const optionId = interaction instanceof discord_js_1.ChatInputCommandInteraction ? interaction.options.getString("bungiename") : null;
-        var targetId = interaction instanceof discord_js_1.ChatInputCommandInteraction ? (optionId ? undefined : interaction.user.id) : interaction.targetId;
+        let targetId = interaction instanceof discord_js_1.ChatInputCommandInteraction ? (optionId ? undefined : interaction.user.id) : interaction.targetId;
         const targetName = optionId ? [] : (_a = interaction.guild.members.cache.get(targetId)) === null || _a === void 0 ? void 0 : _a.displayName;
         const targetAvatar = optionId ? undefined : (_b = interaction.guild.members.cache.get(targetId)) === null || _b === void 0 ? void 0 : _b.displayAvatarURL();
         if (optionId) {
             const bName = optionId.split("#");
             if (bName.length === 2) {
-                var bungie_id, platform, displayName;
+                let bungie_id, platform, displayName;
                 yield (0, request_promise_native_1.post)(`https://www.bungie.net/Platform/User/Search/GlobalName/0/`, {
                     headers: {
                         "X-API-KEY": process.env.XAPI,
@@ -60,8 +60,7 @@ exports.default = {
                     }));
                 }));
                 if (!displayName && !bungie_id) {
-                    const embed = new discord_js_1.EmbedBuilder().setColor("Red").setTitle(`${optionId} не найден`);
-                    return interaction.editReply({ embeds: [embed] });
+                    throw { name: `${optionId} не найден` };
                 }
                 const embed = new discord_js_1.EmbedBuilder()
                     .setAuthor({
@@ -80,11 +79,10 @@ exports.default = {
                 return interaction.editReply({ embeds: [embed] });
             }
             else {
-                const embed = new discord_js_1.EmbedBuilder()
-                    .setColor("Red")
-                    .setTitle(`Проверьте правильность BungieName (${bName})`)
-                    .setDescription(`В корректном BungieName обязана присутстовать левая и правые части разделенные знаком #`);
-                return interaction.editReply({ embeds: [embed] });
+                throw {
+                    name: `Проверьте правильность BungieName (${bName})`,
+                    message: `В корректном BungieName обязана присутстовать левая и правые части разделенные знаком #`,
+                };
             }
         }
         var embed = new discord_js_1.EmbedBuilder()

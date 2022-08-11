@@ -29,7 +29,7 @@ exports.default = {
     ],
     callback: (_client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
         yield interaction.deferReply({ ephemeral: true });
-        var id = interaction.options.getString("id", true) === "me" ? interaction.user.id : interaction.options.getString("id", true);
+        let id = interaction.options.getString("id", true) === "me" ? interaction.user.id : interaction.options.getString("id", true);
         try {
             BigInt(id);
         }

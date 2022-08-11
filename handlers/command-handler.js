@@ -148,7 +148,7 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
                 console.error("Command error:" + error);
             }
         }
-        else if (interaction.isButton()) {
+        else if (interaction.isButton() || interaction.isSelectMenu()) {
             const { customId } = interaction;
             const commandName = ((_a = customId.split("_").shift()) === null || _a === void 0 ? void 0 : _a.toLowerCase()) || "blank";
             if (!events[commandName])

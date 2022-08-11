@@ -16,7 +16,7 @@ const sequelize_1 = require("../handlers/sequelize");
 const emoji = "<:dot:933355027307823174>";
 exports.default = {
     name: "init",
-    name_localizations: {
+    nameLocalizations: {
         ru: "регистрация",
         "en-US": "register",
     },
