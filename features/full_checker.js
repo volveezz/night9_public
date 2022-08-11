@@ -332,7 +332,7 @@ exports.default = (client) => {
                 }
             }
         })
-            .catch((e) => console.log(`kdChecker error`, e.error.code, e.error.message, e.error.statusCode));
+            .catch((e) => console.log(`kdChecker error`, e.message));
     }
     function activityStatsChecker(data, member, mode) {
         return __awaiter(this, void 0, void 0, function* () {

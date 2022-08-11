@@ -70,7 +70,9 @@ exports.default = (client) => {
             dmChn.send({ embeds: [embed] });
         }
         else {
-            sequelize_1.discord_acitvity.increment("messages", { by: 1, where: { discord_id: message.author.id } });
+            sequelize_1.discord_activity
+                .increment("messages", { by: 1, where: { discord_id: message.author.id } })
+                .catch((e) => console.log(`Error during updating discordActivity for ${message.member.displayName}, ${e.code}`));
         }
         if (message.channel.id === dmChn.id && ((_b = message.member) === null || _b === void 0 ? void 0 : _b.permissions.has("Administrator")) && message.guild && message.content.length > 15) {
             const msgContent = message.content.trim().split(" ");

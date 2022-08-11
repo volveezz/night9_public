@@ -25,7 +25,7 @@ function webHandler(code, state, client, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const json = yield sequelize_1.init_data.findOne({ where: { state: state } });
         if (json === null) {
-            return console.log("No data found");
+            return console.error("No data found", code, state);
         }
         if (json.discord_id !== null && json.discord_id !== undefined) {
             const body = yield (0, request_promise_native_1.post)({
@@ -41,11 +41,11 @@ function webHandler(code, state, client, res) {
                 json: true,
             });
             if (body.error === "invalid_request") {
-                return console.log(`There is problem with fetching authData from state: ${state}`, body);
+                return console.error(`There is problem with fetching authData from state: ${state}`, body);
             }
             else if (body.error === "invalid_grant") {
                 res.send(`<script>location.replace('error.html')</script>`);
-                return console.log(`${body.error_description} for: ${state}\nCode:${code}`);
+                return console.error(`${body.error_description} for: ${state}\nCode:${code}`);
             }
             else {
                 (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/User/GetMembershipsForCurrentUser/`, {
@@ -96,12 +96,12 @@ function webHandler(code, state, client, res) {
                             discord_id: json.discord_id,
                             bungie_id: bungie_id,
                             platform: platform,
-                            clan: 0,
+                            clan: false,
                             displayname: displayname,
                             access_token: body.access_token,
                             refresh_token: body.refresh_token,
                             membership_id: body.membership_id,
-                            tz: 3,
+                            tz: null,
                         });
                         yield sequelize_1.init_data.destroy({
                             where: { discord_id: json.discord_id },
