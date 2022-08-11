@@ -70,7 +70,7 @@ exports.default = (client) => {
             dmChn.send({ embeds: [embed] });
         }
         else {
-            sequelize_1.discord_activity
+            sequelize_1.discord_activities
                 .increment("messages", { by: 1, where: { discord_id: message.author.id } })
                 .catch((e) => console.log(`Error during updating discordActivity for ${message.member.displayName}`, e));
         }

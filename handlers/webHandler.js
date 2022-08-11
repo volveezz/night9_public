@@ -151,6 +151,12 @@ function webHandler(code, state, client, res) {
                             ])
                                 .setTimestamp();
                             (0, channels_1.chnFetcher)(ids_1.ids.botChnId).send({ embeds: [loggedEmbed] });
+                            sequelize_1.discord_activities.findOrCreate({
+                                where: { discord_id: user.id },
+                                defaults: {
+                                    discord_id: user.id,
+                                },
+                            });
                             if (((_a = clanResponse.results[0]) === null || _a === void 0 ? void 0 : _a.group.groupId) !== "4123712") {
                                 const component = new discord_js_1.ButtonBuilder().setCustomId("webhandlerEvent_clan_request").setLabel("Отправить приглашение").setStyle(3);
                                 embed.setDescription(`Нажмите кнопку для получения приглашения в клан`);

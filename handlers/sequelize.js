@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.raids = exports.discord_activity = exports.role_data = exports.lost_data = exports.init_data = exports.auth_data = exports.db = void 0;
+exports.raids = exports.discord_activities = exports.role_data = exports.lost_data = exports.init_data = exports.auth_data = exports.db = void 0;
 const sequelize_1 = require("sequelize");
 const sequelize = new sequelize_1.Sequelize(String(process.env.DATABASE_URL), {
     dialect: "postgres",
@@ -63,10 +63,10 @@ role_data.init({
     role_id: { type: sequelize_1.DataTypes.BIGINT },
     category: { type: sequelize_1.DataTypes.SMALLINT },
 }, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
-class discord_activity extends sequelize_1.Model {
+class discord_activities extends sequelize_1.Model {
 }
-exports.discord_activity = discord_activity;
-discord_activity.init({
+exports.discord_activities = discord_activities;
+discord_activities.init({
     discord_id: { type: sequelize_1.DataTypes.BIGINT, primaryKey: true, unique: true },
     messages: { type: sequelize_1.DataTypes.INTEGER, defaultValue: 0 },
     voice: { type: sequelize_1.DataTypes.INTEGER, defaultValue: 0 },
