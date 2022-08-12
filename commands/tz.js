@@ -26,7 +26,7 @@ exports.default = {
             .setTitle(`Выберите свой часовой пояс`)
             .setDescription(`Если не знаете свой - в описании каждого часового пояса есть текущее время по нему`);
         const tzBlank = new discord_js_1.SelectMenuBuilder()
-            .setCustomId("tzCollector_values")
+            .setCustomId("tzEvent_selectmenu")
             .setPlaceholder("Часовой пояс не выбран")
             .addOptions([
             {
