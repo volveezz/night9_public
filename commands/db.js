@@ -139,8 +139,8 @@ exports.default = {
     ],
     callback: (client, interaction, member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
         var _a, _b, _c, _d, _e, _f;
-        yield interaction.deferReply({ ephemeral: true });
         const start = new Date().getTime();
+        yield interaction.deferReply({ ephemeral: true });
         const { options } = interaction;
         const Subcommand = options.getSubcommand();
         const id = options.getString("id") ? (options.getString("id") === "me" ? member.id : options.getString("id", true)) : [];
@@ -155,7 +155,7 @@ exports.default = {
                     .catch((err) => {
                     return err;
                 });
-                if (request === null) {
+                if (!request || !request.discord_id) {
                     throw { name: "Запись не найдена" };
                 }
                 else if ((request === null || request === void 0 ? void 0 : request.discord_id) === undefined || (request === null || request === void 0 ? void 0 : request.discord_id) === null) {
@@ -199,11 +199,15 @@ exports.default = {
                         inline: true,
                     },
                 ]);
-                if (request.discord_activity) {
-                    embed.addFields([{ name: "Сообщений отправлено", value: request.messages.toString(), inline: true }]);
-                    embed.addFields([{ name: "Времени в голосовых", value: request.voice.toString() + "с", inline: true }]);
+                if (request && request.discord_activity && request.discord_activity.messages) {
+                    embed.addFields([{ name: "Сообщений отправлено", value: request.discord_activity.messages.toString(), inline: true }]);
+                    embed.addFields([{ name: "Времени в голосовых", value: request.discord_activity.voice.toString() + "с", inline: true }]);
                     embed.addFields([
-                        { name: "Пройдено данжей/рейдов с сокланами", value: request.dungeons.toString() + "/" + request.raids.toString(), inline: true },
+                        {
+                            name: "Пройдено данжей/рейдов с сокланами",
+                            value: request.discord_activity.dungeons.toString() + "/" + request.discord_activity.raids.toString(),
+                            inline: true,
+                        },
                     ]);
                 }
                 interaction.editReply({ embeds: [embed] });

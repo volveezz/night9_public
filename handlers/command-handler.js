@@ -109,5 +109,16 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
                 });
             }
         }
+        else if (interaction.isMessageContextMenuCommand() && interaction.commandName === "stats") {
+            commands["stats"].callback(client, interaction, interaction.member, interaction.guild, interaction.channel).catch((e) => {
+                if (Object.keys(e).length >= 3) {
+                    const embed = new discord_js_1.EmbedBuilder().setColor("Red");
+                    embed.setTitle(e === null || e === void 0 ? void 0 : e.name);
+                    if (e.message)
+                        embed.setDescription(e === null || e === void 0 ? void 0 : e.message);
+                    interaction.followUp({ ephemeral: true, embeds: [embed] });
+                }
+            });
+        }
     }));
 });
