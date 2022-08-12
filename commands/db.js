@@ -147,7 +147,15 @@ exports.default = {
         switch (Subcommand) {
             case "select": {
                 const middle = new Date().getTime();
-                const request = yield sequelize_1.discord_activities
+                const request = yield sequelize_1.auth_data
+                    .findOne({
+                    where: { discord_id: id },
+                    include: sequelize_1.discord_activities,
+                })
+                    .catch((err) => {
+                    return err;
+                });
+                const requestBK = yield sequelize_1.discord_activities
                     .findOne({
                     where: { discord_id: id },
                     include: sequelize_1.auth_data,
@@ -155,7 +163,7 @@ exports.default = {
                     .catch((err) => {
                     return err;
                 });
-                return console.log(request);
+                return console.log(request, requestBK);
                 if (request && request instanceof sequelize_1.auth_data) {
                     var response = request;
                 }

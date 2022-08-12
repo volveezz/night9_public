@@ -120,3 +120,5 @@ raids.init({
         defaultValue: 1,
     },
 }, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
+discord_activities.belongsTo(auth_data);
+auth_data.hasOne(discord_activities, { foreignKey: { name: "discord_id", field: "discord_id" } });
