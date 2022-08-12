@@ -149,28 +149,24 @@ exports.default = {
                 const middle = new Date().getTime();
                 const request = yield sequelize_1.auth_data
                     .findOne({
-                    where: { discord_id: id },
+                    where: { [sequelize_2.Op.or]: [{ discord_id: id }, { bungie_id: id }] },
                     include: sequelize_1.discord_activities,
                 })
                     .catch((err) => {
                     return err;
                 });
-                return console.log(request.toJSON());
-                if (request && request instanceof sequelize_1.auth_data) {
-                    var response = request;
-                }
-                else if (request === null) {
+                if (request === null) {
                     throw { name: "Запись не найдена" };
                 }
-                else {
+                else if ((request === null || request === void 0 ? void 0 : request.discord_id) === undefined || (request === null || request === void 0 ? void 0 : request.discord_id) === null) {
                     throw { name: `Ошибка ${(request === null || request === void 0 ? void 0 : request.code) ? request.code : ""}`, message: (request === null || request === void 0 ? void 0 : request.message) ? request.message : "no message :(" };
                 }
                 const after = new Date().getTime();
                 const embed = new discord_js_1.EmbedBuilder()
                     .setColor(colors_1.colors.default)
                     .setAuthor({
-                    name: `${response.displayname} (${response.discord_id})`,
-                    iconURL: (_b = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(response.discord_id)) === null || _b === void 0 ? void 0 : _b.displayAvatarURL(),
+                    name: `${request.displayname} (${request.discord_id})`,
+                    iconURL: (_b = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(request.discord_id)) === null || _b === void 0 ? void 0 : _b.displayAvatarURL(),
                 })
                     .setFooter({
                     text: `Query took: ${after - middle}ms, full interaction: ${after - start}ms`,
@@ -178,31 +174,38 @@ exports.default = {
                     .addFields([
                     {
                         name: "bungieId",
-                        value: `${response.platform + "/" + response.bungie_id}`,
+                        value: `${request.platform + "/" + request.bungie_id}`,
                         inline: true,
                     },
-                    { name: "clan", value: response.clan.toString(), inline: true },
+                    { name: "clan", value: request.clan.toString(), inline: true },
                     {
                         name: "displayName",
-                        value: response.displayname,
+                        value: request.displayname,
                         inline: true,
                     },
                     {
                         name: "membershipId",
-                        value: `${response.membership_id}`,
+                        value: `${request.membership_id}`,
                         inline: true,
                     },
                     {
                         name: "nameChangeStatus",
-                        value: response.displayname.startsWith("⁣") ? "disabled" : "enabled",
+                        value: request.displayname.startsWith("⁣") ? "disabled" : "enabled",
                         inline: true,
                     },
                     {
                         name: "refreshToken",
-                        value: response.refresh_token && response.refresh_token.length > 35 ? "cached" : `${(_c = response.refresh_token) === null || _c === void 0 ? void 0 : _c.length.toString()}`,
+                        value: request.refresh_token && request.refresh_token.length > 35 ? "cached" : `${(_c = request.refresh_token) === null || _c === void 0 ? void 0 : _c.length.toString()}`,
                         inline: true,
                     },
                 ]);
+                if (request.discord_activities) {
+                    embed.addFields([{ name: "Сообщений отправлено", value: request.messages.toString(), inline: true }]);
+                    embed.addFields([{ name: "Времени в голосовых", value: request.voice.toString() + "с", inline: true }]);
+                    embed.addFields([
+                        { name: "Пройдено данжей/рейдов с сокланами", value: request.dungeons.toString() + "/" + request.raids.toString(), inline: true },
+                    ]);
+                }
                 interaction.editReply({ embeds: [embed] });
                 break;
             }
