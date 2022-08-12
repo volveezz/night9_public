@@ -26,6 +26,6 @@ exports.default = {
         if (member) {
             !member.permissions.has("Administrator") ? member.setNickname(`[+${tz}] ${member.displayName}`) : [];
         }
-        interaction.message.edit({ embeds: [embed], components: [] });
+        interaction.update({ embeds: [embed], components: [] });
     }),
 };
