@@ -730,7 +730,7 @@ exports.default = (client) => {
                         inline: true,
                     },
                 ]);
-                sequelize_1.discord_activities.increment("voice", { by: difference, where: { discord_id: oldState.member.id } });
+                sequelize_1.discord_activities.increment("voice", { by: difference, where: { authDatumDiscordId: oldState.member.id } });
             }
             voiceUsers.delete(oldState.member.id);
         }
