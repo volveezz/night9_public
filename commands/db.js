@@ -199,7 +199,7 @@ exports.default = {
                         inline: true,
                     },
                 ]);
-                if (request.discord_activities) {
+                if (request.discord_activity) {
                     embed.addFields([{ name: "Сообщений отправлено", value: request.messages.toString(), inline: true }]);
                     embed.addFields([{ name: "Времени в голосовых", value: request.voice.toString() + "с", inline: true }]);
                     embed.addFields([
