@@ -30,7 +30,7 @@ auth_data.init({
     },
     tz: { type: sequelize_1.DataTypes.SMALLINT, allowNull: false },
     roles_cat: { type: sequelize_1.DataTypes.BOOLEAN },
-}, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
+}, { sequelize, timestamps: false, createdAt: false, updatedAt: false, modelName: "auth_data", freezeTableName: true, tableName: "auth_data" });
 class init_data extends sequelize_1.Model {
 }
 exports.init_data = init_data;
@@ -73,7 +73,7 @@ discord_activities.init({
     raids: { type: sequelize_1.DataTypes.INTEGER, defaultValue: 0 },
     dungeons: { type: sequelize_1.DataTypes.INTEGER, defaultValue: 0 },
     updatedAt: { type: sequelize_1.DataTypes.INTEGER },
-}, { sequelize, timestamps: true, createdAt: false, updatedAt: true });
+}, { sequelize, timestamps: true, createdAt: false, updatedAt: true, modelName: "discord_activities", freezeTableName: true, tableName: "discord_activities" });
 class raids extends sequelize_1.Model {
 }
 exports.raids = raids;
