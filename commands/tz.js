@@ -91,6 +91,6 @@ exports.default = {
             option.setDescription(`${tzTime.getHours()}:${tzTime.getMinutes()}:${tzTime.getSeconds()} - время сейчас по +${i + 2} часовому поясу`);
             tzTime.setHours(tzTime.getHours() + 1);
         });
-        interaction.editReply({ components: [{ type: discord_js_1.ComponentType.SelectMenu, components: [tzBlank] }] });
+        interaction.editReply({ embeds: [embed], components: [{ type: discord_js_1.ComponentType.ActionRow, components: [tzBlank] }] });
     }),
 };
