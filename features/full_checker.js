@@ -352,6 +352,8 @@ exports.default = (client) => {
                     .catch((e) => console.log(`activityStatsChecker character error`, e.statusCode));
             }
             else {
+                if (mode === 84 && member.roles.cache.has(roles_1.rTrials.wintrader))
+                    return;
                 let completedActivities = [];
                 let kills = 0, deaths = 0, wtmatches = 0;
                 for (const character of exports.character_data.get(member.id)) {
@@ -495,7 +497,7 @@ exports.default = (client) => {
             role_manager(db_row, member, role_db);
             kd === 5 ? kdChecker(db_row, member) : [];
             raids === 6 ? activityStatsChecker(db_row, member, 4) : [];
-            raids === 5 && !member.roles.cache.has(roles_1.rTrials.wintrader) ? activityStatsChecker(db_row, member, 84) : [];
+            raids === 5 ? activityStatsChecker(db_row, member, 84) : [];
             yield timer(700);
         }
         clan(db_plain);
