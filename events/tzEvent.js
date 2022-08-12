@@ -15,6 +15,7 @@ const ids_1 = require("../base/ids");
 const sequelize_1 = require("../handlers/sequelize");
 exports.default = {
     callback: (_client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
+        yield interaction.deferUpdate();
         const embed = new discord_js_1.EmbedBuilder();
         const tz = interaction.values[0];
         embed.setTitle(`Вы установили +${tz} как свой часовой пояс`).setColor("Green");
