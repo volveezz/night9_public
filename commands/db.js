@@ -138,7 +138,7 @@ exports.default = {
         },
     ],
     callback: (client, interaction, member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         yield interaction.deferReply({ ephemeral: true });
         const start = new Date().getTime();
         const { options } = interaction;
@@ -157,8 +157,8 @@ exports.default = {
                     return err;
                 });
                 console.log(request);
-                if (request && (request === null || request === void 0 ? void 0 : request.code) !== "22P02") {
-                    var response = request.toJSON();
+                if (request && request instanceof sequelize_1.auth_data) {
+                    var response = request;
                 }
                 else if (request === null) {
                     throw { name: "Запись не найдена" };
@@ -179,18 +179,18 @@ exports.default = {
                     .addFields([
                     {
                         name: "bungieId",
-                        value: String(response.platform + "/" + response.bungie_id),
+                        value: `${response.platform + "/" + response.bungie_id}`,
                         inline: true,
                     },
-                    { name: "clan", value: String(response.clan), inline: true },
+                    { name: "clan", value: response.clan.toString(), inline: true },
                     {
                         name: "displayName",
-                        value: String(response.displayname),
+                        value: response.displayname,
                         inline: true,
                     },
                     {
                         name: "membershipId",
-                        value: String(response.membership_id),
+                        value: `${response.membership_id}`,
                         inline: true,
                     },
                     {
@@ -200,7 +200,7 @@ exports.default = {
                     },
                     {
                         name: "refreshToken",
-                        value: response.refresh_token.length > 35 ? "cached" : response.refresh_token.length,
+                        value: response.refresh_token && response.refresh_token.length > 35 ? "cached" : `${(_c = response.refresh_token) === null || _c === void 0 ? void 0 : _c.length.toString()}`,
                         inline: true,
                     },
                 ]);
@@ -344,14 +344,14 @@ exports.default = {
                     ],
                 });
                 const interactionUId = interaction.user.id;
-                const collector = (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.createMessageComponentCollector({
+                const collector = (_d = interaction.channel) === null || _d === void 0 ? void 0 : _d.createMessageComponentCollector({
                     time: 50000,
                     max: 5,
                     filter: (interaction) => interaction.user.id == interactionUId,
                 });
                 collector
                     .on("collect", (collected) => __awaiter(void 0, void 0, void 0, function* () {
-                    var _f;
+                    var _g;
                     if (!collected.deferred)
                         yield collected.deferUpdate().catch((e) => console.log(e));
                     if (collected.customId === "db_roles_add_cancel") {
@@ -408,7 +408,7 @@ exports.default = {
                         });
                     }
                     else if (collected.customId === "db_roles_add_change_name") {
-                        (_f = interaction.channel) === null || _f === void 0 ? void 0 : _f.createMessageCollector({
+                        (_g = interaction.channel) === null || _g === void 0 ? void 0 : _g.createMessageCollector({
                             time: 15 * 1000,
                             max: 1,
                             filter: (message) => message.author.id === interaction.user.id,
@@ -456,7 +456,7 @@ exports.default = {
                         ]);
                     }
                 }));
-                if (((_d = embed.data.fields) === null || _d === void 0 ? void 0 : _d.length) === 0)
+                if (((_e = embed.data.fields) === null || _e === void 0 ? void 0 : _e.length) === 0)
                     embed.setDescription("There are no auto-roles");
                 interaction.editReply({ embeds: [embed] });
                 break;
@@ -466,7 +466,7 @@ exports.default = {
                 console.log(removeroleid, typeof removeroleid);
                 if (typeof removeroleid !== "string")
                     return;
-                if ((_e = interaction.guild) === null || _e === void 0 ? void 0 : _e.roles.cache.has(removeroleid)) {
+                if ((_f = interaction.guild) === null || _f === void 0 ? void 0 : _f.roles.cache.has(removeroleid)) {
                     var query = yield sequelize_1.role_data.destroy({ where: { role_id: removeroleid } });
                 }
                 else {

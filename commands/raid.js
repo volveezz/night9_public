@@ -27,27 +27,24 @@ function raidDataInChnMsg(raidData) {
     return __awaiter(this, void 0, void 0, function* () {
         const inChnMsg = yield (0, channels_1.msgFetcher)(raidData.chnId, raidData.inChnMsg);
         const embed = discord_js_1.EmbedBuilder.from(inChnMsg.embeds[0]);
-        const gMembers = __1.BotClient.guilds.cache.get(ids_1.guildId).members.cache;
+        const gMembers = (id) => __awaiter(this, void 0, void 0, function* () { return (__1.BotClient.guilds.cache.get(ids_1.guildId).members.cache.get(id) || (yield __1.BotClient.guilds.cache.get(ids_1.guildId).members.fetch(id))).displayName; });
         const joined = raidData.joined.map((data) => {
-            var _a;
             const raidUserData = full_checker_1.completedRaidsData.get(data);
             if (!raidUserData)
                 return `Данные <@${data}> не были закешированы или он не зарегистрирован`;
-            return `${(_a = gMembers.get(data)) === null || _a === void 0 ? void 0 : _a.displayName} завершил: ${raidUserData.votd}(${raidUserData.votdMaster}) КП, ${raidUserData.vog}(${raidUserData.vogMaster}) ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
+            return `${gMembers(data)} завершил: ${raidUserData.votd}(${raidUserData.votdMaster}) КП, ${raidUserData.vog}(${raidUserData.vogMaster}) ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
         });
         const hotJoined = raidData.hotJoined.map((data) => {
-            var _a;
             const raidUserData = full_checker_1.completedRaidsData.get(data);
             if (!raidUserData)
                 return `Данные <@${data}> не были закешированы или он не зарегистрирован`;
-            return `${(_a = gMembers.get(data)) === null || _a === void 0 ? void 0 : _a.displayName} завершил: ${raidUserData.votd}(${raidUserData.votdMaster}) КП, ${raidUserData.vog}(${raidUserData.vogMaster}) ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
+            return `${gMembers(data)} завершил: ${raidUserData.votd}(${raidUserData.votdMaster}) КП, ${raidUserData.vog}(${raidUserData.vogMaster}) ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
         });
         const alt = raidData.alt.map((data) => {
-            var _a;
             const raidUserData = full_checker_1.completedRaidsData.get(data);
             if (!raidUserData)
                 return `Данные <@${data}> не были закешированы или он не зарегистрирован`;
-            return `${(_a = gMembers.get(data)) === null || _a === void 0 ? void 0 : _a.displayName} завершил: ${raidUserData.votd}(${raidUserData.votdMaster}) КП, ${raidUserData.vog}(${raidUserData.vogMaster}) ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
+            return `${gMembers(data)} завершил: ${raidUserData.votd}(${raidUserData.votdMaster}) КП, ${raidUserData.vog}(${raidUserData.vogMaster}) ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
         });
         const findK = (k) => {
             var _a;
@@ -267,10 +264,10 @@ function raidMsgUpdate(raidData, interaction) {
         const chn = (0, channels_1.chnFetcher)(ids_1.ids.raidChnId);
         const msg = yield chn.messages.fetch(raidData.msgId);
         const embed = discord_js_1.EmbedBuilder.from(msg.embeds[0]);
-        const gMembers = interaction.guild.members.cache;
-        const joined = raidData.joined && raidData.joined.length >= 1 ? raidData.joined.map((data) => { var _a; return (_a = gMembers.get(data)) === null || _a === void 0 ? void 0 : _a.displayName; }).join(", ") : "Никого";
-        const hotJoined = raidData.hotJoined && raidData.hotJoined.length >= 1 ? raidData.hotJoined.map((data) => { var _a; return (_a = gMembers.get(data)) === null || _a === void 0 ? void 0 : _a.displayName; }).join(", ") : "Никого";
-        const alt = raidData.alt && raidData.alt.length >= 1 ? raidData.alt.map((data) => { var _a; return (_a = gMembers.get(data)) === null || _a === void 0 ? void 0 : _a.displayName; }).join(", ") : "Никого";
+        const gMembers = (id) => __awaiter(this, void 0, void 0, function* () { return (interaction.guild.members.cache.get(id) || (yield interaction.guild.members.fetch(id))).displayName; });
+        const joined = raidData.joined && raidData.joined.length >= 1 ? raidData.joined.map((data) => gMembers(data)).join(", ") : "Никого";
+        const hotJoined = raidData.hotJoined && raidData.hotJoined.length >= 1 ? raidData.hotJoined.map((data) => gMembers(data)).join(", ") : "Никого";
+        const alt = raidData.alt && raidData.alt.length >= 1 ? raidData.alt.map((data) => gMembers(data)).join(", ") : "Никого";
         if (raidData.joined.length && raidData.joined.length == 6) {
             embed.setColor(null);
         }
