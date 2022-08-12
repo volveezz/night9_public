@@ -149,12 +149,12 @@ exports.default = {
                 const middle = new Date().getTime();
                 const request = yield sequelize_1.auth_data
                     .findOne({
-                        where: { [sequelize_2.Op.or]: [{ discord_id: id }, { bungie_id: id }] },
-                        include: sequelize_1.discord_activities,
-                    })
+                    where: { [sequelize_2.Op.or]: [{ discord_id: id }, { bungie_id: id }] },
+                    include: sequelize_1.discord_activities,
+                })
                     .catch((err) => {
-                        return err;
-                    });
+                    return err;
+                });
                 if (request === null) {
                     throw { name: "Запись не найдена" };
                 }
@@ -165,45 +165,45 @@ exports.default = {
                 const embed = new discord_js_1.EmbedBuilder()
                     .setColor(colors_1.colors.default)
                     .setAuthor({
-                        name: `${request.displayname} (${request.discord_id})`,
-                        iconURL: (_b = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(request.discord_id)) === null || _b === void 0 ? void 0 : _b.displayAvatarURL(),
-                    })
+                    name: `${request.displayname} (${request.discord_id})`,
+                    iconURL: (_b = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(request.discord_id)) === null || _b === void 0 ? void 0 : _b.displayAvatarURL(),
+                })
                     .setFooter({
-                        text: `Query took: ${after - middle}ms, full interaction: ${after - start}ms`,
-                    })
+                    text: `Query took: ${after - middle}ms, full interaction: ${after - start}ms`,
+                })
                     .addFields([
-                        {
-                            name: "bungieId",
-                            value: `${request.platform + "/" + request.bungie_id}`,
-                            inline: true,
-                        },
-                        { name: "clan", value: request.clan.toString(), inline: true },
-                        {
-                            name: "displayName",
-                            value: request.displayname,
-                            inline: true,
-                        },
-                        {
-                            name: "membershipId",
-                            value: `${request.membership_id}`,
-                            inline: true,
-                        },
-                        {
-                            name: "nameChangeStatus",
-                            value: request.displayname.startsWith("⁣") ? "disabled" : "enabled",
-                            inline: true,
-                        },
-                        {
-                            name: "refreshToken",
-                            value: request.refresh_token && request.refresh_token.length > 35 ? "cached" : `${(_c = request.refresh_token) === null || _c === void 0 ? void 0 : _c.length.toString()}`,
-                            inline: true,
-                        },
-                    ]);
+                    {
+                        name: "bungieId",
+                        value: `${request.platform + "/" + request.bungie_id}`,
+                        inline: true,
+                    },
+                    { name: "clan", value: request.clan.toString(), inline: true },
+                    {
+                        name: "displayName",
+                        value: request.displayname,
+                        inline: true,
+                    },
+                    {
+                        name: "membershipId",
+                        value: `${request.membership_id}`,
+                        inline: true,
+                    },
+                    {
+                        name: "nameChangeStatus",
+                        value: request.displayname.startsWith("⁣") ? "disabled" : "enabled",
+                        inline: true,
+                    },
+                    {
+                        name: "refreshToken",
+                        value: request.refresh_token && request.refresh_token.length > 35 ? "cached" : `${(_c = request.refresh_token) === null || _c === void 0 ? void 0 : _c.length.toString()}`,
+                        inline: true,
+                    },
+                ]);
                 if (request.discord_activity) {
-                    embed.addFields([{ name: "Сообщений отправлено", value: request.discord_activity.messages.toString(), inline: true }]);
-                    embed.addFields([{ name: "Времени в голосовых", value: request.discord_activity.voice.toString() + "с", inline: true }]);
+                    embed.addFields([{ name: "Сообщений отправлено", value: request.messages.toString(), inline: true }]);
+                    embed.addFields([{ name: "Времени в голосовых", value: request.voice.toString() + "с", inline: true }]);
                     embed.addFields([
-                        { name: "Пройдено данжей/рейдов с сокланами", value: request.discord_activity.dungeons.toString() + "/" + request.discord_activity.raids.toString(), inline: true },
+                        { name: "Пройдено данжей/рейдов с сокланами", value: request.dungeons.toString() + "/" + request.raids.toString(), inline: true },
                     ]);
                 }
                 interaction.editReply({ embeds: [embed] });
@@ -212,11 +212,11 @@ exports.default = {
             case "delete": {
                 var request = yield sequelize_1.auth_data
                     .destroy({
-                        where: { [sequelize_2.Op.or]: [{ discord_id: id }, { bungie_id: id }] },
-                    })
+                    where: { [sequelize_2.Op.or]: [{ discord_id: id }, { bungie_id: id }] },
+                })
                     .catch((err) => {
-                        return err.parent;
-                    });
+                    return err.parent;
+                });
                 if ((request === null || request === void 0 ? void 0 : request.code) === "22P02") {
                     throw { name: `Ошибка ${request.code}`, message: request.message };
                 }
@@ -229,37 +229,37 @@ exports.default = {
             case "name_change": {
                 sequelize_1.auth_data
                     .findOne({
-                        where: { discord_id: id },
-                        attributes: ["displayname"],
-                    })
+                    where: { discord_id: id },
+                    attributes: ["displayname"],
+                })
                     .then((data) => {
-                        if (!data) {
-                            const embed = new discord_js_1.EmbedBuilder().setColor("Red").setTitle(`${id} not found in DB`);
+                    if (!data) {
+                        const embed = new discord_js_1.EmbedBuilder().setColor("Red").setTitle(`${id} not found in DB`);
+                        return interaction.editReply({ embeds: [embed] });
+                    }
+                    if (data.displayname.startsWith("⁣")) {
+                        sequelize_1.auth_data
+                            .update({
+                            displayname: data.displayname.slice(1),
+                        }, {
+                            where: { displayname: data.displayname },
+                        })
+                            .then((_resp) => {
+                            const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTitle(`Autonickname disabled for ${data.displayname}`);
+                            interaction.editReply({ embeds: [embed] });
+                        });
+                    }
+                    else if (!data.displayname.startsWith("⁣")) {
+                        sequelize_1.auth_data
+                            .update({
+                            displayname: `⁣${data.displayname}`,
+                        }, { where: { displayname: data.displayname } })
+                            .then((_resp) => {
+                            const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTitle(`Autonickname enabled for ${data.displayname}`);
                             return interaction.editReply({ embeds: [embed] });
-                        }
-                        if (data.displayname.startsWith("⁣")) {
-                            sequelize_1.auth_data
-                                .update({
-                                    displayname: data.displayname.slice(1),
-                                }, {
-                                    where: { displayname: data.displayname },
-                                })
-                                .then((_resp) => {
-                                    const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTitle(`Autonickname disabled for ${data.displayname}`);
-                                    interaction.editReply({ embeds: [embed] });
-                                });
-                        }
-                        else if (!data.displayname.startsWith("⁣")) {
-                            sequelize_1.auth_data
-                                .update({
-                                    displayname: `⁣${data.displayname}`,
-                                }, { where: { displayname: data.displayname } })
-                                .then((_resp) => {
-                                    const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTitle(`Autonickname enabled for ${data.displayname}`);
-                                    return interaction.editReply({ embeds: [embed] });
-                                });
-                        }
-                    });
+                        });
+                    }
+                });
                 break;
             }
             case "add": {
@@ -353,83 +353,83 @@ exports.default = {
                 });
                 collector
                     .on("collect", (collected) => __awaiter(void 0, void 0, void 0, function* () {
-                        var _g;
-                        if (!collected.deferred)
-                            yield collected.deferUpdate().catch((e) => console.log(e));
-                        if (collected.customId === "db_roles_add_cancel") {
-                            interaction.editReply({ components: [], embeds: [], content: "Отменено" });
-                            collector.stop("Canceled");
-                        }
-                        else if (collected.customId === "db_roles_add_confirm") {
-                            var role, embed;
-                            if (!(db_query === null || db_query === void 0 ? void 0 : db_query.role_id)) {
-                                role = yield interaction.guild.roles.create({
-                                    name: title_name,
-                                    reason: "Creating auto-role",
-                                    position: interaction.guild.roles.cache.get(category === 5
-                                        ? roles_1.rActivity.category
-                                        : category === 4
-                                            ? roles_1.rTriumphs.category
-                                            : category === 3
-                                                ? roles_1.rTitles.category
-                                                : category === 1
-                                                    ? roles_1.rStats.category
-                                                    : roles_1.rRaids.roles[0].roleId).position || undefined,
-                                });
-                            }
-                            else {
-                                role = member.guild.roles.cache.get(String(db_query.role_id));
-                            }
-                            if (!db_query) {
-                                yield sequelize_1.role_data.findOrCreate({
-                                    where: {
-                                        hash: { [sequelize_2.Op.contains]: `{${hash}}` },
-                                    },
-                                    defaults: {
-                                        hash: `{${hash}}`,
-                                        role_id: role.id,
-                                        category: category,
-                                    },
-                                });
-                                embed = new discord_js_1.EmbedBuilder().setColor("Green").addFields([{ name: "Роль была создана", value: `<@&${role.id}>` }]);
-                            }
-                            else {
-                                var newHash = db_query.hash;
-                                newHash.push(String(hash));
-                                yield sequelize_1.role_data.update({
-                                    hash: `{${newHash.toString()}}`,
-                                }, {
-                                    where: { role_id: db_query.role_id },
-                                });
-                                embed = new discord_js_1.EmbedBuilder().setColor("Green").addFields([{ name: "Требования к роли были дополнены", value: `<@&${role.id}>` }]);
-                            }
-                            collector.stop("Completed");
-                            interaction.editReply({
-                                embeds: [embed],
-                                components: [],
+                    var _g;
+                    if (!collected.deferred)
+                        yield collected.deferUpdate().catch((e) => console.log(e));
+                    if (collected.customId === "db_roles_add_cancel") {
+                        interaction.editReply({ components: [], embeds: [], content: "Отменено" });
+                        collector.stop("Canceled");
+                    }
+                    else if (collected.customId === "db_roles_add_confirm") {
+                        var role, embed;
+                        if (!(db_query === null || db_query === void 0 ? void 0 : db_query.role_id)) {
+                            role = yield interaction.guild.roles.create({
+                                name: title_name,
+                                reason: "Creating auto-role",
+                                position: interaction.guild.roles.cache.get(category === 5
+                                    ? roles_1.rActivity.category
+                                    : category === 4
+                                        ? roles_1.rTriumphs.category
+                                        : category === 3
+                                            ? roles_1.rTitles.category
+                                            : category === 1
+                                                ? roles_1.rStats.category
+                                                : roles_1.rRaids.roles[0].roleId).position || undefined,
                             });
                         }
-                        else if (collected.customId === "db_roles_add_change_name") {
-                            (_g = interaction.channel) === null || _g === void 0 ? void 0 : _g.createMessageCollector({
-                                time: 15 * 1000,
-                                max: 1,
-                                filter: (message) => message.author.id === interaction.user.id,
-                            }).on("collect", (msg) => {
-                                msg.delete();
-                                interaction.fetchReply().then((m) => {
-                                    const embed = m.embeds[0];
-                                    embed.fields[0].value = `${msg.cleanContent}`;
-                                    title_name = msg.cleanContent;
-                                    interaction.editReply({ embeds: [embed] });
-                                });
-                            });
+                        else {
+                            role = member.guild.roles.cache.get(String(db_query.role_id));
                         }
-                    }))
-                    .on("end", () => {
+                        if (!db_query) {
+                            yield sequelize_1.role_data.findOrCreate({
+                                where: {
+                                    hash: { [sequelize_2.Op.contains]: `{${hash}}` },
+                                },
+                                defaults: {
+                                    hash: `{${hash}}`,
+                                    role_id: role.id,
+                                    category: category,
+                                },
+                            });
+                            embed = new discord_js_1.EmbedBuilder().setColor("Green").addFields([{ name: "Роль была создана", value: `<@&${role.id}>` }]);
+                        }
+                        else {
+                            var newHash = db_query.hash;
+                            newHash.push(String(hash));
+                            yield sequelize_1.role_data.update({
+                                hash: `{${newHash.toString()}}`,
+                            }, {
+                                where: { role_id: db_query.role_id },
+                            });
+                            embed = new discord_js_1.EmbedBuilder().setColor("Green").addFields([{ name: "Требования к роли были дополнены", value: `<@&${role.id}>` }]);
+                        }
+                        collector.stop("Completed");
                         interaction.editReply({
+                            embeds: [embed],
                             components: [],
                         });
+                    }
+                    else if (collected.customId === "db_roles_add_change_name") {
+                        (_g = interaction.channel) === null || _g === void 0 ? void 0 : _g.createMessageCollector({
+                            time: 15 * 1000,
+                            max: 1,
+                            filter: (message) => message.author.id === interaction.user.id,
+                        }).on("collect", (msg) => {
+                            msg.delete();
+                            interaction.fetchReply().then((m) => {
+                                const embed = m.embeds[0];
+                                embed.fields[0].value = `${msg.cleanContent}`;
+                                title_name = msg.cleanContent;
+                                interaction.editReply({ embeds: [embed] });
+                            });
+                        });
+                    }
+                }))
+                    .on("end", () => {
+                    interaction.editReply({
+                        components: [],
                     });
+                });
                 break;
             }
             case "fetch": {
