@@ -155,15 +155,7 @@ exports.default = {
                     .catch((err) => {
                     return err;
                 });
-                const requestBK = yield sequelize_1.discord_activities
-                    .findOne({
-                    where: { discord_id: id },
-                    include: sequelize_1.auth_data,
-                })
-                    .catch((err) => {
-                    return err;
-                });
-                return console.log(request, requestBK);
+                return console.log(request.toJSON());
                 if (request && request instanceof sequelize_1.auth_data) {
                     var response = request;
                 }
