@@ -153,7 +153,8 @@ exports.default = {
                     include: [sequelize_1.discord_activities],
                 })
                     .catch((err) => {
-                    return err.parent;
+                    console.error(err);
+                    return err;
                 });
                 console.log(request);
                 if (request && (request === null || request === void 0 ? void 0 : request.code) !== "22P02") {
@@ -163,7 +164,7 @@ exports.default = {
                     throw { name: "Запись не найдена" };
                 }
                 else {
-                    throw { name: `Ошибка ${(request === null || request === void 0 ? void 0 : request.code) ? request.code : ""}`, message: request.toString() };
+                    throw { name: `Ошибка ${(request === null || request === void 0 ? void 0 : request.code) ? request.code : ""}`, message: (request === null || request === void 0 ? void 0 : request.message) ? request.message : "no message :(" };
                 }
                 const after = new Date().getTime();
                 const embed = new discord_js_1.EmbedBuilder()

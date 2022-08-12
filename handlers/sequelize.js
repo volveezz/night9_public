@@ -120,3 +120,5 @@ raids.init({
         defaultValue: 1,
     },
 }, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
+auth_data.hasMany(discord_activities);
+discord_activities.belongsTo(auth_data);
