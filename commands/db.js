@@ -155,6 +155,7 @@ exports.default = {
                     .catch((err) => {
                     return err.parent;
                 });
+                console.log(request);
                 if (request && (request === null || request === void 0 ? void 0 : request.code) !== "22P02") {
                     var response = request.toJSON();
                 }
@@ -162,7 +163,7 @@ exports.default = {
                     throw { name: "Запись не найдена" };
                 }
                 else {
-                    throw { name: `Ошибка ${request.code}`, message: request.message };
+                    throw { name: `Ошибка ${(request === null || request === void 0 ? void 0 : request.code) ? request.code : ""}`, message: request.message ? request.message : undefined };
                 }
                 const after = new Date().getTime();
                 const embed = new discord_js_1.EmbedBuilder()
@@ -431,20 +432,28 @@ exports.default = {
             case "fetch": {
                 const data = yield sequelize_1.role_data.findAll();
                 const embed = new discord_js_1.EmbedBuilder().setColor(colors_1.colors.default).setTitle("Auto roles");
+                const secondEmbed = new discord_js_1.EmbedBuilder().setColor(colors_1.colors.default);
                 data.forEach((d) => __awaiter(void 0, void 0, void 0, function* () {
-                    var _g;
-                    if (((_g = embed.data.fields) === null || _g === void 0 ? void 0 : _g.length) === 25) {
-                        return embed.setFooter({
-                            text: `and ${data.length - 25} more`,
-                        });
+                    if (embed.data.fields.length <= 51)
+                        return secondEmbed.setFooter({ text: `and ${data.length - 50} more` });
+                    if (embed.data.fields.length >= 25) {
+                        secondEmbed.addFields([
+                            {
+                                name: `Hash: ${d.hash}`,
+                                value: `r: <@&${d.role_id}>\rId: ${d.role_id}`,
+                                inline: true,
+                            },
+                        ]);
                     }
-                    embed.addFields([
-                        {
-                            name: `Hash: ${d.hash}`,
-                            value: `Role: <@&${d.role_id}>\nRoleId: ${d.role_id}`,
-                            inline: true,
-                        },
-                    ]);
+                    else {
+                        embed.addFields([
+                            {
+                                name: `Hash: ${d.hash}`,
+                                value: `Role: <@&${d.role_id}>\nRoleId: ${d.role_id}`,
+                                inline: true,
+                            },
+                        ]);
+                    }
                 }));
                 if (((_d = embed.data.fields) === null || _d === void 0 ? void 0 : _d.length) === 0)
                     embed.setDescription("There are no auto-roles");

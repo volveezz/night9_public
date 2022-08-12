@@ -353,8 +353,6 @@ exports.default = (client) => {
                     .catch((e) => console.log(`activityStatsChecker character error`, e.statusCode));
             }
             else {
-                if (mode === 84 && member.roles.cache.has(roles_1.rTrials.wintrader))
-                    return;
                 let completedActivities = [];
                 let kills = 0, deaths = 0, wtmatches = 0;
                 for (const character of exports.character_data.get(member.id)) {
@@ -447,25 +445,17 @@ exports.default = (client) => {
                         console.log(`Found new raidIds`, completedActivities);
                 }
                 else if (mode === 84) {
-                    if (wtmatches >= 10) {
-                        if (!member.roles.cache.has(roles_1.rTrials.wintrader) && member.id !== ids_1.ownerId) {
-                            member.roles.add(roles_1.rTrials.wintrader);
-                            setTimeout(() => member.roles.remove(roles_1.rTrials.allRoles.toString()), 6000);
-                        }
-                    }
-                    else {
-                        const kd = kills / deaths;
-                        if (!isNaN(kd)) {
-                            for (const step of roles_1.rTrials.kd) {
-                                if (kd >= step.kd) {
-                                    if (!member.roles.cache.has(roles_1.rTrials.category))
-                                        member.roles.add(roles_1.rTrials.category);
-                                    if (!member.roles.cache.has(step.roleId)) {
-                                        member.roles.add(step.roleId);
-                                        setTimeout(() => member.roles.remove(roles_1.rTrials.allRoles.filter((r) => r !== step.roleId)), 6000);
-                                    }
-                                    break;
+                    const kd = kills / deaths;
+                    if (!isNaN(kd)) {
+                        for (const step of roles_1.rTrials.kd) {
+                            if (kd >= step.kd) {
+                                if (!member.roles.cache.has(roles_1.rTrials.category))
+                                    member.roles.add(roles_1.rTrials.category);
+                                if (!member.roles.cache.has(step.roleId)) {
+                                    member.roles.add(step.roleId);
+                                    setTimeout(() => member.roles.remove(roles_1.rTrials.allRoles.filter((r) => r !== step.roleId)), 6000);
                                 }
+                                break;
                             }
                         }
                     }
