@@ -26,6 +26,9 @@ exports.raidInGameChecker = raidInGameChecker;
 function raidDataInChnMsg(raidData) {
     return __awaiter(this, void 0, void 0, function* () {
         const inChnMsg = yield (0, channels_1.msgFetcher)(raidData.chnId, raidData.inChnMsg);
+        if (!inChnMsg || !inChnMsg.embeds || !inChnMsg.embeds[0]) {
+            return console.error(`Error during raidDataInChnMsg`, inChnMsg, inChnMsg.embeds);
+        }
         const embed = discord_js_1.EmbedBuilder.from(inChnMsg.embeds[0]);
         const gMembers = (id) => __awaiter(this, void 0, void 0, function* () { var _a; return ((_a = __1.BotClient.guilds.cache.get(ids_1.guildId).members.cache.get(id)) === null || _a === void 0 ? void 0 : _a.displayName) || (yield __1.BotClient.guilds.cache.get(ids_1.guildId).members.fetch(id)).displayName; });
         const joined = raidData.joined.map((data) => __awaiter(this, void 0, void 0, function* () {
@@ -261,8 +264,10 @@ function getRaid(raidId, interaction) {
 function raidMsgUpdate(raidData, interaction) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        const chn = (0, channels_1.chnFetcher)(ids_1.ids.raidChnId);
-        const msg = yield chn.messages.fetch(raidData.msgId);
+        const msg = yield (0, channels_1.msgFetcher)(ids_1.ids.raidChnId, raidData.msgId);
+        if (!msg || !msg.embeds || !msg.embeds[0]) {
+            return console.error(`Error during raidMsgUpdate`, msg, msg.embeds);
+        }
         const embed = discord_js_1.EmbedBuilder.from(msg.embeds[0]);
         const gMembers = (id) => __awaiter(this, void 0, void 0, function* () { var _b; return ((_b = interaction.guild.members.cache.get(id)) === null || _b === void 0 ? void 0 : _b.displayName) || (yield interaction.guild.members.fetch(id)).displayName; });
         const joined = raidData.joined && raidData.joined.length >= 1 ? raidData.joined.map((data) => __awaiter(this, void 0, void 0, function* () { return yield gMembers(data); })).join(", ") : "Никого";
