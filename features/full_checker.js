@@ -126,12 +126,12 @@ exports.default = (client) => {
                             console.log(`[AUTOROLE] NOT FOUND DATA FOR THIS NUMBER ${version}, BungieId: ${data.platform}/${data.bungie_id}`);
                             break;
                     }
-                    if (dlcs.includes(true))
-                        c.has(roles_1.dlcsRoles.vanilla)
-                            ? remove_roles.push(roles_1.dlcsRoles.vanilla)
-                            : member.roles.cache.has(roles_1.dlcsRoles.vanilla)
-                                ? give_roles.push(roles_1.dlcsRoles.vanilla)
-                                : "";
+                    if (dlcs.includes(true)) {
+                        c.has(roles_1.dlcsRoles.vanilla) ? remove_roles.push(roles_1.dlcsRoles.vanilla) : [];
+                    }
+                    else {
+                        !c.has(roles_1.dlcsRoles.vanilla) ? give_roles.push(roles_1.dlcsRoles.vanilla) : [];
+                    }
                     if (dlcs[0])
                         !c.has(roles_1.dlcsRoles.frs) ? give_roles.push(roles_1.dlcsRoles.frs) : "";
                     if (dlcs[1])
@@ -320,8 +320,9 @@ exports.default = (client) => {
             json: true,
         })
             .then((data) => {
+            var _a, _b, _c;
             for (const step of roles_1.rStats.kd) {
-                if (step.kd <= data["Response"]["allPvP"]["allTime"]["killsDeathsRatio"]["basic"]["value"]) {
+                if (step.kd <= ((_c = (_b = (_a = data["Response"]["allPvP"]["allTime"]) === null || _a === void 0 ? void 0 : _a["killsDeathsRatio"]) === null || _b === void 0 ? void 0 : _b["basic"]) === null || _c === void 0 ? void 0 : _c["value"])) {
                     if (!member.roles.cache.has(step.roleId)) {
                         member.roles.remove(roles_1.rStats.allKd.filter((r) => r !== step.roleId));
                         setTimeout(() => member.roles.add(step.roleId), 6000);

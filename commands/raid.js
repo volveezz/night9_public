@@ -18,7 +18,6 @@ const full_checker_1 = require("../features/full_checker");
 const roles_1 = require("../base/roles");
 const ids_1 = require("../base/ids");
 const __1 = require("..");
-const ids_2 = require("../base-testServer/ids");
 const runningRaids = new Map();
 function raidInGameChecker(raidDb) {
     runningRaids.set(raidDb.id, raidDb.time);
@@ -28,7 +27,7 @@ function raidDataInChnMsg(raidData) {
     return __awaiter(this, void 0, void 0, function* () {
         const inChnMsg = yield (0, channels_1.msgFetcher)(raidData.chnId, raidData.inChnMsg);
         const embed = discord_js_1.EmbedBuilder.from(inChnMsg.embeds[0]);
-        const gMembers = __1.BotClient.guilds.cache.get(ids_2.guildId).members.cache;
+        const gMembers = __1.BotClient.guilds.cache.get(ids_1.guildId).members.cache;
         const joined = raidData.joined.map((data) => {
             var _a;
             const raidUserData = full_checker_1.completedRaidsData.get(data);
