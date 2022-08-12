@@ -143,7 +143,7 @@ exports.default = {
         const start = new Date().getTime();
         const { options } = interaction;
         const Subcommand = options.getSubcommand();
-        const id = options.getString("id", true) === "me" ? member.id : options.getString("id", true);
+        const id = options.getString("id") ? (options.getString("id") === "me" ? member.id : options.getString("id", true)) : [];
         switch (Subcommand) {
             case "select": {
                 const middle = new Date().getTime();
