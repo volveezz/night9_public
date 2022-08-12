@@ -497,7 +497,7 @@ exports.default = (client) => {
             const member = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(db_row.discord_id);
             role_manager(db_row, member, role_db);
             kd === 5 ? kdChecker(db_row, member) : [];
-            raids === 6 ? activityStatsChecker(db_row, member, 4) : [];
+            raids === 6 && db_row.clan === true ? activityStatsChecker(db_row, member, 4) : [];
             raids === 5 ? activityStatsChecker(db_row, member, 84) : [];
             yield timer(700);
         }

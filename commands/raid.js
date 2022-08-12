@@ -269,7 +269,7 @@ function raidMsgUpdate(raidData, interaction) {
             return console.error(`Error during raidMsgUpdate`, msg, msg.embeds);
         }
         const embed = discord_js_1.EmbedBuilder.from(msg.embeds[0]);
-        const gMembers = (id) => __awaiter(this, void 0, void 0, function* () { var _b; return (_b = interaction.guild.members.cache.get(id)) === null || _b === void 0 ? void 0 : _b.displayName; });
+        const gMembers = (id) => { var _a; return (_a = interaction.guild.members.cache.get(id)) === null || _a === void 0 ? void 0 : _a.displayName; };
         const joined = raidData.joined && raidData.joined.length >= 1 ? raidData.joined.map((data) => gMembers(data)).join(", ") : "Никого";
         const hotJoined = raidData.hotJoined && raidData.hotJoined.length >= 1 ? raidData.hotJoined.map((data) => gMembers(data)).join(", ") : "Никого";
         const alt = raidData.alt && raidData.alt.length >= 1 ? raidData.alt.map((data) => gMembers(data)).join(", ") : "Никого";
