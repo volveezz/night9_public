@@ -150,7 +150,7 @@ exports.default = {
                 const request = yield sequelize_1.auth_data
                     .findOne({
                     where: { [sequelize_2.Op.or]: [{ discord_id: id }, { bungie_id: id }] },
-                    include: sequelize_1.discord_activities,
+                    include: [sequelize_1.discord_activities],
                 })
                     .catch((err) => {
                     return err.parent;
@@ -163,7 +163,7 @@ exports.default = {
                     throw { name: "Запись не найдена" };
                 }
                 else {
-                    throw { name: `Ошибка ${(request === null || request === void 0 ? void 0 : request.code) ? request.code : ""}`, message: request.message ? request.message : undefined };
+                    throw { name: `Ошибка ${(request === null || request === void 0 ? void 0 : request.code) ? request.code : ""}`, message: request.toString() };
                 }
                 const after = new Date().getTime();
                 const embed = new discord_js_1.EmbedBuilder()
