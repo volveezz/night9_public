@@ -25,7 +25,7 @@ function msgFetcher(unresChn, msgId) {
         if (!msg) {
             const fetchedMsg = yield chn.fetch(msgId);
             if (!fetchedMsg) {
-                throw { name: "Message not found", message: `${unresChn}, ${msgId}, ${msg}, ${fetchedMsg}, ${chn.cache.size}` };
+                throw { name: "msgFetcher Message not found", message: `${unresChn}, ${msgId}, ${msg}, ${fetchedMsg}, ${chn.cache.size}` };
             }
             else {
                 return fetchedMsg;

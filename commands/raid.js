@@ -19,6 +19,7 @@ const roles_1 = require("../base/roles");
 const ids_1 = require("../base/ids");
 const __1 = require("..");
 const runningRaids = new Map();
+const noDataRaids = new Set();
 function raidInGameChecker(raidDb) {
     runningRaids.set(raidDb.id, raidDb.time);
 }
@@ -27,48 +28,55 @@ function raidDataInChnMsg(raidData) {
     return __awaiter(this, void 0, void 0, function* () {
         const inChnMsg = yield (0, channels_1.msgFetcher)(raidData.chnId, raidData.inChnMsg);
         if (!inChnMsg || !inChnMsg.embeds || !inChnMsg.embeds[0]) {
-            return console.error(`Error during raidDataInChnMsg`, inChnMsg, inChnMsg.embeds);
+            return console.error(`Error during raidDataInChnMsg`, inChnMsg.id, inChnMsg.embeds);
         }
         const embed = discord_js_1.EmbedBuilder.from(inChnMsg.embeds[0]);
         const gMembers = (id) => { var _a; return (_a = __1.BotClient.guilds.cache.get(ids_1.guildId).members.cache.get(id)) === null || _a === void 0 ? void 0 : _a.displayName; };
         const joined = raidData.joined.map((data) => {
             const raidUserData = full_checker_1.completedRaidsData.get(data);
-            if (!raidUserData)
+            if (!raidUserData) {
+                if (!noDataRaids.has(raidData)) {
+                    noDataRaids.add(raidData);
+                    setTimeout(() => raidDataInChnMsg(raidData), 60 * 1000 * 5);
+                }
                 return `Данные <@${data}> не были закешированы или он не зарегистрирован`;
+            }
+            else {
+                if (noDataRaids.has(raidData))
+                    noDataRaids.delete(raidData);
+            }
             return `${gMembers(data)} завершил: ${raidUserData.votd}(${raidUserData.votdMaster}) КП, ${raidUserData.vog}(${raidUserData.vogMaster}) ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
         });
         const hotJoined = raidData.hotJoined.map((data) => {
             const raidUserData = full_checker_1.completedRaidsData.get(data);
-            if (!raidUserData)
+            if (!raidUserData) {
+                if (!noDataRaids.has(raidData)) {
+                    noDataRaids.add(raidData);
+                    setTimeout(() => raidDataInChnMsg(raidData), 60 * 1000 * 5);
+                }
                 return `Данные <@${data}> не были закешированы или он не зарегистрирован`;
+            }
+            else {
+                if (noDataRaids.has(raidData))
+                    noDataRaids.delete(raidData);
+            }
             return `${gMembers(data)} завершил: ${raidUserData.votd}(${raidUserData.votdMaster}) КП, ${raidUserData.vog}(${raidUserData.vogMaster}) ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
         });
         const alt = raidData.alt.map((data) => {
             const raidUserData = full_checker_1.completedRaidsData.get(data);
-            if (!raidUserData)
+            if (!raidUserData) {
+                if (!noDataRaids.has(raidData)) {
+                    noDataRaids.add(raidData);
+                    setTimeout(() => raidDataInChnMsg(raidData), 60 * 1000 * 5);
+                }
                 return `Данные <@${data}> не были закешированы или он не зарегистрирован`;
-            return `${gMembers(data)} завершил: ${raidUserData.votd}(${raidUserData.votdMaster}) КП, ${raidUserData.vog}(${raidUserData.vogMaster}) ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
-        });
-        const findK = (k) => {
-            var _a;
-            const index = (_a = embed.data.fields) === null || _a === void 0 ? void 0 : _a.findIndex((d) => d.name.endsWith(k));
-            if (index === -1) {
-                if (k === "основной группы")
-                    return 1;
-                if (k === "запасных участников")
-                    return 2;
-                if (k === "возможных участников")
-                    return 3;
-                console.log("Not given any index");
-                return 4;
             }
             else {
-                return index;
+                if (noDataRaids.has(raidData))
+                    noDataRaids.delete(raidData);
             }
-        };
-        const index1 = findK("основной группы");
-        const index2 = findK("запасных участников");
-        const index3 = findK("возможных участников");
+            return `${gMembers(data)} завершил: ${raidUserData.votd}(${raidUserData.votdMaster}) КП, ${raidUserData.vog}(${raidUserData.vogMaster}) ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
+        });
         embed.spliceFields(1, 3);
         if (raidData.joined.length > 0) {
             embed.spliceFields(1, 0, { name: "Успешные закрытия рейдов у основной группы", value: joined.join("\n") });
@@ -266,7 +274,7 @@ function raidMsgUpdate(raidData, interaction) {
     return __awaiter(this, void 0, void 0, function* () {
         const msg = yield (0, channels_1.msgFetcher)(ids_1.ids.raidChnId, raidData.msgId);
         if (!msg || !msg.embeds || !msg.embeds[0]) {
-            return console.error(`Error during raidMsgUpdate`, msg, msg.embeds);
+            return console.error(`Error during raidMsgUpdate`, msg.id, msg.embeds);
         }
         const embed = discord_js_1.EmbedBuilder.from(msg.embeds[0]);
         const gMembers = (id) => { var _a; return (_a = interaction.guild.members.cache.get(id)) === null || _a === void 0 ? void 0 : _a.displayName; };
