@@ -67,7 +67,7 @@ class discord_activities extends sequelize_1.Model {
 }
 exports.discord_activities = discord_activities;
 discord_activities.init({
-    discord_id: { type: sequelize_1.DataTypes.BIGINT, primaryKey: true, unique: true },
+    discord_id: { type: sequelize_1.DataTypes.BIGINT, references: { model: auth_data, key: "discord_id" } },
     messages: { type: sequelize_1.DataTypes.INTEGER, defaultValue: 0 },
     voice: { type: sequelize_1.DataTypes.INTEGER, defaultValue: 0 },
     raids: { type: sequelize_1.DataTypes.INTEGER, defaultValue: 0 },
@@ -121,4 +121,4 @@ raids.init({
     },
 }, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
 auth_data.hasMany(discord_activities);
-discord_activities.belongsTo(auth_data);
+discord_activities.belongsTo(auth_data, { foreignKey: { name: "discord_id" } });

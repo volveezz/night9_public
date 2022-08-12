@@ -153,7 +153,6 @@ exports.default = {
                     include: [sequelize_1.discord_activities],
                 })
                     .catch((err) => {
-                    console.error(err);
                     return err;
                 });
                 console.log(request);
