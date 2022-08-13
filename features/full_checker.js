@@ -472,7 +472,7 @@ exports.default = (client) => {
                             }
                         }
                         else {
-                            console.error(`KD is NaN for ${member.displayName}`);
+                            console.error(`KD is NaN for ${member.displayName}`, kills, deaths, wtmatches);
                         }
                     }
                 }
@@ -504,7 +504,7 @@ exports.default = (client) => {
             role_manager(db_row, member, role_db);
             kd === 5 ? kdChecker(db_row, member) : [];
             raids === 6 && db_row.clan === true ? activityStatsChecker(db_row, member, 4) : [];
-            raids === 5 && !member.roles.cache.has(roles_1.rTrials.wintrader) ? activityStatsChecker(db_row, member, 84) : [];
+            raids === 5 && !member.roles.cache.has(roles_1.rTrials.wintrader) && member.roles.cache.has(roles_1.rTrials.category) ? activityStatsChecker(db_row, member, 84) : [];
             yield timer(700);
         }
         clan(db_plain);
