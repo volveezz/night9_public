@@ -452,7 +452,7 @@ exports.default = (client) => {
                     if (wtmatches >= 10 && member.id !== ids_1.ownerId) {
                         if (!member.roles.cache.has(roles_1.rTrials.wintrader)) {
                             member.roles.add(roles_1.rTrials.wintrader);
-                            setTimeout(() => member.roles.remove(roles_1.rTrials.allKd.toString()), 6000);
+                            setTimeout(() => member.roles.remove(roles_1.rTrials.allKd), 6000);
                         }
                         return;
                     }
