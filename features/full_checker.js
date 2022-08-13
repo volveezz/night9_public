@@ -60,67 +60,67 @@ exports.default = (client) => {
                     let dlcs = [false, false, false, false, false, false];
                     switch (version) {
                         case 7:
-                            dlcs = [false, false, false, false, false];
+                            dlcs = [false, false, false, false, false, false];
                             break;
                         case 31:
-                            dlcs = [true, false, false, false, false];
+                            dlcs = [true, false, false, false, false, false];
                             break;
                         case 63:
-                            dlcs = [true, true, false, false, false];
+                            dlcs = [true, true, false, false, false, false];
                             break;
                         case 71:
-                            dlcs = [false, false, true, false, false];
+                            dlcs = [false, false, true, false, false, false];
                             break;
                         case 95:
-                            dlcs = [true, false, true, false, false];
+                            dlcs = [true, false, true, false, false, false];
                             break;
                         case 127:
-                            dlcs = [true, true, true, false, false];
+                            dlcs = [true, true, true, false, false, false];
                             break;
                         case 135:
-                            dlcs = [false, false, false, true, false];
+                            dlcs = [false, false, false, true, false, false];
                             break;
                         case 191:
-                            dlcs = [true, true, false, true, false];
+                            dlcs = [true, true, false, true, false, false];
                             break;
                         case 223:
-                            dlcs = [true, false, true, true, false];
+                            dlcs = [true, false, true, true, false, false];
                             break;
                         case 255:
-                            dlcs = [true, true, true, true, false];
+                            dlcs = [true, true, true, true, false, false];
                             break;
                         case 263:
-                            dlcs = [false, false, false, false, true];
+                            dlcs = [false, false, false, false, true, false];
                             break;
                         case 287:
-                            dlcs = [true, false, false, false, true];
+                            dlcs = [true, false, false, false, true, false];
                             break;
                         case 319:
-                            dlcs = [true, true, false, false, true];
+                            dlcs = [true, true, false, false, true, false];
                             break;
                         case 327:
-                            dlcs = [false, false, true, false, true];
+                            dlcs = [false, false, true, false, true, false];
                             break;
                         case 351:
-                            dlcs = [true, false, true, false, true];
+                            dlcs = [true, false, true, false, true, false];
                             break;
                         case 383:
-                            dlcs = [true, true, true, false, true];
+                            dlcs = [true, true, true, false, true, false];
                             break;
                         case 391:
-                            dlcs = [false, false, false, true, true];
+                            dlcs = [false, false, false, true, true, false];
                             break;
                         case 447:
-                            dlcs = [true, true, false, true, true];
+                            dlcs = [true, true, false, true, true, false];
                             break;
                         case 455:
-                            dlcs = [false, false, true, true, true];
+                            dlcs = [false, false, true, true, true, false];
                             break;
                         case 487:
-                            dlcs = [false, true, true, true, true];
+                            dlcs = [false, true, true, true, true, false];
                             break;
                         case 511:
-                            dlcs = [true, true, true, true, true];
+                            dlcs = [true, true, true, true, true, false];
                             break;
                         default:
                             console.log(`[AUTOROLE] NOT FOUND DATA FOR THIS NUMBER ${version}, BungieId: ${data.platform}/${data.bungie_id}`);
@@ -142,7 +142,7 @@ exports.default = (client) => {
                         !c.has(roles_1.dlcsRoles.anni) ? give_roles.push(roles_1.dlcsRoles.anni) : "";
                     if (dlcs[4])
                         !c.has(roles_1.dlcsRoles.twq) ? give_roles.push(roles_1.dlcsRoles.twq) : "";
-                    if (dlcs[4])
+                    if (dlcs[5])
                         !c.has(roles_1.dlcsRoles.lf) ? give_roles.push(roles_1.dlcsRoles.lf) : "";
                 });
             }
