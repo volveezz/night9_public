@@ -16,7 +16,7 @@ const colors_1 = require("../base/colors");
 const sequelize_2 = require("../handlers/sequelize");
 exports.default = {
     name: "auth",
-    nameLocalizations: { "en-US": "access", ru: "авторизация" },
+    nameLocalizations: { ru: "авторизация" },
     description: "Manual auth renewal",
     defaultMemberPermissions: ["Administrator"],
     options: [
@@ -28,6 +28,7 @@ exports.default = {
         },
     ],
     callback: (_client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
         yield interaction.deferReply({ ephemeral: true });
         let id = interaction.options.getString("id", true) === "me" ? interaction.user.id : interaction.options.getString("id", true);
         try {
@@ -57,7 +58,7 @@ exports.default = {
             });
         }
         catch (err) {
-            throw { name: "Request error", message: err.error.error_description || "no description available" };
+            throw { name: "Request error", message: ((_a = err === null || err === void 0 ? void 0 : err.error) === null || _a === void 0 ? void 0 : _a.error_description) || "no description available" };
         }
         if (token) {
             yield sequelize_2.auth_data.update({

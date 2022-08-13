@@ -12,11 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const sequelize_1 = require("../handlers/sequelize");
 const request_promise_native_1 = require("request-promise-native");
+const manifestHandler_1 = require("../handlers/manifestHandler");
 exports.default = {
     name: "raid_checker",
     nameLocalizations: {
         ru: "закрытия_рейдов",
-        "en-US": "raid_clears",
     },
     description: "Ваша статистика по рейдам",
     callback: (_client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
@@ -36,29 +36,14 @@ exports.default = {
                 bearer: db_data.access_token ? db_data.access_token : undefined,
             },
         });
-        const manifest = yield (0, request_promise_native_1.get)("https://www.bungie.net/Platform/Destiny2/Manifest/", {
-            json: true,
-            headers: { "X-API-KEY": process.env.XAPI },
-        }).then((manifest) => __awaiter(void 0, void 0, void 0, function* () {
-            return yield (0, request_promise_native_1.get)(`https://www.bungie.net${manifest.Response.jsonWorldComponentContentPaths.ru.DestinyActivityDefinition}`, {
-                json: true,
-                headers: { "X-API-KEY": process.env.XAPI },
-            }).then((activity_manifest) => {
-                return Object.keys(activity_manifest).reduce(function (acc, val) {
-                    if (activity_manifest[val].activityTypeHash === 2043403989)
-                        acc[val] = activity_manifest[val];
-                    return acc;
-                }, {});
-            });
-        }));
         const arr = [];
-        Object.keys(manifest).forEach((key) => {
+        Object.keys(yield manifestHandler_1.DestinyActivityDefinition).forEach((key) => __awaiter(void 0, void 0, void 0, function* () {
             arr.push({
                 activity: key,
-                acitivty_name: manifest[key].displayProperties.name,
+                acitivty_name: (yield manifestHandler_1.DestinyActivityDefinition)[key].displayProperties.name,
                 clears: 0,
             });
-        });
+        }));
         const characters = Object.keys(characters_list.Response.characters.data);
         const activity_map = new Map();
         const set = [

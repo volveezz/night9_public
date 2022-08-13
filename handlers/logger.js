@@ -19,6 +19,7 @@ const request_promise_native_1 = require("request-promise-native");
 const roles_1 = require("../base/roles");
 const channels_1 = require("../base/channels");
 const welcomeMessage_1 = require("./welcomeMessage");
+const __1 = require("..");
 const pgcrIds = new Set();
 const guildMemberChannel = (0, channels_1.chnFetcher)(ids_1.ids.guildMemberChnId), guildChannel = (0, channels_1.chnFetcher)(ids_1.ids.guildChnId), messageChannel = (0, channels_1.chnFetcher)(ids_1.ids.messagesChnId), voiceChannel = (0, channels_1.chnFetcher)(ids_1.ids.voiceChnId), destinyClanChannel = (0, channels_1.chnFetcher)(ids_1.ids.clanChnId), discordBotChannel = (0, channels_1.chnFetcher)(ids_1.ids.botChnId), activityChannel = (0, channels_1.chnFetcher)(ids_1.ids.activityChnId);
 function activityReporter(pgcrId) {
@@ -65,15 +66,16 @@ function init_register(state, user, rowCreated) {
     discordBotChannel.send({ embeds: [embed] });
 }
 exports.init_register = init_register;
-function clan_joinLeave(client, result, join) {
+function clan_joinLeave(result, join) {
     return __awaiter(this, void 0, void 0, function* () {
-        const member = client.guilds.cache.get(ids_1.guildId).members.cache.get(result.discord_id);
+        const member = __1.BotClient.guilds.cache.get(ids_1.guildId).members.cache.get(result.discord_id);
         const embed = new discord_js_1.EmbedBuilder().addFields([
             { name: "BungieId", value: result.bungie_id, inline: true },
             { name: "Ник в игре", value: result.displayname, inline: true },
         ]);
         if (member) {
             if (join) {
+                member.roles.add(roles_1.statusRoles.clanmember).then((m) => m.roles.remove([roles_1.statusRoles.kicked, roles_1.statusRoles.newbie, roles_1.statusRoles.member]));
                 embed
                     .setAuthor({
                     name: `${member.displayName} вступил в клан`,
@@ -82,6 +84,7 @@ function clan_joinLeave(client, result, join) {
                     .setColor("Green");
             }
             else {
+                member.roles.add(roles_1.statusRoles.kicked).then((m) => m.roles.remove([roles_1.statusRoles.clanmember, roles_1.statusRoles.newbie, roles_1.statusRoles.member]));
                 embed
                     .setAuthor({
                     name: `${member.displayName} покинул клан`,

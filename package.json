@@ -1,6 +1,6 @@
 {
   "name": "nightfuture",
-  "version": "0.9.11",
+  "version": "1.0.0",
   "engines": {
     "node": "18.7.0"
   },
@@ -24,6 +24,8 @@
     "sequelize": "^6.21.3"
   },
   "devDependencies": {
-    "@types/request-promise-native": "^1.0.18"
+    "@types/request-promise-native": "^1.0.18",
+    "concurrently": "^7.3.0",
+    "nodemon": "^2.0.19"
   }
 }

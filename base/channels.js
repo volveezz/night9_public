@@ -25,7 +25,7 @@ function msgFetcher(unresChn, msgId) {
         if (!msg) {
             const fetchedMsg = yield chn.fetch(msgId);
             if (!fetchedMsg) {
-                throw { name: "msgFetcher Message not found", message: `${unresChn}, ${msgId}, ${msg}, ${fetchedMsg}, ${chn.cache.size}` };
+                throw { name: "msgFetcher Message not found", message: `${unresChn}, ${msgId}, ${chn.cache.size}` };
             }
             else {
                 return fetchedMsg;
@@ -38,14 +38,16 @@ function msgFetcher(unresChn, msgId) {
 }
 exports.msgFetcher = msgFetcher;
 function chnFetcher(chn) {
-    var _a;
+    var _a, _b;
     if (typeof chn === "string") {
+        if (!__1.BotClient)
+            console.error(`chnFetcher bot client error`);
         const basedChannel = (_a = __1.BotClient.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.channels.cache.get(chn);
         if (basedChannel && basedChannel.isTextBased() && basedChannel.type === discord_js_1.ChannelType.GuildText) {
             return basedChannel;
         }
         else {
-            throw { name: "chnFetcher error", chn: `${chn}, ${basedChannel}` };
+            throw { name: "Произошла ошибка. Попробуйте снова", chn: `${chn}, ${basedChannel}, ${(_b = __1.BotClient.user) === null || _b === void 0 ? void 0 : _b.username}`, code: 1 };
         }
     }
     else {
@@ -53,7 +55,7 @@ function chnFetcher(chn) {
             return chn;
         }
         else {
-            throw { name: "chnFetcher error", chn: `${chn}, ${chn.name}` };
+            throw { name: "Произошла ошибка. Попробуйте снова", chn: `${chn}, ${chn.name}`, code: 2 };
         }
     }
 }

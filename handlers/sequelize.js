@@ -28,7 +28,7 @@ auth_data.init({
         primaryKey: true,
         unique: true,
     },
-    tz: { type: sequelize_1.DataTypes.SMALLINT, allowNull: false },
+    tz: { type: sequelize_1.DataTypes.SMALLINT, allowNull: true },
     roles_cat: { type: sequelize_1.DataTypes.BOOLEAN },
 }, { sequelize, timestamps: false, createdAt: false, updatedAt: false, modelName: "auth_data", freezeTableName: true, tableName: "auth_data" });
 class init_data extends sequelize_1.Model {
@@ -53,7 +53,7 @@ lost_data.init({
         primaryKey: true,
         unique: true,
     },
-    tz: { type: sequelize_1.DataTypes.SMALLINT, defaultValue: 3 },
+    tz: { type: sequelize_1.DataTypes.SMALLINT, defaultValue: 3, allowNull: true },
 }, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
 class role_data extends sequelize_1.Model {
 }

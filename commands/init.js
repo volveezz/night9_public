@@ -30,7 +30,6 @@ exports.default = {
         if (checker !== null) {
             throw {
                 name: "Вы уже зарегистрированы",
-                userId: interaction.user.id,
                 falseAlarm: true,
             };
         }
@@ -42,10 +41,10 @@ exports.default = {
         });
         const embed = new discord_js_1.EmbedBuilder()
             .setTitle("Нажмите для перехода к авторизации")
-            .setURL(`https://www.bungie.net/ru/OAuth/Authorize?client_id=34432&response_type=code&state=${request.toJSON().state}`)
+            .setURL(`https://www.bungie.net/ru/OAuth/Authorize?client_id=34432&response_type=code&state=${request.state}`)
             .setColor(colors_1.colors.default)
             .setDescription(`${emoji}По нажатию на ссылку вы будете перенаправлены на сайт Bungie (bungie.net)\n${emoji}На сайте достаточно авторизоваться через любой удобный для вас способ\n${emoji}К 1 аккаунту Discord можно привязать лишь 1 аккаунт Bungie`);
-        (0, logger_1.init_register)(request.toJSON().state, interaction.user, created);
+        (0, logger_1.init_register)(request.state, interaction.user, created);
         return interaction.editReply({ embeds: [embed] });
     }),
 };

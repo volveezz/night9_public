@@ -57,7 +57,7 @@ exports.default = (client) => {
             }
             function dlc_rolesChecker(version) {
                 return __awaiter(this, void 0, void 0, function* () {
-                    let dlcs = [false, false, false, false, false];
+                    let dlcs = [false, false, false, false, false, false];
                     switch (version) {
                         case 7:
                             dlcs = [false, false, false, false, false];
@@ -142,6 +142,8 @@ exports.default = (client) => {
                         !c.has(roles_1.dlcsRoles.anni) ? give_roles.push(roles_1.dlcsRoles.anni) : "";
                     if (dlcs[4])
                         !c.has(roles_1.dlcsRoles.twq) ? give_roles.push(roles_1.dlcsRoles.twq) : "";
+                    if (dlcs[4])
+                        !c.has(roles_1.dlcsRoles.lf) ? give_roles.push(roles_1.dlcsRoles.lf) : "";
                 });
             }
             function triumphsChecker() {
@@ -227,7 +229,7 @@ exports.default = (client) => {
                 });
             }
         }))
-            .catch((e) => console.log(`roleManager error`, e.statusCode, data.displayname));
+            .catch((e) => { var _a, _b, _c; return console.log(`roleManager error`, (_a = e === null || e === void 0 ? void 0 : e.error) === null || _a === void 0 ? void 0 : _a.code, (_b = e === null || e === void 0 ? void 0 : e.error) === null || _b === void 0 ? void 0 : _b.statusCode, (_c = e === null || e === void 0 ? void 0 : e.body) === null || _c === void 0 ? void 0 : _c.statusCode, data.displayname); });
     }
     function name_change(discord_id, name) {
         var _a;
@@ -292,14 +294,14 @@ exports.default = (client) => {
                             },
                             transaction: t,
                         });
-                        (0, logger_1.clan_joinLeave)(client, clan_member, true);
+                        (0, logger_1.clan_joinLeave)(clan_member, true);
                     }
                 }
             })));
             yield Promise.all(bungie_array.map((result) => __awaiter(this, void 0, void 0, function* () {
                 if (result.clan === true) {
                     yield sequelize_1.auth_data.update({ clan: false }, { where: { bungie_id: result.bungie_id }, transaction: t });
-                    (0, logger_1.clan_joinLeave)(client, result, false);
+                    (0, logger_1.clan_joinLeave)(result, false);
                 }
             })));
             try {
@@ -447,8 +449,8 @@ exports.default = (client) => {
                         console.log(`Found new raidIds`, completedActivities);
                 }
                 else if (mode === 84) {
-                    if (wtmatches >= 10) {
-                        if (!member.roles.cache.has(roles_1.rTrials.wintrader) && member.id !== ids_1.ownerId) {
+                    if (wtmatches >= 10 && member.id !== ids_1.ownerId) {
+                        if (!member.roles.cache.has(roles_1.rTrials.wintrader)) {
                             member.roles.add(roles_1.rTrials.wintrader);
                             setTimeout(() => member.roles.remove(roles_1.rTrials.allRoles.toString()), 6000);
                         }
@@ -467,6 +469,9 @@ exports.default = (client) => {
                                     break;
                                 }
                             }
+                        }
+                        else {
+                            console.error(`KD is NaN for ${member.displayName}`);
                         }
                     }
                 }
@@ -490,7 +495,7 @@ exports.default = (client) => {
             console.error("[Checker error]", error);
             return;
         }
-        if ((db_plain === null || db_plain === void 0 ? void 0 : db_plain.length) === 0)
+        if (!db_plain || db_plain.length === 0)
             return console.error(`[Checker error] DB is empty or missing data`);
         for (let i = 0; i < db_plain.length; i++) {
             const db_row = db_plain[i];
@@ -498,7 +503,7 @@ exports.default = (client) => {
             role_manager(db_row, member, role_db);
             kd === 5 ? kdChecker(db_row, member) : [];
             raids === 6 && db_row.clan === true ? activityStatsChecker(db_row, member, 4) : [];
-            raids === 5 ? activityStatsChecker(db_row, member, 84) : [];
+            raids === 5 && !member.roles.cache.has(roles_1.rTrials.wintrader) ? activityStatsChecker(db_row, member, 84) : [];
             yield timer(700);
         }
         clan(db_plain);
