@@ -44,16 +44,13 @@ exports.default = {
                 for (let n = 0; n < members.size; n++) {
                     const member = members.at(n);
                     i++;
-                    member.roles
-                        .remove(role.id, "Cleaning users role")
-                        .then((m) => console.log(`Role removed from ${m.displayName}`))
-                        .catch((e) => {
+                    member.roles.remove(role.id, "Cleaning users role").catch((e) => {
                         i--;
                         if (e.code !== 50013) {
                             console.error(e);
                         }
                     });
-                    yield timer(i * 333);
+                    yield timer(i * 366);
                 }
                 const embed = new discord_js_1.EmbedBuilder().setColor("Green").setDescription(`Роль ${role} была удалена у ${i} участников`);
                 interaction.editReply({ embeds: [embed] });

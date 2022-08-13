@@ -36,11 +36,18 @@ exports.default = {
                 bearer: db_data.access_token ? db_data.access_token : undefined,
             },
         });
+        const manifest = yield manifestHandler_1.DestinyActivityDefinition.then((activity_manifest) => {
+            return Object.keys(activity_manifest).reduce(function (acc, val) {
+                if (activity_manifest[val].activityTypeHash === 2043403989)
+                    acc[val] = activity_manifest[val];
+                return acc;
+            }, {});
+        });
         const arr = [];
-        Object.keys(yield manifestHandler_1.DestinyActivityDefinition).forEach((key) => __awaiter(void 0, void 0, void 0, function* () {
+        Object.keys(manifest).forEach((key) => __awaiter(void 0, void 0, void 0, function* () {
             arr.push({
                 activity: key,
-                acitivty_name: (yield manifestHandler_1.DestinyActivityDefinition)[key].displayProperties.name,
+                acitivty_name: (yield manifest)[key].displayProperties.name,
                 clears: 0,
             });
         }));
