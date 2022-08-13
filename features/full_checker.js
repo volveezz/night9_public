@@ -452,8 +452,9 @@ exports.default = (client) => {
                     if (wtmatches >= 10 && member.id !== ids_1.ownerId) {
                         if (!member.roles.cache.has(roles_1.rTrials.wintrader)) {
                             member.roles.add(roles_1.rTrials.wintrader);
-                            setTimeout(() => member.roles.remove(roles_1.rTrials.allRoles.toString()), 6000);
+                            setTimeout(() => member.roles.remove(roles_1.rTrials.allKd.toString()), 6000);
                         }
+                        return;
                     }
                     else {
                         const kd = kills / deaths;
@@ -464,7 +465,7 @@ exports.default = (client) => {
                                         member.roles.add(roles_1.rTrials.category);
                                     if (!member.roles.cache.has(step.roleId)) {
                                         member.roles.add(step.roleId);
-                                        setTimeout(() => member.roles.remove(roles_1.rTrials.allRoles.filter((r) => r !== step.roleId)), 6000);
+                                        setTimeout(() => member.roles.remove(roles_1.rTrials.allKd.filter((r) => r !== step.roleId)), 6000);
                                     }
                                     break;
                                 }
