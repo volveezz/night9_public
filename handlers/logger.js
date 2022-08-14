@@ -116,7 +116,12 @@ exports.clan_joinLeave = clan_joinLeave;
 exports.default = (client) => {
     const voiceUsers = new Map();
     process.on("unhandledRejection", (error) => {
-        console.error("Unhandled promise rejection:", error);
+        console.error("Unhandled promise rejection:");
+        if (error instanceof discord_js_1.DiscordAPIError) {
+            if (error.code === 50035) {
+                console.error(error.requestBody.json);
+            }
+        }
     });
     process.on("uncaughtException", (error) => {
         console.error("Unhandled exception:", error);

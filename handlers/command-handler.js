@@ -102,15 +102,17 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
         events[event.slice(0, -3).toLowerCase()] = commandFile;
     }
     client.on("interactionCreate", (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a;
+        var _a, _b;
         if ((interaction.isChatInputCommand() || interaction.isUserContextMenuCommand() || interaction.isMessageContextMenuCommand()) &&
             interaction.channel !== null) {
             const { commandName } = interaction;
             const guild = interaction.guild || client.guilds.cache.get(ids_1.guildId) || (yield client.guilds.fetch(ids_1.guildId));
-            const member = interaction.member || (guild === null || guild === void 0 ? void 0 : guild.members.cache.get(interaction.user.id)) || (yield guild.members.fetch(interaction.user.id));
+            const memberPre = interaction.member || (guild === null || guild === void 0 ? void 0 : guild.members.cache.get(interaction.user.id)) || (yield guild.members.fetch(interaction.user.id));
             const channel = interaction.channel;
+            const member = memberPre instanceof discord_js_1.GuildMember ? memberPre : yield guild.members.fetch(memberPre.user.id);
             if (!commands[commandName])
                 return;
+            console.log(`${member.displayName} used ${commandName} with ${((_a = interaction === null || interaction === void 0 ? void 0 : interaction.options) === null || _a === void 0 ? void 0 : _a.data) ? interaction.options.data : "no options"}`);
             try {
                 commands[commandName].callback(client, interaction, member, guild, channel).catch((err) => {
                     var _a, _b, _c, _d;
@@ -151,7 +153,7 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
         }
         else if (interaction.isButton() || interaction.isSelectMenu()) {
             const { customId } = interaction;
-            const commandName = ((_a = customId.split("_").shift()) === null || _a === void 0 ? void 0 : _a.toLowerCase()) || "blank";
+            const commandName = ((_b = customId.split("_").shift()) === null || _b === void 0 ? void 0 : _b.toLowerCase()) || "blank";
             if (!events[commandName])
                 return;
             events[commandName].callback(client, interaction, interaction.member, interaction.guild, interaction.channel).catch((e) => {

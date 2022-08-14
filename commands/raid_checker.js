@@ -18,12 +18,14 @@ exports.default = {
     nameLocalizations: {
         ru: "закрытия_рейдов",
     },
-    description: "Ваша статистика по рейдам",
+    options: [{ type: discord_js_1.ApplicationCommandOptionType.User, name: "пользователь", description: "Укажите искомого пользователя" }],
+    description: "Статистика по рейдам",
     callback: (_client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
         var _a, _b, _c, _d, _e, _f;
         yield interaction.deferReply({ ephemeral: true });
+        const user = interaction.options.getUser("пользователь");
         const db_data = yield sequelize_1.auth_data.findOne({
-            where: { discord_id: interaction.user.id },
+            where: { discord_id: user ? user.id : interaction.user.id },
             attributes: ["bungie_id", "platform", "access_token"],
         });
         if (db_data === null) {
@@ -122,6 +124,6 @@ exports.default = {
                 },
             ]);
         });
-        interaction.editReply({ embeds: [embed] });
+        interaction.editReply({ embeds: [embed] }).catch((e) => interaction.editReply({ content: "Ошибка :(" }));
     }),
 };
