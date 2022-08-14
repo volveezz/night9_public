@@ -654,7 +654,7 @@ exports.default = (client) => {
         const embed = new discord_js_1.EmbedBuilder()
             .setColor(colors_1.colors.default)
             .setTimestamp()
-            .setAuthor({ name: "roleDelete" })
+            .setAuthor({ name: "Роль удалена" })
             .setDescription(`Была удалена роль \`${role.name}\` (${role.id})`)
             .addFields([
             {

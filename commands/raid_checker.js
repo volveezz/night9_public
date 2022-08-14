@@ -124,6 +124,9 @@ exports.default = {
                 },
             ]);
         });
-        interaction.editReply({ embeds: [embed] }).catch((e) => interaction.editReply({ content: "Ошибка :(" }));
+        interaction.editReply({ embeds: [embed] }).catch((e) => {
+            console.error(e);
+            interaction.editReply({ content: "Ошибка :(" });
+        });
     }),
 };
