@@ -51,7 +51,7 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
             const member = memberPre instanceof discord_js_1.GuildMember ? memberPre : yield guild.members.fetch(memberPre.user.id);
             if (!commands[commandName])
                 return;
-            console.log(`${member.displayName} used ${commandName} with ${((_a = interaction === null || interaction === void 0 ? void 0 : interaction.options) === null || _a === void 0 ? void 0 : _a.data) ? JSON.parse(interaction.options.data.toString()) : "no options"}`);
+            console.log(`${member.displayName} used ${commandName} with ${((_a = interaction === null || interaction === void 0 ? void 0 : interaction.options) === null || _a === void 0 ? void 0 : _a.data) ? interaction.options.data.map((d) => d.value) : "no options"}`);
             try {
                 commands[commandName].callback(client, interaction, member, guild, channel).catch((err) => {
                     var _a, _b, _c, _d;
