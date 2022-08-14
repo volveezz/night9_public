@@ -87,7 +87,7 @@ exports.default = {
                 arr.forEach((activity_data) => __awaiter(void 0, void 0, void 0, function* () {
                     var _g, _h;
                     const clears = (_g = activity_fresh.filter((d) => d.activityHash == activity_data.activity)[0]) === null || _g === void 0 ? void 0 : _g.values.activityCompletions.basic.value;
-                    if (clears !== undefined) {
+                    if (clears !== undefined && clears >= 1) {
                         activity_map.set(activity_data.acitivty_name, {
                             activity: activity_data.acitivty_name,
                         });
