@@ -138,7 +138,7 @@ exports.default = {
         },
     ],
     callback: (client, interaction, member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d, _e, _f;
         const start = new Date().getTime();
         yield interaction.deferReply({ ephemeral: true });
         const { options } = interaction;
@@ -357,7 +357,7 @@ exports.default = {
                 });
                 collector
                     .on("collect", (collected) => __awaiter(void 0, void 0, void 0, function* () {
-                    var _h;
+                    var _g;
                     if (!collected.deferred)
                         yield collected.deferUpdate().catch((e) => console.log(e));
                     if (collected.customId === "db_roles_add_cancel") {
@@ -414,7 +414,7 @@ exports.default = {
                         });
                     }
                     else if (collected.customId === "db_roles_add_change_name") {
-                        (_h = interaction.channel) === null || _h === void 0 ? void 0 : _h.createMessageCollector({
+                        (_g = interaction.channel) === null || _g === void 0 ? void 0 : _g.createMessageCollector({
                             time: 15 * 1000,
                             max: 1,
                             filter: (message) => message.author.id === interaction.user.id,
@@ -459,9 +459,11 @@ exports.default = {
                         embed.spliceFields(0, 25);
                     }
                 }
-                if (((_f = embed.data.fields) === null || _f === void 0 ? void 0 : _f.length) === 0)
+                if (data.length === 0) {
                     embed.setDescription("There are no auto-roles");
-                interaction.editReply({ embeds: [embed] });
+                    interaction.editReply({ embeds: [embed] });
+                    break;
+                }
                 break;
             }
             case "remove": {
@@ -469,7 +471,7 @@ exports.default = {
                 console.log(removeroleid, typeof removeroleid);
                 if (typeof removeroleid !== "string")
                     return;
-                if ((_g = interaction.guild) === null || _g === void 0 ? void 0 : _g.roles.cache.has(removeroleid)) {
+                if ((_f = interaction.guild) === null || _f === void 0 ? void 0 : _f.roles.cache.has(removeroleid)) {
                     var query = yield sequelize_1.role_data.destroy({ where: { role_id: removeroleid } });
                 }
                 else {
