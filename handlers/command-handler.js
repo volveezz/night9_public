@@ -52,7 +52,7 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
                 return;
             console.log(`${member.displayName} used ${commandName} with ${((_a = interaction === null || interaction === void 0 ? void 0 : interaction.options) === null || _a === void 0 ? void 0 : _a.data)
                 ? interaction.options.data.map((d) => {
-                    return d.name + " : " + d.value;
+                    return `${d.name}${d.value !== undefined ? ` : ${d.value}` : ""}`;
                 })
                 : "no options"}`);
             try {

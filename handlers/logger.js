@@ -119,8 +119,8 @@ exports.default = (client) => {
         var _a;
         if (error instanceof discord_js_1.DiscordAPIError) {
             if (error.code === 50035) {
-                const e = error;
-                console.error(`Discord embed error`, (_a = e.requestBody.json) === null || _a === void 0 ? void 0 : _a.embeds);
+                const err = error;
+                console.error(`Discord embed error`, err.message, (_a = err.requestBody.json) === null || _a === void 0 ? void 0 : _a.embeds);
             }
             else {
                 console.error(`Discord API error promise rejection`, error);

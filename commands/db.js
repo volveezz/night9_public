@@ -441,22 +441,20 @@ exports.default = {
                 const embed = new discord_js_1.EmbedBuilder().setColor(colors_1.colors.default).setTitle("Auto roles");
                 for (let i = 0; i < data.length; i++) {
                     const d = data[i];
-                    embed.addFields([
-                        {
-                            name: `Hash: ${d.hash}`,
-                            value: `Role: <@&${d.role_id}>`,
-                            inline: true,
-                        },
-                    ]);
+                    embed.addFields({
+                        name: `Hash: ${d.hash}`,
+                        value: `Role: <@&${d.role_id}>`,
+                        inline: true,
+                    });
                     if (((_e = embed.data.fields) === null || _e === void 0 ? void 0 : _e.length) === 25 || i === data.length - 1) {
                         if (i === 24) {
-                            interaction.editReply({ embeds: [embed] });
-                            embed.setTitle(null);
+                            yield interaction.editReply({ embeds: [embed] });
+                            embed.setTitle(null).spliceFields(0, 25);
                         }
                         else {
-                            interaction.followUp({ embeds: [embed], ephemeral: true });
+                            yield interaction.followUp({ embeds: [embed], ephemeral: true });
+                            embed.spliceFields(0, 25);
                         }
-                        embed.spliceFields(0, 25);
                     }
                 }
                 if (data.length === 0) {
