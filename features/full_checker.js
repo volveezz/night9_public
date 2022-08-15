@@ -229,7 +229,7 @@ exports.default = (client) => {
                 });
             }
         }))
-            .catch((e) => { var _a, _b, _c; return console.log(`roleManager error`, (_a = e === null || e === void 0 ? void 0 : e.error) === null || _a === void 0 ? void 0 : _a.code, (_b = e === null || e === void 0 ? void 0 : e.error) === null || _b === void 0 ? void 0 : _b.statusCode, (_c = e === null || e === void 0 ? void 0 : e.body) === null || _c === void 0 ? void 0 : _c.statusCode, data.displayname); });
+            .catch((e) => console.log(`roleManager error`, e === null || e === void 0 ? void 0 : e.error, e === null || e === void 0 ? void 0 : e.body, data.displayname));
     }
     function name_change(discord_id, name) {
         var _a;
@@ -510,9 +510,9 @@ exports.default = (client) => {
         clan(db_plain);
     }), 1000 * 61 * 2);
     setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
-        const data = (yield sequelize_1.auth_data.findAll({
+        const data = yield sequelize_1.auth_data.findAll({
             attributes: ["discord_id", "displayname", "tz"],
-        })).filter((data) => client.guilds.cache.get(ids_1.guildId).members.cache.has(data.discord_id));
+        });
         client.guilds.cache
             .get(ids_1.guildId)
             .members.cache.filter((member) => member.roles.cache.has(roles_1.statusRoles.verified))

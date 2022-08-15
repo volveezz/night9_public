@@ -42,8 +42,7 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
     }
     client.on("interactionCreate", (interaction) => __awaiter(void 0, void 0, void 0, function* () {
         var _a, _b;
-        if ((interaction.isChatInputCommand() || interaction.isUserContextMenuCommand() || interaction.isMessageContextMenuCommand()) &&
-            interaction.channel !== null) {
+        if ((interaction.isChatInputCommand() || interaction.isUserContextMenuCommand()) && interaction.channel !== null) {
             const { commandName } = interaction;
             const guild = interaction.guild || client.guilds.cache.get(ids_1.guildId) || (yield client.guilds.fetch(ids_1.guildId));
             const memberPre = interaction.member || (guild === null || guild === void 0 ? void 0 : guild.members.cache.get(interaction.user.id)) || (yield guild.members.fetch(interaction.user.id));
@@ -51,31 +50,29 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
             const member = memberPre instanceof discord_js_1.GuildMember ? memberPre : yield guild.members.fetch(memberPre.user.id);
             if (!commands[commandName])
                 return;
-            console.log(`${member.displayName} used ${commandName} with ${((_a = interaction === null || interaction === void 0 ? void 0 : interaction.options) === null || _a === void 0 ? void 0 : _a.data) ? interaction.options.data.map((d) => d.value) : "no options"}`);
+            console.log(`${member.displayName} used ${commandName} with ${((_a = interaction === null || interaction === void 0 ? void 0 : interaction.options) === null || _a === void 0 ? void 0 : _a.data)
+                ? interaction.options.data.map((d) => {
+                    return d.name + " : " + d.value;
+                })
+                : "no options"}`);
             try {
                 commands[commandName].callback(client, interaction, member, guild, channel).catch((err) => {
                     var _a, _b, _c, _d;
                     const embed = new discord_js_1.EmbedBuilder().setColor("Red");
-                    console.error(`We got error`);
-                    if (!err.stack) {
-                        embed.setTitle(err === null || err === void 0 ? void 0 : err.name);
+                    console.error(`Slash command error`, err);
+                    if (!err.stack && err.name) {
+                        embed.setTitle(err.name);
                         if (err.message)
                             embed.setDescription(err === null || err === void 0 ? void 0 : err.message);
-                        if (!err.falseAlarm) {
-                            console.error(`Interaction command ${interaction.commandName} error. UserId: ${interaction.user.id}\nReason: ${err === null || err === void 0 ? void 0 : err.name}`);
-                        }
                     }
                     else {
-                        console.error(err);
-                        embed
-                            .setTitle(`${(err === null || err === void 0 ? void 0 : err.code)
+                        embed.setTitle(`${(err === null || err === void 0 ? void 0 : err.code)
                             ? `Error ${err.code}`
                             : ((_a = err.error) === null || _a === void 0 ? void 0 : _a.ErrorCode)
                                 ? `Bungie request error ${(_b = err.error) === null || _b === void 0 ? void 0 : _b.ErrorCode}`
                                 : ((_c = err.parent) === null || _c === void 0 ? void 0 : _c.code)
                                     ? `DB error ${(_d = err.parent) === null || _d === void 0 ? void 0 : _d.code}`
-                                    : `Error ${err.name}`}`)
-                            .setDescription(err.toString() || err.error.toString());
+                                    : `Error ${err.name}`}`);
                     }
                     if (interaction.deferred) {
                         interaction.editReply({ embeds: [embed] });
@@ -87,7 +84,7 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
                 });
             }
             catch (error) {
-                console.error("Command error:" + error);
+                console.error("Command error:", error);
             }
         }
         else if (interaction.isButton() || interaction.isSelectMenu()) {
@@ -99,8 +96,6 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
                 if (Object.keys(e).length >= 3) {
                     const embed = new discord_js_1.EmbedBuilder().setColor("Red");
                     embed.setTitle(e === null || e === void 0 ? void 0 : e.name);
-                    if (e.message)
-                        embed.setDescription(e === null || e === void 0 ? void 0 : e.message);
                     interaction.followUp({ ephemeral: true, embeds: [embed] });
                 }
             });
@@ -114,13 +109,10 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
         }
         else if (interaction.isMessageContextMenuCommand() && interaction.commandName === "stats") {
             commands["stats"].callback(client, interaction, interaction.member, interaction.guild, interaction.channel).catch((e) => {
-                if (Object.keys(e).length >= 3) {
-                    const embed = new discord_js_1.EmbedBuilder().setColor("Red");
-                    embed.setTitle(e === null || e === void 0 ? void 0 : e.name);
-                    if (e.message)
-                        embed.setDescription(e === null || e === void 0 ? void 0 : e.message);
-                    interaction.followUp({ ephemeral: true, embeds: [embed] });
-                }
+                console.error(`Slash command error`, e);
+                const embed = new discord_js_1.EmbedBuilder().setColor("Red");
+                embed.setTitle(e === null || e === void 0 ? void 0 : e.name);
+                interaction.followUp({ ephemeral: true, embeds: [embed] });
             });
         }
     }));

@@ -138,7 +138,7 @@ exports.default = {
         },
     ],
     callback: (client, interaction, member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g;
         const start = new Date().getTime();
         yield interaction.deferReply({ ephemeral: true });
         const { options } = interaction;
@@ -357,7 +357,7 @@ exports.default = {
                 });
                 collector
                     .on("collect", (collected) => __awaiter(void 0, void 0, void 0, function* () {
-                    var _g;
+                    var _h;
                     if (!collected.deferred)
                         yield collected.deferUpdate().catch((e) => console.log(e));
                     if (collected.customId === "db_roles_add_cancel") {
@@ -414,7 +414,7 @@ exports.default = {
                         });
                     }
                     else if (collected.customId === "db_roles_add_change_name") {
-                        (_g = interaction.channel) === null || _g === void 0 ? void 0 : _g.createMessageCollector({
+                        (_h = interaction.channel) === null || _h === void 0 ? void 0 : _h.createMessageCollector({
                             time: 15 * 1000,
                             max: 1,
                             filter: (message) => message.author.id === interaction.user.id,
@@ -439,30 +439,27 @@ exports.default = {
             case "fetch": {
                 const data = yield sequelize_1.role_data.findAll();
                 const embed = new discord_js_1.EmbedBuilder().setColor(colors_1.colors.default).setTitle("Auto roles");
-                const secondEmbed = new discord_js_1.EmbedBuilder().setColor(colors_1.colors.default);
-                data.forEach((d) => __awaiter(void 0, void 0, void 0, function* () {
-                    if (embed.data.fields.length <= 51)
-                        return secondEmbed.setFooter({ text: `and ${data.length - 50} more` });
-                    if (embed.data.fields.length >= 25) {
-                        secondEmbed.addFields([
-                            {
-                                name: `Hash: ${d.hash}`,
-                                value: `r: <@&${d.role_id}>\rId: ${d.role_id}`,
-                                inline: true,
-                            },
-                        ]);
+                for (let i = 0; i < data.length; i++) {
+                    const d = data[i];
+                    embed.addFields([
+                        {
+                            name: `Hash: ${d.hash}`,
+                            value: `Role: <@&${d.role_id}>`,
+                            inline: true,
+                        },
+                    ]);
+                    if (((_e = embed.data.fields) === null || _e === void 0 ? void 0 : _e.length) === 25 || i === data.length - 1) {
+                        if (i === 24) {
+                            interaction.editReply({ embeds: [embed] });
+                            embed.setTitle(null);
+                        }
+                        else {
+                            interaction.followUp({ embeds: [embed], ephemeral: true });
+                        }
+                        embed.spliceFields(0, 25);
                     }
-                    else {
-                        embed.addFields([
-                            {
-                                name: `Hash: ${d.hash}`,
-                                value: `Role: <@&${d.role_id}>\nRoleId: ${d.role_id}`,
-                                inline: true,
-                            },
-                        ]);
-                    }
-                }));
-                if (((_e = embed.data.fields) === null || _e === void 0 ? void 0 : _e.length) === 0)
+                }
+                if (((_f = embed.data.fields) === null || _f === void 0 ? void 0 : _f.length) === 0)
                     embed.setDescription("There are no auto-roles");
                 interaction.editReply({ embeds: [embed] });
                 break;
@@ -472,7 +469,7 @@ exports.default = {
                 console.log(removeroleid, typeof removeroleid);
                 if (typeof removeroleid !== "string")
                     return;
-                if ((_f = interaction.guild) === null || _f === void 0 ? void 0 : _f.roles.cache.has(removeroleid)) {
+                if ((_g = interaction.guild) === null || _g === void 0 ? void 0 : _g.roles.cache.has(removeroleid)) {
                     var query = yield sequelize_1.role_data.destroy({ where: { role_id: removeroleid } });
                 }
                 else {
