@@ -36,7 +36,7 @@ function raidDataInChnMsg(raidData) {
         }
         const inChnMsg = yield (0, channels_1.msgFetcher)(raidData.chnId, raidData.inChnMsg);
         if (!inChnMsg || !inChnMsg.embeds || !inChnMsg.embeds[0]) {
-            return console.error(`Error during raidDataInChnMsg`, inChnMsg ? inChnMsg.id : inChnMsg, inChnMsg ? inChnMsg.embeds : "");
+            return console.error(`Error during raidDataInChnMsg`, raidData.chnId, raidData.inChnMsg, inChnMsg ? inChnMsg.id : inChnMsg, inChnMsg ? inChnMsg.embeds : "");
         }
         const embed = discord_js_1.EmbedBuilder.from(inChnMsg.embeds[0]);
         const gMembers = (id) => { var _a; return (_a = __1.BotClient.guilds.cache.get(ids_1.guildId).members.cache.get(id)) === null || _a === void 0 ? void 0 : _a.displayName; };

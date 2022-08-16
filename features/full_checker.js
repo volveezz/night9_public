@@ -173,7 +173,8 @@ exports.default = (client) => {
                                     if (role.guilded_roles && role.guilded_roles.at(index - 1) && ((_a = role.guilded_roles.at(index - 1)) === null || _a === void 0 ? void 0 : _a.toLowerCase()) !== "null") {
                                         if (!c.has(role.guilded_roles.at(index - 1))) {
                                             give_roles.push(role.guilded_roles.at(index - 1));
-                                            remove_roles.push(role.role_id, role.guilded_roles
+                                            remove_roles.push(role.role_id);
+                                            remove_roles.push(role.guilded_roles
                                                 .filter((r) => r !== null && r.toLowerCase() !== "null" && r !== role.guilded_roles.at(index - 1))
                                                 .toString());
                                         }
@@ -187,7 +188,8 @@ exports.default = (client) => {
                                                 if (previousRole && member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`) !== undefined) {
                                                     if (!c.has(member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`).id)) {
                                                         give_roles.push(member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`).id);
-                                                        remove_roles.push(role.role_id, role
+                                                        remove_roles.push(role.role_id);
+                                                        remove_roles.push(role
                                                             .guilded_roles.filter((r) => r &&
                                                             r.toLowerCase() !== "null" &&
                                                             r !== member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`).id)
@@ -218,7 +220,8 @@ exports.default = (client) => {
                                                         dbRoleUpdated.guilded_roles[i] = "null";
                                                 }
                                                 give_roles.push(createdRole.id);
-                                                remove_roles.push(role.role_id, dbRoleUpdated.guilded_roles.filter((r) => r && r.toLowerCase() !== "null" && r !== createdRole.id).toString());
+                                                remove_roles.push(role.role_id);
+                                                remove_roles.push(dbRoleUpdated.guilded_roles.filter((r) => r && r.toLowerCase() !== "null" && r !== createdRole.id).toString());
                                                 yield sequelize_1.role_data.update({ guilded_roles: `{${dbRoleUpdated.guilded_roles}}` }, { where: { guilded_hash: dbRoleUpdated.guilded_hash } });
                                                 break;
                                             }
