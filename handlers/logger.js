@@ -36,12 +36,11 @@ function activityReporter(pgcrId) {
                 response.Response.entries.forEach((entry) => {
                     if (entry.values.completed.basic.value !== 1)
                         return;
-                    embed.addFields([
-                        {
-                            name: `${entry.player.destinyUserInfo.bungieGlobalDisplayName}`,
-                            value: `У: ${entry.values.kills.basic.displayValue}, С: ${entry.values.deaths.basic.displayValue}, П: ${entry.values.assists.basic.displayValue}\nПрохождение заняло: ${entry.values.timePlayedSeconds.basic.displayValue}`,
-                        },
-                    ]);
+                    embed.addFields({
+                        name: `${entry.player.destinyUserInfo.bungieGlobalDisplayName}`,
+                        value: `У: ${entry.values.kills.basic.displayValue} С: ${entry.values.deaths.basic.displayValue} П: ${entry.values.assists.basic.displayValue}\nПрохождение заняло: ${entry.values.timePlayedSeconds.basic.displayValue}`,
+                        inline: true,
+                    });
                 });
                 activityChannel.send({ embeds: [embed] });
             })
@@ -61,7 +60,7 @@ function init_register(state, user, rowCreated) {
         .setFooter({ text: `Id: ${user.id}` })
         .addFields([
         { name: "State", value: state, inline: true },
-        { name: "Повторно", value: String(rowCreated), inline: true },
+        { name: "Впервые", value: String(rowCreated), inline: true },
     ]);
     discordBotChannel.send({ embeds: [embed] });
 }
@@ -280,7 +279,7 @@ exports.default = (client) => {
     });
     client.on("guildMemberUpdate", (oldMember, newMember) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
-        if (oldMember.joinedTimestamp === null && oldMember.nickname === null && oldMember.roles.cache.size === 0)
+        if (oldMember.joinedTimestamp === null || (oldMember.nickname === null && oldMember.roles.cache.size === 0))
             return;
         const embed = new discord_js_1.EmbedBuilder()
             .setAuthor({ name: "guildMemberUpdate" })
@@ -304,7 +303,7 @@ exports.default = (client) => {
                     .addFields([
                     {
                         name: removedRoles.length === 1 ? "Роль" : "Роли",
-                        value: removedRoles.toString(),
+                        value: removedRoles.toString().length > 1023 ? "Слишком много ролей :(" : removedRoles.toString(),
                     },
                 ]);
             }
@@ -699,7 +698,7 @@ exports.default = (client) => {
             guildMemberChannel.send({ embeds: [embed] });
     });
     client.on("voiceStateUpdate", (oldState, newState) => {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
         const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTimestamp();
         if (!oldState.channelId) {
             voiceUsers.set((_a = newState.member) === null || _a === void 0 ? void 0 : _a.id, {
@@ -745,18 +744,20 @@ exports.default = (client) => {
                         inline: true,
                     },
                 ]);
-                sequelize_1.discord_activities.increment("voice", { by: difference, where: { authDatumDiscordId: oldState.member.id } });
+                ((_p = newState.guild.afkChannel) === null || _p === void 0 ? void 0 : _p.id) !== newState.channelId
+                    ? sequelize_1.discord_activities.increment("voice", { by: difference, where: { authDatumDiscordId: oldState.member.id } })
+                    : "";
             }
             voiceUsers.delete(oldState.member.id);
         }
         if (oldState.channelId !== null && newState.channelId !== null && oldState.channelId !== newState.channelId) {
             embed
                 .setAuthor({
-                name: `${((_p = oldState.member) === null || _p === void 0 ? void 0 : _p.displayName) || ((_q = newState.member) === null || _q === void 0 ? void 0 : _q.displayName) || "пользователь не найден"} сменил голосовой канал`,
-                iconURL: ((_r = oldState.member) === null || _r === void 0 ? void 0 : _r.displayAvatarURL()) || ((_s = newState.member) === null || _s === void 0 ? void 0 : _s.displayAvatarURL()),
+                name: `${((_q = oldState.member) === null || _q === void 0 ? void 0 : _q.displayName) || ((_r = newState.member) === null || _r === void 0 ? void 0 : _r.displayName) || "пользователь не найден"} сменил голосовой канал`,
+                iconURL: ((_s = oldState.member) === null || _s === void 0 ? void 0 : _s.displayAvatarURL()) || ((_t = newState.member) === null || _t === void 0 ? void 0 : _t.displayAvatarURL()),
             })
                 .setFooter({
-                text: `UId: ${(_t = newState.member) === null || _t === void 0 ? void 0 : _t.id} | ChnId: ${newState.channelId}`,
+                text: `UId: ${(_u = newState.member) === null || _u === void 0 ? void 0 : _u.id} | ChnId: ${newState.channelId}`,
             })
                 .addFields([
                 { name: "До", value: `<#${oldState.channelId}>`, inline: true },
@@ -767,7 +768,7 @@ exports.default = (client) => {
                 },
             ]);
         }
-        if (((_u = embed.data.fields) === null || _u === void 0 ? void 0 : _u.length) > 0)
+        if (((_v = embed.data.fields) === null || _v === void 0 ? void 0 : _v.length) > 0)
             voiceChannel.send({ embeds: [embed] });
     });
     client.rest.on("rateLimited", (rateLimit) => {

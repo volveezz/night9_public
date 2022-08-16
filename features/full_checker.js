@@ -18,6 +18,7 @@ const roles_1 = require("../base/roles");
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 exports.completedRaidsData = new Map();
 exports.character_data = new Map();
+const longOffline = new Set();
 exports.default = (client) => {
     function role_manager(data, member, role_db) {
         const give_roles = [], remove_roles = [], c = member.roles.cache;
@@ -36,6 +37,9 @@ exports.default = (client) => {
             const { Response } = response;
             if (!exports.character_data.get(data.discord_id)) {
                 exports.character_data.set(data.discord_id, Response["profile"]["data"]["characterIds"]);
+            }
+            if (new Date().getTime() - new Date(Response.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60 * 24) {
+                longOffline.add(member.id);
             }
             function seasonalRolesChecker() {
                 return __awaiter(this, void 0, void 0, function* () {
@@ -168,68 +172,67 @@ exports.default = (client) => {
                                 const triumphRecord = Response.profileRecords.data.records[role.guilded_hash];
                                 if (triumphRecord && triumphRecord.completedCount !== undefined && triumphRecord.completedCount > 0) {
                                     const index = triumphRecord.completedCount;
-                                    if (role.guilded_roles.at(index) && c.has(role.guilded_roles.at(index)))
-                                        return;
-                                    if (role.guilded_roles && role.guilded_roles.at(index - 1) && ((_a = role.guilded_roles.at(index - 1)) === null || _a === void 0 ? void 0 : _a.toLowerCase()) !== "null") {
-                                        if (!c.has(role.guilded_roles.at(index - 1))) {
-                                            give_roles.push(role.guilded_roles.at(index - 1));
-                                            remove_roles.push(role.role_id);
-                                            remove_roles.push(role.guilded_roles
-                                                .filter((r) => r !== null && r.toLowerCase() !== "null" && r !== role.guilded_roles.at(index - 1))
-                                                .toString());
+                                    if (role.guilded_roles.at(index - 1) !== undefined && !c.has(role.guilded_roles.at(index - 1))) {
+                                        if (role.guilded_roles && role.guilded_roles.at(index - 1) && ((_a = role.guilded_roles.at(index - 1)) === null || _a === void 0 ? void 0 : _a.toLowerCase()) !== "null") {
+                                            if (!c.has(role.guilded_roles.at(index - 1))) {
+                                                give_roles.push(role.guilded_roles.at(index - 1));
+                                                remove_roles.push(role.role_id, role.guilded_roles
+                                                    .filter((r) => r !== null && r.toLowerCase() !== "null" && r !== role.guilded_roles.at(index - 1))
+                                                    .toString());
+                                            }
                                         }
-                                    }
-                                    else {
-                                        var lastKnownRole = role.role_id;
-                                        for (let i = 0; i < index; i++) {
-                                            const element = role.guilded_roles[i];
-                                            if ((!element || (element === null || element === void 0 ? void 0 : element.toLowerCase()) === "null") && i === index - 1) {
-                                                const previousRole = member.guild.roles.cache.get(role.role_id);
-                                                if (previousRole && member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`) !== undefined) {
-                                                    if (!c.has(member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`).id)) {
-                                                        give_roles.push(member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`).id);
-                                                        remove_roles.push(role.role_id);
-                                                        remove_roles.push(role
-                                                            .guilded_roles.filter((r) => r &&
-                                                            r.toLowerCase() !== "null" &&
-                                                            r !== member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`).id)
-                                                            .toString());
-                                                        return;
+                                        else {
+                                            var lastKnownRole = role.role_id;
+                                            for (let i = 0; i < index; i++) {
+                                                const element = role.guilded_roles[i];
+                                                if ((!element || (element === null || element === void 0 ? void 0 : element.toLowerCase()) === "null") && i === index - 1) {
+                                                    const nonGuildedRole = member.guild.roles.cache.get(role.role_id);
+                                                    if (nonGuildedRole &&
+                                                        member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`) !== undefined) {
+                                                        if (!c.has(member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`).id)) {
+                                                            give_roles.push(member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`).id);
+                                                            remove_roles.push(role.role_id, role
+                                                                .guilded_roles.filter((r) => r &&
+                                                                r.toLowerCase() !== "null" &&
+                                                                r !== member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`).id)
+                                                                .toString());
+                                                            return;
+                                                        }
+                                                        else {
+                                                            return;
+                                                        }
                                                     }
-                                                    else {
-                                                        return;
+                                                    else if (!nonGuildedRole) {
+                                                        return console.error(`Not found previous role of ${role.hash}`, lastKnownRole, nonGuildedRole);
                                                     }
+                                                    console.log("Part 6");
+                                                    const createdRole = yield member.guild.roles.create({
+                                                        name: `⚜️${nonGuildedRole.name} ${i + 1}`,
+                                                        color: "#ffb300",
+                                                        permissions: [],
+                                                        position: nonGuildedRole.position,
+                                                        reason: "Auto auto-role creation",
+                                                    });
+                                                    const dbRoleUpdated = yield sequelize_1.role_data.findOne({ where: { guilded_hash: role.guilded_hash } });
+                                                    if (!dbRoleUpdated)
+                                                        throw { name: "Информация о роли не найдена в БД", message: dbRoleUpdated };
+                                                    dbRoleUpdated.guilded_roles[i] = createdRole.id;
+                                                    for (let i = 0; i < index || i < dbRoleUpdated.guilded_roles.length; i++) {
+                                                        const element = dbRoleUpdated.guilded_roles ? dbRoleUpdated.guilded_roles[i] : undefined;
+                                                        if (!element || element === undefined || (element === null || element === void 0 ? void 0 : element.toLowerCase()) === "null")
+                                                            dbRoleUpdated.guilded_roles[i] = "null";
+                                                    }
+                                                    give_roles.push(createdRole.id);
+                                                    remove_roles.push(role.role_id, dbRoleUpdated.guilded_roles.filter((r) => r && r.toLowerCase() !== "null" && r !== createdRole.id).toString());
+                                                    yield sequelize_1.role_data.update({ guilded_roles: `{${dbRoleUpdated.guilded_roles}}` }, { where: { guilded_hash: dbRoleUpdated.guilded_hash } });
+                                                    break;
                                                 }
-                                                else if (!previousRole) {
-                                                    return console.error(`Not found previous role of ${role.hash}`, lastKnownRole, previousRole);
+                                                else if (element && element.toLowerCase() !== "null") {
+                                                    lastKnownRole = element;
                                                 }
-                                                const createdRole = yield member.guild.roles.create({
-                                                    name: `⚜️${previousRole.name} ${i + 1}`,
-                                                    color: "#ffb300",
-                                                    permissions: [],
-                                                    position: previousRole.position,
-                                                    reason: "Auto auto-role creation",
-                                                });
-                                                const dbRoleUpdated = yield sequelize_1.role_data.findOne({ where: { guilded_hash: role.guilded_hash } });
-                                                if (!dbRoleUpdated)
-                                                    throw { name: "Информация о роли не найдена в БД", message: dbRoleUpdated };
-                                                dbRoleUpdated.guilded_roles[i] = createdRole.id;
-                                                for (let i = 0; i < index || i < dbRoleUpdated.guilded_roles.length; i++) {
-                                                    const element = dbRoleUpdated.guilded_roles ? dbRoleUpdated.guilded_roles[i] : undefined;
-                                                    if (!element || element === undefined || (element === null || element === void 0 ? void 0 : element.toLowerCase()) === "null")
-                                                        dbRoleUpdated.guilded_roles[i] = "null";
+                                                else {
+                                                    role.guilded_roles[i] = "null";
                                                 }
-                                                give_roles.push(createdRole.id);
-                                                remove_roles.push(role.role_id);
-                                                remove_roles.push(dbRoleUpdated.guilded_roles.filter((r) => r && r.toLowerCase() !== "null" && r !== createdRole.id).toString());
-                                                yield sequelize_1.role_data.update({ guilded_roles: `{${dbRoleUpdated.guilded_roles}}` }, { where: { guilded_hash: dbRoleUpdated.guilded_hash } });
-                                                break;
-                                            }
-                                            else if (element && element.toLowerCase() !== "null") {
-                                                lastKnownRole = element;
-                                            }
-                                            else {
-                                                role.guilded_roles[i] = "null";
                                             }
                                         }
                                     }
@@ -307,14 +310,16 @@ exports.default = (client) => {
             trialsChecker((_a = Response.metrics.data.metrics["1765255052"]) === null || _a === void 0 ? void 0 : _a.objectiveProgress.progress);
             if (give_roles.length > 0) {
                 setTimeout(() => {
-                    member.roles.add(give_roles, "+Autorole").catch((e) => {
-                        console.error(`Error with givin these roles: ${give_roles}`);
+                    const gRoles = give_roles.join().split(",");
+                    member.roles.add(gRoles, "+Autorole").catch((e) => {
+                        console.error(`Error with givin these roles: ${gRoles}`);
                     });
                 }, remove_roles.length > 0 ? 6000 : 0);
             }
             if (remove_roles.length > 0) {
-                member.roles.remove(remove_roles, "-Autorole").catch((e) => {
-                    console.error(`Error with takin these roles: ${remove_roles}`);
+                const rRoles = remove_roles.join().split(",");
+                member.roles.remove(rRoles, "-Autorole").catch((e) => {
+                    console.error(`Error with takin these roles: ${rRoles}`);
                 });
             }
         }))
@@ -590,8 +595,8 @@ exports.default = (client) => {
         for (let i = 0; i < db_plain.length; i++) {
             const db_row = db_plain[i];
             const member = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(db_row.discord_id);
-            role_manager(db_row, member, role_db);
-            kd === 5 ? kdChecker(db_row, member) : [];
+            !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.5 ? longOffline.delete(member.id) : "";
+            kd === 5 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
             raids === 6 && db_row.clan === true ? activityStatsChecker(db_row, member, 4) : [];
             raids === 5 && !member.roles.cache.has(roles_1.rTrials.wintrader) && member.roles.cache.has(roles_1.rTrials.category) ? activityStatsChecker(db_row, member, 84) : [];
             yield timer(700);

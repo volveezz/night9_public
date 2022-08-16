@@ -241,7 +241,6 @@ function getRaid(raidId, interaction) {
         else {
             const raidData = yield sequelize_1.raids.findOne({
                 where: { id: raidId },
-                attributes: ["id", "chnId", "msgId", "creator", "raid", "joined", "hotJoined", "alt"],
             });
             if (raidData === null || !(raidData === null || raidData === void 0 ? void 0 : raidData.creator)) {
                 throw { name: `Рейд ${raidId} не найден`, falseAlarm: true };
