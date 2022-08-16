@@ -171,7 +171,9 @@ exports.default = (client) => {
                                     if (role.guilded_roles && role.guilded_roles.at(index - 1) && ((_a = role.guilded_roles.at(index - 1)) === null || _a === void 0 ? void 0 : _a.toLowerCase()) !== "null") {
                                         if (!c.has(role.guilded_roles.at(index - 1))) {
                                             give_roles.push(role.guilded_roles.at(index - 1));
-                                            remove_roles.push(role.role_id, role.guilded_roles.filter((r) => r !== role.guilded_roles.at(index - 1)).toString());
+                                            remove_roles.push(role.role_id, role.guilded_roles
+                                                .filter((r) => r !== null && r.toLowerCase() !== "null" && r !== role.guilded_roles.at(index - 1))
+                                                .toString());
                                         }
                                     }
                                     else {
@@ -184,7 +186,9 @@ exports.default = (client) => {
                                                     if (!c.has(member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`).id)) {
                                                         give_roles.push(member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`).id);
                                                         remove_roles.push(role.role_id, role
-                                                            .guilded_roles.filter((r) => r !== member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`).id)
+                                                            .guilded_roles.filter((r) => r !== null &&
+                                                            r.toLowerCase() !== "null" &&
+                                                            r !== member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`).id)
                                                             .toString());
                                                         return;
                                                     }
