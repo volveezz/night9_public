@@ -19,7 +19,7 @@ auth_data.init({
     discord_id: { type: sequelize_1.DataTypes.BIGINT, primaryKey: true, unique: true },
     bungie_id: { type: sequelize_1.DataTypes.BIGINT, primaryKey: true, unique: true },
     platform: { type: sequelize_1.DataTypes.SMALLINT },
-    clan: { type: sequelize_1.DataTypes.BOOLEAN },
+    clan: { type: sequelize_1.DataTypes.BOOLEAN, values: ["true", "false"], defaultValue: false },
     displayname: { type: sequelize_1.DataTypes.TEXT },
     access_token: { type: sequelize_1.DataTypes.TEXT, primaryKey: true },
     refresh_token: { type: sequelize_1.DataTypes.TEXT, primaryKey: true },
@@ -61,7 +61,10 @@ exports.role_data = role_data;
 role_data.init({
     hash: { type: sequelize_1.DataTypes.INTEGER, primaryKey: true, unique: true },
     role_id: { type: sequelize_1.DataTypes.BIGINT },
-    category: { type: sequelize_1.DataTypes.SMALLINT },
+    category: { type: sequelize_1.DataTypes.SMALLINT, values: ["0", "1", "3", "4", "5"] },
+    guilded_hash: { type: sequelize_1.DataTypes.BIGINT },
+    guilded_roles: { type: sequelize_1.DataTypes.BIGINT },
+    unique: { type: sequelize_1.DataTypes.SMALLINT, defaultValue: -1 },
 }, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
 class discord_activities extends sequelize_1.Model {
 }
@@ -118,6 +121,7 @@ raids.init({
     difficulty: {
         type: sequelize_1.DataTypes.SMALLINT,
         defaultValue: 1,
+        values: ["1", "2", "3"],
     },
 }, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
 discord_activities.belongsTo(auth_data);

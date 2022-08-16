@@ -160,37 +160,95 @@ exports.default = (client) => {
                             break;
                         }
                     }
-                    role_db.forEach((role) => {
+                    role_db.forEach((role) => __awaiter(this, void 0, void 0, function* () {
+                        var _a;
                         const checkArray = [];
-                        role.hash.forEach((hashArray) => {
-                            var _a, _b, _c, _d;
-                            if (Response.profileRecords.data.records[hashArray] !== undefined) {
-                                const triumphRecord = Response.profileRecords.data.records[hashArray];
-                                if (triumphRecord.objectives
-                                    ? ((_b = (_a = triumphRecord.objectives) === null || _a === void 0 ? void 0 : _a.pop()) === null || _b === void 0 ? void 0 : _b.complete) === true
-                                    : ((_d = (_c = triumphRecord.intervalObjectives) === null || _c === void 0 ? void 0 : _c.pop()) === null || _d === void 0 ? void 0 : _d.complete) === true) {
-                                    checkArray.push(true);
-                                }
-                                else {
-                                    return checkArray.push(false);
+                        if (role.guilded_hash) {
+                            if (Response.profileRecords.data.records[role.guilded_hash] !== undefined) {
+                                const triumphRecord = Response.profileRecords.data.records[role.guilded_hash];
+                                if (triumphRecord && triumphRecord.completedCount !== undefined && triumphRecord.completedCount > 0) {
+                                    const index = triumphRecord.completedCount;
+                                    if (((_a = role.guilded_roles) === null || _a === void 0 ? void 0 : _a.at(index - 1)) !== undefined) {
+                                        if (!c.has(role.guilded_roles.at(index - 1))) {
+                                            give_roles.push(role.guilded_roles.at(index - 1));
+                                        }
+                                    }
+                                    else {
+                                        var lastKnownRole = role.role_id;
+                                        for (let i = 0; i < index; i++) {
+                                            const element = role.guilded_roles[i];
+                                            if ((element === null || element === undefined) && i === index - 1) {
+                                                const previousRole = member.guild.roles.cache.get(role.role_id);
+                                                if (previousRole && member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`) !== undefined) {
+                                                    give_roles.push(member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`).id);
+                                                    return;
+                                                }
+                                                else if (!previousRole) {
+                                                    return console.error(`Not found previous role of ${role.hash}`, lastKnownRole, previousRole);
+                                                }
+                                                const createdRole = yield member.guild.roles.create({
+                                                    name: `⚜️${previousRole.name} ${i + 1}`,
+                                                    color: "#ffb300",
+                                                    permissions: [],
+                                                    position: previousRole.position - 1,
+                                                    reason: "Auto auto-role creation",
+                                                });
+                                                role.guilded_roles[i] = createdRole.id;
+                                                for (let i = 0; i < index; i++) {
+                                                    const element = role.guilded_roles ? role.guilded_roles[i] : undefined;
+                                                    if (element === undefined)
+                                                        role.guilded_roles[i] = "null";
+                                                    console.log(i, index, role.guilded_roles[i]);
+                                                }
+                                                console.log(role.guilded_roles);
+                                                yield sequelize_1.role_data.update({ guilded_roles: `{${role.guilded_roles}}` }, { where: { guilded_hash: role.guilded_hash } });
+                                                break;
+                                            }
+                                            else if (element !== null) {
+                                                lastKnownRole = element;
+                                            }
+                                            else {
+                                                role.guilded_roles[i] = null;
+                                            }
+                                        }
+                                    }
                                 }
                             }
-                        });
-                        if (checkArray.includes(false) || checkArray.length !== role.hash.length) {
-                            if (c.has(String(role.role_id)))
-                                remove_roles.push(String(role.role_id));
+                            else {
+                                console.error(`Profile record ${role.guilded_hash} not found for ${member.displayName}`);
+                            }
                         }
                         else {
-                            if (role.category === 3 && !c.has(roles_1.rTitles.category))
-                                give_roles.push(roles_1.rTitles.category);
-                            if (role.category === 4 && !c.has(roles_1.rTriumphs.category))
-                                give_roles.push(roles_1.rTriumphs.category);
-                            if (role.category === 5 && !c.has(roles_1.rActivity.category))
-                                give_roles.push(roles_1.rActivity.category);
-                            if (!c.has(String(role.role_id)))
-                                give_roles.push(String(role.role_id));
+                            role.hash.forEach((hashArray) => {
+                                var _a, _b, _c, _d;
+                                if (Response.profileRecords.data.records[hashArray] !== undefined) {
+                                    const triumphRecord = Response.profileRecords.data.records[hashArray];
+                                    if (triumphRecord.objectives
+                                        ? ((_b = (_a = triumphRecord.objectives) === null || _a === void 0 ? void 0 : _a.pop()) === null || _b === void 0 ? void 0 : _b.complete) === true
+                                        : ((_d = (_c = triumphRecord.intervalObjectives) === null || _c === void 0 ? void 0 : _c.pop()) === null || _d === void 0 ? void 0 : _d.complete) === true) {
+                                        checkArray.push(true);
+                                    }
+                                    else {
+                                        return checkArray.push(false);
+                                    }
+                                }
+                            });
+                            if (checkArray.includes(false) || checkArray.length !== role.hash.length) {
+                                if (c.has(String(role.role_id)))
+                                    remove_roles.push(String(role.role_id));
+                            }
+                            else {
+                                if (role.category === 3 && !c.has(roles_1.rTitles.category))
+                                    give_roles.push(roles_1.rTitles.category);
+                                if (role.category === 4 && !c.has(roles_1.rTriumphs.category))
+                                    give_roles.push(roles_1.rTriumphs.category);
+                                if (role.category === 5 && !c.has(roles_1.rActivity.category))
+                                    give_roles.push(roles_1.rActivity.category);
+                                if (!c.has(String(role.role_id)))
+                                    give_roles.push(String(role.role_id));
+                            }
                         }
-                    });
+                    }));
                 });
             }
             function trialsChecker(metrics) {

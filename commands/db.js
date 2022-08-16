@@ -112,6 +112,7 @@ exports.default = {
                                 },
                             ],
                         },
+                        { type: discord_js_1.ApplicationCommandOptionType.Integer, name: "unique", description: "unique limit", minValue: -1, maxValue: 1000 },
                     ],
                 },
                 {
@@ -270,6 +271,7 @@ exports.default = {
                 const hash = options.getInteger("hash", true);
                 const roleId = options.getString("roleid");
                 const record_manifest = yield manifestHandler_1.DestinyRecordDefinition;
+                const unique = options.getInteger("unique") || -1;
                 if ((yield record_manifest[hash]) === undefined) {
                     throw { name: "Триумф под таким хешем не найден", message: `Hash: ${hash}`, falseAlarm: true };
                 }
@@ -277,13 +279,13 @@ exports.default = {
                     where: { role_id: roleId },
                 });
                 const title = record_manifest[hash].titleInfo.hasTitle;
-                if (title) {
-                    var title_name = record_manifest[hash].titleInfo.titlesByGender.Male;
-                }
-                else {
-                    var title_name = record_manifest[hash].displayProperties.name;
-                }
-                var category = db_query ? db_query.category : title ? 3 : options.getInteger("category") || 4;
+                const guildableTitle = title ? (record_manifest[hash].titleInfo.gildingTrackingRecordHash !== undefined ? true : false) : false;
+                let title_name = title
+                    ? guildableTitle
+                        ? "⚜️" + record_manifest[hash].titleInfo.titlesByGender.Male
+                        : record_manifest[hash].titleInfo.titlesByGender.Male
+                    : record_manifest[hash].displayProperties.name;
+                let category = db_query ? db_query.category : title ? 3 : options.getInteger("category") || 4;
                 const embed = new discord_js_1.EmbedBuilder().setColor(colors_1.colors.default);
                 if (db_query) {
                     embed.setTitle(`Дополнение существующей авто-роли`);
@@ -296,40 +298,35 @@ exports.default = {
                     embed.setThumbnail(`https://www.bungie.net${record_manifest[hash].displayProperties.icon}`);
                 }
                 if (title_name) {
-                    embed.addFields([
-                        {
-                            name: "Название",
-                            value: title_name,
-                            inline: true,
-                        },
-                    ]);
+                    embed.addFields({
+                        name: "Название",
+                        value: title_name,
+                        inline: true,
+                    });
                 }
                 if (title && !db_query) {
                     category = 3;
-                    embed.addFields([
-                        {
-                            name: "Категория",
-                            value: String(category),
-                            inline: true,
-                        },
-                    ]);
+                    embed.addFields({
+                        name: "Категория",
+                        value: String(category),
+                        inline: true,
+                    });
                 }
                 else {
-                    embed.addFields([
-                        {
-                            name: "Категория",
-                            value: String((db_query === null || db_query === void 0 ? void 0 : db_query.category) || category),
-                            inline: true,
-                        },
-                    ]);
+                    embed.addFields({
+                        name: "Категория",
+                        value: String((db_query === null || db_query === void 0 ? void 0 : db_query.category) || category),
+                        inline: true,
+                    });
                 }
                 if (record_manifest[hash].displayProperties.description) {
-                    embed.addFields([
-                        {
-                            name: "Описание роли",
-                            value: yield record_manifest[hash].displayProperties.description,
-                        },
-                    ]);
+                    embed.addFields({
+                        name: "Описание роли",
+                        value: yield record_manifest[hash].displayProperties.description,
+                    });
+                }
+                if (unique && unique >= 1) {
+                    embed.addFields({ name: "Лимит пользователей", value: unique.toString() });
                 }
                 const components = [
                     new discord_js_1.ButtonBuilder().setCustomId("db_roles_add_confirm").setLabel("Создать").setStyle(discord_js_1.ButtonStyle.Primary),
@@ -365,10 +362,10 @@ exports.default = {
                         collector.stop("Canceled");
                     }
                     else if (collected.customId === "db_roles_add_confirm") {
-                        var role, embed;
+                        let role, embed, guildedRoles = [];
                         if (!(db_query === null || db_query === void 0 ? void 0 : db_query.role_id)) {
                             role = yield interaction.guild.roles.create({
-                                name: title_name,
+                                name: guildableTitle ? title_name.slice(1) : title_name,
                                 reason: "Creating auto-role",
                                 position: interaction.guild.roles.cache.get(category === 5
                                     ? roles_1.rActivity.category
@@ -380,22 +377,49 @@ exports.default = {
                                                 ? roles_1.rStats.category
                                                 : roles_1.rRaids.roles[0].roleId).position || undefined,
                             });
+                            if (guildableTitle) {
+                                guildedRoles.push((yield interaction.guild.roles.create({
+                                    name: title_name + " 1",
+                                    reason: "Creating guildable auto-role",
+                                    position: role.position,
+                                    color: "#ffb300",
+                                })).id);
+                            }
                         }
                         else {
                             role = member.guild.roles.cache.get(String(db_query.role_id));
                         }
                         if (!db_query) {
-                            yield sequelize_1.role_data.findOrCreate({
-                                where: {
-                                    hash: { [sequelize_2.Op.contains]: `{${hash}}` },
-                                },
-                                defaults: {
-                                    hash: `{${hash}}`,
-                                    role_id: role.id,
-                                    category: category,
-                                },
-                            });
-                            embed = new discord_js_1.EmbedBuilder().setColor("Green").addFields([{ name: "Роль была создана", value: `<@&${role.id}>` }]);
+                            try {
+                                if (guildableTitle) {
+                                    yield sequelize_1.role_data.create({
+                                        hash: `{${hash}}`,
+                                        role_id: role.id,
+                                        category: category,
+                                        guilded_hash: record_manifest[hash].titleInfo.gildingTrackingRecordHash,
+                                        guilded_roles: `{${guildedRoles.toString()}}`,
+                                        unique: unique,
+                                    });
+                                }
+                                else {
+                                    yield sequelize_1.role_data.create({
+                                        hash: `{${hash}}`,
+                                        role_id: role.id,
+                                        category: category,
+                                        unique: unique,
+                                    });
+                                }
+                            }
+                            catch (e) {
+                                const errorEmbed = new discord_js_1.EmbedBuilder().setColor("Red").setTitle(`Ошибка ${e.parent.name}`).setDescription(e.parent.detail);
+                                interaction.editReply({ embeds: [errorEmbed], components: [] });
+                                collector.stop("error");
+                                role.delete("Got error during creation");
+                                return;
+                            }
+                            embed = new discord_js_1.EmbedBuilder()
+                                .setColor("Green")
+                                .addFields([{ name: "Роль была создана", value: `<@&${role.id}>${guildedRoles.length > 0 ? `, <@&${guildedRoles[0]}>` : ""}` }]);
                         }
                         else {
                             var newHash = db_query.hash;
@@ -423,7 +447,7 @@ exports.default = {
                             interaction.fetchReply().then((m) => {
                                 const embed = m.embeds[0];
                                 embed.fields[0].value = `${msg.cleanContent}`;
-                                title_name = msg.cleanContent;
+                                title_name = guildableTitle ? "⚜️" + msg.cleanContent : msg.cleanContent;
                                 interaction.editReply({ embeds: [embed] });
                             });
                         });
@@ -466,23 +490,27 @@ exports.default = {
             }
             case "remove": {
                 const removeroleid = options.getString("removeroleid", true);
-                console.log(removeroleid, typeof removeroleid);
-                if (typeof removeroleid !== "string")
-                    return;
+                const t = yield sequelize_1.db.transaction();
+                var selectQuery = yield sequelize_1.role_data.findOne({ where: { [sequelize_2.Op.or]: [{ role_id: removeroleid }, { hash: `{${removeroleid}}` }] }, transaction: t });
                 if ((_f = interaction.guild) === null || _f === void 0 ? void 0 : _f.roles.cache.has(removeroleid)) {
-                    var query = yield sequelize_1.role_data.destroy({ where: { role_id: removeroleid } });
+                    var query = yield sequelize_1.role_data.destroy({ where: { role_id: removeroleid }, transaction: t });
                 }
                 else {
                     var query = yield sequelize_1.role_data.destroy({
                         where: { hash: "{" + removeroleid + "}" },
+                        transaction: t,
                     });
                 }
+                yield t.commit();
                 if (query) {
                     const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTitle(`Удалена ${query} авто-роль`);
+                    const fetchedRole = selectQuery ? interaction.guild.roles.cache.get(String(selectQuery.role_id)) : undefined;
+                    selectQuery ? embed.addFields({ name: `Hash: ${selectQuery.hash}`, value: fetchedRole ? `Role: ${fetchedRole.name}` : "Role not found" }) : "";
+                    fetchedRole ? fetchedRole.delete("Deleting auto-role") : [];
                     interaction.editReply({ embeds: [embed] });
                 }
                 else {
-                    throw { name: `Удалено ${query} авто-ролей`, message: `Hash: ${removeroleid}`, falseAlarm: true };
+                    throw { name: `Удалено ${query} авто-ролей`, message: `Hash: ${removeroleid}` };
                 }
                 break;
             }
