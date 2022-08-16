@@ -197,7 +197,7 @@ exports.default = (client) => {
                                                 if (!dbRoleUpdated)
                                                     throw { name: "Информация о роли не найдена в БД", message: dbRoleUpdated };
                                                 dbRoleUpdated.guilded_roles[i] = createdRole.id;
-                                                for (let i = 0; i < index && i < dbRoleUpdated.guilded_roles.length; i++) {
+                                                for (let i = 0; i < index || i < dbRoleUpdated.guilded_roles.length; i++) {
                                                     const element = dbRoleUpdated.guilded_roles ? dbRoleUpdated.guilded_roles[i] : undefined;
                                                     if (!element || element === undefined || (element === null || element === void 0 ? void 0 : element.toLowerCase()) === "null")
                                                         dbRoleUpdated.guilded_roles[i] = "null";
