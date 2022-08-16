@@ -202,7 +202,13 @@ exports.default = {
                 ]);
                 if (request && request.discord_activity && request.discord_activity.messages >= 0) {
                     embed.addFields([{ name: "Сообщений отправлено", value: request.discord_activity.messages.toString(), inline: true }]);
-                    embed.addFields([{ name: "Времени в голосовых", value: request.discord_activity.voice.toString() + "с", inline: true }]);
+                    embed.addFields([
+                        {
+                            name: "Времени в голосовых",
+                            value: `${request.discord_activity.voice}с${request.discord_activity.voice > 60 ? ` = ${Math.trunc(request.discord_activity.voice / 60)}м` : ""}`,
+                            inline: true,
+                        },
+                    ]);
                     embed.addFields([
                         {
                             name: "Пройдено данжей/рейдов с сокланами",

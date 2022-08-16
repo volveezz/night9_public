@@ -161,14 +161,14 @@ exports.default = (client) => {
                         }
                     }
                     role_db.forEach((role) => __awaiter(this, void 0, void 0, function* () {
-                        var _a, _b;
+                        var _a;
                         const checkArray = [];
                         if (role.guilded_hash) {
                             if (Response.profileRecords.data.records[role.guilded_hash] !== undefined) {
                                 const triumphRecord = Response.profileRecords.data.records[role.guilded_hash];
                                 if (triumphRecord && triumphRecord.completedCount !== undefined && triumphRecord.completedCount > 0) {
                                     const index = triumphRecord.completedCount;
-                                    if (((_a = role.guilded_roles) === null || _a === void 0 ? void 0 : _a.at(index - 1)) !== undefined && ((_b = role.guilded_roles) === null || _b === void 0 ? void 0 : _b.at(index - 1)) !== "null") {
+                                    if (role.guilded_roles && role.guilded_roles.at(index - 1) && ((_a = role.guilded_roles.at(index - 1)) === null || _a === void 0 ? void 0 : _a.toLowerCase()) !== "null") {
                                         if (!c.has(role.guilded_roles.at(index - 1))) {
                                             give_roles.push(role.guilded_roles.at(index - 1));
                                         }
@@ -177,7 +177,7 @@ exports.default = (client) => {
                                         var lastKnownRole = role.role_id;
                                         for (let i = 0; i < index; i++) {
                                             const element = role.guilded_roles[i];
-                                            if ((element === "null" || element === undefined) && i === index - 1) {
+                                            if ((!element || (element === null || element === void 0 ? void 0 : element.toLowerCase()) === "null") && i === index - 1) {
                                                 const previousRole = member.guild.roles.cache.get(role.role_id);
                                                 if (previousRole && member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`) !== undefined) {
                                                     give_roles.push(member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`).id);
@@ -193,9 +193,9 @@ exports.default = (client) => {
                                                     position: previousRole.position - 1,
                                                     reason: "Auto auto-role creation",
                                                 });
-                                                const dbRoleUpdated = yield sequelize_1.role_data.findOne({ where: { hash: role.hash } });
+                                                const dbRoleUpdated = yield sequelize_1.role_data.findOne({ where: { guilded_hash: role.guilded_hash } });
                                                 if (!dbRoleUpdated)
-                                                    throw { name: "Информация об роле не найдена в БД", message: dbRoleUpdated };
+                                                    throw { name: "Информация о роли не найдена в БД", message: dbRoleUpdated };
                                                 dbRoleUpdated.guilded_roles[i] = createdRole.id;
                                                 for (let i = 0; i < index; i++) {
                                                     const element = dbRoleUpdated.guilded_roles ? dbRoleUpdated.guilded_roles[i] : undefined;
@@ -203,11 +203,10 @@ exports.default = (client) => {
                                                         dbRoleUpdated.guilded_roles[i] = "null";
                                                     console.log(i, index, dbRoleUpdated.guilded_roles[i]);
                                                 }
-                                                console.log(dbRoleUpdated.guilded_roles);
                                                 yield sequelize_1.role_data.update({ guilded_roles: `{${dbRoleUpdated.guilded_roles}}` }, { where: { guilded_hash: dbRoleUpdated.guilded_hash } });
                                                 break;
                                             }
-                                            else if (element !== "null") {
+                                            else if (element && element.toLowerCase() !== "null") {
                                                 lastKnownRole = element;
                                             }
                                             else {
@@ -237,8 +236,8 @@ exports.default = (client) => {
                                 }
                             });
                             if (checkArray.includes(false) || checkArray.length !== role.hash.length) {
-                                if (c.has(String(role.role_id)))
-                                    remove_roles.push(String(role.role_id));
+                                if (c.has(role.role_id))
+                                    remove_roles.push(role.role_id);
                             }
                             else {
                                 if (role.category === 3 && !c.has(roles_1.rTitles.category))
@@ -247,8 +246,8 @@ exports.default = (client) => {
                                     give_roles.push(roles_1.rTriumphs.category);
                                 if (role.category === 5 && !c.has(roles_1.rActivity.category))
                                     give_roles.push(roles_1.rActivity.category);
-                                if (!c.has(String(role.role_id)))
-                                    give_roles.push(String(role.role_id));
+                                if (!c.has(role.role_id))
+                                    give_roles.push(role.role_id);
                             }
                         }
                     }));
@@ -569,7 +568,7 @@ exports.default = (client) => {
             yield timer(700);
         }
         clan(db_plain);
-    }), 1000 * 61 * 2);
+    }), 1000 * 33);
     setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         const data = yield sequelize_1.auth_data.findAll({
             attributes: ["discord_id", "displayname", "tz"],
