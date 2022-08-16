@@ -177,7 +177,7 @@ exports.default = (client) => {
                                         var lastKnownRole = role.role_id;
                                         for (let i = 0; i < index; i++) {
                                             const element = role.guilded_roles[i];
-                                            if ((element === null || element === undefined) && i === index - 1) {
+                                            if ((element === "null" || element === undefined) && i === index - 1) {
                                                 const previousRole = member.guild.roles.cache.get(role.role_id);
                                                 if (previousRole && member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`) !== undefined) {
                                                     give_roles.push(member.guild.roles.cache.find((r) => r.name === `⚜️${previousRole.name} ${i + 1}`).id);
@@ -193,22 +193,25 @@ exports.default = (client) => {
                                                     position: previousRole.position - 1,
                                                     reason: "Auto auto-role creation",
                                                 });
-                                                role.guilded_roles[i] = createdRole.id;
+                                                const dbRoleUpdated = yield sequelize_1.role_data.findOne({ where: { hash: role.hash } });
+                                                if (!dbRoleUpdated)
+                                                    throw { name: "Информация об роле не найдена в БД", message: dbRoleUpdated };
+                                                dbRoleUpdated.guilded_roles[i] = createdRole.id;
                                                 for (let i = 0; i < index; i++) {
-                                                    const element = role.guilded_roles ? role.guilded_roles[i] : undefined;
+                                                    const element = dbRoleUpdated.guilded_roles ? dbRoleUpdated.guilded_roles[i] : undefined;
                                                     if (element === undefined)
-                                                        role.guilded_roles[i] = "null";
-                                                    console.log(i, index, role.guilded_roles[i]);
+                                                        dbRoleUpdated.guilded_roles[i] = "null";
+                                                    console.log(i, index, dbRoleUpdated.guilded_roles[i]);
                                                 }
-                                                console.log(role.guilded_roles);
-                                                yield sequelize_1.role_data.update({ guilded_roles: `{${role.guilded_roles}}` }, { where: { guilded_hash: role.guilded_hash } });
+                                                console.log(dbRoleUpdated.guilded_roles);
+                                                yield sequelize_1.role_data.update({ guilded_roles: `{${dbRoleUpdated.guilded_roles}}` }, { where: { guilded_hash: dbRoleUpdated.guilded_hash } });
                                                 break;
                                             }
-                                            else if (element !== null) {
+                                            else if (element !== "null") {
                                                 lastKnownRole = element;
                                             }
                                             else {
-                                                role.guilded_roles[i] = null;
+                                                role.guilded_roles[i] = "null";
                                             }
                                         }
                                     }
