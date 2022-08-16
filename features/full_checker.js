@@ -177,7 +177,7 @@ exports.default = (client) => {
                                             if (!c.has(role.guilded_roles.at(index - 1))) {
                                                 give_roles.push(role.guilded_roles.at(index - 1));
                                                 remove_roles.push(role.role_id, role.guilded_roles
-                                                    .filter((r) => r !== null && r.toLowerCase() !== "null" && r !== role.guilded_roles.at(index - 1))
+                                                    .filter((r) => r && r !== null && r.toLowerCase() !== "null" && r !== role.guilded_roles.at(index - 1))
                                                     .toString());
                                             }
                                         }
@@ -310,14 +310,22 @@ exports.default = (client) => {
             trialsChecker((_a = Response.metrics.data.metrics["1765255052"]) === null || _a === void 0 ? void 0 : _a.objectiveProgress.progress);
             if (give_roles.length > 0) {
                 setTimeout(() => {
-                    const gRoles = give_roles.join().split(",");
+                    const gRoles = give_roles
+                        .join()
+                        .split(",")
+                        .filter((r) => r.length > 10);
+                    give_roles.filter((r) => r.length < 10).length > 0 ? console.error(`Error during removin roles`, member.displayName, give_roles) : [];
                     member.roles.add(gRoles, "+Autorole").catch((e) => {
                         console.error(`Error with givin these roles: ${gRoles}`);
                     });
                 }, remove_roles.length > 0 ? 6000 : 0);
             }
             if (remove_roles.length > 0) {
-                const rRoles = remove_roles.join().split(",");
+                const rRoles = remove_roles
+                    .join()
+                    .split(",")
+                    .filter((r) => r.length > 10);
+                rRoles.filter((r) => r.length < 10).length > 0 ? console.error(`Error during removin roles`, member.displayName, rRoles) : [];
                 member.roles.remove(rRoles, "-Autorole").catch((e) => {
                     console.error(`Error with takin these roles: ${rRoles}`);
                 });
