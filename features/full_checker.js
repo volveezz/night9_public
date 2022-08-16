@@ -199,7 +199,7 @@ exports.default = (client) => {
                                                 dbRoleUpdated.guilded_roles[i] = createdRole.id;
                                                 for (let i = 0; i < index && i < dbRoleUpdated.guilded_roles.length; i++) {
                                                     const element = dbRoleUpdated.guilded_roles ? dbRoleUpdated.guilded_roles[i] : undefined;
-                                                    if (element === undefined)
+                                                    if (!element || element === undefined || (element === null || element === void 0 ? void 0 : element.toLowerCase()) === "null")
                                                         dbRoleUpdated.guilded_roles[i] = "null";
                                                     console.log(i, index, dbRoleUpdated.guilded_roles[i]);
                                                 }
