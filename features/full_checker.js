@@ -161,14 +161,14 @@ exports.default = (client) => {
                         }
                     }
                     role_db.forEach((role) => __awaiter(this, void 0, void 0, function* () {
-                        var _a;
+                        var _a, _b;
                         const checkArray = [];
                         if (role.guilded_hash) {
                             if (Response.profileRecords.data.records[role.guilded_hash] !== undefined) {
                                 const triumphRecord = Response.profileRecords.data.records[role.guilded_hash];
                                 if (triumphRecord && triumphRecord.completedCount !== undefined && triumphRecord.completedCount > 0) {
                                     const index = triumphRecord.completedCount;
-                                    if (((_a = role.guilded_roles) === null || _a === void 0 ? void 0 : _a.at(index - 1)) !== undefined) {
+                                    if (((_a = role.guilded_roles) === null || _a === void 0 ? void 0 : _a.at(index - 1)) !== undefined && ((_b = role.guilded_roles) === null || _b === void 0 ? void 0 : _b.at(index - 1)) !== "null") {
                                         if (!c.has(role.guilded_roles.at(index - 1))) {
                                             give_roles.push(role.guilded_roles.at(index - 1));
                                         }
