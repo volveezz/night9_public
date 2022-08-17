@@ -722,7 +722,7 @@ exports.default = {
             const changes = [];
             const embedChanges = [];
             const embed = () => __awaiter(void 0, void 0, void 0, function* () {
-                return (yield (0, channels_1.chnFetcher)(ids_1.ids.raidChnId).messages.fetch(msgId)).embeds[0];
+                return (yield (0, channels_1.msgFetcher)(ids_1.ids.raidChnId, msgId)).embeds[0];
             });
             const t = yield sequelize_1.db.transaction();
             const changesForChannel = [];
@@ -921,7 +921,7 @@ exports.default = {
                 catch (error) {
                     console.error(error);
                 }
-                (yield (0, channels_1.chnFetcher)(ids_1.ids.raidChnId).messages.fetch(msgId)).edit({
+                (yield (0, channels_1.msgFetcher)(ids_1.ids.raidChnId, msgId)).edit({
                     embeds: [raidEmbed],
                 });
                 const replyEmbed = new discord_js_1.EmbedBuilder()
@@ -993,18 +993,7 @@ exports.default = {
                         name: `${interaction.guild.members.cache.get(addedUser.id).displayName} был записан на рейд как возможный участник`,
                         iconURL: addedUser.displayAvatarURL(),
                     });
-                    guild.channels.fetch(raidData.chnId).then((chn) => {
-                        if (!chn)
-                            throw { name: "Критическая ошибка", userId: interaction.user.id, commandName: interaction.commandName, raidId: raidData.id };
-                        chn.edit({
-                            permissionOverwrites: [
-                                {
-                                    allow: "ViewChannel",
-                                    id: addedUser.id,
-                                },
-                            ],
-                        });
-                    });
+                    (0, channels_1.chnFetcher)(raidData.chnId).permissionOverwrites.create(addedUser.id, { ViewChannel: true });
                     yield sequelize_1.raids.update({
                         joined: `{${raidData.joined}}`,
                         hotJoined: `{${raidData.hotJoined}}`,
@@ -1057,13 +1046,10 @@ exports.default = {
                     if (raidData.alt.includes(addedUser.id)) {
                         raidData.alt.splice(raidData.alt.indexOf(addedUser.id), 1);
                     }
-                    (0, channels_1.chnFetcher)(raidData.chnId).send({ embeds: [embedReply] });
-                    guild.channels.fetch(raidData.chnId).then((chn) => {
-                        if (!chn)
-                            throw { name: "Критическая ошибка", userId: interaction.user.id, commandName: interaction.commandName, raidId: raidData.id };
-                        chn.permissionOverwrites.create(addedUser.id, {
-                            ViewChannel: true,
-                        });
+                    const raidChn = (0, channels_1.chnFetcher)(raidData.chnId);
+                    raidChn.send({ embeds: [embedReply] });
+                    raidChn.permissionOverwrites.create(addedUser.id, {
+                        ViewChannel: true,
                     });
                     yield sequelize_1.raids.update({
                         joined: `{${raidData.joined}}`,
@@ -1117,14 +1103,9 @@ exports.default = {
             }, {
                 where: { id: raidData.id },
             });
-            yield interaction.guild.channels.fetch(raidData.chnId).then((chn) => {
-                if (chn && chn.type === discord_js_1.ChannelType.GuildText) {
-                    chn.send({ embeds: [inChnEmbed] });
-                }
-                else {
-                    throw { name: "Критическая ошибка", message: "Произошла критическая ошибка во время отправки сообщения в канал", userId: interaction.user.id };
-                }
-            });
+            const raidChn = (0, channels_1.chnFetcher)(raidData.chnId);
+            raidChn.send({ embeds: [inChnEmbed] });
+            raidChn.permissionOverwrites.delete(kickableUser.id);
             embed.setDescription(`${interaction.guild.members.cache.get(kickableUser.id).displayName} был исключен с рейда ${raidData.id}-${raidData.raid}`);
             interaction.editReply({ embeds: [embed] });
             raidDataInChnMsg(raidData);

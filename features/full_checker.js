@@ -41,6 +41,8 @@ exports.default = (client) => {
             if (new Date().getTime() - new Date(Response.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60 * 24) {
                 longOffline.add(member.id);
             }
+            if (!c.has(roles_1.statusRoles.verified))
+                give_roles.push(roles_1.statusRoles.verified);
             function seasonalRolesChecker() {
                 return __awaiter(this, void 0, void 0, function* () {
                     if (Response.profile.data.seasonHashes.includes(Response.profile.data.currentSeasonHash)) {
