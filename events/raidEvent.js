@@ -14,6 +14,7 @@ const ids_1 = require("../base/ids");
 const raid_1 = require("../commands/raid");
 const sequelize_1 = require("../handlers/sequelize");
 const full_checker_1 = require("../features/full_checker");
+const channels_1 = require("../base/channels");
 function joinInChnMsg(member, how, chnId, guild, was) {
     return __awaiter(this, void 0, void 0, function* () {
         const embed = new discord_js_1.EmbedBuilder();
@@ -90,7 +91,18 @@ exports.default = {
                                 userId: interaction.user.id,
                             };
                         }
-                        return console.log(Object.keys(userRaidClears).find((w) => w === raidData.raid));
+                        else {
+                            const rNameWD = raidData.difficulty > 1 && (raidData.raid === "vog" || raidData.raid === "kf" || raidData.raid === "votd")
+                                ? `${raidData.raid}Master`
+                                : raidData.raid;
+                            if (userRaidClears[rNameWD] < raidData.reqClears) {
+                                throw {
+                                    name: "Недостаточно закрытий",
+                                    message: `Для записи на этот рейд необходимо ${raidData.reqClears} закрытий, а у вас ${userRaidClears.votdMaster}`,
+                                };
+                            }
+                        }
+                        console.log(`raidData reqClears`, Object.keys(userRaidClears).find((w) => w === raidData.raid));
                     }
                     joinInChnMsg(interaction.member, "join", raidData.chnId, interaction.guild, ((_d = raidData.alt) === null || _d === void 0 ? void 0 : _d.includes(interaction.user.id))
                         ? "alt"
@@ -107,6 +119,14 @@ exports.default = {
                     else {
                         (_l = raidData.joined) === null || _l === void 0 ? void 0 : _l.push(interaction.user.id);
                     }
+                    (0, channels_1.chnFetcher)(raidData.chnId).edit({
+                        permissionOverwrites: [
+                            {
+                                allow: "ViewChannel",
+                                id: interaction.user.id,
+                            },
+                        ],
+                    });
                     yield (0, raid_1.raidMsgUpdate)(raidData, interaction);
                     yield sequelize_1.raids.update({ joined: `{${raidData.joined}}`, hotJoined: `{${raidData.hotJoined}}`, alt: `{${raidData.alt}}` }, { where: { id: raidData.id } });
                     (0, raid_1.raidDataInChnMsg)(raidData);
@@ -131,6 +151,16 @@ exports.default = {
                         raidData.alt.splice(raidData.alt.indexOf(interaction.user.id), 1);
                     if ((_x = raidData.hotJoined) === null || _x === void 0 ? void 0 : _x.includes(interaction.user.id))
                         raidData.hotJoined.splice(raidData.hotJoined.indexOf(interaction.user.id), 1);
+                    raidData.creator !== interaction.user.id
+                        ? (0, channels_1.chnFetcher)(raidData.chnId).edit({
+                            permissionOverwrites: [
+                                {
+                                    deny: "ViewChannel",
+                                    id: interaction.user.id,
+                                },
+                            ],
+                        })
+                        : [];
                     yield (0, raid_1.raidMsgUpdate)(raidData, interaction);
                     yield sequelize_1.raids.update({ joined: `{${raidData.joined}}`, hotJoined: `{${raidData.hotJoined}}`, alt: `{${raidData.alt}}` }, { where: { id: raidData.id } });
                     (0, raid_1.raidDataInChnMsg)(raidData);
@@ -146,6 +176,14 @@ exports.default = {
                     if ((_2 = raidData.hotJoined) === null || _2 === void 0 ? void 0 : _2.includes(interaction.user.id))
                         raidData.hotJoined.splice(raidData.hotJoined.indexOf(interaction.user.id), 1);
                     (_3 = raidData.alt) === null || _3 === void 0 ? void 0 : _3.push(interaction.user.id);
+                    (0, channels_1.chnFetcher)(raidData.chnId).edit({
+                        permissionOverwrites: [
+                            {
+                                allow: "ViewChannel",
+                                id: interaction.user.id,
+                            },
+                        ],
+                    });
                     yield (0, raid_1.raidMsgUpdate)(raidData, interaction);
                     yield sequelize_1.raids.update({ joined: `{${raidData.joined}}`, hotJoined: `{${raidData.hotJoined}}`, alt: `{${raidData.alt}}` }, { where: { id: raidData.id } });
                     (0, raid_1.raidDataInChnMsg)(raidData);

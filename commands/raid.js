@@ -145,7 +145,7 @@ function raidDataFetcher(raid, difficulty) {
         case "kf":
             return {
                 raid: raid,
-                raidName: difficulty === 3 ? "King's Fall: Day One" : difficulty === 2 ? "King's Fall: Master" : "King's Fall",
+                raidName: difficulty === 3 ? "King's Fall: Day One" : difficulty === 2 ? "King's Fall: Мастер" : "King's Fall",
                 maxDifficulty: 3,
                 raidBanner: "https://www.bungie.net/img/theme/destiny/bgs/pgcrs/kings_fall.jpg",
                 raidColor: difficulty === 3 ? "#FF7600" : difficulty === 2 ? "#FF063A" : "#565656",

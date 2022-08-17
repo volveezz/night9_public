@@ -526,7 +526,17 @@ exports.default = (client) => {
                     const vog = filter(3881495763);
                     const vogMaster = filter(1681562271) + filter(1485585878);
                     const lw = filter(2122313384) + filter(1661734046);
-                    exports.completedRaidsData.set(member.id, { votd: votd, votdMaster: votdMaster, dsc: dsc, gos: gos, vog: vog, vogMaster: vogMaster, lw: lw });
+                    exports.completedRaidsData.set(member.id, {
+                        kf: 0,
+                        kfMaster: 0,
+                        votd: votd,
+                        votdMaster: votdMaster,
+                        dsc: dsc,
+                        gos: gos,
+                        vog: vog,
+                        vogMaster: vogMaster,
+                        lw: lw,
+                    });
                     for (const step of roles_1.rRaids.roles) {
                         if (votdMaster + votd >= step.individualClears &&
                             vog + vogMaster >= step.individualClears &&
