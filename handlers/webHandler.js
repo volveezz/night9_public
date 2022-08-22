@@ -91,9 +91,14 @@ exports.default = (code, state, res) => __awaiter(void 0, void 0, void 0, functi
                             }
                         });
                     }
-                    const platform = (yield getData())[0];
-                    const bungie_id = (yield getData())[1];
-                    const displayname = (yield getData())[2];
+                    const fetchedData = yield getData();
+                    if (!fetchedData) {
+                        res.send(`<script>location.replace('error.html')</script>`);
+                        return console.error(`${body} for: ${state}\nCode:${code}`);
+                    }
+                    const platform = fetchedData[0];
+                    const bungie_id = fetchedData[1];
+                    const displayname = fetchedData[2];
                     const result = yield sequelize_1.auth_data.create({
                         discord_id: json.discord_id,
                         bungie_id: bungie_id,
