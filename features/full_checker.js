@@ -15,6 +15,7 @@ const request_promise_native_1 = require("request-promise-native");
 const logger_1 = require("../handlers/logger");
 const ids_1 = require("../base/ids");
 const roles_1 = require("../base/roles");
+const types_1 = require("sequelize/types");
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 exports.completedRaidsData = new Map();
 exports.character_data = new Map();
@@ -181,6 +182,14 @@ exports.default = (client) => {
                                                 remove_roles.push(role.role_id, role.guilded_roles
                                                     .filter((r) => r && r !== null && r.toLowerCase() !== "null" && r !== role.guilded_roles.at(index - 1))
                                                     .toString());
+                                                if (role.unique && role.unique > 0) {
+                                                    if (role.unique === 1) {
+                                                        yield sequelize_1.role_data.update({ unique: 0 }, { where: { role_id: role.role_id } });
+                                                    }
+                                                    else {
+                                                        yield sequelize_1.role_data.decrement("unique", { by: 1, where: { role_id: role.role_id } });
+                                                    }
+                                                }
                                             }
                                         }
                                         else {
@@ -493,7 +502,7 @@ exports.default = (client) => {
                             if (((_a = response === null || response === void 0 ? void 0 : response.Response.activities) === null || _a === void 0 ? void 0 : _a.length) > 0) {
                                 response === null || response === void 0 ? void 0 : response.Response.activities.forEach((activity) => {
                                     if (mode === 4 && activity.values.completed.basic.value) {
-                                        if (new Date(activity.period).getTime() > new Date().getTime() - 1000 * 60 * 15) {
+                                        if (new Date(activity.period).getTime() > new Date().getTime() - 1000 * 60 * 25) {
                                             (0, logger_1.activityReporter)(activity.activityDetails.instanceId);
                                         }
                                         if (!ids_1.forbiddenRaidIds.includes(activity.activityDetails.referenceId)) {
@@ -599,7 +608,17 @@ exports.default = (client) => {
         kd >= 5 ? (kd = 0) : kd++;
         raids >= 7 ? (raids = 0) : raids++;
         const t = yield sequelize_1.db.transaction();
-        const role_db = yield sequelize_1.role_data.findAll({ transaction: t });
+        const role_db = yield sequelize_1.role_data.findAll({
+            where: {
+                unique: {
+                    [types_1.Op.or]: {
+                        [types_1.Op.gte]: 1,
+                        [types_1.Op.eq]: -1,
+                    },
+                },
+            },
+            transaction: t,
+        });
         const db_plain = (yield sequelize_1.auth_data.findAll({
             transaction: t,
         })).filter((data) => { var _a; return (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.has(data.discord_id); });

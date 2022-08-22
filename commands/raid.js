@@ -21,13 +21,13 @@ const __1 = require("..");
 const runningRaids = new Map();
 const noDataRaids = new Set();
 function raidInGameChecker(raidDb) {
-    runningRaids.set(raidDb.id, raidDb.time);
+    runningRaids.set(raidDb.id, raidDb.time * 1000);
 }
 exports.raidInGameChecker = raidInGameChecker;
 function raidDataInChnMsg(raidData) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!raidData)
-            return;
+            return console.error(`raidDataInChnMsg, no raidData info`);
         if (noDataRaids.has(raidData)) {
             noDataRaids.delete(raidData);
             raidData = yield sequelize_1.raids.findOne({ where: { id: raidData.id } });
@@ -589,6 +589,7 @@ exports.default = {
         },
     ],
     callback: (_client, interaction, member, guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
         yield interaction.deferReply({ ephemeral: true });
         const { options } = interaction;
         const subCommand = options.getSubcommand(true);
@@ -604,6 +605,12 @@ exports.default = {
             });
             const raidData = raidDataFetcher(raid, difficulty);
             const parsedTime = yield timerConverter(time, data);
+            if (parsedTime < Math.trunc(new Date().getTime() / 1000)) {
+                throw {
+                    name: "Ошибка. Указанное время в прошлом",
+                    message: `Вы указали время <t:${parsedTime}>, <t:${parsedTime}:R>, но время начала обязательно должно быть в будущем\nВремя указывается по вашему часовому поясу. Ваш часовой пояс +${((_a = (yield data)) === null || _a === void 0 ? void 0 : _a.tz) || "3"} от UTC+00:00`,
+                };
+            }
             const raidDb = yield sequelize_1.raids.create({
                 chnId: member.id,
                 inChnMsg: member.id,
@@ -816,18 +823,23 @@ exports.default = {
                 if (changedTime === time) {
                     return changes.push(`Время старта осталось без изменений`);
                 }
-                embedChanges.push({
-                    time: changedTime,
-                });
-                changesForChannel.push({
-                    name: "Время",
-                    value: `Старт рейда перенесен на <t:${changedTime}>, <t:${changedTime}:R>`,
-                });
-                changes.push(`Время старта было изменено`);
-                yield sequelize_1.raids.update({
-                    time: changedTime,
-                }, { where: { id: raidData.id }, transaction: t });
-                raidInGameChecker(raidData);
+                if (changedTime > Math.trunc(new Date().getTime() / 1000)) {
+                    embedChanges.push({
+                        time: changedTime,
+                    });
+                    changesForChannel.push({
+                        name: "Время",
+                        value: `Старт рейда перенесен на <t:${changedTime}>, <t:${changedTime}:R>`,
+                    });
+                    changes.push(`Время старта было изменено`);
+                    yield sequelize_1.raids.update({
+                        time: changedTime,
+                    }, { where: { id: raidData.id }, transaction: t });
+                    raidInGameChecker(raidData);
+                }
+                else {
+                    changes.push(`Время старта осталось без изменений - указано время <t:${changedTime}>, <t:${changedTime}:R>, но оно в прошлом`);
+                }
             }
             if (newRaidLeader) {
                 if (!newRaidLeader.bot) {
@@ -863,7 +875,7 @@ exports.default = {
             }
             const raidEmbed = discord_js_1.EmbedBuilder.from(yield embed());
             embedChanges.forEach((change) => __awaiter(void 0, void 0, void 0, function* () {
-                var _a, _b, _c;
+                var _b, _c, _d;
                 if (change.color) {
                     raidEmbed.setColor(change.color);
                 }
@@ -879,7 +891,7 @@ exports.default = {
                         value: change.description,
                     };
                     var checker = false;
-                    (_a = raidEmbed.data.fields) === null || _a === void 0 ? void 0 : _a.map((k, v) => {
+                    (_b = raidEmbed.data.fields) === null || _b === void 0 ? void 0 : _b.map((k, v) => {
                         if (k.name === "Описание") {
                             if (change.description !== " " && change.description !== "-") {
                                 raidEmbed.spliceFields(v, 1, field);
@@ -898,7 +910,7 @@ exports.default = {
                 if (change.raidLeader) {
                     raidEmbed.setFooter({
                         text: `Создатель рейда: ${interaction.guild.members.cache.get(change.raidLeader.id).displayName}`,
-                        iconURL: (_b = raidEmbed.data.footer) === null || _b === void 0 ? void 0 : _b.icon_url,
+                        iconURL: (_c = raidEmbed.data.footer) === null || _c === void 0 ? void 0 : _c.icon_url,
                     });
                 }
                 if (change.time) {
@@ -907,7 +919,7 @@ exports.default = {
                         value: `<t:${change.time}>`,
                         inline: true,
                     };
-                    (_c = raidEmbed.data.fields) === null || _c === void 0 ? void 0 : _c.map((k, v) => {
+                    (_d = raidEmbed.data.fields) === null || _d === void 0 ? void 0 : _d.map((k, v) => {
                         if (k.name.startsWith("Начало")) {
                             raidEmbed.spliceFields(v, 1, field);
                         }
@@ -953,10 +965,10 @@ exports.default = {
             yield sequelize_1.raids
                 .destroy({ where: { id: raidData.id } })
                 .then(() => __awaiter(void 0, void 0, void 0, function* () {
-                var _d;
+                var _e;
                 try {
-                    yield ((_d = guild.channels.cache
-                        .get(raidData.chnId)) === null || _d === void 0 ? void 0 : _d.delete(`${interaction.guild.members.cache.get(interaction.user.id).displayName} удалил рейд`));
+                    yield ((_e = guild.channels.cache
+                        .get(raidData.chnId)) === null || _e === void 0 ? void 0 : _e.delete(`${interaction.guild.members.cache.get(interaction.user.id).displayName} удалил рейд`));
                 }
                 catch (e) {
                     console.error(`Channel during raid manual delete for raidId ${raidData.id} wasn't found`);

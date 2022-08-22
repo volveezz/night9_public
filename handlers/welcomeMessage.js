@@ -63,7 +63,7 @@ function welcomeMessage(client, member) {
                         m.edit({ embeds: [embed] });
                     }
                     else {
-                        console.log(data);
+                        console.log(`Error welcomeMessage role restore`, data);
                     }
                 });
             }, 3333);

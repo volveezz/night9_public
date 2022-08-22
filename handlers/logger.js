@@ -658,10 +658,10 @@ exports.default = (client) => {
     });
     client.on("roleDelete", (role) => {
         const embed = new discord_js_1.EmbedBuilder()
-            .setColor(colors_1.colors.default)
+            .setColor(colors_1.colors.kicked)
             .setTimestamp()
             .setAuthor({ name: "Роль удалена" })
-            .setDescription(`Была удалена роль \`${role.name}\` (${role.id})`)
+            .setDescription(`Удаленная роль \`${role.name}\` (${role.id})`)
             .addFields([
             {
                 name: "Дата создания",
@@ -677,7 +677,8 @@ exports.default = (client) => {
             .setAuthor({ name: "userUpdate" })
             .setFooter({ text: String("Id: " + newUser.id) })
             .setTimestamp();
-        if (oldUser.displayAvatarURL() !== newUser.displayAvatarURL()) {
+        if (oldUser.displayAvatarURL() !== newUser.displayAvatarURL() &&
+            client.guilds.cache.get(ids_1.guildId).members.cache.get(newUser.id).roles.cache.has(roles_1.statusRoles.clanmember)) {
             embed
                 .setAuthor({
                 name: `${newUser.username} обновил свой аватар`,
