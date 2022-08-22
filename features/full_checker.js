@@ -15,7 +15,7 @@ const request_promise_native_1 = require("request-promise-native");
 const logger_1 = require("../handlers/logger");
 const ids_1 = require("../base/ids");
 const roles_1 = require("../base/roles");
-const types_1 = require("sequelize/types");
+const sequelize_2 = require("sequelize");
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 exports.completedRaidsData = new Map();
 exports.character_data = new Map();
@@ -611,9 +611,9 @@ exports.default = (client) => {
         const role_db = yield sequelize_1.role_data.findAll({
             where: {
                 unique: {
-                    [types_1.Op.or]: {
-                        [types_1.Op.gte]: 1,
-                        [types_1.Op.eq]: -1,
+                    [sequelize_2.Op.or]: {
+                        [sequelize_2.Op.gte]: 1,
+                        [sequelize_2.Op.eq]: -1,
                     },
                 },
             },
