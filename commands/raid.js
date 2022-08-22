@@ -40,36 +40,55 @@ function raidDataInChnMsg(raidData) {
         }
         const embed = discord_js_1.EmbedBuilder.from(inChnMsg.embeds[0]);
         const gMembers = (id) => { var _a; return (_a = __1.BotClient.guilds.cache.get(ids_1.guildId).members.cache.get(id)) === null || _a === void 0 ? void 0 : _a.displayName; };
+        const member = (id) => __1.BotClient.guilds.cache.get(ids_1.guildId).members.cache.get(id);
         const joined = raidData.joined.map((data) => {
+            var _a, _b;
             const raidUserData = full_checker_1.completedRaidsData.get(data);
             if (!raidUserData) {
-                if (!noDataRaids.has(raidData)) {
+                if (!noDataRaids.has(raidData) && ((_a = member(data)) === null || _a === void 0 ? void 0 : _a.roles.cache.has(roles_1.statusRoles.clanmember))) {
                     noDataRaids.add(raidData);
                     setTimeout(() => raidDataInChnMsg(raidData), 60 * 1000 * 5);
                 }
-                return `Данные <@${data}> не были закешированы или он не зарегистрирован`;
+                if ((_b = member(data)) === null || _b === void 0 ? void 0 : _b.roles.cache.has(roles_1.statusRoles.verified)) {
+                    return `Данные <@${data}> не были закешированы`;
+                }
+                else {
+                    return `<@${data}> не зарегистрирован`;
+                }
             }
             return `${gMembers(data)} завершил: ${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП, ${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
         });
         const hotJoined = raidData.hotJoined.map((data) => {
+            var _a, _b;
             const raidUserData = full_checker_1.completedRaidsData.get(data);
             if (!raidUserData) {
-                if (!noDataRaids.has(raidData)) {
+                if (!noDataRaids.has(raidData) && ((_a = member(data)) === null || _a === void 0 ? void 0 : _a.roles.cache.has(roles_1.statusRoles.clanmember))) {
                     noDataRaids.add(raidData);
                     setTimeout(() => raidDataInChnMsg(raidData), 60 * 1000 * 5);
                 }
-                return `Данные <@${data}> не были закешированы или он не зарегистрирован`;
+                if ((_b = member(data)) === null || _b === void 0 ? void 0 : _b.roles.cache.has(roles_1.statusRoles.verified)) {
+                    return `Данные <@${data}> не были закешированы`;
+                }
+                else {
+                    return `<@${data}> не зарегистрирован`;
+                }
             }
             return `${gMembers(data)} завершил: ${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП, ${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
         });
         const alt = raidData.alt.map((data) => {
+            var _a, _b;
             const raidUserData = full_checker_1.completedRaidsData.get(data);
             if (!raidUserData) {
-                if (!noDataRaids.has(raidData)) {
+                if (!noDataRaids.has(raidData) && ((_a = member(data)) === null || _a === void 0 ? void 0 : _a.roles.cache.has(roles_1.statusRoles.clanmember))) {
                     noDataRaids.add(raidData);
                     setTimeout(() => raidDataInChnMsg(raidData), 60 * 1000 * 5);
                 }
-                return `Данные <@${data}> не были закешированы или он не зарегистрирован`;
+                if ((_b = member(data)) === null || _b === void 0 ? void 0 : _b.roles.cache.has(roles_1.statusRoles.verified)) {
+                    return `Данные <@${data}> не были закешированы`;
+                }
+                else {
+                    return `<@${data}> не зарегистрирован`;
+                }
             }
             return `${gMembers(data)} завершил: ${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП, ${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
         });
