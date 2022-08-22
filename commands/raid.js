@@ -49,7 +49,7 @@ function raidDataInChnMsg(raidData) {
                 }
                 return `Данные <@${data}> не были закешированы или он не зарегистрирован`;
             }
-            return `${gMembers(data)} завершил: ${raidUserData.votd}(${raidUserData.votdMaster}) КП, ${raidUserData.vog}(${raidUserData.vogMaster}) ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
+            return `${gMembers(data)} завершил: ${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП, ${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
         });
         const hotJoined = raidData.hotJoined.map((data) => {
             const raidUserData = full_checker_1.completedRaidsData.get(data);
@@ -60,7 +60,7 @@ function raidDataInChnMsg(raidData) {
                 }
                 return `Данные <@${data}> не были закешированы или он не зарегистрирован`;
             }
-            return `${gMembers(data)} завершил: ${raidUserData.votd}(${raidUserData.votdMaster}) КП, ${raidUserData.vog}(${raidUserData.vogMaster}) ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
+            return `${gMembers(data)} завершил: ${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП, ${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
         });
         const alt = raidData.alt.map((data) => {
             const raidUserData = full_checker_1.completedRaidsData.get(data);
@@ -71,7 +71,7 @@ function raidDataInChnMsg(raidData) {
                 }
                 return `Данные <@${data}> не были закешированы или он не зарегистрирован`;
             }
-            return `${gMembers(data)} завершил: ${raidUserData.votd}(${raidUserData.votdMaster}) КП, ${raidUserData.vog}(${raidUserData.vogMaster}) ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
+            return `${gMembers(data)} завершил: ${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП, ${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
         });
         embed.spliceFields(1, 3);
         if (raidData.joined.length > 0) {

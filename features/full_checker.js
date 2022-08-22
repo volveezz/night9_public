@@ -342,7 +342,7 @@ exports.default = (client) => {
                 });
             }
         }))
-            .catch((e) => console.log(`roleManager error`, e === null || e === void 0 ? void 0 : e.error, e === null || e === void 0 ? void 0 : e.body, data.displayname));
+            .catch((e) => console.log(`roleManager`, e.error, data.displayname));
     }
     function name_change(discord_id, name) {
         var _a;
@@ -363,7 +363,7 @@ exports.default = (client) => {
                 },
                 json: true,
             }).catch((e) => {
-                throw { name: "Clan checker error", message: `StatusCode: ${e.statusCode}, ${e.message}` };
+                throw { name: "Clan checker error", message: `StatusCode: ${e.statusCode}, ${e.error}` };
             });
             if (clanList === undefined) {
                 console.log("Clan checker restarts");
@@ -378,7 +378,7 @@ exports.default = (client) => {
                 return;
             }
             if (clanList.ErrorCode !== 1) {
-                console.error("[Clan checker error]", clanList.ErrorStatus, clanList.Message);
+                console.error("[Clan checker error]", clanList.ErrorStatus, clanList.error);
                 return;
             }
             const onlineCounter = clanList.Response.results.filter((f) => f.isOnline === true).length;
@@ -467,7 +467,7 @@ exports.default = (client) => {
                     exports.character_data.set(data.discord_id, Object.keys(chars["Response"]["characters"]["data"]));
                     activityStatsChecker(data, member, mode);
                 })
-                    .catch((e) => console.log(`activityStatsChecker character error`, e.statusCode));
+                    .catch((e) => console.log(`activityStatsChecker character`, e.error, data.displayname));
             }
             else {
                 let completedActivities = [];
@@ -491,7 +491,7 @@ exports.default = (client) => {
                                 return response;
                             })
                                 .catch((e) => {
-                                console.log(`activityStatsChecker error`, e.statusCode);
+                                console.log(`activityStatsChecker`, e.error, data.displayname);
                             });
                         });
                     }
