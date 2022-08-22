@@ -36,7 +36,7 @@ class init_data extends sequelize_1.Model {
 exports.init_data = init_data;
 init_data.init({
     discord_id: { type: sequelize_1.DataTypes.BIGINT, primaryKey: true, unique: true },
-    state: { type: sequelize_1.DataTypes.UUID },
+    state: { type: sequelize_1.DataTypes.TEXT },
 }, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
 class lost_data extends sequelize_1.Model {
 }

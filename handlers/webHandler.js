@@ -185,6 +185,7 @@ exports.default = (code, state, res) => __awaiter(void 0, void 0, void 0, functi
                             member === null || member === void 0 ? void 0 : member.send({
                                 embeds: [embed],
                             });
+                            sequelize_1.auth_data.update({ clan: true }, { where: { bungie_id: bungie_id } });
                         }
                     });
                 });
