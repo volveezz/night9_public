@@ -61,6 +61,10 @@ exports.default = (code, state, res) => __awaiter(void 0, void 0, void 0, functi
                 json: true,
             }, function (err, _response, subBody) {
                 return __awaiter(this, void 0, void 0, function* () {
+                    if (err) {
+                        res.send(`<script>location.replace('error.html')</script>`);
+                        return console.error(`State: ${state} / Code:${code}`, body);
+                    }
                     const { Response } = subBody;
                     function getData() {
                         var e_1, _a;
@@ -94,7 +98,7 @@ exports.default = (code, state, res) => __awaiter(void 0, void 0, void 0, functi
                     const fetchedData = yield getData();
                     if (!fetchedData) {
                         res.send(`<script>location.replace('error.html')</script>`);
-                        return console.error(`${body} for: ${state}\nCode:${code}`);
+                        return console.error(`State: ${state} / Code:${code}`, body);
                     }
                     const platform = fetchedData[0];
                     const bungie_id = fetchedData[1];
