@@ -78,7 +78,7 @@ exports.default = (code, state, res) => __awaiter(void 0, void 0, void 0, functi
                                         const displayname = membership.bungieGlobalDisplayName || membership.displayName;
                                         return [platform, bungie_id, displayname];
                                     }
-                                    else if (Response.destinyMemberships.length === 0) {
+                                    else if (Response.destinyMemberships.length === 0 || Response.destinyMemberships.length === 1) {
                                         const displayname = membership.bungieGlobalDisplayName || membership.displayName;
                                         const platform = membership.membershipType;
                                         const bungie_id = membership.membershipId;

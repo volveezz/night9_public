@@ -43,7 +43,7 @@ exports.default = (client) => {
             if (message.cleanContent.length > 0) {
                 embed.setDescription(message.cleanContent);
             }
-            if (message.attachments.size > 0) {
+            if (message.attachments && message.attachments.size && message.attachments.size > 0) {
                 embed.addFields([
                     {
                         name: "Вложения",
