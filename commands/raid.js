@@ -164,11 +164,11 @@ function raidDataFetcher(raid, difficulty) {
         case "kf":
             return {
                 raid: raid,
-                raidName: difficulty === 3 ? "King's Fall: Day One" : difficulty === 2 ? "King's Fall: Мастер" : "King's Fall",
+                raidName: difficulty === 3 ? "Гибель короля: Day One" : difficulty === 2 ? "Гибель короля: Мастер" : "Гибель короля",
                 maxDifficulty: 3,
                 raidBanner: "https://www.bungie.net/img/theme/destiny/bgs/pgcrs/kings_fall.jpg",
                 raidColor: difficulty === 3 ? "#FF7600" : difficulty === 2 ? "#FF063A" : "#565656",
-                channelName: "-kings-fall",
+                channelName: "-гибель-короля",
                 requiredRole: null,
             };
         case "votd":
@@ -369,7 +369,7 @@ exports.default = {
                     required: true,
                     choices: [
                         {
-                            name: "King's Fall",
+                            name: "Гибель короля",
                             value: "kf",
                         },
                         {
@@ -425,7 +425,7 @@ exports.default = {
                             value: 2,
                         },
                         {
-                            name: "Day One (только King's Fall)",
+                            name: "Day One (только Гибель короля)",
                             value: 3,
                         },
                     ],
@@ -462,7 +462,7 @@ exports.default = {
                     description: "Укажите измененный рейд",
                     choices: [
                         {
-                            name: "King's Fall",
+                            name: "Гибель короля",
                             value: "kf",
                         },
                         {
@@ -520,7 +520,7 @@ exports.default = {
                             value: 2,
                         },
                         {
-                            name: "Day One (только King's Fall)",
+                            name: "Day One (только Гибель короля)",
                             value: 3,
                         },
                     ],
