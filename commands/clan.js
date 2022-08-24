@@ -15,7 +15,6 @@ const colors_1 = require("../base/colors");
 const sequelize_1 = require("../handlers/sequelize");
 exports.default = {
     name: "clan",
-    nameLocalizations: { ru: "клан" },
     description: "Управление и статистика клана",
     defaultMemberPermissions: ["Administrator"],
     options: [

@@ -24,7 +24,6 @@ exports.default = {
         {
             type: discord_js_1.ApplicationCommandOptionType.Subcommand,
             name: "select",
-            nameLocalizations: { "en-US": "get", ru: "выбрать" },
             description: "SELECT",
             options: [
                 {
@@ -38,7 +37,6 @@ exports.default = {
         {
             type: discord_js_1.ApplicationCommandOptionType.Subcommand,
             name: "delete",
-            nameLocalizations: { "en-US": "drop", ru: "удалить" },
             description: "DELETE",
             options: [
                 {
@@ -52,7 +50,6 @@ exports.default = {
         {
             type: discord_js_1.ApplicationCommandOptionType.Subcommand,
             name: "name_change",
-            nameLocalizations: { "en-US": "change_name", ru: "смена_ника" },
             description: "NAME CHANGE",
             options: [
                 {
@@ -66,7 +63,6 @@ exports.default = {
         {
             type: discord_js_1.ApplicationCommandOptionType.SubcommandGroup,
             name: "role",
-            nameLocalizations: { "en-US": "roles", ru: "роль" },
             description: "ROLE",
             options: [
                 {
@@ -118,13 +114,11 @@ exports.default = {
                 {
                     type: discord_js_1.ApplicationCommandOptionType.Subcommand,
                     name: "fetch",
-                    nameLocalizations: { "en-US": "find", ru: "найти" },
                     description: "FETCH",
                 },
                 {
                     type: discord_js_1.ApplicationCommandOptionType.Subcommand,
                     name: "remove",
-                    nameLocalizations: { "en-US": "drop", ru: "удалить" },
                     description: "REMOVE",
                     options: [
                         {

@@ -14,7 +14,6 @@ const colors_1 = require("../base/colors");
 exports.default = {
     name: "tz",
     nameLocalizations: {
-        ru: "чп",
         "en-US": "timezone",
     },
     description: "Укажите свой часовой пояс",

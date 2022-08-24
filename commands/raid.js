@@ -669,7 +669,7 @@ exports.default = {
                 new discord_js_1.ButtonBuilder().setCustomId("raidEvent_btn_leave").setLabel("Выйти").setStyle(discord_js_1.ButtonStyle.Danger),
                 new discord_js_1.ButtonBuilder().setCustomId("raidEvent_btn_alt").setLabel("Возможно буду").setStyle(discord_js_1.ButtonStyle.Secondary),
             ];
-            const content = `Открыт набор в рейд: ${raidData.raidName} ${raidData.requiredRole !== null ? `<@&${raidData.requiredRole}>` : raidData.raid !== "kf" ? member.guild.roles.everyone : ""}`;
+            const content = `Открыт набор в рейд: ${raidData.raidName} ${raidData.requiredRole !== null ? `<@&${raidData.requiredRole}>` : member.guild.roles.everyone}`;
             const raidChannel = (0, channels_1.chnFetcher)(ids_1.ids.raidChnId);
             const msg = raidChannel.send({
                 content: content,
@@ -685,7 +685,7 @@ exports.default = {
                 .create({
                 name: `├💪${raidDb.id}-${raidData.channelName}`,
                 parent: raidChannel.parent,
-                position: raidChannel.rawPosition + 1,
+                position: raidChannel.rawPosition,
                 permissionOverwrites: [
                     {
                         deny: "ViewChannel",
@@ -797,6 +797,7 @@ exports.default = {
                         where: { id: raidData.id },
                         transaction: t,
                     });
+                    (0, channels_1.chnFetcher)(raidData.chnId).edit({ name: `├💪${raidData.id}-${raidInfo.channelName}` });
                 }
                 if ((newDifficulty !== null && raidInfo.maxDifficulty >= newDifficulty) || newRaid !== null) {
                     yield sequelize_1.raids.update({

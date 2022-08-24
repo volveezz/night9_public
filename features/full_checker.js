@@ -608,15 +608,15 @@ exports.default = (client) => {
     let kd = 0, raids = 5;
     setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
-        kd >= 5 ? (kd = 0) : kd++;
-        raids >= 7 ? (raids = 0) : raids++;
+        kd >= 9 ? (kd = 0) : kd++;
+        raids >= 14 ? (raids = 0) : raids++;
         const t = yield sequelize_1.db.transaction();
         const role_db = yield sequelize_1.role_data.findAll({
             where: {
                 unique: {
                     [sequelize_2.Op.or]: {
                         [sequelize_2.Op.gte]: 1,
-                        [sequelize_2.Op.eq]: -1,
+                        [sequelize_2.Op.eq]: -99,
                     },
                 },
             },
@@ -638,9 +638,9 @@ exports.default = (client) => {
             const db_row = db_plain[i];
             const member = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(db_row.discord_id);
             !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.5 ? longOffline.delete(member.id) : "";
-            kd === 5 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
-            raids === 6 && db_row.clan === true ? activityStatsChecker(db_row, member, 4) : [];
-            raids === 5 && !member.roles.cache.has(roles_1.rTrials.wintrader) && member.roles.cache.has(roles_1.rTrials.category) ? activityStatsChecker(db_row, member, 84) : [];
+            kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
+            raids === 13 && db_row.clan === true ? activityStatsChecker(db_row, member, 4) : [];
+            raids === 11 && !member.roles.cache.has(roles_1.rTrials.wintrader) && member.roles.cache.has(roles_1.rTrials.category) ? activityStatsChecker(db_row, member, 84) : [];
             yield timer(700);
         }
         clan(db_plain);

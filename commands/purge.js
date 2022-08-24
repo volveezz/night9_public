@@ -12,15 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 exports.default = {
     name: "purge",
-    nameLocalizations: {
-        ru: "чистка",
-    },
     description: "Удаляет пачку сообщений за одну команду",
     defaultMemberPermissions: ["Administrator"],
     options: [
         {
             type: discord_js_1.ApplicationCommandOptionType.Integer,
-            name: "сообщений",
+            name: "messages",
+            nameLocalizations: { ru: "количество" },
             description: "Количество сообщений для удаления",
             required: true,
             min_value: 1,
@@ -28,7 +26,8 @@ exports.default = {
         },
         {
             type: discord_js_1.ApplicationCommandOptionType.User,
-            name: "пользователь",
+            name: "user",
+            nameLocalizations: { ru: "пользователь" },
             description: "Пользователь, сообщения которого удаляем",
         },
     ],
@@ -37,8 +36,8 @@ exports.default = {
         yield interaction.deferReply({ ephemeral: true });
         if (!interaction.channel || interaction.channel.type !== discord_js_1.ChannelType.GuildText)
             return;
-        const msgs = interaction.options.getInteger("сообщений");
-        const user = interaction.options.getUser("пользователь");
+        const msgs = interaction.options.getInteger("messages");
+        const user = interaction.options.getUser("user");
         if (!msgs || msgs > 100) {
             const embed = new discord_js_1.EmbedBuilder().setColor("Red").setTitle(`Параметр "сообщений" должен быть больше или равен 1 и меньше 100`);
             return interaction.editReply({ embeds: [embed] });
