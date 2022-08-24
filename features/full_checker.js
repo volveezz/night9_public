@@ -39,7 +39,7 @@ exports.default = (client) => {
             if (!exports.character_data.get(data.discord_id)) {
                 exports.character_data.set(data.discord_id, Response["profile"]["data"]["characterIds"]);
             }
-            if (new Date().getTime() - new Date(Response.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60 * 24) {
+            if (new Date().getTime() - new Date(Response.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60 * 2) {
                 longOffline.add(member.id);
             }
             if (!c.has(roles_1.statusRoles.verified))
