@@ -20,6 +20,7 @@ const roles_1 = require("../base/roles");
 const channels_1 = require("../base/channels");
 const welcomeMessage_1 = require("./welcomeMessage");
 const __1 = require("..");
+const manifestHandler_1 = require("./manifestHandler");
 const pgcrIds = new Set();
 const guildMemberChannel = (0, channels_1.chnFetcher)(ids_1.ids.guildMemberChnId), guildChannel = (0, channels_1.chnFetcher)(ids_1.ids.guildChnId), messageChannel = (0, channels_1.chnFetcher)(ids_1.ids.messagesChnId), voiceChannel = (0, channels_1.chnFetcher)(ids_1.ids.voiceChnId), destinyClanChannel = (0, channels_1.chnFetcher)(ids_1.ids.clanChnId), discordBotChannel = (0, channels_1.chnFetcher)(ids_1.ids.botChnId), activityChannel = (0, channels_1.chnFetcher)(ids_1.ids.activityChnId);
 function activityReporter(pgcrId) {
@@ -27,12 +28,27 @@ function activityReporter(pgcrId) {
         if (!pgcrIds.has(pgcrId)) {
             pgcrIds.add(pgcrId);
             (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`, { headers: { "X-API-KEY": process.env.XAPI }, json: true })
-                .then((response) => {
+                .then((response) => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b;
                 const embed = new discord_js_1.EmbedBuilder()
                     .setColor("Green")
-                    .setTimestamp()
-                    .setFooter({ text: `Активность была начата ${response.Response.activityWasStartedFromBeginning === true ? "с начала" : "с чекпоинта"}` })
-                    .setAuthor({ name: `Raid Report`, url: `https://raid.report/pgcr/${pgcrId}` });
+                    .setTimestamp(response.Response.period)
+                    .setFooter({ text: `Активность была начата ${response.Response.activityWasStartedFromBeginning === true ? "с начала" : "с чекпоинта"}` });
+                ((_a = response.Response.activityDetails) === null || _a === void 0 ? void 0 : _a.mode) === 4
+                    ? embed.setAuthor({ name: `Raid Report`, url: `https://raid.report/pgcr/${pgcrId}` })
+                    : ((_b = response.Response.activityDetails) === null || _b === void 0 ? void 0 : _b.mode) === 82
+                        ? embed.setAuthor({ name: `Dungeon Report`, url: `https://dungeon.report/pgcr/${pgcrId}` })
+                        : embed.setAuthor({ name: "Bungie PGCR", url: `https://www.bungie.net/ru/PGCR/${pgcrId}` });
+                const footerText = `Активность была начата ${response.Response.activityWasStartedFromBeginning === true ? "с начала" : "с чекпоинта"}`;
+                const referenceId = response.Response.activityDetails.referenceId;
+                const manifestData = (yield manifestHandler_1.DestinyActivityDefinition)[referenceId];
+                embed.setTitle(manifestData.displayProperties.name + ` был(а) пройден(а) сокланами`);
+                manifestData.displayProperties.hasIcon
+                    ? manifestData.displayProperties.highResIcon
+                        ? embed.setFooter({ text: footerText, iconURL: `${manifestData.displayProperties.highResIcon}` })
+                        : embed.setFooter({ text: footerText, iconURL: manifestData.displayProperties.icon })
+                    : embed.setFooter({ text: footerText });
+                manifestData.pgcrImage ? embed.setThumbnail(manifestData.pgcrImage) : "";
                 response.Response.entries.forEach((entry) => {
                     if (entry.values.completed.basic.value !== 1)
                         return;
@@ -43,7 +59,7 @@ function activityReporter(pgcrId) {
                     });
                 });
                 activityChannel.send({ embeds: [embed] });
-            })
+            }))
                 .catch((e) => console.log(`activityReporter error`, pgcrId, e.statusCode));
         }
     });
@@ -207,23 +223,24 @@ exports.default = (client) => {
             .setAuthor({ name: "Участник покинул сервер", iconURL: member.displayAvatarURL() })
             .setColor("Red")
             .setTimestamp()
-            .addFields([
-            {
-                name: "Дата присоединения к серверу",
-                value: String(`<t:` + Math.round(member.joinedTimestamp / 1000) + ">"),
-            },
-        ])
+            .addFields({
+            name: "Дата присоединения к серверу",
+            value: String(`<t:` + Math.round(member.joinedTimestamp / 1000) + ">"),
+        })
             .setFooter({ text: `Id: ${member.id}` });
         if (member.roles.cache.hasAny(roles_1.statusRoles.clanmember, roles_1.statusRoles.member, roles_1.statusRoles.kicked, roles_1.statusRoles.newbie)) {
-            embed.addFields([
-                {
-                    name: "Статус пользователя",
-                    value: `Роль: ${member.roles.cache.has(roles_1.statusRoles.clanmember) ? `<@&${roles_1.statusRoles.clanmember}>` : []}
-					${member.roles.cache.has(roles_1.statusRoles.member) ? `<@&${roles_1.statusRoles.member}>` : []}
-						${member.roles.cache.has(roles_1.statusRoles.kicked) ? `<@&${roles_1.statusRoles.kicked}>` : []}
-						${member.roles.cache.has(roles_1.statusRoles.newbie) ? `<@&${roles_1.statusRoles.newbie}>` : []}`,
-                },
-            ]);
+            embed.addFields({
+                name: "Статус пользователя",
+                value: `Роль: ${member.roles.cache.has(roles_1.statusRoles.clanmember)
+                    ? `<@&${roles_1.statusRoles.clanmember}>`
+                    : member.roles.cache.has(roles_1.statusRoles.member)
+                        ? `<@&${roles_1.statusRoles.member}>`
+                        : member.roles.cache.has(roles_1.statusRoles.kicked)
+                            ? `<@&${roles_1.statusRoles.kicked}>`
+                            : member.roles.cache.has(roles_1.statusRoles.newbie)
+                                ? `<@&${roles_1.statusRoles.newbie}>`
+                                : "Роли не найдены"}`,
+            });
         }
         guildMemberChannel.send({ embeds: [embed] }).then((m) => __awaiter(void 0, void 0, void 0, function* () {
             const data = yield sequelize_2.auth_data.findOne({
@@ -458,6 +475,7 @@ exports.default = (client) => {
             .setTimestamp()
             .setFooter({ text: `ChnId: ${createdChannel.id}` })
             .addFields([
+            { name: `Канал`, value: `<#${createdChannel.id}>`, inline: true },
             {
                 name: `Тип`,
                 value: createdChannel.type.toString(),
@@ -651,6 +669,7 @@ exports.default = (client) => {
             .setFooter({ text: `RoleId: ${role.id}` })
             .setTimestamp()
             .addFields([
+            { name: "Роль", value: `<@&${role.id}>`, inline: true },
             { name: "Название", value: role.name, inline: true },
             { name: "Цвет", value: role.hexColor, inline: true },
         ]);
@@ -672,29 +691,31 @@ exports.default = (client) => {
     });
     client.on("userUpdate", (oldUser, newUser) => {
         var _a;
+        if (oldUser.displayAvatarURL() === newUser.displayAvatarURL() ||
+            client.guilds.cache.get(ids_1.guildId).members.cache.get(newUser.id).roles.cache.has(roles_1.statusRoles.clanmember) === false)
+            return;
         const embed = new discord_js_1.EmbedBuilder()
             .setColor(colors_1.colors.default)
             .setAuthor({ name: "userUpdate" })
             .setFooter({ text: String("Id: " + newUser.id) })
             .setTimestamp();
-        if (oldUser.displayAvatarURL() !== newUser.displayAvatarURL() &&
-            client.guilds.cache.get(ids_1.guildId).members.cache.get(newUser.id).roles.cache.has(roles_1.statusRoles.clanmember)) {
-            embed
-                .setAuthor({
-                name: `${newUser.username} обновил свой аватар`,
-                iconURL: newUser.displayAvatarURL(),
-            })
-                .addFields([
-                {
-                    name: "До",
-                    value: String(`[Изображение](${oldUser.displayAvatarURL()})`),
-                },
-                {
-                    name: "После",
-                    value: String(`[Изображение](${newUser.displayAvatarURL()})`),
-                },
-            ]);
-        }
+        embed
+            .setAuthor({
+            name: `${newUser.username} обновил свой аватар`,
+            iconURL: newUser.displayAvatarURL(),
+        })
+            .addFields([
+            {
+                name: "До",
+                value: String(`[Изображение](${oldUser.displayAvatarURL()})`),
+                inline: true,
+            },
+            {
+                name: "После",
+                value: String(`[Изображение](${newUser.displayAvatarURL()})`),
+                inline: true,
+            },
+        ]);
         if (((_a = embed.data.fields) === null || _a === void 0 ? void 0 : _a.length) > 0)
             guildMemberChannel.send({ embeds: [embed] });
     });

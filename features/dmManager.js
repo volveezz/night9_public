@@ -39,6 +39,7 @@ exports.default = (client) => {
                 name: `Отправитель: ${member === null || member === void 0 ? void 0 : member.displayName}${(member === null || member === void 0 ? void 0 : member.user.username) !== (member === null || member === void 0 ? void 0 : member.displayName) ? ` (${member === null || member === void 0 ? void 0 : member.user.username})` : ""}`,
                 iconURL: message.author.displayAvatarURL(),
             })
+                .setFooter({ text: `UId: ${message.author.id}` })
                 .setTimestamp();
             if (message.cleanContent.length > 0) {
                 embed.setDescription(message.cleanContent);
@@ -89,7 +90,7 @@ exports.default = (client) => {
                     iconURL: member.displayAvatarURL(),
                 })
                     .setTimestamp()
-                    .setFooter({ text: `discordId: ${member.id}` });
+                    .setFooter({ text: `UId: ${member.id}` });
                 const sendedMsg = yield msgSend(isEmbed);
                 sendedMsg.content.length > 0 ? embed.setDescription(sendedMsg.content) : embed.setDescription(sendedMsg.embeds[0].description);
                 dmChn.send({ embeds: [embed] });

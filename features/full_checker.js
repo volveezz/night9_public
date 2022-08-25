@@ -219,7 +219,6 @@ exports.default = (client) => {
                                                     else if (!nonGuildedRole) {
                                                         return console.error(`Not found previous role of ${role.hash}`, lastKnownRole, nonGuildedRole);
                                                     }
-                                                    console.log("Part 6");
                                                     const createdRole = yield member.guild.roles.create({
                                                         name: `⚜️${nonGuildedRole.name} ${i + 1}`,
                                                         color: "#ffb300",
@@ -345,7 +344,7 @@ exports.default = (client) => {
                 });
             }
         }))
-            .catch((e) => console.log(`roleManager`, e.error, data.displayname));
+            .catch((e) => console.error(`roleManager`, e.error, data.displayname));
     }
     function name_change(discord_id, name) {
         var _a;
@@ -366,7 +365,7 @@ exports.default = (client) => {
                 },
                 json: true,
             }).catch((e) => {
-                throw { name: "Clan checker error", message: `StatusCode: ${e.statusCode}, ${e.error}` };
+                return console.error(`[clanCheckerError] StatusCode: ${e.statusCode}, ${e.error}`);
             });
             if (clanList === undefined) {
                 console.log("Clan checker restarts");
@@ -505,7 +504,8 @@ exports.default = (client) => {
                             if (((_a = response === null || response === void 0 ? void 0 : response.Response.activities) === null || _a === void 0 ? void 0 : _a.length) > 0) {
                                 response === null || response === void 0 ? void 0 : response.Response.activities.forEach((activity) => {
                                     if (mode === 4 && activity.values.completed.basic.value) {
-                                        if (new Date(activity.period).getTime() > new Date().getTime() - 1000 * 60 * 25) {
+                                        if (new Date(activity.period).getTime() + activity.values.activityDurationSeconds.basic.value * 1000 >
+                                            new Date().getTime() - 1000 * 60 * 30) {
                                             (0, logger_1.activityReporter)(activity.activityDetails.instanceId);
                                         }
                                         if (!ids_1.forbiddenRaidIds.includes(activity.activityDetails.referenceId)) {
@@ -533,6 +533,7 @@ exports.default = (client) => {
                         completedActivities = completedActivities.filter((a) => a !== activity);
                         return filtered;
                     };
+                    const kfMaster = filter(2897223272);
                     const votd = filter(1441982566);
                     const votdMaster = filter(4217492330);
                     const dsc = filter(910380154) + filter(3976949817);
@@ -542,7 +543,7 @@ exports.default = (client) => {
                     const lw = filter(2122313384) + filter(1661734046);
                     exports.completedRaidsData.set(member.id, {
                         kf: 0,
-                        kfMaster: 0,
+                        kfMaster: kfMaster,
                         votd: votd,
                         votdMaster: votdMaster,
                         dsc: dsc,
@@ -605,11 +606,11 @@ exports.default = (client) => {
             }
         });
     }
-    let kd = 0, raids = 5;
+    let kd = 0, raids = 4;
     setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
         kd >= 9 ? (kd = 0) : kd++;
-        raids >= 14 ? (raids = 0) : raids++;
+        raids >= 12 ? (raids = 0) : raids++;
         const t = yield sequelize_1.db.transaction();
         const role_db = yield sequelize_1.role_data.findAll({
             where: {
@@ -637,9 +638,9 @@ exports.default = (client) => {
         for (let i = 0; i < db_plain.length; i++) {
             const db_row = db_plain[i];
             const member = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(db_row.discord_id);
-            !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.5 ? longOffline.delete(member.id) : "";
+            !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.6 ? longOffline.delete(member.id) : "";
             kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
-            raids === 13 && db_row.clan === true ? activityStatsChecker(db_row, member, 4) : [];
+            raids === 6 && db_row.clan === true ? activityStatsChecker(db_row, member, 4) : [];
             raids === 11 && !member.roles.cache.has(roles_1.rTrials.wintrader) && member.roles.cache.has(roles_1.rTrials.category) ? activityStatsChecker(db_row, member, 84) : [];
             yield timer(700);
         }
