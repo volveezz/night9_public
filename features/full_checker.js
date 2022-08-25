@@ -507,6 +507,9 @@ exports.default = (client) => {
                                         if (new Date(activity.period).getTime() + activity.values.activityDurationSeconds.basic.value * 1000 >
                                             new Date().getTime() - 1000 * 60 * 30) {
                                             (0, logger_1.activityReporter)(activity.activityDetails.instanceId);
+                                            if (!member.roles.cache.has("1012474229448507526") && activity.activityDetails.referenceId == 2897223272) {
+                                                member.roles.add("1012474229448507526", `Day One raid completion (${activity.activityDetails.instanceId})`);
+                                            }
                                         }
                                         if (!ids_1.forbiddenRaidIds.includes(activity.activityDetails.referenceId)) {
                                             completedActivities.push(activity.activityDetails.referenceId);
