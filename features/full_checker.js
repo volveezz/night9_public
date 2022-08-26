@@ -641,10 +641,7 @@ exports.default = (client) => {
         for (let i = 0; i < db_plain.length; i++) {
             const db_row = db_plain[i];
             const member = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(db_row.discord_id);
-            !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.6 ? longOffline.delete(member.id) : "";
-            kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
             raids === 6 && db_row.clan === true ? activityStatsChecker(db_row, member, 4) : [];
-            raids === 11 && !member.roles.cache.has(roles_1.rTrials.wintrader) && member.roles.cache.has(roles_1.rTrials.category) ? activityStatsChecker(db_row, member, 84) : [];
             yield timer(700);
         }
         clan(db_plain);
