@@ -317,10 +317,10 @@ exports.default = (client) => {
                     }
                 });
             }
-            seasonalRolesChecker();
-            dlc_rolesChecker(Response.profile.data.versionsOwned);
-            triumphsChecker();
-            trialsChecker((_a = Response.metrics.data.metrics["1765255052"]) === null || _a === void 0 ? void 0 : _a.objectiveProgress.progress);
+            seasonalRolesChecker().catch((e) => console.error(`seasonalRolesChecker`, e, member.displayName));
+            dlc_rolesChecker(Response.profile.data.versionsOwned).catch((e) => console.error(`dlc_rolesChecker`, e, member.displayName));
+            triumphsChecker().catch((e) => console.error(`triumphsChecker`, e, member.displayName));
+            trialsChecker((_a = Response.metrics.data.metrics["1765255052"]) === null || _a === void 0 ? void 0 : _a.objectiveProgress.progress).catch((e) => console.error(`trialsChecker`, e, member.displayName));
             if (give_roles.length > 0) {
                 setTimeout(() => {
                     const gRoles = give_roles
