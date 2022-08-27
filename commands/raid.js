@@ -411,7 +411,7 @@ exports.default = {
                 {
                     type: discord_js_1.ApplicationCommandOptionType.Integer,
                     minValue: 1,
-                    maxValue: 3,
+                    maxValue: 2,
                     name: "сложность",
                     nameLocalizations: { "en-US": "difficulty", "en-GB": "difficulty" },
                     description: "Легенда/Мастер",
@@ -505,6 +505,8 @@ exports.default = {
                 {
                     type: discord_js_1.ApplicationCommandOptionType.Integer,
                     name: "новая_сложность",
+                    minValue: 1,
+                    maxValue: 2,
                     nameLocalizations: { "en-US": "new_difficulty", "en-GB": "new_difficulty" },
                     description: "Легенда/Мастер",
                     choices: [
