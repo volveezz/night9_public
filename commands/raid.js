@@ -424,7 +424,6 @@ exports.default = {
                             name: "Мастер",
                             value: 2,
                         },
-                        ,
                     ],
                 },
                 {
