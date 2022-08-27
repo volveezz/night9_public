@@ -56,7 +56,7 @@ function raidDataInChnMsg(raidData) {
                     return `<@${data}> не зарегистрирован`;
                 }
             }
-            return `${gMembers(data)} завершил: ${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП, ${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
+            return `${gMembers(data)} завершил: ${raidUserData.kf}${raidUserData.kfMaster > 0 ? `(${raidUserData.kfMaster})` : ""} ГК, ${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП, ${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
         });
         const hotJoined = raidData.hotJoined.map((data) => {
             var _a, _b;
@@ -73,7 +73,7 @@ function raidDataInChnMsg(raidData) {
                     return `<@${data}> не зарегистрирован`;
                 }
             }
-            return `${gMembers(data)} завершил: ${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП, ${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
+            return `${gMembers(data)} завершил: ${raidUserData.kf}${raidUserData.kfMaster > 0 ? `(${raidUserData.kfMaster})` : ""} ГК, ${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП, ${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
         });
         const alt = raidData.alt.map((data) => {
             var _a, _b;
@@ -90,7 +90,7 @@ function raidDataInChnMsg(raidData) {
                     return `<@${data}> не зарегистрирован`;
                 }
             }
-            return `${gMembers(data)} завершил: ${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП, ${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
+            return `${gMembers(data)} завершил: ${raidUserData.kf}${raidUserData.kfMaster > 0 ? `(${raidUserData.kfMaster})` : ""} ГК, ${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП, ${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
         });
         embed.spliceFields(1, 3);
         if (raidData.joined.length > 0) {
@@ -164,10 +164,10 @@ function raidDataFetcher(raid, difficulty) {
         case "kf":
             return {
                 raid: raid,
-                raidName: difficulty === 3 ? "Гибель короля: Day One" : difficulty === 2 ? "Гибель короля: Мастер" : "Гибель короля",
-                maxDifficulty: 3,
+                raidName: difficulty === 2 ? "Гибель короля: Мастер" : "Гибель короля",
+                maxDifficulty: 2,
                 raidBanner: "https://www.bungie.net/img/theme/destiny/bgs/pgcrs/kings_fall.jpg",
-                raidColor: difficulty === 3 ? "#FF7600" : difficulty === 2 ? "#FF063A" : "#565656",
+                raidColor: difficulty === 2 ? "#FF063A" : "#565656",
                 channelName: "-гибель-короля",
                 requiredRole: null,
             };
@@ -417,17 +417,14 @@ exports.default = {
                     description: "Легенда/Мастер",
                     choices: [
                         {
-                            name: "Легенда",
+                            name: "Нормальный (Легенда)",
                             value: 1,
                         },
                         {
                             name: "Мастер",
                             value: 2,
                         },
-                        {
-                            name: "Day One (только Гибель короля)",
-                            value: 3,
-                        },
+                        ,
                     ],
                 },
                 {
@@ -512,16 +509,12 @@ exports.default = {
                     description: "Легенда/Мастер",
                     choices: [
                         {
-                            name: "Легенда",
+                            name: "Нормальный (Легенда)",
                             value: 1,
                         },
                         {
                             name: "Мастер",
                             value: 2,
-                        },
-                        {
-                            name: "Day One (только Гибель короля)",
-                            value: 3,
                         },
                     ],
                 },
@@ -774,7 +767,7 @@ exports.default = {
                 newDifficulty && newDifficulty <= raidInfo.maxDifficulty
                     ? changesForChannel.push({
                         name: "Сложность рейда",
-                        value: `Сложность рейда была изменена - \`${newDifficulty === 3 ? "Day One" : newDifficulty === 2 ? "Мастер" : newDifficulty === 1 ? "Легенда" : "*неизвестная сложность*"}\``,
+                        value: `Сложность рейда была изменена - \`${newDifficulty === 2 ? "Мастер" : newDifficulty === 1 ? "Легенда" : "*неизвестная сложность*"}\``,
                     })
                     : "";
                 embedChanges.push({

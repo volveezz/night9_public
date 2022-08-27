@@ -507,7 +507,8 @@ exports.default = (client) => {
                                         if (new Date(activity.period).getTime() + activity.values.activityDurationSeconds.basic.value * 1000 >
                                             new Date().getTime() - 1000 * 60 * 30) {
                                             (0, logger_1.activityReporter)(activity.activityDetails.instanceId);
-                                            if (!member.roles.cache.has("1012474229448507526") && activity.activityDetails.referenceId == 2897223272) {
+                                            if (!member.roles.cache.has("1012474229448507526") &&
+                                                (activity.activityDetails.referenceId == 2897223272 || activity.activityDetails.referenceId == 1063970578)) {
                                                 member.roles.add("1012474229448507526", `Day One raid completion (${activity.activityDetails.instanceId})`);
                                             }
                                         }
@@ -536,7 +537,8 @@ exports.default = (client) => {
                         completedActivities = completedActivities.filter((a) => a !== activity);
                         return filtered;
                     };
-                    const kfMaster = filter(2897223272);
+                    const kf = filter(1374392663);
+                    const kfMaster = filter(1063970578);
                     const votd = filter(1441982566);
                     const votdMaster = filter(4217492330);
                     const dsc = filter(910380154) + filter(3976949817);
@@ -545,7 +547,7 @@ exports.default = (client) => {
                     const vogMaster = filter(1681562271) + filter(1485585878);
                     const lw = filter(2122313384) + filter(1661734046);
                     exports.completedRaidsData.set(member.id, {
-                        kf: 0,
+                        kf: kf,
                         kfMaster: kfMaster,
                         votd: votd,
                         votdMaster: votdMaster,
@@ -641,7 +643,10 @@ exports.default = (client) => {
         for (let i = 0; i < db_plain.length; i++) {
             const db_row = db_plain[i];
             const member = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(db_row.discord_id);
+            !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.6 ? longOffline.delete(member.id) : "";
+            kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
             raids === 6 && db_row.clan === true ? activityStatsChecker(db_row, member, 4) : [];
+            raids === 11 && !member.roles.cache.has(roles_1.rTrials.wintrader) && member.roles.cache.has(roles_1.rTrials.category) ? activityStatsChecker(db_row, member, 84) : [];
             yield timer(700);
         }
         clan(db_plain);
