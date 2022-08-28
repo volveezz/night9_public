@@ -344,7 +344,7 @@ exports.default = (client) => {
                 });
             }
         }))
-            .catch((e) => console.error(`roleManager`, e.error, data.displayname));
+            .catch((e) => console.error(`roleManager`, e.error, data.displayname, e.statusCode));
     }
     function name_change(discord_id, name) {
         var _a;
@@ -453,6 +453,7 @@ exports.default = (client) => {
             .catch((e) => console.log(`kdChecker`, e.stack, member.displayName));
     }
     function activityStatsChecker(data, member, mode) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             if (!exports.character_data.get(member.id)) {
                 (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/${data.platform}/Profile/${data.bungie_id}/?components=200`, {
@@ -537,6 +538,10 @@ exports.default = (client) => {
                         completedActivities = completedActivities.filter((a) => a !== activity);
                         return filtered;
                     };
+                    const totalRaidCount = completedActivities.length;
+                    const totalRaidCount_Before = (_a = exports.completedRaidsData.get(member.id)) === null || _a === void 0 ? void 0 : _a.totalRaidCount;
+                    if (totalRaidCount_Before && totalRaidCount_Before >= totalRaidCount)
+                        return;
                     const kf = filter(1374392663);
                     const kfMaster = filter(1063970578);
                     const votd = filter(1441982566);
@@ -547,15 +552,16 @@ exports.default = (client) => {
                     const vogMaster = filter(1681562271) + filter(1485585878);
                     const lw = filter(2122313384) + filter(1661734046);
                     exports.completedRaidsData.set(member.id, {
-                        kf: kf,
-                        kfMaster: kfMaster,
-                        votd: votd,
-                        votdMaster: votdMaster,
-                        dsc: dsc,
-                        gos: gos,
-                        vog: vog,
-                        vogMaster: vogMaster,
-                        lw: lw,
+                        kf,
+                        kfMaster,
+                        votd,
+                        votdMaster,
+                        dsc,
+                        gos,
+                        vog,
+                        vogMaster,
+                        lw,
+                        totalRaidCount,
                     });
                     for (const step of roles_1.rRaids.roles) {
                         if (votdMaster + votd >= step.individualClears &&
@@ -652,7 +658,7 @@ exports.default = (client) => {
             yield timer(700);
         }
         clan(db_plain);
-    }), 1000 * 59 * 2);
+    }), 1000 * 60 * 2);
     setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         const data = yield sequelize_1.auth_data.findAll({
             attributes: ["discord_id", "displayname", "tz"],
