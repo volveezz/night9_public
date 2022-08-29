@@ -85,17 +85,19 @@ exports.rStats = {
 };
 exports.rActivity = {
     category: "713055691535024249",
+    allVoice: ["1006749934395084820", "1006750189110960258", "1006750356182675527", "713054787389620245"],
+    allMessages: ["1006751299393560687", "1006751293857071185", "1006751278912766103", "713055203682943007"],
     voice: [
-        { roleId: "1006749934395084820", voiceMinutes: 1000 },
-        { roleId: "1006750189110960258", voiceMinutes: 300 },
-        { roleId: "1006750356182675527", voiceMinutes: 60 },
-        { roleId: "713054787389620245", voiceMinutes: 1 },
+        { roleId: "1006749934395084820", voiceMinutes: 60 * 60 * 20 },
+        { roleId: "1006750189110960258", voiceMinutes: 60 * 60 * 10 },
+        { roleId: "1006750356182675527", voiceMinutes: 60 * 60 * 3 },
+        { roleId: "713054787389620245", voiceMinutes: 60 * 60 * 1 },
     ],
     messages: [
         { roleId: "1006751299393560687", messageCount: 300 },
         { roleId: "1006751293857071185", messageCount: 150 },
-        { roleId: "1006751278912766103", messageCount: 30 },
-        { roleId: "713055203682943007", messageCount: 1 },
+        { roleId: "1006751278912766103", messageCount: 50 },
+        { roleId: "713055203682943007", messageCount: 5 },
     ],
 };
 exports.rTitles = {

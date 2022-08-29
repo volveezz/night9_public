@@ -678,8 +678,8 @@ exports.default = {
             member.guild.channels
                 .create({
                 name: `├💪${raidDb.id}-${raidData.channelName}`,
-                parent: raidChannel.parent,
-                position: raidChannel.rawPosition,
+                parent: ids_1.ids.raidChnCategoryId,
+                position: raidChannel.rawPosition + 1,
                 permissionOverwrites: [
                     {
                         deny: "ViewChannel",
@@ -693,7 +693,7 @@ exports.default = {
                 reason: `New raid by ${member.displayName}`,
             })
                 .then((chn) => __awaiter(void 0, void 0, void 0, function* () {
-                const premiumEmbed = new discord_js_1.EmbedBuilder().setColor("#F3AD0C").addFields([{ name: "Испытание этой недели", value: `TBD` }]);
+                const premiumEmbed = new discord_js_1.EmbedBuilder().setColor("#F3AD0C").addFields([{ name: "Испытание этой недели", value: `> Продам гараж <` }]);
                 const components = [
                     new discord_js_1.ButtonBuilder().setCustomId("raidInChnButton_notify").setLabel("Оповестить участников").setStyle(discord_js_1.ButtonStyle.Secondary),
                     new discord_js_1.ButtonBuilder().setCustomId("raidInChnButton_transfer").setLabel("Переместить участников в рейд-войс").setStyle(discord_js_1.ButtonStyle.Secondary),

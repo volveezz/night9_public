@@ -317,10 +317,48 @@ exports.default = (client) => {
                     }
                 });
             }
+            function voiceChecker() {
+                return __awaiter(this, void 0, void 0, function* () {
+                    if (!data.discord_activity) {
+                        if (c.hasAny(roles_1.rActivity.allVoice.toString())) {
+                            remove_roles.push(roles_1.rActivity.allVoice.toString());
+                        }
+                        if (c.hasAny(roles_1.rActivity.allMessages.toString())) {
+                            remove_roles.push(roles_1.rActivity.allMessages.toString());
+                        }
+                        if (c.has(roles_1.rActivity.category))
+                            remove_roles.push(roles_1.rActivity.category);
+                        return;
+                    }
+                    for (const step of roles_1.rActivity.voice) {
+                        if (step.voiceMinutes <= data.discord_activity.voice) {
+                            if (!member.roles.cache.has(step.roleId)) {
+                                if (!member.roles.cache.has(roles_1.rActivity.category))
+                                    give_roles.push(roles_1.rActivity.category);
+                                give_roles.push(step.roleId);
+                                remove_roles.push(roles_1.rActivity.allVoice.filter((r) => r != step.roleId).toString());
+                            }
+                            return;
+                        }
+                    }
+                    for (const step of roles_1.rActivity.messages) {
+                        if (step.messageCount <= data.discord_activity.messages) {
+                            if (!member.roles.cache.has(step.roleId)) {
+                                if (!member.roles.cache.has(roles_1.rActivity.category))
+                                    give_roles.push(roles_1.rActivity.category);
+                                give_roles.push(step.roleId);
+                                remove_roles.push(roles_1.rActivity.allMessages.filter((r) => r != step.roleId).toString());
+                            }
+                            return;
+                        }
+                    }
+                });
+            }
             seasonalRolesChecker().catch((e) => console.error(`seasonalRolesChecker`, e, member.displayName));
             dlc_rolesChecker(Response.profile.data.versionsOwned).catch((e) => console.error(`dlc_rolesChecker`, e, member.displayName));
             triumphsChecker().catch((e) => console.error(`triumphsChecker`, e, member.displayName));
             trialsChecker((_a = Response.metrics.data.metrics["1765255052"]) === null || _a === void 0 ? void 0 : _a.objectiveProgress.progress).catch((e) => console.error(`trialsChecker`, e, member.displayName));
+            voiceChecker().catch((e) => console.error("voiceChecker", e, member.displayName));
             if (give_roles.length > 0) {
                 setTimeout(() => {
                     const gRoles = give_roles
@@ -344,7 +382,11 @@ exports.default = (client) => {
                 });
             }
         }))
-            .catch((e) => console.error(`roleManager`, e.error, data.displayname, e.statusCode));
+            .catch((e) => {
+            e.statusCode === 401
+                ? console.error("roleManager 401 error", data.displayname)
+                : console.error(`roleManager`, e.error, data.displayname, e.statusCode);
+        });
     }
     function name_change(discord_id, name) {
         var _a;
@@ -450,7 +492,9 @@ exports.default = (client) => {
                 }
             }
         })
-            .catch((e) => console.log(`kdChecker`, e.stack, member.displayName));
+            .catch((e) => {
+            e.statusCode === 401 ? console.error("kdChecker 401 error", db_row.displayname) : console.log(`kdChecker`, e.stack, db_row.displayname);
+        });
     }
     function activityStatsChecker(data, member, mode) {
         var _a;
@@ -494,7 +538,11 @@ exports.default = (client) => {
                                 return response;
                             })
                                 .catch((e) => {
-                                console.log(`activityStatsChecker`, e.error, data.displayname);
+                                {
+                                    e.statusCode === 401
+                                        ? console.error("activityStatsChecker 401 error", data.displayname)
+                                        : console.error(`activityStatsChecker`, e.error, data.displayname);
+                                }
                             });
                         });
                     }
@@ -506,12 +554,8 @@ exports.default = (client) => {
                                 response === null || response === void 0 ? void 0 : response.Response.activities.forEach((activity) => {
                                     if (mode === 4 && activity.values.completed.basic.value) {
                                         if (new Date(activity.period).getTime() + activity.values.activityDurationSeconds.basic.value * 1000 >
-                                            new Date().getTime() - 1000 * 60 * 30) {
+                                            new Date().getTime() - 1000 * 60 * 35) {
                                             (0, logger_1.activityReporter)(activity.activityDetails.instanceId);
-                                            if (!member.roles.cache.has("1012474229448507526") &&
-                                                (activity.activityDetails.referenceId == 2897223272 || activity.activityDetails.referenceId == 1063970578)) {
-                                                member.roles.add("1012474229448507526", `Day One raid completion (${activity.activityDetails.instanceId})`);
-                                            }
                                         }
                                         if (!ids_1.forbiddenRaidIds.includes(activity.activityDetails.referenceId)) {
                                             completedActivities.push(activity.activityDetails.referenceId);
@@ -617,11 +661,11 @@ exports.default = (client) => {
             }
         });
     }
-    let kd = 0, raids = 4;
+    let kd = 2, raids = 4;
     setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
         kd >= 9 ? (kd = 0) : kd++;
-        raids >= 12 ? (raids = 0) : raids++;
+        raids >= 8 ? (raids = 0) : raids++;
         const t = yield sequelize_1.db.transaction();
         const role_db = yield sequelize_1.role_data.findAll({
             where: {
@@ -636,6 +680,7 @@ exports.default = (client) => {
         });
         const db_plain = (yield sequelize_1.auth_data.findAll({
             transaction: t,
+            include: sequelize_1.discord_activities,
         })).filter((data) => { var _a; return (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.has(data.discord_id); });
         try {
             yield t.commit();
@@ -651,8 +696,8 @@ exports.default = (client) => {
             const member = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(db_row.discord_id);
             !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.6 ? longOffline.delete(member.id) : "";
             kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
-            raids === 6 && db_row.clan === true ? activityStatsChecker(db_row, member, 4) : [];
-            raids === 11 && !longOffline.has(member.id) && !member.roles.cache.has(roles_1.rTrials.wintrader) && member.roles.cache.has(roles_1.rTrials.category)
+            raids === 5 && db_row.clan === true ? activityStatsChecker(db_row, member, 4) : [];
+            raids === 7 && !longOffline.has(member.id) && !member.roles.cache.has(roles_1.rTrials.wintrader) && member.roles.cache.has(roles_1.rTrials.category)
                 ? activityStatsChecker(db_row, member, 84)
                 : [];
             yield timer(700);

@@ -131,7 +131,9 @@ exports.default = {
                                     }
                                     else if (chn.isVoiceBased() && chn.members.has(raidData.creator)) {
                                         chn.members.forEach((member) => {
-                                            raidData.joined.splice(raidData.joined.indexOf(member.id), 1);
+                                            if (raidData.joined.includes(member.id)) {
+                                                raidData.joined.splice(raidData.joined.indexOf(member.id), 1);
+                                            }
                                         });
                                     }
                                 })));
@@ -143,7 +145,9 @@ exports.default = {
                                 ];
                                 yield Promise.all(raidData.joined.map((id) => __awaiter(void 0, void 0, void 0, function* () {
                                     const member = interaction.guild.members.cache.get(id);
-                                    if (!member || member.id === raidData.creator)
+                                    if (!member)
+                                        return console.error(`error during raidNotify, member not found`, id, member);
+                                    if (member.id === raidData.creator)
                                         return;
                                     yield member
                                         .send({
