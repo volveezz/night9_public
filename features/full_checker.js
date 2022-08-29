@@ -338,7 +338,7 @@ exports.default = (client) => {
                                 give_roles.push(step.roleId);
                                 remove_roles.push(roles_1.rActivity.allVoice.filter((r) => r != step.roleId).toString());
                             }
-                            return;
+                            break;
                         }
                     }
                     for (const step of roles_1.rActivity.messages) {
@@ -349,7 +349,7 @@ exports.default = (client) => {
                                 give_roles.push(step.roleId);
                                 remove_roles.push(roles_1.rActivity.allMessages.filter((r) => r != step.roleId).toString());
                             }
-                            return;
+                            break;
                         }
                     }
                 });
