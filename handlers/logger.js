@@ -60,7 +60,7 @@ function activityReporter(pgcrId) {
                 });
                 activityChannel.send({ embeds: [embed] });
             }))
-                .catch((e) => console.log(`activityReporter error`, pgcrId, e.statusCode));
+                .catch((e) => console.log(`activityReporter error`, pgcrId, e, e.statusCode));
         }
     });
 }
