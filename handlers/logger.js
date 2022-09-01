@@ -32,7 +32,7 @@ function activityReporter(pgcrId) {
                 var _a, _b;
                 const embed = new discord_js_1.EmbedBuilder()
                     .setColor("Green")
-                    .setTimestamp(response.Response.period)
+                    .setTimestamp(new Date(response.Response.period))
                     .setFooter({ text: `Активность была начата ${response.Response.activityWasStartedFromBeginning === true ? "с начала" : "с чекпоинта"}` });
                 ((_a = response.Response.activityDetails) === null || _a === void 0 ? void 0 : _a.mode) === 4
                     ? embed.setAuthor({ name: `Raid Report`, url: `https://raid.report/pgcr/${pgcrId}` })
