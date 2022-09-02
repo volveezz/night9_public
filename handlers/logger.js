@@ -45,10 +45,10 @@ function activityReporter(pgcrId) {
                 embed.setTitle(manifestData.displayProperties.name + ` был(а) пройден(а) сокланами`);
                 manifestData.displayProperties.hasIcon
                     ? manifestData.displayProperties.highResIcon
-                        ? embed.setFooter({ text: footerText, iconURL: `${manifestData.displayProperties.highResIcon}` })
-                        : embed.setFooter({ text: footerText, iconURL: manifestData.displayProperties.icon })
+                        ? embed.setFooter({ text: footerText, iconURL: `https://bungie.net${manifestData.displayProperties.highResIcon}` })
+                        : embed.setFooter({ text: footerText, iconURL: `https://bungie.net${manifestData.displayProperties.icon}` })
                     : embed.setFooter({ text: footerText });
-                manifestData.pgcrImage ? embed.setThumbnail(manifestData.pgcrImage) : "";
+                manifestData.pgcrImage ? embed.setThumbnail(`https://bungie.net${manifestData.pgcrImage}`) : "";
                 response.Response.entries.forEach((entry) => {
                     if (entry.values.completed.basic.value !== 1)
                         return;
