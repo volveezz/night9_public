@@ -63,9 +63,10 @@ function activityReporter(pgcrId) {
                     membersMembershipIds.push(entry.player.membershipId);
                 });
                 const msg = yield activityChannel.send({ embeds: [embed] });
-                if (membersMembershipIds.length <= 0)
+                const filteredmembersMembershipIds = membersMembershipIds.filter((a) => a !== undefined);
+                if (filteredmembersMembershipIds.length <= 0)
                     return;
-                const dbData = yield sequelize_2.auth_data.findAll({ where: { bungie_id: { [sequelize_3.Op.any]: membersMembershipIds } } });
+                const dbData = yield sequelize_2.auth_data.findAll({ where: { bungie_id: { [sequelize_3.Op.any]: `{${filteredmembersMembershipIds}}` } } });
                 if (dbData.length > 0) {
                     console.log(`activityReporter debugger: ${dbData.length} ${pgcrId}`);
                     dbData.forEach((dbMemberData) => __awaiter(this, void 0, void 0, function* () {

@@ -665,7 +665,7 @@ exports.default = (client) => {
             }
         });
     }
-    let kd = 2, raids = 4;
+    let kd = 2, raids = 3;
     setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
         kd >= 9 ? (kd = 0) : kd++;
@@ -700,8 +700,8 @@ exports.default = (client) => {
             const member = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(db_row.discord_id);
             !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.6 ? longOffline.delete(member.id) : "";
             kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
-            raids === 5 && db_row.clan === true ? activityStatsChecker(db_row, member, 4) : [];
-            raids === 7 && !longOffline.has(member.id) && !member.roles.cache.has(roles_1.rTrials.wintrader) && member.roles.cache.has(roles_1.rTrials.category)
+            raids === 4 ? activityStatsChecker(db_row, member, 4) : [];
+            raids === 6 && !longOffline.has(member.id) && !member.roles.cache.has(roles_1.rTrials.wintrader) && member.roles.cache.has(roles_1.rTrials.category)
                 ? activityStatsChecker(db_row, member, 84)
                 : [];
             yield timer(700);
