@@ -21,7 +21,7 @@ const channels_1 = require("../base/channels");
 const welcomeMessage_1 = require("./welcomeMessage");
 const __1 = require("..");
 const manifestHandler_1 = require("./manifestHandler");
-const types_1 = require("sequelize/types");
+const sequelize_3 = require("sequelize");
 const pgcrIds = new Set();
 const guildMemberChannel = (0, channels_1.chnFetcher)(ids_1.ids.guildMemberChnId), guildChannel = (0, channels_1.chnFetcher)(ids_1.ids.guildChnId), messageChannel = (0, channels_1.chnFetcher)(ids_1.ids.messagesChnId), voiceChannel = (0, channels_1.chnFetcher)(ids_1.ids.voiceChnId), destinyClanChannel = (0, channels_1.chnFetcher)(ids_1.ids.clanChnId), discordBotChannel = (0, channels_1.chnFetcher)(ids_1.ids.botChnId), activityChannel = (0, channels_1.chnFetcher)(ids_1.ids.activityChnId);
 function activityReporter(pgcrId) {
@@ -65,7 +65,7 @@ function activityReporter(pgcrId) {
                 const msg = yield activityChannel.send({ embeds: [embed] });
                 if (membersMembershipIds.length <= 0)
                     return;
-                const dbData = yield sequelize_2.auth_data.findAll({ where: { bungie_id: { [types_1.Op.any]: membersMembershipIds } } });
+                const dbData = yield sequelize_2.auth_data.findAll({ where: { bungie_id: { [sequelize_3.Op.any]: membersMembershipIds } } });
                 if (dbData.length > 0) {
                     console.log(`activityReporter debugger: ${dbData.length} ${pgcrId}`);
                     dbData.forEach((dbMemberData) => __awaiter(this, void 0, void 0, function* () {
