@@ -306,18 +306,18 @@ exports.default = {
                 case "raidInChnButton_delete": {
                     const embed = new discord_js_1.EmbedBuilder().setColor("Yellow").setTitle(`Подтвердите удаление рейда ${raidData.id}-${raidData.raid}`);
                     const components = [
-                        new discord_js_1.ButtonBuilder().setCustomId("raidAddFunc_delete_confirm").setLabel("Подтвердить").setStyle(discord_js_1.ButtonStyle.Danger),
-                        new discord_js_1.ButtonBuilder().setCustomId("raidAddFunc_delete_cancel").setLabel("Отменить").setStyle(discord_js_1.ButtonStyle.Secondary),
+                        {
+                            type: discord_js_1.ComponentType.ActionRow,
+                            components: [
+                                new discord_js_1.ButtonBuilder().setCustomId("raidAddFunc_delete_confirm").setLabel("Подтвердить").setStyle(discord_js_1.ButtonStyle.Danger),
+                                new discord_js_1.ButtonBuilder().setCustomId("raidAddFunc_delete_cancel").setLabel("Отменить").setStyle(discord_js_1.ButtonStyle.Secondary),
+                            ],
+                        },
                     ];
                     const msg = yield interaction.followUp({
                         ephemeral: true,
                         embeds: [embed],
-                        components: [
-                            {
-                                type: discord_js_1.ComponentType.ActionRow,
-                                components: components,
-                            },
-                        ],
+                        components: components,
                     });
                     const collector = msg.createMessageComponentCollector({ time: 60 * 1000, max: 1, filter: (i) => i.user.id === interaction.user.id });
                     collector.on("collect", (col) => __awaiter(void 0, void 0, void 0, function* () {

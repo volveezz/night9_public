@@ -695,19 +695,22 @@ exports.default = {
                 .then((chn) => __awaiter(void 0, void 0, void 0, function* () {
                 const premiumEmbed = new discord_js_1.EmbedBuilder().setColor("#F3AD0C").addFields([{ name: "Испытание этой недели", value: `> Продам гараж <` }]);
                 const components = [
-                    new discord_js_1.ButtonBuilder().setCustomId("raidInChnButton_notify").setLabel("Оповестить участников").setStyle(discord_js_1.ButtonStyle.Secondary),
-                    new discord_js_1.ButtonBuilder().setCustomId("raidInChnButton_transfer").setLabel("Переместить участников в рейд-войс").setStyle(discord_js_1.ButtonStyle.Secondary),
-                    new discord_js_1.ButtonBuilder().setCustomId("raidInChnButton_unlock").setLabel("Закрыть набор").setStyle(discord_js_1.ButtonStyle.Danger),
-                    new discord_js_1.ButtonBuilder().setCustomId("raidInChnButton_delete").setLabel("Удалить набор").setStyle(discord_js_1.ButtonStyle.Danger),
+                    {
+                        type: discord_js_1.ComponentType.ActionRow,
+                        components: [
+                            new discord_js_1.ButtonBuilder().setCustomId("raidInChnButton_notify").setLabel("Оповестить участников").setStyle(discord_js_1.ButtonStyle.Secondary),
+                            new discord_js_1.ButtonBuilder()
+                                .setCustomId("raidInChnButton_transfer")
+                                .setLabel("Переместить участников в рейд-войс")
+                                .setStyle(discord_js_1.ButtonStyle.Secondary),
+                            new discord_js_1.ButtonBuilder().setCustomId("raidInChnButton_unlock").setLabel("Закрыть набор").setStyle(discord_js_1.ButtonStyle.Danger),
+                            new discord_js_1.ButtonBuilder().setCustomId("raidInChnButton_delete").setLabel("Удалить набор").setStyle(discord_js_1.ButtonStyle.Danger),
+                        ],
+                    },
                 ];
                 const inChnMsg = chn.send({
                     embeds: [premiumEmbed],
-                    components: [
-                        {
-                            type: discord_js_1.ComponentType.ActionRow,
-                            components: components,
-                        },
-                    ],
+                    components: components,
                 });
                 const insertedRaidData = sequelize_1.raids.update({
                     chnId: chn.id,

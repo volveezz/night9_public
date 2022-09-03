@@ -383,7 +383,7 @@ exports.default = (client) => {
             }
         }))
             .catch((e) => {
-            e.statusCode === 401 || e.statusCode === 503
+            e.statusCode === 401 || e.statusCode === 503 || e.statusCode === 500
                 ? console.error(`roleManager ${e.statusCode} error`, data.displayname)
                 : console.error(`roleManager`, e.error, data.displayname, e.statusCode);
         });
@@ -514,7 +514,11 @@ exports.default = (client) => {
                     exports.character_data.set(data.discord_id, Object.keys(chars["Response"]["characters"]["data"]));
                     activityStatsChecker(data, member, mode);
                 })
-                    .catch((e) => console.log(`activityStatsChecker character`, e.error, data.displayname));
+                    .catch((e) => {
+                    e.statusCode === 401 || e.statusCode === 503 || e.statusCode === 500
+                        ? console.error(`activityStatsChecker ${e.statusCode} error`, data.displayname)
+                        : console.error(`activityStatsChecker`, e.error, data.displayname, e.statusCode);
+                });
             }
             else {
                 let completedActivities = [];

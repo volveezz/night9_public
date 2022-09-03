@@ -21,6 +21,7 @@ const channels_1 = require("../base/channels");
 const welcomeMessage_1 = require("./welcomeMessage");
 const __1 = require("..");
 const manifestHandler_1 = require("./manifestHandler");
+const types_1 = require("sequelize/types");
 const pgcrIds = new Set();
 const guildMemberChannel = (0, channels_1.chnFetcher)(ids_1.ids.guildMemberChnId), guildChannel = (0, channels_1.chnFetcher)(ids_1.ids.guildChnId), messageChannel = (0, channels_1.chnFetcher)(ids_1.ids.messagesChnId), voiceChannel = (0, channels_1.chnFetcher)(ids_1.ids.voiceChnId), destinyClanChannel = (0, channels_1.chnFetcher)(ids_1.ids.clanChnId), discordBotChannel = (0, channels_1.chnFetcher)(ids_1.ids.botChnId), activityChannel = (0, channels_1.chnFetcher)(ids_1.ids.activityChnId);
 function activityReporter(pgcrId) {
@@ -30,10 +31,7 @@ function activityReporter(pgcrId) {
             (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`, { headers: { "X-API-KEY": process.env.XAPI }, json: true })
                 .then((response) => __awaiter(this, void 0, void 0, function* () {
                 var _a, _b;
-                const embed = new discord_js_1.EmbedBuilder()
-                    .setColor("Green")
-                    .setTimestamp(new Date(response.Response.period))
-                    .setFooter({ text: `Активность была начата ${response.Response.activityWasStartedFromBeginning === true ? "с начала" : "с чекпоинта"}` });
+                const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTimestamp(new Date(response.Response.period));
                 ((_a = response.Response.activityDetails) === null || _a === void 0 ? void 0 : _a.mode) === 4
                     ? embed.setAuthor({ name: `Raid Report`, url: `https://raid.report/pgcr/${pgcrId}` })
                     : ((_b = response.Response.activityDetails) === null || _b === void 0 ? void 0 : _b.mode) === 82
@@ -42,23 +40,61 @@ function activityReporter(pgcrId) {
                 const footerText = `Активность была начата ${response.Response.activityWasStartedFromBeginning === true ? "с начала" : "с чекпоинта"}`;
                 const referenceId = response.Response.activityDetails.referenceId;
                 const manifestData = (yield manifestHandler_1.DestinyActivityDefinition)[referenceId];
-                embed.setTitle(manifestData.displayProperties.name + ` был(а) пройден(а) сокланами`);
+                embed.setTitle(manifestData.displayProperties.name);
                 manifestData.displayProperties.hasIcon
                     ? manifestData.displayProperties.highResIcon
                         ? embed.setFooter({ text: footerText, iconURL: `https://bungie.net${manifestData.displayProperties.highResIcon}` })
                         : embed.setFooter({ text: footerText, iconURL: `https://bungie.net${manifestData.displayProperties.icon}` })
                     : embed.setFooter({ text: footerText });
                 manifestData.pgcrImage ? embed.setThumbnail(`https://bungie.net${manifestData.pgcrImage}`) : "";
+                const membersMembershipIds = [];
                 response.Response.entries.forEach((entry) => {
                     if (entry.values.completed.basic.value !== 1)
                         return;
                     embed.addFields({
-                        name: `${entry.player.destinyUserInfo.bungieGlobalDisplayName}`,
+                        name: `${entry.player.classHash === 671679327
+                            ? "<:hunter:995496474978824202>"
+                            : entry.player.classHash === 2271682572
+                                ? "<:warlock:995496471526920232>"
+                                : "<:titan:995496472722284596>"}${entry.player.destinyUserInfo.bungieGlobalDisplayName}`,
                         value: `У: ${entry.values.kills.basic.displayValue} С: ${entry.values.deaths.basic.displayValue} П: ${entry.values.assists.basic.displayValue}\nПрохождение заняло: ${entry.values.timePlayedSeconds.basic.displayValue}`,
                         inline: true,
                     });
+                    membersMembershipIds.push(entry.player.membershipId);
                 });
-                activityChannel.send({ embeds: [embed] });
+                const msg = yield activityChannel.send({ embeds: [embed] });
+                if (membersMembershipIds.length <= 0)
+                    return;
+                const dbData = yield sequelize_2.auth_data.findAll({ where: { bungie_id: { [types_1.Op.any]: membersMembershipIds } } });
+                if (dbData.length > 0) {
+                    console.log(`activityReporter debugger: ${dbData.length} ${pgcrId}`);
+                    dbData.forEach((dbMemberData) => __awaiter(this, void 0, void 0, function* () {
+                        var _c;
+                        const dbRaidData = yield sequelize_1.raids.findOne({ where: { creator: dbMemberData.discord_id } });
+                        if (dbRaidData) {
+                            console.log(`activityReporter advanced debugger: ${dbRaidData.id}-${dbRaidData.raid} ${pgcrId} ${dbMemberData.discord_id === dbRaidData.creator}`);
+                            if (dbRaidData.time < new Date().getTime()) {
+                                const embed = new discord_js_1.EmbedBuilder()
+                                    .setColor("Blue")
+                                    .setFooter({ text: "Alpha function" })
+                                    .setTitle("Рейд созданный вами был завершен")
+                                    .setDescription(`Вы создавали рейд ${dbRaidData.id}-${dbRaidData.raid} на <t:${dbRaidData.time}> и сейчас он был завершен.\nПодтвердите завершение рейда и набор будет удален.\n\n[История активностей](https://discord.com/${msg.guildId + "/" + msg.channelId + "/" + msg.id})\n\nВ случае ошибок отправьте скриншот ошибки (если отображается) или опишите её в этом же чате.`);
+                                return (_c = __1.BotClient.users.cache
+                                    .get(dbRaidData.creator)) === null || _c === void 0 ? void 0 : _c.send({
+                                    embeds: [embed],
+                                    components: [
+                                        {
+                                            type: discord_js_1.ComponentType.ActionRow,
+                                            components: [
+                                                new discord_js_1.ButtonBuilder().setCustomId("raidInChnButton_delete").setLabel("Удалить набор").setStyle(discord_js_1.ButtonStyle.Danger),
+                                            ],
+                                        },
+                                    ],
+                                }).then((m) => console.log(`activityReporter final debugger: msg sent to ${dbRaidData.creator}`)).catch((e) => console.error(`acitvityReporter final error`, e));
+                            }
+                        }
+                    }));
+                }
             }))
                 .catch((e) => console.log(`activityReporter error`, pgcrId, e, e.statusCode));
         }
