@@ -20,15 +20,19 @@ exports.default = {
     },
     options: [{ type: discord_js_1.ApplicationCommandOptionType.User, name: "пользователь", description: "Укажите искомого пользователя" }],
     description: "Статистика по рейдам",
+    type: [true, true, false],
     callback: (_client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
         var _a, _b, _c, _d, _e, _f;
         yield interaction.deferReply({ ephemeral: true });
-        const user = interaction.options.getUser("пользователь");
+        const user = interaction instanceof discord_js_1.ChatInputCommandInteraction ? interaction.options.getUser("пользователь") : interaction.targetUser;
         const db_data = yield sequelize_1.auth_data.findOne({
             where: { discord_id: user ? user.id : interaction.user.id },
             attributes: ["bungie_id", "platform", "access_token"],
         });
         if (db_data === null) {
+            if (interaction instanceof discord_js_1.UserContextMenuCommandInteraction) {
+                throw { name: `Выбранный пользователь не зарегистрирован` };
+            }
             throw { name: "Ошибка", message: "Для использования этой команды необходимо зарегистрироваться" };
         }
         const characters_list = yield (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/${db_data.platform}/Profile/${db_data.bungie_id}/?components=200`, {

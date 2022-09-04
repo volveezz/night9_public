@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.clan_joinLeave = exports.init_register = exports.activityReporter = void 0;
+exports.clan_joinLeave = exports.init_register = exports.activityReporter = exports.dmChnSentMsgsLogger = void 0;
 const discord_js_1 = require("discord.js");
 const colors_1 = require("../base/colors");
 const ids_1 = require("../base/ids");
@@ -24,6 +24,32 @@ const manifestHandler_1 = require("./manifestHandler");
 const sequelize_3 = require("sequelize");
 const pgcrIds = new Set();
 const guildMemberChannel = (0, channels_1.chnFetcher)(ids_1.ids.guildMemberChnId), guildChannel = (0, channels_1.chnFetcher)(ids_1.ids.guildChnId), messageChannel = (0, channels_1.chnFetcher)(ids_1.ids.messagesChnId), voiceChannel = (0, channels_1.chnFetcher)(ids_1.ids.voiceChnId), destinyClanChannel = (0, channels_1.chnFetcher)(ids_1.ids.clanChnId), discordBotChannel = (0, channels_1.chnFetcher)(ids_1.ids.botChnId), activityChannel = (0, channels_1.chnFetcher)(ids_1.ids.activityChnId);
+function dmChnSentMsgsLogger(member, text, id) {
+    const dmChn = (0, channels_1.chnFetcher)(ids_1.ids.dmMsgsChnId);
+    const embed = new discord_js_1.EmbedBuilder()
+        .setColor(colors_1.colors.default)
+        .setTitle("Отправлено сообщение")
+        .setAuthor({
+        name: `Отправлено: ${member.displayName || member.user.username}${member.user.username !== member.displayName ? ` (${member.user.username})` : ""}`,
+        iconURL: member.displayAvatarURL(),
+    })
+        .setTimestamp()
+        .setDescription(text)
+        .setFooter({ text: `UId: ${member.id} | MId: ${id}` });
+    dmChn.send({
+        embeds: [embed],
+        components: [
+            {
+                type: discord_js_1.ComponentType.ActionRow,
+                components: [
+                    new discord_js_1.ButtonBuilder().setCustomId("dmChnFunc_reply").setLabel("Ответить").setStyle(discord_js_1.ButtonStyle.Success),
+                    new discord_js_1.ButtonBuilder().setCustomId("dmChnFunc_delete").setLabel("Удалить сообщение").setStyle(discord_js_1.ButtonStyle.Danger),
+                ],
+            },
+        ],
+    });
+}
+exports.dmChnSentMsgsLogger = dmChnSentMsgsLogger;
 function activityReporter(pgcrId) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!pgcrIds.has(pgcrId)) {
@@ -52,12 +78,12 @@ function activityReporter(pgcrId) {
                     if (entry.values.completed.basic.value !== 1)
                         return;
                     embed.addFields({
-                        name: `${entry.player.classHash === 671679327
+                        name: `${entry.player.destinyUserInfo.bungieGlobalDisplayName}`,
+                        value: `${entry.player.classHash === 671679327
                             ? "<:hunter:995496474978824202>"
                             : entry.player.classHash === 2271682572
                                 ? "<:warlock:995496471526920232>"
-                                : "<:titan:995496472722284596>"}${entry.player.destinyUserInfo.bungieGlobalDisplayName}`,
-                        value: `У: ${entry.values.kills.basic.displayValue} С: ${entry.values.deaths.basic.displayValue} П: ${entry.values.assists.basic.displayValue}\nПрохождение заняло: ${entry.values.timePlayedSeconds.basic.displayValue}`,
+                                : "<:titan:995496472722284596>"}У: ${entry.values.kills.basic.displayValue} С: ${entry.values.deaths.basic.displayValue} П: ${entry.values.assists.basic.displayValue}\nПрохождение заняло: ${entry.values.timePlayedSeconds.basic.displayValue}`,
                         inline: true,
                     });
                     membersMembershipIds.push(entry.player.membershipId);
@@ -111,20 +137,14 @@ function init_register(state, user, rowCreated) {
     })
         .setTimestamp()
         .setFooter({ text: `Id: ${user.id}` })
-        .addFields([
-        { name: "State", value: state, inline: true },
-        { name: "Впервые", value: String(rowCreated), inline: true },
-    ]);
+        .addFields({ name: "Пользователь", value: `<@${user.id}>`, inline: true }, { name: "State", value: state, inline: true }, { name: "Впервые", value: String(rowCreated), inline: true });
     discordBotChannel.send({ embeds: [embed] });
 }
 exports.init_register = init_register;
 function clan_joinLeave(result, join) {
     return __awaiter(this, void 0, void 0, function* () {
         const member = __1.BotClient.guilds.cache.get(ids_1.guildId).members.cache.get(result.discord_id);
-        const embed = new discord_js_1.EmbedBuilder().addFields([
-            { name: "BungieId", value: result.bungie_id, inline: true },
-            { name: "Ник в игре", value: result.displayname, inline: true },
-        ]);
+        const embed = new discord_js_1.EmbedBuilder().addFields({ name: "Пользователь", value: `<@${result.discord_id}>`, inline: true }, { name: "BungieId", value: result.bungie_id, inline: true }, { name: "Ник в игре", value: result.displayname, inline: true });
         if (member) {
             if (join) {
                 member.roles.add(roles_1.statusRoles.clanmember).then((m) => m.roles.remove([roles_1.statusRoles.kicked, roles_1.statusRoles.newbie, roles_1.statusRoles.member]));

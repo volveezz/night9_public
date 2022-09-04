@@ -13,6 +13,7 @@ const discord_js_1 = require("discord.js");
 const channels_1 = require("../base/channels");
 const colors_1 = require("../base/colors");
 const ids_1 = require("../base/ids");
+const logger_1 = require("../handlers/logger");
 const sequelize_1 = require("../handlers/sequelize");
 exports.default = (client) => {
     const dmChn = (0, channels_1.chnFetcher)(ids_1.ids.dmMsgsChnId);
@@ -39,7 +40,7 @@ exports.default = (client) => {
                 name: `Отправитель: ${member === null || member === void 0 ? void 0 : member.displayName}${(member === null || member === void 0 ? void 0 : member.user.username) !== (member === null || member === void 0 ? void 0 : member.displayName) ? ` (${member === null || member === void 0 ? void 0 : member.user.username})` : ""}`,
                 iconURL: message.author.displayAvatarURL(),
             })
-                .setFooter({ text: `UId: ${message.author.id}` })
+                .setFooter({ text: `UId: ${message.author.id} | MId: ${message.id}` })
                 .setTimestamp();
             if (message.cleanContent.length > 0) {
                 embed.setDescription(message.cleanContent);
@@ -68,32 +69,31 @@ exports.default = (client) => {
                     },
                 ]);
             }
-            dmChn.send({ embeds: [embed] });
+            dmChn.send({
+                embeds: [embed],
+                components: [
+                    {
+                        type: discord_js_1.ComponentType.ActionRow,
+                        components: [new discord_js_1.ButtonBuilder().setCustomId("dmChnFunc_reply").setLabel("Ответить").setStyle(discord_js_1.ButtonStyle.Success)],
+                    },
+                ],
+            });
         }
         else {
             sequelize_1.discord_activities
                 .increment("messages", { by: 1, where: { authDatumDiscordId: message.author.id } })
                 .catch((e) => console.log(`Error during updating discordActivity for ${message.member.displayName}`, e));
         }
-        if (message.channel.id === dmChn.id && ((_b = message.member) === null || _b === void 0 ? void 0 : _b.permissions.has("Administrator")) && message.guild && message.content.length > 15) {
+        if (message.channel.id === dmChn.id && ((_b = message.member) === null || _b === void 0 ? void 0 : _b.permissions.has("Administrator")) && message.guild && message.content.length > 18) {
             const msgContent = message.content.trim().split(" ");
             const userId = msgContent.shift();
             const embedCheck = msgContent.pop();
-            const isEmbed = embedCheck === "embed" ? true : false;
+            const isEmbed = embedCheck === "embed" && msgContent.length !== 0 ? true : false;
             const member = userId ? message.guild.members.cache.get(userId) : undefined;
             if (member) {
-                const embed = new discord_js_1.EmbedBuilder()
-                    .setColor(colors_1.colors.default)
-                    .setTitle("Отправлено сообщение")
-                    .setAuthor({
-                    name: `Отправлено: ${member.displayName}${member.user.username !== member.displayName ? ` (${member.user.username})` : ""}`,
-                    iconURL: member.displayAvatarURL(),
-                })
-                    .setTimestamp()
-                    .setFooter({ text: `UId: ${member.id}` });
                 const sendedMsg = yield msgSend(isEmbed);
-                sendedMsg.content.length > 0 ? embed.setDescription(sendedMsg.content) : embed.setDescription(sendedMsg.embeds[0].description);
-                dmChn.send({ embeds: [embed] });
+                message.delete();
+                (0, logger_1.dmChnSentMsgsLogger)(member, sendedMsg.content.length > 0 ? sendedMsg.content : sendedMsg.embeds[0].description, sendedMsg.id);
                 function msgSend(isEmbed) {
                     return __awaiter(this, void 0, void 0, function* () {
                         if (isEmbed) {

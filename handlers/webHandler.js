@@ -152,19 +152,16 @@ exports.default = (code, state, res) => __awaiter(void 0, void 0, void 0, functi
                         ]);
                         const loggedEmbed = new discord_js_1.EmbedBuilder()
                             .setColor("Green")
-                            .setAuthor({ name: `${member === null || member === void 0 ? void 0 : member.displayName} зарегистрировался`, iconURL: member === null || member === void 0 ? void 0 : member.displayAvatarURL() })
-                            .addFields([
-                            {
-                                name: "Bungie аккаунт",
-                                value: `[bungie.net](https://www.bungie.net/7/ru/User/Profile/254/${body.membership_id})`,
-                                inline: true,
-                            },
-                            {
-                                name: "BungieName",
-                                value: displayname,
-                                inline: true,
-                            },
-                        ])
+                            .setAuthor({ name: `${member.displayName} зарегистрировался`, iconURL: member.displayAvatarURL() })
+                            .addFields({ name: "Пользователь", value: `<@${member.id}>`, inline: true }, {
+                            name: "Bungie аккаунт",
+                            value: `[bungie.net](https://www.bungie.net/7/ru/User/Profile/254/${body.membership_id})`,
+                            inline: true,
+                        }, {
+                            name: "BungieName",
+                            value: displayname,
+                            inline: true,
+                        })
                             .setTimestamp();
                         (0, channels_1.chnFetcher)(ids_1.ids.botChnId).send({ embeds: [loggedEmbed] });
                         sequelize_1.discord_activities.findOrCreate({
