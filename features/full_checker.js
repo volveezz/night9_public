@@ -436,6 +436,7 @@ exports.default = (client) => {
                 if (bungie_array.some((e) => e.bungie_id === result.destinyUserInfo.membershipId)) {
                     const [clan_member] = bungie_array.splice(bungie_array.findIndex((e) => e.bungie_id === result.destinyUserInfo.membershipId), 1);
                     if (!clanJoinDateCheck.has(result.destinyUserInfo.membershipId)) {
+                        yield timer(1000);
                         const member = (_c = client.guilds.cache.get(ids_1.guildId)) === null || _c === void 0 ? void 0 : _c.members.cache.get(clan_member.discord_id);
                         if (!member)
                             return console.error(`ClanJoinedDate checker error, not found member`, member, clan_member.discord_id, clan_member.displayname);
@@ -445,7 +446,7 @@ exports.default = (client) => {
                                     if (!member.roles.cache.has(roles_1.rTriumphs.category))
                                         member.roles.add(roles_1.rTriumphs.category);
                                     member.roles.add(step.roleId).then((m) => {
-                                        member.roles.remove(roles_1.rClanJoinDate.allRoles.filter((r) => r != step.roleId).toString());
+                                        member.roles.remove(roles_1.rClanJoinDate.allRoles.filter((r) => r != step.roleId));
                                     });
                                 }
                                 clanJoinDateCheck.add(result.destinyUserInfo.membershipId);
