@@ -1,9 +1,741 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.character_data = exports.completedRaidsData = void 0;
+const sequelize_1 = require("../handlers/sequelize");
+const request_promise_native_1 = require("request-promise-native");
+const logger_1 = require("../handlers/logger");
+const ids_1 = require("../base/ids");
+const roles_1 = require("../base/roles");
+const sequelize_2 = require("sequelize");
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 exports.completedRaidsData = new Map();
 exports.character_data = new Map();
 const longOffline = new Set();
 exports.default = (client) => {
+    function role_manager(data, member, role_db) {
+        const give_roles = [], remove_roles = [], c = member.roles.cache;
+        (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/${data.platform}/Profile/${data.bungie_id}/?components=100,900,1100`, {
+            headers: {
+                "Content-Type": "application/json",
+                "X-API-KEY": process.env.XAPI,
+            },
+            auth: {
+                bearer: data.access_token ? data.access_token : undefined,
+            },
+            json: true,
+        })
+            .then((response) => __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const { Response } = response;
+            if (!exports.character_data.get(data.discord_id)) {
+                exports.character_data.set(data.discord_id, Response["profile"]["data"]["characterIds"]);
+            }
+            if (new Date().getTime() - new Date(Response.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60 * 2) {
+                longOffline.add(member.id);
+            }
+            if (!c.has(roles_1.statusRoles.verified))
+                give_roles.push(roles_1.statusRoles.verified);
+            function seasonalRolesChecker() {
+                return __awaiter(this, void 0, void 0, function* () {
+                    if (Response.profile.data.seasonHashes.includes(Response.profile.data.currentSeasonHash)) {
+                        if (!c.has(roles_1.seasonalRoles.curSeasonRole))
+                            give_roles.push(roles_1.seasonalRoles.curSeasonRole);
+                        if (c.has(roles_1.seasonalRoles.nonCurSeasonRole))
+                            remove_roles.push(roles_1.seasonalRoles.nonCurSeasonRole);
+                        return [true];
+                    }
+                    else {
+                        if (!c.has(roles_1.seasonalRoles.nonCurSeasonRole))
+                            give_roles.push(roles_1.seasonalRoles.nonCurSeasonRole);
+                        if (c.has(roles_1.seasonalRoles.curSeasonRole))
+                            remove_roles.push(roles_1.seasonalRoles.curSeasonRole);
+                        return [true];
+                    }
+                });
+            }
+            function dlc_rolesChecker(version) {
+                return __awaiter(this, void 0, void 0, function* () {
+                    let dlcs = [false, false, false, false, false, false];
+                    switch (version) {
+                        case 7:
+                            dlcs = [false, false, false, false, false, false];
+                            break;
+                        case 31:
+                            dlcs = [true, false, false, false, false, false];
+                            break;
+                        case 63:
+                            dlcs = [true, true, false, false, false, false];
+                            break;
+                        case 71:
+                            dlcs = [false, false, true, false, false, false];
+                            break;
+                        case 95:
+                            dlcs = [true, false, true, false, false, false];
+                            break;
+                        case 127:
+                            dlcs = [true, true, true, false, false, false];
+                            break;
+                        case 135:
+                            dlcs = [false, false, false, true, false, false];
+                            break;
+                        case 191:
+                            dlcs = [true, true, false, true, false, false];
+                            break;
+                        case 223:
+                            dlcs = [true, false, true, true, false, false];
+                            break;
+                        case 255:
+                            dlcs = [true, true, true, true, false, false];
+                            break;
+                        case 263:
+                            dlcs = [false, false, false, false, true, false];
+                            break;
+                        case 287:
+                            dlcs = [true, false, false, false, true, false];
+                            break;
+                        case 319:
+                            dlcs = [true, true, false, false, true, false];
+                            break;
+                        case 327:
+                            dlcs = [false, false, true, false, true, false];
+                            break;
+                        case 351:
+                            dlcs = [true, false, true, false, true, false];
+                            break;
+                        case 359:
+                            dlcs = [false, true, true, false, true, false];
+                            break;
+                        case 383:
+                            dlcs = [true, true, true, false, true, false];
+                            break;
+                        case 391:
+                            dlcs = [false, false, false, true, true, false];
+                            break;
+                        case 447:
+                            dlcs = [true, true, false, true, true, false];
+                            break;
+                        case 455:
+                            dlcs = [false, false, true, true, true, false];
+                            break;
+                        case 487:
+                            dlcs = [false, true, true, true, true, false];
+                            break;
+                        case 511:
+                            dlcs = [true, true, true, true, true, false];
+                            break;
+                        default:
+                            console.log(`[AUTOROLE] NOT FOUND DATA FOR THIS NUMBER ${version}, BungieId: ${data.platform}/${data.bungie_id}`);
+                            break;
+                    }
+                    if (dlcs.includes(true)) {
+                        c.has(roles_1.dlcsRoles.vanilla) ? remove_roles.push(roles_1.dlcsRoles.vanilla) : [];
+                    }
+                    else {
+                        !c.has(roles_1.dlcsRoles.vanilla) ? give_roles.push(roles_1.dlcsRoles.vanilla) : [];
+                    }
+                    if (dlcs[0])
+                        !c.has(roles_1.dlcsRoles.frs) ? give_roles.push(roles_1.dlcsRoles.frs) : "";
+                    if (dlcs[1])
+                        !c.has(roles_1.dlcsRoles.sk) ? give_roles.push(roles_1.dlcsRoles.sk) : "";
+                    if (dlcs[2])
+                        !c.has(roles_1.dlcsRoles.bl) ? give_roles.push(roles_1.dlcsRoles.bl) : "";
+                    if (dlcs[3])
+                        !c.has(roles_1.dlcsRoles.anni) ? give_roles.push(roles_1.dlcsRoles.anni) : "";
+                    if (dlcs[4])
+                        !c.has(roles_1.dlcsRoles.twq) ? give_roles.push(roles_1.dlcsRoles.twq) : "";
+                    if (dlcs[5])
+                        !c.has(roles_1.dlcsRoles.lf) ? give_roles.push(roles_1.dlcsRoles.lf) : "";
+                });
+            }
+            function triumphsChecker() {
+                return __awaiter(this, void 0, void 0, function* () {
+                    const activeTriumphs = Response.profileRecords.data.activeScore;
+                    for (const step of roles_1.rStats.active) {
+                        if (activeTriumphs >= step.triumphScore) {
+                            if (!c.has(step.roleId)) {
+                                if (!c.has(roles_1.rStats.category))
+                                    give_roles.push(roles_1.rStats.category);
+                                give_roles.push(step.roleId);
+                                remove_roles.push(roles_1.rStats.allActive.filter((r) => r !== step.roleId).toString());
+                            }
+                            break;
+                        }
+                    }
+                    role_db.forEach((role) => __awaiter(this, void 0, void 0, function* () {
+                        var _a, _b, _c, _d, _e;
+                        const checkArray = [];
+                        if (role.guilded_hash) {
+                            if (Response.profileRecords.data.records[role.guilded_hash] !== undefined) {
+                                const triumphRecord = Response.profileRecords.data.records[role.guilded_hash];
+                                if (triumphRecord && triumphRecord.completedCount !== undefined && triumphRecord.completedCount > 0) {
+                                    const index = triumphRecord.completedCount;
+                                    if (role.guilded_roles.at(index - 1) !== undefined && !c.has(role.guilded_roles.at(index - 1))) {
+                                        if (role.guilded_roles && role.guilded_roles.at(index - 1) && ((_a = role.guilded_roles.at(index - 1)) === null || _a === void 0 ? void 0 : _a.toLowerCase()) !== "null") {
+                                            if (!c.has(role.guilded_roles.at(index - 1))) {
+                                                give_roles.push(role.guilded_roles.at(index - 1));
+                                                remove_roles.push(role.role_id, role.guilded_roles
+                                                    .filter((r) => r && r !== null && r.toLowerCase() !== "null" && r !== role.guilded_roles.at(index - 1))
+                                                    .toString());
+                                                if (role.unique && role.unique > 0) {
+                                                    if (role.unique === 1) {
+                                                        yield sequelize_1.role_data.update({ unique: 0 }, { where: { role_id: role.role_id } });
+                                                    }
+                                                    else {
+                                                        yield sequelize_1.role_data.decrement("unique", { by: 1, where: { role_id: role.role_id } });
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else {
+                                            var lastKnownRole = role.role_id;
+                                            for (let i = 0; i < index; i++) {
+                                                const element = role.guilded_roles[i];
+                                                if ((!element || (element === null || element === void 0 ? void 0 : element.toLowerCase()) === "null") && i === index - 1) {
+                                                    const nonGuildedRole = member.guild.roles.cache.get(role.role_id);
+                                                    if (nonGuildedRole &&
+                                                        member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`) !== undefined) {
+                                                        if (!c.has(member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`).id)) {
+                                                            give_roles.push(member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`).id);
+                                                            remove_roles.push(role.role_id, role
+                                                                .guilded_roles.filter((r) => r &&
+                                                                r.toLowerCase() !== "null" &&
+                                                                r !== member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`).id)
+                                                                .toString());
+                                                            return;
+                                                        }
+                                                        else {
+                                                            return;
+                                                        }
+                                                    }
+                                                    else if (!nonGuildedRole) {
+                                                        return console.error(`Not found previous role of ${role.hash}`, lastKnownRole, nonGuildedRole);
+                                                    }
+                                                    const createdRole = yield member.guild.roles.create({
+                                                        name: `⚜️${nonGuildedRole.name} ${i + 1}`,
+                                                        color: "#ffb300",
+                                                        permissions: [],
+                                                        position: nonGuildedRole.position,
+                                                        reason: "Auto auto-role creation",
+                                                    });
+                                                    const dbRoleUpdated = yield sequelize_1.role_data.findOne({ where: { guilded_hash: role.guilded_hash } });
+                                                    if (!dbRoleUpdated)
+                                                        throw { name: "Информация о роли не найдена в БД", message: dbRoleUpdated };
+                                                    dbRoleUpdated.guilded_roles[i] = createdRole.id;
+                                                    for (let i = 0; i < index || i < dbRoleUpdated.guilded_roles.length; i++) {
+                                                        const element = dbRoleUpdated.guilded_roles ? dbRoleUpdated.guilded_roles[i] : undefined;
+                                                        if (!element || element === undefined || (element === null || element === void 0 ? void 0 : element.toLowerCase()) === "null")
+                                                            dbRoleUpdated.guilded_roles[i] = "null";
+                                                    }
+                                                    give_roles.push(createdRole.id);
+                                                    remove_roles.push(role.role_id, dbRoleUpdated.guilded_roles.filter((r) => r && r.toLowerCase() !== "null" && r !== createdRole.id).toString());
+                                                    yield sequelize_1.role_data.update({ guilded_roles: `{${dbRoleUpdated.guilded_roles}}` }, { where: { guilded_hash: dbRoleUpdated.guilded_hash } });
+                                                    break;
+                                                }
+                                                else if (element && element.toLowerCase() !== "null") {
+                                                    lastKnownRole = element;
+                                                }
+                                                else {
+                                                    role.guilded_roles[i] = "null";
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                else if (Response.profileRecords.data.records[role.hash[0]] !== undefined) {
+                                    const notGuidedTriumphRecord = Response.profileRecords.data.records[role.hash[0]];
+                                    if (notGuidedTriumphRecord.objectives
+                                        ? ((_c = (_b = notGuidedTriumphRecord.objectives) === null || _b === void 0 ? void 0 : _b.pop()) === null || _c === void 0 ? void 0 : _c.complete) === true
+                                        : ((_e = (_d = notGuidedTriumphRecord.intervalObjectives) === null || _d === void 0 ? void 0 : _d.pop()) === null || _e === void 0 ? void 0 : _e.complete) === true) {
+                                        if (!c.has(role.role_id)) {
+                                            give_roles.push(role.role_id);
+                                        }
+                                    }
+                                }
+                            }
+                            else {
+                                console.error(`Profile record ${role.guilded_hash} not found for ${member.displayName}`);
+                            }
+                        }
+                        else {
+                            role.hash.forEach((hashArray) => {
+                                var _a, _b, _c, _d;
+                                if (Response.profileRecords.data.records[hashArray] !== undefined) {
+                                    const triumphRecord = Response.profileRecords.data.records[hashArray];
+                                    if (triumphRecord.objectives
+                                        ? ((_b = (_a = triumphRecord.objectives) === null || _a === void 0 ? void 0 : _a.pop()) === null || _b === void 0 ? void 0 : _b.complete) === true
+                                        : ((_d = (_c = triumphRecord.intervalObjectives) === null || _c === void 0 ? void 0 : _c.pop()) === null || _d === void 0 ? void 0 : _d.complete) === true) {
+                                        checkArray.push(true);
+                                    }
+                                    else {
+                                        return checkArray.push(false);
+                                    }
+                                }
+                            });
+                            if (checkArray.includes(false) || checkArray.length !== role.hash.length) {
+                                if (c.has(role.role_id))
+                                    remove_roles.push(role.role_id);
+                            }
+                            else {
+                                if (role.category === 3 && !c.has(roles_1.rTitles.category))
+                                    give_roles.push(roles_1.rTitles.category);
+                                if (role.category === 4 && !c.has(roles_1.rTriumphs.category))
+                                    give_roles.push(roles_1.rTriumphs.category);
+                                if (role.category === 5 && !c.has(roles_1.rActivity.category))
+                                    give_roles.push(roles_1.rActivity.category);
+                                if (!c.has(role.role_id))
+                                    give_roles.push(role.role_id);
+                            }
+                        }
+                    }));
+                });
+            }
+            function trialsChecker(metrics) {
+                return __awaiter(this, void 0, void 0, function* () {
+                    if (isNaN(metrics))
+                        return;
+                    if (metrics >= 1) {
+                        for (const step of roles_1.rTrials.roles) {
+                            if (step.totalFlawless <= metrics) {
+                                if (!member.roles.cache.has(step.roleId)) {
+                                    if (!member.roles.cache.has(roles_1.rTrials.category))
+                                        give_roles.push(roles_1.rTrials.category);
+                                    give_roles.push(step.roleId);
+                                    remove_roles.push(roles_1.rTrials.allRoles.filter((r) => r != step.roleId).toString());
+                                }
+                                return;
+                            }
+                        }
+                    }
+                });
+            }
+            function voiceChecker() {
+                return __awaiter(this, void 0, void 0, function* () {
+                    if (!data.discord_activity) {
+                        if (c.hasAny(roles_1.rActivity.allVoice.toString())) {
+                            remove_roles.push(roles_1.rActivity.allVoice.toString());
+                        }
+                        if (c.hasAny(roles_1.rActivity.allMessages.toString())) {
+                            remove_roles.push(roles_1.rActivity.allMessages.toString());
+                        }
+                        if (c.has(roles_1.rActivity.category))
+                            remove_roles.push(roles_1.rActivity.category);
+                        return;
+                    }
+                    for (const step of roles_1.rActivity.voice) {
+                        if (step.voiceMinutes <= data.discord_activity.voice) {
+                            if (!member.roles.cache.has(step.roleId)) {
+                                if (!member.roles.cache.has(roles_1.rActivity.category))
+                                    give_roles.push(roles_1.rActivity.category);
+                                give_roles.push(step.roleId);
+                                remove_roles.push(roles_1.rActivity.allVoice.filter((r) => r != step.roleId).toString());
+                            }
+                            break;
+                        }
+                    }
+                    for (const step of roles_1.rActivity.messages) {
+                        if (step.messageCount <= data.discord_activity.messages) {
+                            if (!member.roles.cache.has(step.roleId)) {
+                                if (!member.roles.cache.has(roles_1.rActivity.category))
+                                    give_roles.push(roles_1.rActivity.category);
+                                give_roles.push(step.roleId);
+                                remove_roles.push(roles_1.rActivity.allMessages.filter((r) => r != step.roleId).toString());
+                            }
+                            break;
+                        }
+                    }
+                });
+            }
+            seasonalRolesChecker().catch((e) => console.error(`seasonalRolesChecker`, e, member.displayName));
+            dlc_rolesChecker(Response.profile.data.versionsOwned).catch((e) => console.error(`dlc_rolesChecker`, e, member.displayName));
+            triumphsChecker().catch((e) => console.error(`triumphsChecker`, e, member.displayName));
+            trialsChecker((_a = Response.metrics.data.metrics["1765255052"]) === null || _a === void 0 ? void 0 : _a.objectiveProgress.progress).catch((e) => console.error(`trialsChecker`, e, member.displayName));
+            voiceChecker().catch((e) => console.error("voiceChecker", e, member.displayName));
+            if (give_roles.length > 0) {
+                setTimeout(() => {
+                    const gRoles = give_roles
+                        .join()
+                        .split(",")
+                        .filter((r) => r.length > 10);
+                    give_roles.filter((r) => r.length < 10).length > 0 ? console.error(`Error during removin roles`, member.displayName, give_roles) : [];
+                    member.roles.add(gRoles, "+Autorole").catch((e) => {
+                        console.error(`Error with givin these roles: ${gRoles}`);
+                    });
+                }, remove_roles.length > 0 ? 6000 : 0);
+            }
+            if (remove_roles.length > 0) {
+                const rRoles = remove_roles
+                    .join()
+                    .split(",")
+                    .filter((r) => r.length > 10);
+                rRoles.filter((r) => r.length < 10).length > 0 ? console.error(`Error during removin roles`, member.displayName, rRoles) : [];
+                member.roles.remove(rRoles, "-Autorole").catch((e) => {
+                    console.error(`Error with takin these roles: ${rRoles}`);
+                });
+            }
+        }))
+            .catch((e) => {
+            e.statusCode === 401 || e.statusCode === 503 || e.statusCode === 500
+                ? console.error(`roleManager ${e.statusCode} error`, data.displayname)
+                : console.error(`roleManager`, e.error, data.displayname, e.statusCode);
+        });
+    }
+    function name_change(discord_id, name) {
+        var _a;
+        try {
+            (_a = client.guilds.cache.get(ids_1.guildId).members.cache.get(discord_id)) === null || _a === void 0 ? void 0 : _a.setNickname(name, "GlobalNickname changed");
+        }
+        catch (error) {
+            console.error("[Checker error] Name change error", error);
+        }
+    }
+    function clan(bungie_array) {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            const clanList = yield (0, request_promise_native_1.get)("https://www.bungie.net/Platform/GroupV2/4123712/Members/?memberType=None", {
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-API-KEY": process.env.XAPI,
+                },
+                json: true,
+            }).catch((e) => {
+                return console.error(`[clanCheckerError] StatusCode: ${e.statusCode}, ${e.error}`);
+            });
+            if (clanList === undefined) {
+                console.log("Clan checker restarts");
+                yield timer(5000);
+                clan(bungie_array);
+                return;
+            }
+            if (clanList.Response.results.length < 5) {
+                console.error("[CRITICAL CLAN CHECKER ERROR]", (_b = (_a = clanList === null || clanList === void 0 ? void 0 : clanList.Response) === null || _a === void 0 ? void 0 : _a.results) === null || _b === void 0 ? void 0 : _b.length);
+                yield timer(30000);
+                clan(bungie_array);
+                return;
+            }
+            if (clanList.ErrorCode !== 1) {
+                console.error("[Clan checker error]", clanList.ErrorStatus, clanList.error);
+                return;
+            }
+            const onlineCounter = clanList.Response.results.filter((f) => f.isOnline === true).length;
+            onlineCounter == 0
+                ? client.user.setActivity(`${clanList.Response.results.length} участников в клане`, { type: 3 })
+                : client.user.setActivity(`${onlineCounter} онлайн из ${clanList.Response.results.length}`, { type: 3 });
+            const t = yield sequelize_1.db.transaction();
+            yield Promise.all(clanList.Response.results.map((result) => __awaiter(this, void 0, void 0, function* () {
+                if (bungie_array.some((e) => e.bungie_id === result.destinyUserInfo.membershipId)) {
+                    const [clan_member] = bungie_array.splice(bungie_array.findIndex((e) => e.bungie_id === result.destinyUserInfo.membershipId), 1);
+                    if (clan_member.displayname !== result.destinyUserInfo.bungieGlobalDisplayName && !clan_member.displayname.startsWith("⁣")) {
+                        yield sequelize_1.auth_data.update({
+                            displayname: result.destinyUserInfo.bungieGlobalDisplayName,
+                        }, {
+                            where: {
+                                bungie_id: result.destinyUserInfo.membershipId,
+                            },
+                            transaction: t,
+                        });
+                        name_change(clan_member.discord_id, result.destinyUserInfo.bungieGlobalDisplayName);
+                    }
+                    if (clan_member.clan === false) {
+                        yield sequelize_1.auth_data.update({ clan: true }, {
+                            where: {
+                                bungie_id: result.destinyUserInfo.membershipId,
+                            },
+                            transaction: t,
+                        });
+                        (0, logger_1.clan_joinLeave)(clan_member, true);
+                    }
+                }
+            })));
+            yield Promise.all(bungie_array.map((result) => __awaiter(this, void 0, void 0, function* () {
+                if (result.clan === true) {
+                    yield sequelize_1.auth_data.update({ clan: false }, { where: { bungie_id: result.bungie_id }, transaction: t });
+                    (0, logger_1.clan_joinLeave)(result, false);
+                }
+            })));
+            try {
+                yield t.commit();
+            }
+            catch (error) {
+                console.error("[Clan checker error] Error during commiting", error);
+            }
+        });
+    }
+    function kdChecker(db_row, member) {
+        (0, request_promise_native_1.get)(`https://www.bungie.net/platform/Destiny2/${db_row.platform}/Account/${db_row.bungie_id}/Character/0/Stats/?groups=1&modes=5&periodType=2`, {
+            headers: {
+                "Content-Type": "application/json",
+                "X-API-KEY": process.env.XAPI,
+            },
+            auth: {
+                bearer: db_row.access_token,
+            },
+            json: true,
+        })
+            .then((data) => {
+            var _a, _b, _c;
+            for (const step of roles_1.rStats.kd) {
+                if (step.kd <= ((_c = (_b = (_a = data["Response"]["allPvP"]["allTime"]) === null || _a === void 0 ? void 0 : _a["killsDeathsRatio"]) === null || _b === void 0 ? void 0 : _b["basic"]) === null || _c === void 0 ? void 0 : _c["value"])) {
+                    if (!member.roles.cache.has(step.roleId)) {
+                        member.roles.remove(roles_1.rStats.allKd.filter((r) => r !== step.roleId));
+                        setTimeout(() => member.roles.add(step.roleId), 6000);
+                    }
+                    break;
+                }
+            }
+        })
+            .catch((e) => {
+            e.statusCode === 401 ? console.error("kdChecker 401 error", db_row.displayname) : console.log(`kdChecker`, e.stack, db_row.displayname);
+        });
+    }
+    function activityStatsChecker(data, member, mode) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!exports.character_data.get(member.id)) {
+                (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/${data.platform}/Profile/${data.bungie_id}/?components=200`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-API-KEY": process.env.XAPI,
+                    },
+                    auth: {
+                        bearer: data.access_token ? data.access_token : undefined,
+                    },
+                    json: true,
+                })
+                    .then((chars) => {
+                    exports.character_data.set(data.discord_id, Object.keys(chars["Response"]["characters"]["data"]));
+                    activityStatsChecker(data, member, mode);
+                })
+                    .catch((e) => {
+                    e.statusCode === 401 || e.statusCode === 503 || e.statusCode === 500
+                        ? console.error(`CHARACTER PREP activityStatsChecker ${e.statusCode} error`, data.displayname)
+                        : console.error(`CHARACTER PREP activityStatsChecker`, e.error, data.displayname, e.statusCode);
+                });
+            }
+            else {
+                let completedActivities = [];
+                let kills = 0, deaths = 0, wtmatches = 0;
+                for (const character of exports.character_data.get(member.id)) {
+                    let page = 0;
+                    yield checker();
+                    function activities(page) {
+                        return __awaiter(this, void 0, void 0, function* () {
+                            return (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Character/${character}/Stats/Activities/?count=250&mode=${mode}&page=${page}`, {
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-API-KEY": process.env.XAPI,
+                                },
+                                auth: {
+                                    bearer: data.access_token,
+                                },
+                                json: true,
+                            })
+                                .then((response) => {
+                                return response;
+                            })
+                                .catch((e) => {
+                                var _a;
+                                {
+                                    e.statusCode === 401 || e.statusCode === 500 || e.statusCode === 503
+                                        ? console.error(`activityStatsChecker ${e.statusCode} error`, data.displayname, (_a = e.error) === null || _a === void 0 ? void 0 : _a.ErrorStatus)
+                                        : console.error(`activityStatsChecker`, e.error, data.displayname);
+                                }
+                            });
+                        });
+                    }
+                    function checker() {
+                        var _a;
+                        return __awaiter(this, void 0, void 0, function* () {
+                            const response = yield activities(page);
+                            if (((_a = response === null || response === void 0 ? void 0 : response.Response.activities) === null || _a === void 0 ? void 0 : _a.length) > 0) {
+                                response === null || response === void 0 ? void 0 : response.Response.activities.forEach((activity) => {
+                                    if (mode === 4 && activity.values.completed.basic.value) {
+                                        if (new Date(activity.period).getTime() + activity.values.activityDurationSeconds.basic.value * 1000 >
+                                            new Date().getTime() - 1000 * 60 * 35) {
+                                            (0, logger_1.activityReporter)(activity.activityDetails.instanceId);
+                                        }
+                                        if (!ids_1.forbiddenRaidIds.includes(activity.activityDetails.referenceId)) {
+                                            completedActivities.push(activity.activityDetails.referenceId);
+                                        }
+                                    }
+                                    else if (mode === 84) {
+                                        if (activity.values.completionReason.basic.value === 3)
+                                            wtmatches++;
+                                        kills += activity.values.kills.basic.value;
+                                        deaths += activity.values.deaths.basic.value;
+                                    }
+                                });
+                                if (response.Response.activities.length === 250) {
+                                    page++;
+                                    yield checker();
+                                }
+                            }
+                        });
+                    }
+                }
+                if (mode === 4) {
+                    const filter = (activity) => {
+                        const filtered = completedActivities.filter((a) => a === activity).length;
+                        completedActivities = completedActivities.filter((a) => a !== activity);
+                        return filtered;
+                    };
+                    const totalRaidCount = completedActivities.length;
+                    const totalRaidCount_Before = (_a = exports.completedRaidsData.get(member.id)) === null || _a === void 0 ? void 0 : _a.totalRaidCount;
+                    if (totalRaidCount_Before && totalRaidCount_Before >= totalRaidCount)
+                        return;
+                    const kf = filter(1374392663);
+                    const kfMaster = filter(1063970578);
+                    const votd = filter(1441982566);
+                    const votdMaster = filter(4217492330);
+                    const dsc = filter(910380154) + filter(3976949817);
+                    const gos = filter(3458480158) + filter(2497200493) + filter(2659723068) + filter(3845997235);
+                    const vog = filter(3881495763);
+                    const vogMaster = filter(1681562271) + filter(1485585878);
+                    const lw = filter(2122313384) + filter(1661734046);
+                    exports.completedRaidsData.set(member.id, {
+                        kf,
+                        kfMaster,
+                        votd,
+                        votdMaster,
+                        dsc,
+                        gos,
+                        vog,
+                        vogMaster,
+                        lw,
+                        totalRaidCount,
+                    });
+                    for (const step of roles_1.rRaids.roles) {
+                        if (kf + kfMaster - 40 >= step.individualClears &&
+                            votd + votdMaster >= step.individualClears &&
+                            vog + vogMaster >= step.individualClears &&
+                            dsc >= step.individualClears &&
+                            gos >= step.individualClears &&
+                            lw >= step.individualClears) {
+                            if (!member.roles.cache.has(step.roleId)) {
+                                member.roles.add(step.roleId);
+                                setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 5000);
+                            }
+                            break;
+                        }
+                        else if (kf + kfMaster + votdMaster + votd + dsc + gos + lw >= step.totalClears) {
+                            if (!member.roles.cache.has(step.roleId)) {
+                                member.roles.add(step.roleId);
+                                setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 5000);
+                            }
+                            break;
+                        }
+                    }
+                    if (completedActivities.length > 0)
+                        console.log(`Found new raidIds`, completedActivities);
+                }
+                else if (mode === 84) {
+                    if (wtmatches >= 10 && member.id !== ids_1.ownerId) {
+                        if (!member.roles.cache.has(roles_1.rTrials.wintrader)) {
+                            member.roles.add(roles_1.rTrials.wintrader);
+                            setTimeout(() => member.roles.remove(roles_1.rTrials.allKd), 6000);
+                        }
+                        return;
+                    }
+                    else {
+                        const kd = kills / deaths;
+                        if (!isNaN(kd)) {
+                            for (const step of roles_1.rTrials.kd) {
+                                if (kd >= step.kd) {
+                                    if (!member.roles.cache.has(roles_1.rTrials.category))
+                                        member.roles.add(roles_1.rTrials.category);
+                                    if (!member.roles.cache.has(step.roleId)) {
+                                        member.roles.add(step.roleId);
+                                        setTimeout(() => member.roles.remove(roles_1.rTrials.allKd.filter((r) => r !== step.roleId)), 6000);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            console.error(`KD is NaN for ${member.displayName}`, kills, deaths, wtmatches);
+                        }
+                    }
+                }
+            }
+        });
+    }
+    let kd = 2, raids = 3;
+    setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
+        kd >= 9 ? (kd = 0) : kd++;
+        raids >= 7 ? (raids = 0) : raids++;
+        const t = yield sequelize_1.db.transaction();
+        const role_db = yield sequelize_1.role_data.findAll({
+            where: {
+                unique: {
+                    [sequelize_2.Op.or]: {
+                        [sequelize_2.Op.gte]: 1,
+                        [sequelize_2.Op.eq]: -99,
+                    },
+                },
+            },
+            transaction: t,
+        });
+        const db_plain = (yield sequelize_1.auth_data.findAll({
+            transaction: t,
+            include: sequelize_1.discord_activities,
+        })).filter((data) => { var _a; return (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.has(data.discord_id); });
+        try {
+            yield t.commit();
+        }
+        catch (error) {
+            console.error("[Checker error]", error);
+            return;
+        }
+        if (!db_plain || db_plain.length === 0)
+            return console.error(`[Checker error] DB is empty or missing data`);
+        for (let i = 0; i < db_plain.length; i++) {
+            const db_row = db_plain[i];
+            const member = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(db_row.discord_id);
+            !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.6 ? longOffline.delete(member.id) : "";
+            kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
+            raids === 4 && member.roles.cache.hasAny(roles_1.statusRoles.clanmember, roles_1.statusRoles.member) ? activityStatsChecker(db_row, member, 4) : [];
+            raids === 6 && !longOffline.has(member.id) && !member.roles.cache.has(roles_1.rTrials.wintrader) && member.roles.cache.has(roles_1.rTrials.category)
+                ? activityStatsChecker(db_row, member, 84)
+                : [];
+            yield timer(700);
+        }
+        clan(db_plain);
+    }), 1000 * 60 * 2);
+    setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
+        const data = yield sequelize_1.auth_data.findAll({
+            attributes: ["discord_id", "displayname", "tz"],
+        });
+        client.guilds.cache
+            .get(ids_1.guildId)
+            .members.cache.filter((member) => member.roles.cache.has(roles_1.statusRoles.verified))
+            .forEach((member) => {
+            var _a, _b;
+            const db_data_ind = data.find((d) => d.discord_id === member.id);
+            if (!db_data_ind) {
+                return;
+            }
+            const db_name = db_data_ind.displayname;
+            if (member.displayName !== db_name &&
+                !((_a = data.find((d) => d.discord_id === member.id)) === null || _a === void 0 ? void 0 : _a.displayname.startsWith("⁣")) &&
+                member.displayName.slice(5) !== db_name &&
+                member.displayName.slice(6) !== db_name) {
+                if (!member.permissions.has("Administrator")) {
+                    member
+                        .setNickname(((_b = data.find((d) => d.discord_id === member.id)) === null || _b === void 0 ? void 0 : _b.tz) ? `[+${data.find((d) => d.discord_id === member.id).tz}] ${db_name}` : db_name)
+                        .catch((e) => {
+                        console.error("[Checker error] Name autochange error", e);
+                    });
+                }
+            }
+        });
+    }), 1000 * 70 * 5);
 };
