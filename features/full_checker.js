@@ -613,7 +613,7 @@ exports.default = (client) => {
                         totalRaidCount,
                     });
                     for (const step of roles_1.rRaids.roles) {
-                        if (kf + kfMaster - 40 >= step.individualClears &&
+                        if (kf + kfMaster >= (step.individualClears >= 30 ? Math.trunc(step.individualClears / 2) : step.individualClears) &&
                             votd + votdMaster >= step.individualClears &&
                             vog + vogMaster >= step.individualClears &&
                             dsc >= step.individualClears &&
@@ -625,7 +625,7 @@ exports.default = (client) => {
                             }
                             break;
                         }
-                        else if (kf + kfMaster + votdMaster + votd + dsc + gos + lw >= step.totalClears) {
+                        else if (kf + kfMaster + votdMaster + votd + vog + vogMaster + dsc + gos + lw >= step.totalClears) {
                             if (!member.roles.cache.has(step.roleId)) {
                                 member.roles.add(step.roleId);
                                 setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 5000);
