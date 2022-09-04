@@ -22,7 +22,7 @@ exports.default = {
     description: "Статистика по рейдам",
     type: [true, true, false],
     callback: (_client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g, _h;
         yield interaction.deferReply({ ephemeral: true });
         const user = interaction instanceof discord_js_1.ChatInputCommandInteraction ? interaction.options.getUser("пользователь") : interaction.targetUser;
         const db_data = yield sequelize_1.auth_data.findOne({
@@ -89,8 +89,8 @@ exports.default = {
             yield (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/${db_data.platform}/Account/${db_data.bungie_id}/Character/${character}/Stats/AggregateActivityStats/`, { json: true, headers: { "X-API-KEY": process.env.XAPI } }).then((activities) => __awaiter(void 0, void 0, void 0, function* () {
                 const activity_fresh = activities.Response.activities;
                 arr.forEach((activity_data) => __awaiter(void 0, void 0, void 0, function* () {
-                    var _g, _h;
-                    const clears = (_g = activity_fresh.filter((d) => d.activityHash == activity_data.activity)[0]) === null || _g === void 0 ? void 0 : _g.values.activityCompletions.basic.value;
+                    var _j, _k;
+                    const clears = (_j = activity_fresh.filter((d) => d.activityHash == activity_data.activity)[0]) === null || _j === void 0 ? void 0 : _j.values.activityCompletions.basic.value;
                     if (clears !== undefined && clears >= 1) {
                         activity_map.set(activity_data.acitivty_name, {
                             activity: activity_data.acitivty_name,
@@ -98,7 +98,7 @@ exports.default = {
                         if (set[index][0].has(activity_data.acitivty_name)) {
                             set[index][0].set(activity_data.acitivty_name, {
                                 clears: clears +
-                                    ((_h = set[index][0].get(activity_data.acitivty_name)) === null || _h === void 0 ? void 0 : _h.clears),
+                                    ((_k = set[index][0].get(activity_data.acitivty_name)) === null || _k === void 0 ? void 0 : _k.clears),
                             });
                         }
                         else {
@@ -111,6 +111,12 @@ exports.default = {
             }));
         })));
         const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTitle("Статистка закрытых рейдов по классам").setTimestamp();
+        interaction instanceof discord_js_1.UserContextMenuCommandInteraction
+            ? embed.setAuthor({
+                name: ((_h = (_g = interaction.guild) === null || _g === void 0 ? void 0 : _g.members.cache.get(interaction.targetId)) === null || _h === void 0 ? void 0 : _h.displayName) || interaction.targetUser.username,
+                iconURL: interaction.targetUser.displayAvatarURL(),
+            })
+            : [];
         const embed_map = new Map([...activity_map].sort());
         embed_map.forEach((_activity_name, key) => {
             var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
