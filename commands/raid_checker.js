@@ -130,7 +130,6 @@ exports.default = {
                         : ""} ${((_k = (_j = set[2][0]) === null || _j === void 0 ? void 0 : _j.get(key)) === null || _k === void 0 ? void 0 : _k.clears)
                         ? set[2][1] + " " + ((_m = (_l = set[2][0]) === null || _l === void 0 ? void 0 : _l.get(key)) === null || _m === void 0 ? void 0 : _m.clears)
                         : ""}`,
-                    inline: false,
                 },
             ]);
         });
