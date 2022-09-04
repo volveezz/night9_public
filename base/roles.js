@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.rTrials = exports.rTitles = exports.rActivity = exports.rStats = exports.rRaids = exports.rTriumphs = exports.dlcsRoles = exports.seasonalRoles = exports.statusRoles = void 0;
+exports.rTrials = exports.rTitles = exports.rActivity = exports.rStats = exports.rClanJoinDate = exports.rRaids = exports.rTriumphs = exports.dlcsRoles = exports.seasonalRoles = exports.statusRoles = void 0;
 exports.statusRoles = {
     clanmember: "677554696566734899",
     member: "678945074113019914",
@@ -28,6 +28,26 @@ exports.rRaids = {
         { roleId: "694193991733739611", individualClears: 30, totalClears: 300 },
         { roleId: "695205572454252555", individualClears: 7, totalClears: 70 },
         { roleId: "744832404153172048", individualClears: 2, totalClears: 20 },
+    ],
+};
+exports.rClanJoinDate = {
+    allRoles: [
+        "1015833639101136936",
+        "737249705922396270",
+        "1015833273131343972",
+        "720011638689890316",
+        "720011719270727831",
+        "720011931842248707",
+        "945239463435599954",
+    ],
+    roles: [
+        { roleId: "1015833639101136936", days: 1 * 365 * 3 },
+        { roleId: "737249705922396270", days: 1 * 365 * 2 },
+        { roleId: "1015833273131343972", days: 1 * 365 },
+        { roleId: "720011638689890316", days: 1 * 189 },
+        { roleId: "720011719270727831", days: 1 * 63 },
+        { roleId: "720011931842248707", days: 1 * 21 },
+        { roleId: "945239463435599954", days: 1 * 7 },
     ],
 };
 exports.rStats = {

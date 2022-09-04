@@ -20,6 +20,7 @@ const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 exports.completedRaidsData = new Map();
 exports.character_data = new Map();
 const longOffline = new Set();
+const clanJoinDateCheck = new Set();
 exports.default = (client) => {
     function role_manager(data, member, role_db) {
         const give_roles = [], remove_roles = [], c = member.roles.cache;
@@ -431,8 +432,27 @@ exports.default = (client) => {
                 : client.user.setActivity(`${onlineCounter} онлайн из ${clanList.Response.results.length}`, { type: 3 });
             const t = yield sequelize_1.db.transaction();
             yield Promise.all(clanList.Response.results.map((result) => __awaiter(this, void 0, void 0, function* () {
+                var _c;
                 if (bungie_array.some((e) => e.bungie_id === result.destinyUserInfo.membershipId)) {
                     const [clan_member] = bungie_array.splice(bungie_array.findIndex((e) => e.bungie_id === result.destinyUserInfo.membershipId), 1);
+                    if (!clanJoinDateCheck.has(result.destinyUserInfo.membershipId)) {
+                        const member = (_c = client.guilds.cache.get(ids_1.guildId)) === null || _c === void 0 ? void 0 : _c.members.cache.get(clan_member.discord_id);
+                        if (!member)
+                            return console.error(`ClanJoinedDate checker error, not found member`, member, clan_member.discord_id, clan_member.displayname);
+                        for (const step of roles_1.rClanJoinDate.roles) {
+                            if (step.days <= Math.trunc((new Date().getTime() - new Date(result.joinDate).getTime()) / 1000 / 60 / 60 / 24)) {
+                                if (!member.roles.cache.has(step.roleId)) {
+                                    if (!member.roles.cache.has(roles_1.rTriumphs.category))
+                                        member.roles.add(roles_1.rTriumphs.category);
+                                    member.roles.add(step.roleId).then((m) => {
+                                        member.roles.remove(roles_1.rClanJoinDate.allRoles.filter((r) => r != step.roleId).toString());
+                                    });
+                                }
+                                clanJoinDateCheck.add(result.destinyUserInfo.membershipId);
+                                break;
+                            }
+                        }
+                    }
                     if (clan_member.displayname !== result.destinyUserInfo.bungieGlobalDisplayName && !clan_member.displayname.startsWith("⁣")) {
                         yield sequelize_1.auth_data.update({
                             displayname: result.destinyUserInfo.bungieGlobalDisplayName,
