@@ -166,7 +166,7 @@ function raidDataFetcher(raid, difficulty) {
                 raid: raid,
                 raidName: difficulty === 2 ? "Гибель короля: Мастер" : "Гибель короля",
                 maxDifficulty: 2,
-                raidBanner: "https://www.bungie.net/img/theme/destiny/bgs/pgcrs/kings_fall.jpg",
+                raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/raid_kings_fall.jpg",
                 raidColor: difficulty === 2 ? "#FF063A" : "#565656",
                 channelName: "-гибель-короля",
                 requiredRole: null,
