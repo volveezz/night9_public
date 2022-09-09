@@ -374,12 +374,10 @@ exports.default = (client) => {
                     name: `У ${newMember.displayName} ${removedRoles.length === 1 ? "была удалена роль" : "были удалены роли"}`,
                     iconURL: newMember.displayAvatarURL(),
                 })
-                    .addFields([
-                    {
-                        name: removedRoles.length === 1 ? "Роль" : "Роли",
-                        value: removedRoles.toString().length > 1023 ? "Слишком много ролей :(" : removedRoles.toString(),
-                    },
-                ]);
+                    .addFields({
+                    name: removedRoles.length === 1 ? "Роль" : "Роли",
+                    value: removedRoles.toString().length > 1023 ? "Слишком много ролей :(" : removedRoles.toString(),
+                });
             }
             else if (gotRoles.length > 0) {
                 embed
@@ -387,12 +385,10 @@ exports.default = (client) => {
                     name: `${newMember.displayName} ${gotRoles.length === 1 ? "была выдана роль" : "были выданы роли"}`,
                     iconURL: newMember.displayAvatarURL(),
                 })
-                    .addFields([
-                    {
-                        name: gotRoles.length === 1 ? "Роль" : "Роли",
-                        value: gotRoles.toString() || "error",
-                    },
-                ]);
+                    .addFields({
+                    name: gotRoles.length === 1 ? "Роль" : "Роли",
+                    value: gotRoles.toString() || "error",
+                });
             }
         }
         if (oldMember.displayName !== newMember.displayName) {
@@ -401,10 +397,7 @@ exports.default = (client) => {
                 name: `${newMember.displayName} обновил никнейм`,
                 iconURL: newMember.displayAvatarURL(),
             })
-                .addFields([
-                { name: "До изменения", value: `\`` + oldMember.displayName + `\`` },
-                { name: "После", value: `\`` + newMember.displayName + `\`` },
-            ]);
+                .addFields({ name: "Пользователь", value: `<@${newMember.id}>`, inline: true }, { name: "До изменения", value: `\`` + oldMember.displayName + `\``, inline: true }, { name: "После", value: `\`` + newMember.displayName + `\``, inline: true });
         }
         if (oldMember.communicationDisabledUntilTimestamp !== newMember.communicationDisabledUntilTimestamp) {
             if (oldMember.communicationDisabledUntilTimestamp === null) {
@@ -414,12 +407,10 @@ exports.default = (client) => {
                     iconURL: newMember.displayAvatarURL(),
                 })
                     .setColor(colors_1.colors.default)
-                    .addFields([
-                    {
-                        name: "Тайм-аут до",
-                        value: `<t:${Math.round(newMember.communicationDisabledUntilTimestamp / 1000)}>`,
-                    },
-                ]);
+                    .addFields({ name: "Пользователь", value: `<@${newMember.id}>`, inline: true }, {
+                    name: "Тайм-аут до",
+                    value: `<t:${Math.round(newMember.communicationDisabledUntilTimestamp / 1000)}>`,
+                });
             }
             else {
                 embed

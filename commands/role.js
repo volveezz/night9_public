@@ -19,15 +19,15 @@ exports.default = {
             type: discord_js_1.ApplicationCommandOptionType.Subcommand,
             name: "clear",
             description: "Удаление роли у всех пользоваталей",
-            options: [{ type: discord_js_1.ApplicationCommandOptionType.Role, name: "role", description: "Укажите роль для удаления", required: true }],
+            options: [{ type: discord_js_1.ApplicationCommandOptionType.Role, name: "role", description: "Забираемая роль", required: true }],
         },
         {
             type: discord_js_1.ApplicationCommandOptionType.Subcommand,
             name: "set",
             description: "Установить определенную роль пользователю",
             options: [
-                { type: discord_js_1.ApplicationCommandOptionType.Role, name: "role", description: "Укажите роль для установки", required: true },
-                { type: discord_js_1.ApplicationCommandOptionType.User, name: "user", description: "Укажите пользователя, которому устанавливаем роль", required: true },
+                { type: discord_js_1.ApplicationCommandOptionType.Role, name: "role", description: "Устанавливаемая роль", required: true },
+                { type: discord_js_1.ApplicationCommandOptionType.User, name: "user", description: "Пользователь, которому устанавливаем роль", required: true },
             ],
         },
     ],

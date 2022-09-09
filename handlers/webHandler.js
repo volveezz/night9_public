@@ -63,7 +63,7 @@ exports.default = (code, state, res) => __awaiter(void 0, void 0, void 0, functi
                 return __awaiter(this, void 0, void 0, function* () {
                     if (err) {
                         res.send(`<script>location.replace('error.html')</script>`);
-                        return console.error(`State: ${state} / Code:${code}`, body);
+                        return console.error(`State: ${state} / Code: ${code}`, body, err);
                     }
                     const { Response } = subBody;
                     function getData() {

@@ -257,6 +257,8 @@ exports.default = (client) => {
                                         ? ((_c = (_b = notGuidedTriumphRecord.objectives) === null || _b === void 0 ? void 0 : _b.pop()) === null || _c === void 0 ? void 0 : _c.complete) === true
                                         : ((_e = (_d = notGuidedTriumphRecord.intervalObjectives) === null || _d === void 0 ? void 0 : _d.pop()) === null || _e === void 0 ? void 0 : _e.complete) === true) {
                                         if (!c.has(role.role_id)) {
+                                            if (role.category === 3 && !c.has(roles_1.rTitles.category))
+                                                give_roles.push(roles_1.rTitles.category);
                                             give_roles.push(role.role_id);
                                         }
                                     }
