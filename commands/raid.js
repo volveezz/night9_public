@@ -693,9 +693,7 @@ exports.default = {
                 reason: `New raid by ${member.displayName}`,
             })
                 .then((chn) => __awaiter(void 0, void 0, void 0, function* () {
-                const premiumEmbed = new discord_js_1.EmbedBuilder()
-                    .setColor("#F3AD0C")
-                    .addFields([{ name: "Испытание этой недели", value: `> <:loading_dots:1018320953001910353>` }]);
+                const premiumEmbed = new discord_js_1.EmbedBuilder().setColor("#F3AD0C").addFields([{ name: "Испытание этой недели", value: `> TBD` }]);
                 const components = [
                     {
                         type: discord_js_1.ComponentType.ActionRow,

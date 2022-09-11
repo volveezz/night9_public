@@ -523,7 +523,7 @@ exports.default = (client) => {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             if (!exports.character_data.get(member.id)) {
-                (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/${data.platform}/Profile/${data.bungie_id}/?components=200`, {
+                (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Stats/?groups=1`, {
                     headers: {
                         "Content-Type": "application/json",
                         "X-API-KEY": process.env.XAPI,
@@ -534,7 +534,11 @@ exports.default = (client) => {
                     json: true,
                 })
                     .then((chars) => {
-                    exports.character_data.set(data.discord_id, Object.keys(chars["Response"]["characters"]["data"]));
+                    const charIdArray = [];
+                    chars["Response"]["characters"].forEach((ch) => {
+                        charIdArray.push(ch.characterId);
+                    });
+                    exports.character_data.set(data.discord_id, charIdArray);
                     activityStatsChecker(data, member, mode);
                 })
                     .catch((e) => {
