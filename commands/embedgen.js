@@ -87,7 +87,7 @@ exports.default = {
                         inline: true,
                     });
                     const statsRolesRaw = new discord_js_1.EmbedBuilder()
-                        .setTitle("⁣　　　　　　　　　　　　⁣Общая статистика")
+                        .setTitle("⁣　　　　　　　　　　　⁣Общая статистика")
                         .setColor(16755712)
                         .addFields({
                         name: "⁣",
@@ -167,7 +167,7 @@ exports.default = {
                     });
                     roleData.map((data) => {
                         const manifestData = manifest[data.hash.shift()];
-                        triumphsRaw.addFields({ name: `${manifestData.displayProperties.name}`, value: `<@${data.role_id}>`, inline: true });
+                        triumphsRaw.addFields({ name: `${manifestData.displayProperties.name}`, value: `<@&${data.role_id}>`, inline: true });
                     });
                     triumphsRaw.addFields({
                         name: "⁣",
