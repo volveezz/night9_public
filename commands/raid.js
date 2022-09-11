@@ -167,7 +167,7 @@ function raidDataFetcher(raid, difficulty) {
                 raidName: difficulty === 2 ? "Гибель короля: Мастер" : "Гибель короля",
                 maxDifficulty: 2,
                 raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/raid_kings_fall.jpg",
-                raidColor: difficulty === 2 ? "#FF063A" : "#565656",
+                raidColor: difficulty === 2 ? "#FF063A" : "#a02200",
                 channelName: "-гибель-короля",
                 requiredRole: null,
             };
@@ -305,7 +305,7 @@ function raidMsgUpdate(raidData, interaction) {
                 if (k === "Участник")
                     return 2 + isDescription;
                 if (k === "Замена")
-                    return 3 + isDescription;
+                    return findK("Возможно") === -1 ? 3 + isDescription : findK("Возможно");
                 if (k === "Возможно")
                     return 4 + isDescription;
                 return 5;
@@ -693,7 +693,9 @@ exports.default = {
                 reason: `New raid by ${member.displayName}`,
             })
                 .then((chn) => __awaiter(void 0, void 0, void 0, function* () {
-                const premiumEmbed = new discord_js_1.EmbedBuilder().setColor("#F3AD0C").addFields([{ name: "Испытание этой недели", value: `> Продам гараж <` }]);
+                const premiumEmbed = new discord_js_1.EmbedBuilder()
+                    .setColor("#F3AD0C")
+                    .addFields([{ name: "Испытание этой недели", value: `> <:loading_dots:1018320953001910353>` }]);
                 const components = [
                     {
                         type: discord_js_1.ComponentType.ActionRow,

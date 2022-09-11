@@ -700,14 +700,13 @@ exports.default = (client) => {
             .setColor(colors_1.colors.default)
             .setTimestamp()
             .setAuthor({ name: "Сообщение изменено" })
-            .setDescription(`<@${newMessage.author.id}> изменил сообщение в <#${newMessage.channelId}>. [Перейти к сообщению](https://discord.com/channels/${newMessage.guildId}/${newMessage.channelId}/${newMessage.id})`)
-            .addFields([
-            {
+            .setDescription(`<@${newMessage.author.id}> изменил сообщение в <#${newMessage.channelId}>. [Перейти к сообщению](https://discord.com/channels/${newMessage.guildId}/${newMessage.channelId}/${newMessage.id})`);
+        oldMessage.content && oldMessage.content.length <= 1000 && newMessage.content && newMessage.content.length <= 1000
+            ? embed.addFields({
                 name: "До изменения",
                 value: oldMessage.content === null || ((_b = oldMessage.content) === null || _b === void 0 ? void 0 : _b.length) <= 0 ? "сообщение не было в кеше" : "`" + oldMessage.content + "`",
-            },
-            { name: "После", value: "`" + newMessage.content + "`" },
-        ]);
+            }, { name: "После", value: "`" + newMessage.content + "`" })
+            : embed.addFields({ name: "⁣", value: "Текст сообщения слишком длинный" });
         messageChannel.send({ embeds: [embed] });
     });
     client.on("roleCreate", (role) => {

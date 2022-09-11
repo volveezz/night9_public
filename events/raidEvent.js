@@ -20,7 +20,7 @@ function joinInChnMsg(member, how, chnId, guild, was) {
         const embed = new discord_js_1.EmbedBuilder();
         member = member instanceof discord_js_1.GuildMember ? member : undefined;
         if (!member) {
-            return;
+            throw { name: "Ошибка. Вы не участник сервера" };
         }
         switch (how) {
             case "join":
@@ -75,12 +75,13 @@ exports.default = {
                 where: { msgId: interaction.message.id },
             });
             if (!raidData) {
-                return console.log(`Raid not found ${interaction.user.id}/${interaction.user.username}, ${interaction.channel.id}`);
+                console.log(`Raid not found ${interaction.user.id}/${interaction.user.username}, ${interaction.channel.id}`);
+                throw { name: "Критическая ошибка, рейд не найден :(" };
             }
             switch (interaction.customId) {
                 case "raidEvent_btn_join": {
                     if ((_b = raidData.joined) === null || _b === void 0 ? void 0 : _b.includes(interaction.user.id)) {
-                        return;
+                        throw { name: "Ошибка. Вы не были добавлены на рейд" };
                     }
                     if (raidData.reqClears > 0) {
                         const userRaidClears = full_checker_1.completedRaidsData.get(interaction.user.id);
@@ -98,11 +99,10 @@ exports.default = {
                             if (userRaidClears[rNameWD] < raidData.reqClears) {
                                 throw {
                                     name: "Недостаточно закрытий",
-                                    message: `Для записи на этот рейд необходимо ${raidData.reqClears} закрытий, а у вас ${userRaidClears.votdMaster}`,
+                                    message: `Для записи на этот рейд необходимо ${raidData.reqClears} закрытий, а у вас ${userRaidClears[rNameWD]}`,
                                 };
                             }
                         }
-                        console.log(`raidData reqClears`, Object.keys(userRaidClears).find((w) => w === raidData.raid));
                     }
                     joinInChnMsg(interaction.member, "join", raidData.chnId, interaction.guild, ((_d = raidData.alt) === null || _d === void 0 ? void 0 : _d.includes(interaction.user.id))
                         ? "alt"
@@ -156,7 +156,7 @@ exports.default = {
                     if ((_y = raidData.alt) === null || _y === void 0 ? void 0 : _y.includes(interaction.user.id)) {
                         return;
                     }
-                    joinInChnMsg(interaction.member, "alt", raidData.chnId, interaction.guild, ((_z = raidData.joined) === null || _z === void 0 ? void 0 : _z.includes(interaction.user.id)) ? "joined" : ((_0 = raidData.hotJoined) === null || _0 === void 0 ? void 0 : _0.includes(interaction.user.id)) ? "hotJoined" : undefined);
+                    joinInChnMsg(interaction.member, "alt", raidData.chnId, interaction.guild, ((_z = raidData.joined) === null || _z === void 0 ? void 0 : _z.includes(interaction.user.id)) ? "join" : ((_0 = raidData.hotJoined) === null || _0 === void 0 ? void 0 : _0.includes(interaction.user.id)) ? "hotJoined" : undefined);
                     if ((_1 = raidData.joined) === null || _1 === void 0 ? void 0 : _1.includes(interaction.user.id))
                         raidData.joined.splice(raidData.joined.indexOf(interaction.user.id), 1);
                     if ((_2 = raidData.hotJoined) === null || _2 === void 0 ? void 0 : _2.includes(interaction.user.id))

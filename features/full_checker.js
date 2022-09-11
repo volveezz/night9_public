@@ -40,7 +40,7 @@ exports.default = (client) => {
             if (!exports.character_data.get(data.discord_id)) {
                 exports.character_data.set(data.discord_id, Response["profile"]["data"]["characterIds"]);
             }
-            if (new Date().getTime() - new Date(Response.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60 * 2) {
+            if (new Date().getTime() - new Date(Response.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60 * 4) {
                 longOffline.add(member.id);
             }
             if (!c.has(roles_1.statusRoles.verified))
@@ -690,11 +690,12 @@ exports.default = (client) => {
             }
         });
     }
-    let kd = 2, raids = 3;
+    let kd = 2, raids = 2, trialsCD = 4;
     setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
         kd >= 9 ? (kd = 0) : kd++;
         raids >= 7 ? (raids = 0) : raids++;
+        trialsCD >= 15 ? (trialsCD = 0) : trialsCD++;
         const t = yield sequelize_1.db.transaction();
         const role_db = yield sequelize_1.role_data.findAll({
             where: {
@@ -715,21 +716,22 @@ exports.default = (client) => {
             yield t.commit();
         }
         catch (error) {
-            console.error("[Checker error]", error);
-            return;
+            return console.error("[Checker commit error]", error);
         }
         if (!db_plain || db_plain.length === 0)
-            return console.error(`[Checker error] DB is empty or missing data`);
+            return console.error(`[Checker error] DB is ${(db_plain === null || db_plain === void 0 ? void 0 : db_plain.length) === 0 ? "empty" : `${db_plain === null || db_plain === void 0 ? void 0 : db_plain.length} length`} or missing data`);
         for (let i = 0; i < db_plain.length; i++) {
             const db_row = db_plain[i];
             const member = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(db_row.discord_id);
+            if (!member)
+                return console.error("roleManager error, member not found", member, db_row.discord_id);
             !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.6 ? longOffline.delete(member.id) : "";
             kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
-            raids === 4 && member.roles.cache.hasAny(roles_1.statusRoles.clanmember, roles_1.statusRoles.member) ? activityStatsChecker(db_row, member, 4) : [];
-            raids === 6 && !longOffline.has(member.id) && !member.roles.cache.has(roles_1.rTrials.wintrader) && member.roles.cache.has(roles_1.rTrials.category)
+            raids === 3 && member.roles.cache.hasAny(roles_1.statusRoles.clanmember, roles_1.statusRoles.member) ? activityStatsChecker(db_row, member, 4) : [];
+            trialsCD === 7 && !longOffline.has(member.id) && !member.roles.cache.has(roles_1.rTrials.wintrader) && member.roles.cache.has(roles_1.rTrials.category)
                 ? activityStatsChecker(db_row, member, 84)
                 : [];
-            yield timer(700);
+            yield timer(730);
         }
         clan(db_plain);
     }), 1000 * 60 * 2);

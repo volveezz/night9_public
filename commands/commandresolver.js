@@ -148,13 +148,11 @@ exports.default = {
                             });
                         }
                     }
-                    embed.addFields([
-                        {
-                            name: command.commandName || "blank",
-                            value: `${command.commandType}\n${command.commandId}` || "blank",
-                            inline: true,
-                        },
-                    ]);
+                    embed.addFields({
+                        name: command.commandName || "blank",
+                        value: `${command.commandType}\n${command.commandId}` || "blank",
+                        inline: true,
+                    });
                 });
                 if (((_c = embed.data.fields) === null || _c === void 0 ? void 0 : _c.length) === 0)
                     embed.setDescription("0 commands");

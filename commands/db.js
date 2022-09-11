@@ -108,7 +108,7 @@ exports.default = {
                                 },
                             ],
                         },
-                        { type: discord_js_1.ApplicationCommandOptionType.Integer, name: "unique", description: "unique limit", minValue: -1, maxValue: 1000 },
+                        { type: discord_js_1.ApplicationCommandOptionType.Integer, name: "unique", description: "unique limit", minValue: -99, maxValue: 1000 },
                     ],
                 },
                 {
@@ -271,7 +271,7 @@ exports.default = {
                 const hash = options.getInteger("hash", true);
                 const roleId = options.getString("roleid");
                 const record_manifest = yield manifestHandler_1.DestinyRecordDefinition;
-                const unique = options.getInteger("unique") || -1;
+                const unique = options.getInteger("unique") || -99;
                 if ((yield record_manifest[hash]) === undefined) {
                     throw { name: "Триумф под таким хешем не найден", message: `Hash: ${hash}`, falseAlarm: true };
                 }
