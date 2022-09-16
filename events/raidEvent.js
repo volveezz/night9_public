@@ -93,13 +93,10 @@ exports.default = {
                             };
                         }
                         else {
-                            const rNameWD = raidData.difficulty > 1 && (raidData.raid === "vog" || raidData.raid === "kf" || raidData.raid === "votd")
-                                ? `${raidData.raid}Master`
-                                : raidData.raid;
-                            if (userRaidClears[rNameWD] < raidData.reqClears) {
+                            if (userRaidClears[raidData.raid] < raidData.reqClears) {
                                 throw {
                                     name: "Недостаточно закрытий",
-                                    message: `Для записи на этот рейд необходимо ${raidData.reqClears} закрытий, а у вас ${userRaidClears[rNameWD]}`,
+                                    message: `Для записи на этот рейд необходимо ${raidData.reqClears} закрытий, а у вас ${userRaidClears[raidData.raid]}`,
                                 };
                             }
                         }
