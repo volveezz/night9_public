@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.rTrials = exports.rTitles = exports.rActivity = exports.rStats = exports.rClanJoinDate = exports.rRaids = exports.rTriumphs = exports.dlcsRoles = exports.seasonalRoles = exports.statusRoles = void 0;
+exports.rTrials = exports.rTitles = exports.rActivity = exports.rStats = exports.rClanJoinDate = exports.rRaids = exports.rTriumphs = exports.classRoles = exports.dlcsRoles = exports.seasonalRoles = exports.statusRoles = void 0;
 exports.statusRoles = {
     clanmember: "677554696566734899",
     member: "678945074113019914",
@@ -18,6 +18,11 @@ exports.dlcsRoles = {
     twq: "938682450098389053",
     lf: "1008002337622720523",
 };
+exports.classRoles = [
+    { className: "hunter", id: "708383261163913218" },
+    { className: "warlock", id: "708383326045601805" },
+    { className: "titan", id: "708383397050974329" },
+];
 exports.rTriumphs = {
     category: "694117833650602004",
 };

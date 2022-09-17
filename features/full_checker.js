@@ -159,18 +159,22 @@ exports.default = (client) => {
             }
             function triumphsChecker() {
                 return __awaiter(this, void 0, void 0, function* () {
-                    const activeTriumphs = Response.profileRecords.data.activeScore;
-                    for (const step of roles_1.rStats.active) {
-                        if (activeTriumphs >= step.triumphScore) {
-                            if (!c.has(step.roleId)) {
-                                if (!c.has(roles_1.rStats.category))
-                                    give_roles.push(roles_1.rStats.category);
-                                give_roles.push(step.roleId);
-                                remove_roles.push(roles_1.rStats.allActive.filter((r) => r !== step.roleId).toString());
+                    if (data.roles_cat[3]) {
+                        const activeTriumphs = Response.profileRecords.data.activeScore;
+                        for (const step of roles_1.rStats.active) {
+                            if (activeTriumphs >= step.triumphScore) {
+                                if (!c.has(step.roleId)) {
+                                    if (!c.has(roles_1.rStats.category))
+                                        give_roles.push(roles_1.rStats.category);
+                                    give_roles.push(step.roleId);
+                                    remove_roles.push(roles_1.rStats.allActive.filter((r) => r !== step.roleId).toString());
+                                }
+                                break;
                             }
-                            break;
                         }
                     }
+                    if (!data.roles_cat[2])
+                        return;
                     role_db.forEach((role) => __awaiter(this, void 0, void 0, function* () {
                         var _a, _b, _c, _d, _e;
                         const checkArray = [];
@@ -360,8 +364,10 @@ exports.default = (client) => {
             seasonalRolesChecker().catch((e) => console.error(`seasonalRolesChecker`, e, member.displayName));
             dlc_rolesChecker(Response.profile.data.versionsOwned).catch((e) => console.error(`dlc_rolesChecker`, e, member.displayName));
             triumphsChecker().catch((e) => console.error(`triumphsChecker`, e, member.displayName));
-            trialsChecker((_a = Response.metrics.data.metrics["1765255052"]) === null || _a === void 0 ? void 0 : _a.objectiveProgress.progress).catch((e) => console.error(`trialsChecker`, e, member.displayName));
-            voiceChecker().catch((e) => console.error("voiceChecker", e, member.displayName));
+            data.roles_cat[1]
+                ? trialsChecker((_a = Response.metrics.data.metrics["1765255052"]) === null || _a === void 0 ? void 0 : _a.objectiveProgress.progress).catch((e) => console.error(`trialsChecker`, e, member.displayName))
+                : "";
+            data.roles_cat[4] ? voiceChecker().catch((e) => console.error("voiceChecker", e, member.displayName)) : "";
             if (give_roles.length > 0) {
                 setTimeout(() => {
                     const gRoles = give_roles
@@ -730,9 +736,13 @@ exports.default = (client) => {
             if (!member)
                 return console.error("roleManager error, member not found", member, db_row.discord_id);
             !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.6 ? longOffline.delete(member.id) : "";
-            kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
+            db_row.roles_cat[0] && kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
             raids === 3 && member.roles.cache.hasAny(roles_1.statusRoles.clanmember, roles_1.statusRoles.member) ? activityStatsChecker(db_row, member, 4) : [];
-            trialsCD === 7 && !longOffline.has(member.id) && !member.roles.cache.has(roles_1.rTrials.wintrader) && member.roles.cache.has(roles_1.rTrials.category)
+            db_row.roles_cat[1] &&
+                trialsCD === 7 &&
+                !longOffline.has(member.id) &&
+                !member.roles.cache.has(roles_1.rTrials.wintrader) &&
+                member.roles.cache.has(roles_1.rTrials.category)
                 ? activityStatsChecker(db_row, member, 84)
                 : [];
             yield timer(730);

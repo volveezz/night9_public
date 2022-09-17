@@ -27,6 +27,7 @@ exports.BotClient = client;
 client.on("ready", (client) => {
     var _a;
     console.log(`${(_a = client.user) === null || _a === void 0 ? void 0 : _a.username} is ready since ${new Date().toLocaleTimeString()}`);
+    client.user.setActivity(`Restarting...`, { type: discord_js_1.ActivityType.Competing });
     const { default: init } = require("./handlers/initializer");
     setTimeout(() => init(client, (0, path_1.join)(__dirname, "commands"), (0, path_1.join)(__dirname, "features"), (0, path_1.join)(__dirname, "events")), 2000);
     setInterval(() => {
