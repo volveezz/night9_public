@@ -159,7 +159,7 @@ exports.default = (client) => {
             }
             function triumphsChecker() {
                 return __awaiter(this, void 0, void 0, function* () {
-                    if (data.roles_cat[3]) {
+                    if (data.roles_cat[0]) {
                         const activeTriumphs = Response.profileRecords.data.activeScore;
                         for (const step of roles_1.rStats.active) {
                             if (activeTriumphs >= step.triumphScore) {
@@ -173,10 +173,12 @@ exports.default = (client) => {
                             }
                         }
                     }
-                    if (!data.roles_cat[2])
-                        return;
                     role_db.forEach((role) => __awaiter(this, void 0, void 0, function* () {
                         var _a, _b, _c, _d, _e;
+                        if (role.category === 3 && !data.roles_cat[2])
+                            return;
+                        if (role.category === 4 && !data.roles_cat[3])
+                            return;
                         const checkArray = [];
                         if (role.guilded_hash) {
                             if (Response.profileRecords.data.records[role.guilded_hash] !== undefined) {

@@ -42,13 +42,7 @@ exports.default = {
                 bearer: db_data.access_token ? db_data.access_token : undefined,
             },
         });
-        const manifest = yield manifestHandler_1.DestinyActivityDefinition.then((activity_manifest) => {
-            return Object.keys(activity_manifest).reduce(function (acc, val) {
-                if (activity_manifest[val].activityTypeHash === 2043403989)
-                    acc[val] = activity_manifest[val];
-                return acc;
-            }, {});
-        });
+        const manifest = yield manifestHandler_1.DestinyActivityDefinition;
         const arr = [];
         Object.keys(manifest).forEach((key) => __awaiter(void 0, void 0, void 0, function* () {
             arr.push({
