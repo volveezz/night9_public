@@ -47,9 +47,10 @@ exports.default = {
         Object.keys(manifest).forEach((key) => __awaiter(void 0, void 0, void 0, function* () {
             arr.push({
                 activity: key,
-                acitivty_name: (yield manifest)[key].displayProperties.name,
+                acitivty_name: manifest[key].displayProperties.name,
                 clears: 0,
             });
+            console.log("raidChecker: ", key, manifest[key].displayProperties.name);
         }));
         const characters = Object.keys(characters_list.Response.characters.data);
         const activity_map = new Map();
@@ -114,18 +115,23 @@ exports.default = {
         const embed_map = new Map([...activity_map].sort());
         embed_map.forEach((_activity_name, key) => {
             var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
-            embed.addFields([
-                {
-                    name: key,
-                    value: `${((_b = (_a = set[0][0]) === null || _a === void 0 ? void 0 : _a.get(key)) === null || _b === void 0 ? void 0 : _b.clears)
-                        ? set[0][1] + " " + ((_d = (_c = set[0][0]) === null || _c === void 0 ? void 0 : _c.get(key)) === null || _d === void 0 ? void 0 : _d.clears)
-                        : ""} ${((_f = (_e = set[1][0]) === null || _e === void 0 ? void 0 : _e.get(key)) === null || _f === void 0 ? void 0 : _f.clears)
-                        ? set[1][1] + " " + ((_h = (_g = set[1][0]) === null || _g === void 0 ? void 0 : _g.get(key)) === null || _h === void 0 ? void 0 : _h.clears)
-                        : ""} ${((_k = (_j = set[2][0]) === null || _j === void 0 ? void 0 : _j.get(key)) === null || _k === void 0 ? void 0 : _k.clears)
-                        ? set[2][1] + " " + ((_m = (_l = set[2][0]) === null || _l === void 0 ? void 0 : _l.get(key)) === null || _m === void 0 ? void 0 : _m.clears)
-                        : ""}`,
-                },
-            ]);
+            try {
+                embed.addFields([
+                    {
+                        name: key || "blank",
+                        value: `${((_b = (_a = set[0][0]) === null || _a === void 0 ? void 0 : _a.get(key)) === null || _b === void 0 ? void 0 : _b.clears)
+                            ? set[0][1] + " " + ((_d = (_c = set[0][0]) === null || _c === void 0 ? void 0 : _c.get(key)) === null || _d === void 0 ? void 0 : _d.clears)
+                            : ""} ${((_f = (_e = set[1][0]) === null || _e === void 0 ? void 0 : _e.get(key)) === null || _f === void 0 ? void 0 : _f.clears)
+                            ? set[1][1] + " " + ((_h = (_g = set[1][0]) === null || _g === void 0 ? void 0 : _g.get(key)) === null || _h === void 0 ? void 0 : _h.clears)
+                            : ""} ${((_k = (_j = set[2][0]) === null || _j === void 0 ? void 0 : _j.get(key)) === null || _k === void 0 ? void 0 : _k.clears)
+                            ? set[2][1] + " " + ((_m = (_l = set[2][0]) === null || _l === void 0 ? void 0 : _l.get(key)) === null || _m === void 0 ? void 0 : _m.clears)
+                            : ""}`,
+                    },
+                ]);
+            }
+            catch (e) {
+                console.error(`Error during addin raids to embed raidChecker`, e.stack);
+            }
         });
         interaction.editReply({ embeds: [embed] }).catch((e) => {
             console.error(e);
