@@ -34,67 +34,6 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
     for (const command of files) {
         const { default: commandFile } = require(`../commands/${command}`);
         const { name: commandName, description: commandDescription, global, options, defaultMemberPermissions, type, nameLocalizations } = commandFile;
-        setTimeout(() => {
-            var _a, _b, _c, _d, _e, _f;
-            if (type == undefined || type[0] === true) {
-                if (global) {
-                    (_a = client.application) === null || _a === void 0 ? void 0 : _a.commands.create({
-                        name: commandName,
-                        nameLocalizations: nameLocalizations || undefined,
-                        description: commandDescription || commandName,
-                        type: discord_js_1.ApplicationCommandType.ChatInput,
-                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new discord_js_1.PermissionsBitField(defaultMemberPermissions).bitfield,
-                        options: options,
-                    });
-                }
-                else {
-                    (_b = client.guilds.cache.get(ids_1.guildId)) === null || _b === void 0 ? void 0 : _b.commands.create({
-                        name: commandName,
-                        nameLocalizations: nameLocalizations || undefined,
-                        description: commandDescription || commandName,
-                        type: discord_js_1.ApplicationCommandType.ChatInput,
-                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new discord_js_1.PermissionsBitField(defaultMemberPermissions).bitfield,
-                        options: options,
-                    });
-                }
-            }
-            if (type && type[1] === true) {
-                if (global) {
-                    (_c = client.application) === null || _c === void 0 ? void 0 : _c.commands.create({
-                        name: commandName,
-                        type: discord_js_1.ApplicationCommandType.User,
-                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new discord_js_1.PermissionsBitField(defaultMemberPermissions).bitfield,
-                    });
-                }
-                else {
-                    (_d = client.guilds.cache.get(ids_1.guildId)) === null || _d === void 0 ? void 0 : _d.commands.create({
-                        name: commandName,
-                        type: discord_js_1.ApplicationCommandType.User,
-                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new discord_js_1.PermissionsBitField(defaultMemberPermissions).bitfield,
-                    });
-                }
-            }
-            if (type && type[2] === true) {
-                if (global) {
-                    (_e = client.application) === null || _e === void 0 ? void 0 : _e.commands.create({
-                        name: commandName,
-                        description: commandDescription || commandName,
-                        type: discord_js_1.ApplicationCommandType.Message,
-                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new discord_js_1.PermissionsBitField(defaultMemberPermissions).bitfield,
-                        options: options,
-                    });
-                }
-                else {
-                    (_f = client.guilds.cache.get(ids_1.guildId)) === null || _f === void 0 ? void 0 : _f.commands.create({
-                        name: commandName,
-                        description: commandDescription || commandName,
-                        type: discord_js_1.ApplicationCommandType.Message,
-                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new discord_js_1.PermissionsBitField(defaultMemberPermissions).bitfield,
-                        options: options,
-                    });
-                }
-            }
-        }, 6000 * files.indexOf(command) || 1);
         commands[commandName.toLowerCase()] = commandFile;
     }
     for (const event of eventsFiles) {
@@ -102,7 +41,7 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
         events[event.slice(0, -3).toLowerCase()] = commandFile;
     }
     client.on("interactionCreate", (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b;
+        var _a, _b, _c, _d;
         if ((interaction.isChatInputCommand() || interaction.isUserContextMenuCommand()) && interaction.channel !== null) {
             const { commandName } = interaction;
             const guild = interaction.guild || client.guilds.cache.get(ids_1.guildId) || (yield client.guilds.fetch(ids_1.guildId));
@@ -153,6 +92,10 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
             const commandName = ((_b = customId.split("_").shift()) === null || _b === void 0 ? void 0 : _b.toLowerCase()) || "blank";
             if (!events[commandName])
                 return;
+            const memberName = interaction.member instanceof discord_js_1.GuildMember
+                ? interaction.member.displayName
+                : ((_d = (_c = client.guilds.cache.get(ids_1.guildId)) === null || _c === void 0 ? void 0 : _c.members.cache.get(interaction.user.id)) === null || _d === void 0 ? void 0 : _d.displayName) || interaction.user.username;
+            console.log(`${memberName} used ${customId}${interaction.channel && !interaction.channel.isDMBased() ? ` at ${interaction.channel.name}` : ""}`);
             events[commandName].callback(client, interaction, interaction.member, interaction.guild, interaction.channel).catch((e) => {
                 if (Object.keys(e).length >= 3) {
                     const embed = new discord_js_1.EmbedBuilder().setColor("Red");

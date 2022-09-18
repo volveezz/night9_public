@@ -75,7 +75,7 @@ exports.default = {
                                     member.roles.remove(removedRoles.concat(roles_1.rStats.allActive, roles_1.rStats.allKd, removedRoles));
                                     break;
                                 case "2":
-                                    removedRoles.push(roles_1.rTrials.category);
+                                    removedRoles.push(roles_1.rTrials.category, roles_1.rTrials.wintrader);
                                     member.roles.remove(removedRoles.concat(roles_1.rTrials.allKd, roles_1.rTrials.allRoles, removedRoles));
                                     break;
                                 case "3":

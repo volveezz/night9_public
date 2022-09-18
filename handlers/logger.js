@@ -86,13 +86,15 @@ function activityReporter(pgcrId) {
                                 : "<:titan:995496472722284596>"}У: ${entry.values.kills.basic.displayValue} С: ${entry.values.deaths.basic.displayValue} П: ${entry.values.assists.basic.displayValue}\nПрохождение заняло: ${entry.values.timePlayedSeconds.basic.displayValue}`,
                         inline: true,
                     });
-                    membersMembershipIds.push(entry.player.membershipId);
+                    console.log(`raidLogger added new membership`, entry.player.membershipId);
+                    membersMembershipIds.push(String(entry.player.membershipId));
                 });
                 const msg = yield activityChannel.send({ embeds: [embed] });
-                const filteredmembersMembershipIds = membersMembershipIds.filter((a) => a !== undefined);
+                const filteredmembersMembershipIds = membersMembershipIds.filter((a) => a && a.length > 5);
+                console.log(`raidLogger array`, filteredmembersMembershipIds);
                 if (filteredmembersMembershipIds.length <= 0)
                     return;
-                const dbData = yield sequelize_2.auth_data.findAll({ where: { bungie_id: { [sequelize_3.Op.any]: `{${filteredmembersMembershipIds}}` } } });
+                const dbData = yield sequelize_2.auth_data.findAll({ where: { bungie_id: { [sequelize_3.Op.any]: `{${filteredmembersMembershipIds.toString()}}` } } });
                 if (dbData.length > 0) {
                     console.log(`activityReporter debugger: ${dbData.length} ${pgcrId}`);
                     dbData.forEach((dbMemberData) => __awaiter(this, void 0, void 0, function* () {
