@@ -18,7 +18,15 @@ exports.default = {
     nameLocalizations: {
         ru: "закрытия_рейдов",
     },
-    options: [{ type: discord_js_1.ApplicationCommandOptionType.User, name: "пользователь", description: "Укажите искомого пользователя" }],
+    options: [
+        { type: discord_js_1.ApplicationCommandOptionType.User, name: "пользователь", description: "Укажите искомого пользователя" },
+        {
+            type: discord_js_1.ApplicationCommandOptionType.Boolean,
+            name: "nonraidchecker",
+            description: "Проверить абсолютно все активности в игре?",
+            nameLocalizations: { ru: "проверка_не_рейдов" },
+        },
+    ],
     description: "Статистика по рейдам",
     type: [true, true, false],
     callback: (_client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
@@ -42,13 +50,15 @@ exports.default = {
                 bearer: db_data.access_token ? db_data.access_token : undefined,
             },
         });
-        const manifest = yield manifestHandler_1.DestinyActivityDefinition.then((activity_manifest) => {
-            return Object.keys(activity_manifest).reduce(function (acc, val) {
-                if (activity_manifest[val].activityTypeHash === 2043403989)
-                    acc[val] = activity_manifest[val];
-                return acc;
-            }, {});
-        });
+        const manifest = interaction instanceof discord_js_1.ChatInputCommandInteraction && interaction.options.getBoolean("nonraidchecker") === true
+            ? yield manifestHandler_1.DestinyActivityDefinition
+            : yield manifestHandler_1.DestinyActivityDefinition.then((activity_manifest) => {
+                return Object.keys(activity_manifest).reduce(function (acc, val) {
+                    if (activity_manifest[val].activityTypeHash === 2043403989)
+                        acc[val] = activity_manifest[val];
+                    return acc;
+                }, {});
+            });
         const arr = [];
         Object.keys(manifest).forEach((key) => __awaiter(void 0, void 0, void 0, function* () {
             arr.push({
@@ -56,7 +66,6 @@ exports.default = {
                 acitivty_name: manifest[key].displayProperties.name,
                 clears: 0,
             });
-            console.log("raidChecker: ", key, manifest[key].displayProperties.name);
         }));
         const characters = Object.keys(characters_list.Response.characters.data);
         const activity_map = new Map();
@@ -111,7 +120,13 @@ exports.default = {
                 }));
             }));
         })));
-        const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTitle("Статистка закрытых рейдов по классам").setTimestamp();
+        const embed = new discord_js_1.EmbedBuilder()
+            .setColor("Green")
+            .setTitle(interaction instanceof discord_js_1.ChatInputCommandInteraction && interaction.options.getBoolean("nonraidchecker") === true
+            ? "Статистика закрытх активностей по классам"
+            : "Статистка закрытых рейдов по классам")
+            .setTimestamp()
+            .setFooter({ text: "Удаленные персонажи не проверяются" });
         interaction instanceof discord_js_1.UserContextMenuCommandInteraction
             ? embed.setAuthor({
                 name: ((_h = (_g = interaction.guild) === null || _g === void 0 ? void 0 : _g.members.cache.get(interaction.targetId)) === null || _h === void 0 ? void 0 : _h.displayName) || interaction.targetUser.username,
@@ -119,30 +134,37 @@ exports.default = {
             })
             : [];
         const embed_map = new Map([...activity_map].sort());
-        let replied = false;
+        let replied = false, i = 0;
+        const e = embed;
         embed_map.forEach((_activity_name, key) => {
             var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+            i++;
             if (((_a = embed.data.fields) === null || _a === void 0 ? void 0 : _a.length) === 25) {
-                if (replied) {
-                    interaction.editReply({ embeds: [embed] });
+                if (i === 26) {
+                    interaction.editReply({ embeds: [e] });
+                    e.data.fields = [];
+                    e.data.footer = undefined;
+                    e.data.title = undefined;
                     replied = true;
                 }
                 else {
-                    interaction.followUp({ embeds: [embed], ephemeral: true });
+                    interaction.followUp({ embeds: [e], ephemeral: true });
+                    e.data.fields = [];
                 }
-                embed.spliceFields(0, 25);
             }
             try {
-                embed.addFields({
-                    name: key || "blankNameOrNameNotFound",
-                    value: `${((_c = (_b = set[0][0]) === null || _b === void 0 ? void 0 : _b.get(key)) === null || _c === void 0 ? void 0 : _c.clears)
-                        ? set[0][1] + " " + ((_e = (_d = set[0][0]) === null || _d === void 0 ? void 0 : _d.get(key)) === null || _e === void 0 ? void 0 : _e.clears)
-                        : ""} ${((_g = (_f = set[1][0]) === null || _f === void 0 ? void 0 : _f.get(key)) === null || _g === void 0 ? void 0 : _g.clears)
-                        ? set[1][1] + " " + ((_j = (_h = set[1][0]) === null || _h === void 0 ? void 0 : _h.get(key)) === null || _j === void 0 ? void 0 : _j.clears)
-                        : ""} ${((_l = (_k = set[2][0]) === null || _k === void 0 ? void 0 : _k.get(key)) === null || _l === void 0 ? void 0 : _l.clears)
-                        ? set[2][1] + " " + ((_o = (_m = set[2][0]) === null || _m === void 0 ? void 0 : _m.get(key)) === null || _o === void 0 ? void 0 : _o.clears)
-                        : ""}`,
-                });
+                embed.addFields([
+                    {
+                        name: key || "blankNameOrNameNotFound",
+                        value: `${((_c = (_b = set[0][0]) === null || _b === void 0 ? void 0 : _b.get(key)) === null || _c === void 0 ? void 0 : _c.clears)
+                            ? set[0][1] + " " + ((_e = (_d = set[0][0]) === null || _d === void 0 ? void 0 : _d.get(key)) === null || _e === void 0 ? void 0 : _e.clears)
+                            : ""} ${((_g = (_f = set[1][0]) === null || _f === void 0 ? void 0 : _f.get(key)) === null || _g === void 0 ? void 0 : _g.clears)
+                            ? set[1][1] + " " + ((_j = (_h = set[1][0]) === null || _h === void 0 ? void 0 : _h.get(key)) === null || _j === void 0 ? void 0 : _j.clears)
+                            : ""} ${((_l = (_k = set[2][0]) === null || _k === void 0 ? void 0 : _k.get(key)) === null || _l === void 0 ? void 0 : _l.clears)
+                            ? set[2][1] + " " + ((_o = (_m = set[2][0]) === null || _m === void 0 ? void 0 : _m.get(key)) === null || _o === void 0 ? void 0 : _o.clears)
+                            : ""}`,
+                    },
+                ]);
             }
             catch (e) {
                 console.error(`Error during addin raids to embed raidChecker`, e.stack);
