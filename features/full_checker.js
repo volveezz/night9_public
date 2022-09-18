@@ -447,7 +447,7 @@ exports.default = (client) => {
                     const [clan_member] = bungie_array.splice(bungie_array.findIndex((e) => e.bungie_id === result.destinyUserInfo.membershipId), 1);
                     if (!clanJoinDateCheck.has(result.destinyUserInfo.membershipId)) {
                         yield timer(1000);
-                        if (clan_member.roles_cat[3])
+                        if (!clan_member.roles_cat[3])
                             return clanJoinDateCheck.add(result.destinyUserInfo.membershipId);
                         const member = (_c = client.guilds.cache.get(ids_1.guildId)) === null || _c === void 0 ? void 0 : _c.members.cache.get(clan_member.discord_id);
                         if (!member)

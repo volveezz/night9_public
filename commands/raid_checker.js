@@ -42,7 +42,13 @@ exports.default = {
                 bearer: db_data.access_token ? db_data.access_token : undefined,
             },
         });
-        const manifest = yield manifestHandler_1.DestinyActivityDefinition;
+        const manifest = yield manifestHandler_1.DestinyActivityDefinition.then((activity_manifest) => {
+            return Object.keys(activity_manifest).reduce(function (acc, val) {
+                if (activity_manifest[val].activityTypeHash === 2043403989)
+                    acc[val] = activity_manifest[val];
+                return acc;
+            }, {});
+        });
         const arr = [];
         Object.keys(manifest).forEach((key) => __awaiter(void 0, void 0, void 0, function* () {
             arr.push({
@@ -113,29 +119,40 @@ exports.default = {
             })
             : [];
         const embed_map = new Map([...activity_map].sort());
+        let replied = false;
         embed_map.forEach((_activity_name, key) => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+            if (((_a = embed.data.fields) === null || _a === void 0 ? void 0 : _a.length) === 25) {
+                if (replied) {
+                    interaction.editReply({ embeds: [embed] });
+                    replied = true;
+                }
+                else {
+                    interaction.followUp({ embeds: [embed], ephemeral: true });
+                }
+                embed.spliceFields(0, 25);
+            }
             try {
-                embed.addFields([
-                    {
-                        name: key || "blank",
-                        value: `${((_b = (_a = set[0][0]) === null || _a === void 0 ? void 0 : _a.get(key)) === null || _b === void 0 ? void 0 : _b.clears)
-                            ? set[0][1] + " " + ((_d = (_c = set[0][0]) === null || _c === void 0 ? void 0 : _c.get(key)) === null || _d === void 0 ? void 0 : _d.clears)
-                            : ""} ${((_f = (_e = set[1][0]) === null || _e === void 0 ? void 0 : _e.get(key)) === null || _f === void 0 ? void 0 : _f.clears)
-                            ? set[1][1] + " " + ((_h = (_g = set[1][0]) === null || _g === void 0 ? void 0 : _g.get(key)) === null || _h === void 0 ? void 0 : _h.clears)
-                            : ""} ${((_k = (_j = set[2][0]) === null || _j === void 0 ? void 0 : _j.get(key)) === null || _k === void 0 ? void 0 : _k.clears)
-                            ? set[2][1] + " " + ((_m = (_l = set[2][0]) === null || _l === void 0 ? void 0 : _l.get(key)) === null || _m === void 0 ? void 0 : _m.clears)
-                            : ""}`,
-                    },
-                ]);
+                embed.addFields({
+                    name: key || "blankNameOrNameNotFound",
+                    value: `${((_c = (_b = set[0][0]) === null || _b === void 0 ? void 0 : _b.get(key)) === null || _c === void 0 ? void 0 : _c.clears)
+                        ? set[0][1] + " " + ((_e = (_d = set[0][0]) === null || _d === void 0 ? void 0 : _d.get(key)) === null || _e === void 0 ? void 0 : _e.clears)
+                        : ""} ${((_g = (_f = set[1][0]) === null || _f === void 0 ? void 0 : _f.get(key)) === null || _g === void 0 ? void 0 : _g.clears)
+                        ? set[1][1] + " " + ((_j = (_h = set[1][0]) === null || _h === void 0 ? void 0 : _h.get(key)) === null || _j === void 0 ? void 0 : _j.clears)
+                        : ""} ${((_l = (_k = set[2][0]) === null || _k === void 0 ? void 0 : _k.get(key)) === null || _l === void 0 ? void 0 : _l.clears)
+                        ? set[2][1] + " " + ((_o = (_m = set[2][0]) === null || _m === void 0 ? void 0 : _m.get(key)) === null || _o === void 0 ? void 0 : _o.clears)
+                        : ""}`,
+                });
             }
             catch (e) {
                 console.error(`Error during addin raids to embed raidChecker`, e.stack);
             }
         });
-        interaction.editReply({ embeds: [embed] }).catch((e) => {
-            console.error(e);
-            interaction.editReply({ content: "Ошибка :(" });
-        });
+        !replied
+            ? interaction.editReply({ embeds: [embed] }).catch((e) => {
+                console.error(e);
+                interaction.editReply({ content: "Ошибка :(" });
+            })
+            : interaction.followUp({ embeds: [embed], ephemeral: true });
     }),
 };
