@@ -90,7 +90,7 @@ function activityReporter(pgcrId) {
                     membersMembershipIds.push(String(entry.player.membershipId));
                 });
                 const msg = yield activityChannel.send({ embeds: [embed] });
-                const filteredmembersMembershipIds = membersMembershipIds.filter((a) => a && a.length > 5);
+                const filteredmembersMembershipIds = membersMembershipIds.filter((a) => a && a != undefined && a != null && a.length > 5);
                 console.log(`raidLogger array`, filteredmembersMembershipIds);
                 if (filteredmembersMembershipIds.length <= 0)
                     return;
