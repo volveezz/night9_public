@@ -86,8 +86,8 @@ function activityReporter(pgcrId) {
                                 : "<:titan:995496472722284596>"}У: ${entry.values.kills.basic.displayValue} С: ${entry.values.deaths.basic.displayValue} П: ${entry.values.assists.basic.displayValue}\nПрохождение заняло: ${entry.values.timePlayedSeconds.basic.displayValue}`,
                         inline: true,
                     });
-                    console.log(`raidLogger added new membership`, entry.player.membershipId);
-                    membersMembershipIds.push(String(entry.player.membershipId));
+                    console.log(`raidLogger added new membership`, entry.player.destinyUserInfo.membershipId);
+                    membersMembershipIds.push(String(entry.player.destinyUserInfo.membershipId));
                 });
                 const msg = yield activityChannel.send({ embeds: [embed] });
                 const filteredmembersMembershipIds = membersMembershipIds.filter((a) => a && a != undefined && a != null && a.length > 5);
