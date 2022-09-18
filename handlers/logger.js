@@ -56,7 +56,7 @@ function activityReporter(pgcrId) {
             pgcrIds.add(pgcrId);
             (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`, { headers: { "X-API-KEY": process.env.XAPI }, json: true })
                 .then((response) => __awaiter(this, void 0, void 0, function* () {
-                var _a, _b;
+                var _a, _b, _c;
                 const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTimestamp(new Date(response.Response.period));
                 ((_a = response.Response.activityDetails) === null || _a === void 0 ? void 0 : _a.mode) === 4
                     ? embed.setAuthor({ name: `Raid Report`, url: `https://raid.report/pgcr/${pgcrId}` })
@@ -83,22 +83,22 @@ function activityReporter(pgcrId) {
                             ? "<:hunter:995496474978824202>"
                             : entry.player.classHash === 2271682572
                                 ? "<:warlock:995496471526920232>"
-                                : "<:titan:995496472722284596>"}У: ${entry.values.kills.basic.displayValue} С: ${entry.values.deaths.basic.displayValue} П: ${entry.values.assists.basic.displayValue}\nПрохождение заняло: ${entry.values.timePlayedSeconds.basic.displayValue}`,
+                                : "<:titan:995496472722284596>"}У: ${entry.values.kills.basic.displayValue} С: ${entry.values.deaths.basic.displayValue} П: ${entry.values.assists.basic.displayValue}\nВремя в рейде: ${entry.values.timePlayedSeconds.basic.displayValue}`,
                         inline: true,
                     });
-                    console.log(`raidLogger added new membership`, entry.player.destinyUserInfo.membershipId);
                     membersMembershipIds.push(String(entry.player.destinyUserInfo.membershipId));
                 });
-                const msg = yield activityChannel.send({ embeds: [embed] });
-                const filteredmembersMembershipIds = membersMembershipIds.filter((a) => a && a != undefined && a != null && a.length > 5);
+                (_c = embed.data.fields) === null || _c === void 0 ? void 0 : _c.sort((a, b) => (a.name > b.name ? 1 : -1));
+                const filteredmembersMembershipIds = membersMembershipIds.filter((a) => a && a != undefined && a != null);
                 console.log(`raidLogger array`, filteredmembersMembershipIds);
                 if (filteredmembersMembershipIds.length <= 0)
                     return;
                 const dbData = yield sequelize_2.auth_data.findAll({ where: { bungie_id: { [sequelize_3.Op.any]: `{${filteredmembersMembershipIds.toString()}}` } } });
-                if (dbData.length > 0) {
+                if (dbData.length > 1) {
+                    const msg = yield activityChannel.send({ embeds: [embed] });
                     console.log(`activityReporter debugger: ${dbData.length} ${pgcrId}`);
                     dbData.forEach((dbMemberData) => __awaiter(this, void 0, void 0, function* () {
-                        var _c;
+                        var _d;
                         const dbRaidData = yield sequelize_1.raids.findOne({ where: { creator: dbMemberData.discord_id } });
                         if (dbRaidData) {
                             console.log(`activityReporter advanced debugger: ${dbRaidData.id}-${dbRaidData.raid} ${pgcrId} ${dbMemberData.discord_id === dbRaidData.creator}`);
@@ -108,8 +108,8 @@ function activityReporter(pgcrId) {
                                     .setFooter({ text: "Alpha function" })
                                     .setTitle("Рейд созданный вами был завершен")
                                     .setDescription(`Вы создавали рейд ${dbRaidData.id}-${dbRaidData.raid} на <t:${dbRaidData.time}> и сейчас он был завершен.\nПодтвердите завершение рейда и набор будет удален.\n\n[История активностей](https://discord.com/${msg.guildId + "/" + msg.channelId + "/" + msg.id})\n\nВ случае ошибок отправьте скриншот ошибки (если отображается) или опишите её в этом же чате.`);
-                                return (_c = __1.BotClient.users.cache
-                                    .get(dbRaidData.creator)) === null || _c === void 0 ? void 0 : _c.send({
+                                return (_d = __1.BotClient.users.cache
+                                    .get(dbRaidData.creator)) === null || _d === void 0 ? void 0 : _d.send({
                                     embeds: [embed],
                                     components: [
                                         {
