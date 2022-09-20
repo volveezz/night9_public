@@ -40,7 +40,7 @@ exports.default = (client) => {
             if (!exports.character_data.get(data.discord_id)) {
                 exports.character_data.set(data.discord_id, Response["profile"]["data"]["characterIds"]);
             }
-            if (new Date().getTime() - new Date(Response.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60 * 4) {
+            if (new Date().getTime() - new Date(Response.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60 * 3) {
                 longOffline.add(member.id);
             }
             if (!c.has(roles_1.statusRoles.verified))
@@ -596,7 +596,7 @@ exports.default = (client) => {
                                 response === null || response === void 0 ? void 0 : response.Response.activities.forEach((activity) => {
                                     if (mode === 4 && activity.values.completed.basic.value) {
                                         if (new Date(activity.period).getTime() + activity.values.activityDurationSeconds.basic.value * 1000 >
-                                            new Date().getTime() - 1000 * 60 * 35) {
+                                            new Date().getTime() - 1000 * 60 * 15) {
                                             (0, logger_1.activityReporter)(activity.activityDetails.instanceId);
                                         }
                                         if (!ids_1.forbiddenRaidIds.includes(activity.activityDetails.referenceId)) {
@@ -708,7 +708,7 @@ exports.default = (client) => {
     setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
         kd >= 9 ? (kd = 0) : kd++;
-        raids >= 7 ? (raids = 0) : raids++;
+        raids >= 4 ? (raids = 0) : raids++;
         trialsCD >= 15 ? (trialsCD = 0) : trialsCD++;
         const t = yield sequelize_1.db.transaction();
         const role_db = yield sequelize_1.role_data.findAll({
