@@ -10,25 +10,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
+const sequelize_1 = require("sequelize");
 const channels_1 = require("../base/channels");
 const colors_1 = require("../base/colors");
 const ids_1 = require("../base/ids");
-const sequelize_1 = require("../handlers/sequelize");
+const sequelize_2 = require("../handlers/sequelize");
 exports.default = {
     callback: (client, interaction, _member, guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         if (interaction.isButton() && interaction.customId.startsWith("raidInChnButton")) {
             yield interaction.deferUpdate();
             const buttonId = interaction.customId;
             const inChnMsg = interaction.message.id;
-            const raidDataRaw = ((_a = interaction.channel) === null || _a === void 0 ? void 0 : _a.type) === discord_js_1.ChannelType.DM
-                ? yield sequelize_1.raids.findAll({ where: { creator: interaction.user.id } })
-                : yield sequelize_1.raids.findOne({ where: { inChnMsg: inChnMsg } });
-            const member = interaction.member instanceof discord_js_1.GuildMember ? interaction.member : (_b = client.guilds.cache.get(ids_1.guildId)) === null || _b === void 0 ? void 0 : _b.members.cache.get(interaction.user.id);
-            if (Array.isArray(raidDataRaw) && raidDataRaw.length > 1) {
-                throw { name: "Ошибка", message: "Этот функционал пока недоступен для создателей 2х и более рейдов" };
-            }
-            const raidData = Array.isArray(raidDataRaw) ? raidDataRaw[0] : raidDataRaw;
+            const raidData = !interaction.channel
+                ? yield sequelize_2.raids.findOne({
+                    where: {
+                        [sequelize_1.Op.and]: [
+                            { id: (_b = (_a = interaction.message.embeds[0].data.footer) === null || _a === void 0 ? void 0 : _a.text.split(` | `).shift()) === null || _b === void 0 ? void 0 : _b.split("RId: ").shift() },
+                            { creator: interaction.user.id },
+                        ],
+                    },
+                })
+                : yield sequelize_2.raids.findOne({ where: { inChnMsg: inChnMsg } });
+            const member = interaction.member instanceof discord_js_1.GuildMember ? interaction.member : (_c = client.guilds.cache.get(ids_1.guildId)) === null || _c === void 0 ? void 0 : _c.members.cache.get(interaction.user.id);
             if (!member) {
                 console.log(`raidInChnButton error, member not found`, interaction.member);
                 throw { interaction: interaction, name: "Вы не участник сервера", message: "Пожалуйста, объясните администрации как вы получили эту ошибку" };
@@ -43,7 +47,7 @@ exports.default = {
                     message: "Рейд не найден. Повторите спустя несколько секунд\nПожалуйста, не нажимайте кнопку более 2х раз - за каждую такую ошибку администрация получает оповещение",
                 };
             }
-            if (raidData.creator !== interaction.user.id && !((_c = interaction.memberPermissions) === null || _c === void 0 ? void 0 : _c.has("Administrator"))) {
+            if (raidData.creator !== interaction.user.id && !((_d = interaction.memberPermissions) === null || _d === void 0 ? void 0 : _d.has("Administrator"))) {
                 throw {
                     interaction: interaction,
                     name: "Ошибка. Недостаточно прав",
@@ -57,7 +61,7 @@ exports.default = {
                         .setColor(colors_1.colors.default)
                         .setTitle("Введите текст оповещения для участников или оставьте шаблон")
                         .setDescription(`Вас оповестил ${raidData.creator === interaction.user.id ? "создатель рейда" : "Администратор"} об скором начале рейда!\nЗаходите в голосовой канал, рейд не ждет!`);
-                    const invite = yield ((_d = member.voice.channel) === null || _d === void 0 ? void 0 : _d.createInvite({ reason: "Raid invite", maxAge: 60 * 120 }));
+                    const invite = yield ((_e = member.voice.channel) === null || _e === void 0 ? void 0 : _e.createInvite({ reason: "Raid invite", maxAge: 60 * 120 }));
                     const raidChnInvite = member.guild.channels.cache
                         .filter((chn) => chn.parentId === ids_1.ids.raidChnCategoryId && chn.type === discord_js_1.ChannelType.GuildVoice && chn.name.includes("Raid Room"))
                         .map((chn) => __awaiter(void 0, void 0, void 0, function* () {
@@ -83,7 +87,7 @@ exports.default = {
                     (yield raidChnInvite[0]) && raidChnInvite[0] !== undefined
                         ? linkComponent.push(new discord_js_1.ButtonBuilder({
                             style: discord_js_1.ButtonStyle.Link,
-                            url: ((_e = (yield raidChnInvite[0])) === null || _e === void 0 ? void 0 : _e.url) || "https://discord.gg/",
+                            url: ((_f = (yield raidChnInvite[0])) === null || _f === void 0 ? void 0 : _f.url) || "https://discord.gg/",
                             label: "Перейти в канал сбора",
                         }))
                         : [];
@@ -105,8 +109,8 @@ exports.default = {
                                 embedForLeader.setTitle(`Оповещение об рейде ${raidData.id}-${raidData.raid}`);
                                 const raidMembersLength = interaction.user.id === raidData.creator ? raidData.joined.length - 1 : raidData.joined.length;
                                 yield Promise.all(voiceChn.map((chn) => __awaiter(void 0, void 0, void 0, function* () {
-                                    var _f;
-                                    if (chn.isVoiceBased() && !chn.members.has(raidData.creator) && ((_f = chn.parent) === null || _f === void 0 ? void 0 : _f.id) !== ids_1.ids.raidChnCategoryId) {
+                                    var _g;
+                                    if (chn.isVoiceBased() && !chn.members.has(raidData.creator) && ((_g = chn.parent) === null || _g === void 0 ? void 0 : _g.id) !== ids_1.ids.raidChnCategoryId) {
                                         yield Promise.all(raidData.joined.map((member) => __awaiter(void 0, void 0, void 0, function* () {
                                             if (chn.members.has(member)) {
                                                 raidData.joined.splice(raidData.joined.indexOf(member), 1);
@@ -327,13 +331,13 @@ exports.default = {
                     });
                     const collector = msg.createMessageComponentCollector({ time: 60 * 1000, max: 1, filter: (i) => i.user.id === interaction.user.id });
                     collector.on("collect", (col) => __awaiter(void 0, void 0, void 0, function* () {
-                        var _g;
+                        var _h;
                         if (col.customId.startsWith("raidAddFunc_delete_")) {
                             if (col.customId === "raidAddFunc_delete_confirm") {
-                                const destroy = yield sequelize_1.raids.destroy({ where: { id: raidData.id } });
+                                const destroy = yield sequelize_2.raids.destroy({ where: { id: raidData.id } });
                                 if (destroy === 1) {
                                     try {
-                                        yield ((_g = interaction.guild.channels.cache.get(raidData.chnId)) === null || _g === void 0 ? void 0 : _g.delete(`${interaction.user.username} удалил рейд через кнопку(!)`));
+                                        yield ((_h = interaction.guild.channels.cache.get(raidData.chnId)) === null || _h === void 0 ? void 0 : _h.delete(`${interaction.user.username} удалил рейд через кнопку(!)`));
                                     }
                                     catch (e) {
                                         console.error(`Channel during raid manual delete for raidId ${raidData.id} wasn't found`);
