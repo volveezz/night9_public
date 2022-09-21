@@ -49,7 +49,7 @@ exports.default = {
                     {
                         const categoryId = String(Number(commandFull.pop()) + 1);
                         const statusDisable = commandFull.pop();
-                        (_a = sequelize_1.auth_data.sequelize) === null || _a === void 0 ? void 0 : _a.query(`UPDATE auth_data SET roles_cat[${categoryId.toString()}]=NOT roles_cat[${categoryId.toString()}] WHERE bungie_id=4611686018488674684 RETURNING roles_cat`).then((d) => __awaiter(void 0, void 0, void 0, function* () {
+                        (_a = sequelize_1.auth_data.sequelize) === null || _a === void 0 ? void 0 : _a.query(`UPDATE auth_data SET roles_cat[${categoryId.toString()}]=NOT roles_cat[${categoryId.toString()}] WHERE discord_id=${interaction.user.id} RETURNING roles_cat`).then((d) => __awaiter(void 0, void 0, void 0, function* () {
                             const changedRows = d[1].rows[0].roles_cat.map((b) => {
                                 return b === false ? "<:crossmark:1020504750350934026>" : "<:successCheckmark:1018320951173189743>";
                             });
