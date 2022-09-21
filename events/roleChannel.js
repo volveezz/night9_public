@@ -55,7 +55,7 @@ exports.default = {
                             });
                             const embed = new discord_js_1.EmbedBuilder()
                                 .setColor("Green")
-                                .setTitle(`Вы ${statusDisable === "enable" ? "включили" : "отключили"} роли за ${categoryId === "1"
+                                .setTitle(`Вы ${changedRows[Number(categoryId)] ? "включили" : "отключили"} роли за ${categoryId === "1"
                                 ? "**общую статистику**"
                                 : categoryId === "2"
                                     ? "статистику Испытаний Осириса"

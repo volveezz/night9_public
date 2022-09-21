@@ -51,24 +51,20 @@ exports.default = {
                         .setTitle("⁣　　　　　　　　　　⁣Ненастраиваемые роли")
                         .setDescription("⁣　⁣Ненастраиваемые роли нельзя отключить. Некоторые роли выделяют в отдельном списке участников")
                         .setColor(16755712)
-                        .addFields([
-                        {
-                            name: "⁣",
-                            value: "```fix\nОсобые роли```　Особые роли всегда выделяют вас в списке участников\n\n　<:dot:1018321568218226788><@&1012474229448507526> — за закрытие рейда «Гибель короля» в первые 24 часа",
-                        },
-                        {
-                            name: "⁣",
-                            value: `\`\`\`fix\nРейдовые роли\`\`\`　Учитываются лишь доступные на данный момент рейды\n\n${roles_1.rRaids.roles
-                                .map((r) => {
-                                return `　<:dot:1018321568218226788><@&${r.roleId}> — за ${r.individualClears} закрытий каждого рейда или ${r.totalClears} в сумме`;
-                            })
-                                .join("\n")}`,
-                        },
-                        {
-                            name: "⁣",
-                            value: `\`\`\`fix\nРоли за дополнения\`\`\`\n　╭✧<@&${roles_1.seasonalRoles.curSeasonRole}>\n　︰Роли за наличие сезонного пропуска\n　╰✧<@&${roles_1.seasonalRoles.nonCurSeasonRole}>\n\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.frs}> — за покупку Отвергнутых\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.sk}> — за покупку Обители Теней\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.bl}> — за покупку За гранью Света\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.anni}> — за покупку набора к 30-летию\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.twq}> — за покупку Королевы-ведьмы\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.lf}> — за покупку Конца Света`,
-                        },
-                    ]);
+                        .addFields({
+                        name: "⁣",
+                        value: "```fix\nОсобые роли```　Особые роли всегда выделяют вас в списке участников\n\n　<:dot:1018321568218226788><@&951448755314503721> — за максимальный уровень поддержки через [Boosty](https://boosty.to/night9)\n　<:dot:1018321568218226788><@&746392332647137402> — за 3 уровень поддержки через [Boosty](https://boosty.to/night9)\n　<:dot:1018321568218226788><@&1022036001822081024> — за 2 уровень поддержки через [Boosty](https://boosty.to/night9)",
+                    }, {
+                        name: "⁣",
+                        value: `\`\`\`fix\nРейдовые роли\`\`\`　Учитываются лишь доступные на данный момент рейды\n\n${roles_1.rRaids.roles
+                            .map((r) => {
+                            return `　<:dot:1018321568218226788><@&${r.roleId}> — за ${r.individualClears} закрытий каждого рейда или ${r.totalClears} в сумме`;
+                        })
+                            .join("\n")}`,
+                    }, {
+                        name: "⁣",
+                        value: `\`\`\`fix\nРоли за дополнения\`\`\`\n　╭✧<@&${roles_1.seasonalRoles.curSeasonRole}>\n　︰Роли за наличие сезонного пропуска\n　╰✧<@&${roles_1.seasonalRoles.nonCurSeasonRole}>\n\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.frs}> — за покупку Отвергнутых\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.sk}> — за покупку Обители Теней\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.bl}> — за покупку За гранью Света\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.anni}> — за покупку набора к 30-летию\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.twq}> — за покупку Королевы-ведьмы\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.lf}> — за покупку Конца Света`,
+                    });
                     const classRolesRaw = new discord_js_1.EmbedBuilder()
                         .setTitle("⁣　　　　　　　　　　　　Классовые роли")
                         .setDescription("⁣　Нажмите на кнопку ниже для установки своего основного класса в игре. Вы можете поменять роль в любое время")
@@ -152,7 +148,7 @@ exports.default = {
                         name: "⁣",
                         value: `\`\`\`fix\n　　Актив в голосовом чате\`\`\`\n${roles_1.rActivity.voice
                             .map((r) => {
-                            return `　<:dot:1018321568218226788><@&${r.roleId}> за ${r.voiceMinutes / 60} минут`;
+                            return `<:dot:1018321568218226788><@&${r.roleId}> за ${r.voiceMinutes / 60} минут`;
                         })
                             .join("⁣\n")}`,
                         inline: true,
@@ -160,7 +156,7 @@ exports.default = {
                         name: "⁣",
                         value: `\`\`\`fix\n　　Актив в текстовом чате\`\`\`\n${roles_1.rActivity.messages
                             .map((r) => {
-                            return `　<:dot:1018321568218226788><@&${r.roleId}> за ${r.messageCount} сообщений`;
+                            return `<:dot:1018321568218226788><@&${r.roleId}> за ${r.messageCount} сообщений`;
                         })
                             .join("⁣\n")}`,
                         inline: true,
@@ -171,9 +167,9 @@ exports.default = {
                     });
                     triumphsRaw.addFields({
                         name: "⁣",
-                        value: `\`\`\`fix\nРоли за нахождение в клане\`\`\`\n${roles_1.rClanJoinDate.roles
+                        value: `\`\`\`fix\nРоли за состояние в клане\`\`\`\n${roles_1.rClanJoinDate.roles
                             .map((r) => {
-                            return `　<:dot:1018321568218226788><@&${r.roleId}> — за ${r.days} дней в клане`;
+                            return `<:dot:1018321568218226788><@&${r.roleId}> — за ${r.days} дней в клане`;
                         })
                             .join("\n")}`,
                     });
@@ -182,8 +178,7 @@ exports.default = {
                         {
                             type: discord_js_1.ComponentType.ActionRow,
                             components: [
-                                new discord_js_1.ButtonBuilder().setCustomId(`roleChannel_roles_enable_${roleRow}`).setLabel("Включить").setStyle(discord_js_1.ButtonStyle.Success),
-                                new discord_js_1.ButtonBuilder().setCustomId(`roleChannel_roles_disable_${roleRow}`).setLabel("Отключить").setStyle(discord_js_1.ButtonStyle.Danger),
+                                new discord_js_1.ButtonBuilder().setCustomId(`roleChannel_roles_enable_${roleRow}`).setLabel("Включить/выключить").setStyle(discord_js_1.ButtonStyle.Primary),
                             ],
                         },
                     ];
