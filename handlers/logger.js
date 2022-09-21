@@ -106,7 +106,7 @@ function activityReporter(pgcrId) {
                                 const embed = new discord_js_1.EmbedBuilder()
                                     .setColor("Blue")
                                     .setFooter({ text: "Alpha function" })
-                                    .setTitle("Рейд созданный вами был завершен")
+                                    .setTitle("Созданный вами рейд был завершен")
                                     .setDescription(`Вы создавали рейд ${dbRaidData.id}-${dbRaidData.raid} на <t:${dbRaidData.time}> и сейчас он был завершен.\nПодтвердите завершение рейда и набор будет удален.\n\n[История активностей](https://discord.com/${msg.guildId + "/" + msg.channelId + "/" + msg.id})\n\nВ случае ошибок отправьте скриншот ошибки (если отображается) или опишите её в этом же чате.`);
                                 return (_d = __1.BotClient.users.cache
                                     .get(dbRaidData.creator)) === null || _d === void 0 ? void 0 : _d.send({
