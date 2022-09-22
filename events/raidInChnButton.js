@@ -325,15 +325,11 @@ exports.default = {
                             ],
                         },
                     ];
-                    console.log(`raidInChnButton sendin followUp msg`);
-                    const msg = interaction.channel
-                        ? yield interaction.followUp({
-                            ephemeral: true,
-                            embeds: [embed],
-                            components: components,
-                        })
-                        : yield interaction.editReply({ embeds: [embed], components: components });
-                    console.log(`raidInChnButton creatin collector`);
+                    const msg = yield interaction.followUp({
+                        ephemeral: true,
+                        embeds: [embed],
+                        components: components,
+                    });
                     const collector = msg.createMessageComponentCollector({ time: 60 * 1000, max: 1, filter: (i) => i.user.id === interaction.user.id });
                     collector.on("collect", (col) => __awaiter(void 0, void 0, void 0, function* () {
                         var _h;

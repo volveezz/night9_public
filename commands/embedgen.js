@@ -50,7 +50,7 @@ exports.default = {
                     const manifest = yield manifestHandler_1.DestinyRecordDefinition;
                     const topRolesRaw = new discord_js_1.EmbedBuilder()
                         .setTitle("⁣　　　　　　　　　　⁣Ненастраиваемые роли")
-                        .setDescription("⁣　⁣Ненастраиваемые роли нельзя отключить. Некоторые роли выделяют в отдельном списке участников")
+                        .setDescription("⁣　Роли этой категории нельзя отключить. Некоторые из них выделяют в отдельном списке участников")
                         .setColor(16755712)
                         .addFields({
                         name: "⁣",
@@ -88,11 +88,11 @@ exports.default = {
                         .setColor(16755712)
                         .addFields({
                         name: "⁣",
-                        value: `\`\`\`fix\n⁣　　　　Счет триумфов\`\`\`\n<:dot:1018321568218226788>Выдается за достижение (${roles_1.rStats.active
+                        value: `\`\`\`fix\n⁣　　　　Счет триумфов\`\`\`\n<:dot:1018321568218226788>Выдается за (${roles_1.rStats.active
                             .map((r) => r.triumphScore)
                             .sort((a, b) => a - b)
                             .map((r) => `**${r}**`)
-                            .join(", ")}) очков триумфов`,
+                            .join(", ")}) очков триумфа`,
                         inline: true,
                     }, {
                         name: "⁣",
@@ -117,11 +117,11 @@ exports.default = {
                         inline: true,
                     }, {
                         name: "⁣",
-                        value: `\`\`\`fix\n⁣　⁣Число безупречных билетов\`\`\`\n<:dot:1018321568218226788>Роль выдается по достижению (${roles_1.rTrials.roles
+                        value: `\`\`\`fix\n⁣　⁣Число безупречных билетов\`\`\`\n<:dot:1018321568218226788>Выдается по достижению (${roles_1.rTrials.roles
                             .map((r) => r.totalFlawless)
                             .sort((a, b) => a - b)
                             .map((r) => `**${r}**`)
-                            .join(", ")}) безупречных прохождений Испытаний`,
+                            .join(", ")}) безупречных прохождений`,
                         inline: true,
                     });
                     const titlesRaw = new discord_js_1.EmbedBuilder()
@@ -130,11 +130,11 @@ exports.default = {
                         .setColor(16755712)
                         .addFields({
                         name: "⁣",
-                        value: "```fix\n　　　　⁣Обычные печати```\n<:dot:1018321568218226788>Для получения выполните нужную печать в игре",
+                        value: "```fix\n　　　　⁣Обычные печати```\n<:dot:1018321568218226788>Для получения выполните печать в игре",
                         inline: true,
                     }, {
                         name: "⁣",
-                        value: "```fix\n⁣　　　　 Золотые печати```\n<:dot:1018321568218226788>Для получения улучшите нужную печать в игре",
+                        value: "```fix\n⁣　　　　 Золотые печати```\n<:dot:1018321568218226788>Для получения улучшите печать в игре",
                         inline: true,
                     });
                     const triumphsRaw = new discord_js_1.EmbedBuilder()
@@ -170,7 +170,7 @@ exports.default = {
                         name: "⁣",
                         value: `\`\`\`fix\nРоли за состояние в клане\`\`\`\n${roles_1.rClanJoinDate.roles
                             .map((r) => {
-                            return `<:dot:1018321568218226788><@&${r.roleId}> — за ${r.days} дней в клане`;
+                            return `　<:dot:1018321568218226788><@&${r.roleId}> — за ${r.days} дней в клане`;
                         })
                             .join("\n")}`,
                     });
