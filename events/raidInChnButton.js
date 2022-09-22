@@ -19,7 +19,6 @@ exports.default = {
     callback: (client, interaction, _member, guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
         var _a, _b, _c, _d, _e, _f;
         if (interaction.isButton() && interaction.customId.startsWith("raidInChnButton")) {
-            console.log("debug 1");
             yield interaction.deferUpdate();
             const buttonId = interaction.customId;
             const inChnMsg = interaction.message.id;
@@ -33,14 +32,14 @@ exports.default = {
                     },
                 })
                 : yield sequelize_2.raids.findOne({ where: { inChnMsg: inChnMsg } });
-            console.log("debug 2");
             const member = interaction.member instanceof discord_js_1.GuildMember ? interaction.member : (_c = client.guilds.cache.get(ids_1.guildId)) === null || _c === void 0 ? void 0 : _c.members.cache.get(interaction.user.id);
+            const guild = interaction.guild || client.guilds.cache.get(ids_1.guildId);
             console.log("debug 3");
             if (!member) {
                 console.log(`raidInChnButton error, member not found`, interaction.member);
                 throw { interaction: interaction, name: "Вы не участник сервера", message: "Пожалуйста, объясните администрации как вы получили эту ошибку" };
             }
-            if (!interaction.guild) {
+            if (!guild) {
                 throw { interaction: interaction, name: "Ошибка, этот сервер недоступен" };
             }
             if (!raidData) {
@@ -60,7 +59,7 @@ exports.default = {
             console.log("debug 4");
             switch (buttonId) {
                 case "raidInChnButton_notify": {
-                    const voiceChn = interaction.guild.channels.cache.filter((chn) => chn.type === discord_js_1.ChannelType.GuildVoice);
+                    const voiceChn = guild.channels.cache.filter((chn) => chn.type === discord_js_1.ChannelType.GuildVoice);
                     const embedForLeader = new discord_js_1.EmbedBuilder()
                         .setColor(colors_1.colors.default)
                         .setTitle("Введите текст оповещения для участников или оставьте шаблон")
@@ -158,7 +157,7 @@ exports.default = {
                                     },
                                 ];
                                 yield Promise.all(raidData.joined.map((id) => __awaiter(void 0, void 0, void 0, function* () {
-                                    const member = interaction.guild.members.cache.get(id);
+                                    const member = guild.members.cache.get(id);
                                     if (!member)
                                         return console.error(`error during raidNotify, member not found`, id, member);
                                     if (member.id === raidData.creator)
@@ -345,7 +344,7 @@ exports.default = {
                                 const destroy = yield sequelize_2.raids.destroy({ where: { id: raidData.id } });
                                 if (destroy === 1) {
                                     try {
-                                        yield ((_h = interaction.guild.channels.cache.get(raidData.chnId)) === null || _h === void 0 ? void 0 : _h.delete(`${interaction.user.username} удалил рейд через кнопку(!)`));
+                                        yield ((_h = guild.channels.cache.get(raidData.chnId)) === null || _h === void 0 ? void 0 : _h.delete(`${interaction.user.username} удалил рейд через кнопку(!)`));
                                     }
                                     catch (e) {
                                         console.error(`Channel during raid manual delete for raidId ${raidData.id} wasn't found`);

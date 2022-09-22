@@ -178,7 +178,7 @@ exports.default = {
                         {
                             type: discord_js_1.ComponentType.ActionRow,
                             components: [
-                                new discord_js_1.ButtonBuilder().setCustomId(`roleChannel_roles_enable_${roleRow}`).setLabel("Включить/выключить").setStyle(discord_js_1.ButtonStyle.Primary),
+                                new discord_js_1.ButtonBuilder().setCustomId(`roleChannel_roles_enable_${roleRow}`).setLabel("Переключить").setStyle(discord_js_1.ButtonStyle.Secondary),
                             ],
                         },
                     ];
