@@ -421,9 +421,10 @@ exports.default = (client) => {
                 return console.error(`[clanCheckerError] StatusCode: ${e.statusCode}, ${e.error}`);
             });
             if (clanList === undefined) {
-                console.log("Clan checker restarts");
-                yield timer(5000);
-                clan(bungie_array);
+                setTimeout(() => {
+                    console.log("Clan checker restarts");
+                    clan(bungie_array);
+                }, 5000);
                 return;
             }
             if (clanList.Response.results.length < 5) {
