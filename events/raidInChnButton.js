@@ -19,6 +19,7 @@ exports.default = {
     callback: (client, interaction, _member, guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
         var _a, _b, _c, _d, _e, _f;
         if (interaction.isButton() && interaction.customId.startsWith("raidInChnButton")) {
+            console.log("debug 1");
             yield interaction.deferUpdate();
             const buttonId = interaction.customId;
             const inChnMsg = interaction.message.id;
@@ -32,7 +33,9 @@ exports.default = {
                     },
                 })
                 : yield sequelize_2.raids.findOne({ where: { inChnMsg: inChnMsg } });
+            console.log("debug 2");
             const member = interaction.member instanceof discord_js_1.GuildMember ? interaction.member : (_c = client.guilds.cache.get(ids_1.guildId)) === null || _c === void 0 ? void 0 : _c.members.cache.get(interaction.user.id);
+            console.log("debug 3");
             if (!member) {
                 console.log(`raidInChnButton error, member not found`, interaction.member);
                 throw { interaction: interaction, name: "Вы не участник сервера", message: "Пожалуйста, объясните администрации как вы получили эту ошибку" };
@@ -54,6 +57,7 @@ exports.default = {
                     message: `Изменение набора доступно только создателю рейда - <@${raidData.creator}>`,
                 };
             }
+            console.log("debug 4");
             switch (buttonId) {
                 case "raidInChnButton_notify": {
                     const voiceChn = interaction.guild.channels.cache.filter((chn) => chn.type === discord_js_1.ChannelType.GuildVoice);
@@ -374,6 +378,9 @@ exports.default = {
                     }));
                     break;
                 }
+                default:
+                    console.log(`rainInChnButton default case response`, interaction.customId);
+                    break;
             }
         }
     }),

@@ -88,9 +88,8 @@ function activityReporter(pgcrId) {
                     });
                     membersMembershipIds.push(String(entry.player.destinyUserInfo.membershipId));
                 });
-                (_c = embed.data.fields) === null || _c === void 0 ? void 0 : _c.sort((a, b) => (a.name > b.name ? 1 : -1));
+                (_c = embed.data.fields) === null || _c === void 0 ? void 0 : _c.sort((a, b) => a.name.localeCompare(b.name));
                 const filteredmembersMembershipIds = membersMembershipIds.filter((a) => a && a != undefined && a != null);
-                console.log(`raidLogger array`, filteredmembersMembershipIds);
                 if (filteredmembersMembershipIds.length <= 0)
                     return;
                 const dbData = yield sequelize_2.auth_data.findAll({ where: { bungie_id: { [sequelize_3.Op.any]: `{${filteredmembersMembershipIds.toString()}}` } } });
