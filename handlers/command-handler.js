@@ -97,7 +97,7 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
                 : ((_d = (_c = client.guilds.cache.get(ids_1.guildId)) === null || _c === void 0 ? void 0 : _c.members.cache.get(interaction.user.id)) === null || _d === void 0 ? void 0 : _d.displayName) || interaction.user.username;
             console.log(`${memberName} used ${customId}${interaction.channel && !interaction.channel.isDMBased() ? ` at ${interaction.channel.name}` : ""}`);
             events[commandName].callback(client, interaction, interaction.member, interaction.guild, interaction.channel).catch((e) => {
-                console.error(commandName, "error", e.stack);
+                console.error(commandName, "error", e.stack || e);
                 const embed = new discord_js_1.EmbedBuilder().setColor("Red");
                 embed.setTitle(e === null || e === void 0 ? void 0 : e.name);
                 String(e === null || e === void 0 ? void 0 : e.message).localeCompare("русский") ? embed.setDescription(e.message) : [];
