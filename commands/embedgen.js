@@ -40,6 +40,7 @@ exports.default = {
     ],
     callback: (_client, interaction, _member, _guild, channel) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
+        interaction.deferReply({ ephemeral: true });
         const isPreset = interaction.options.getSubcommandGroup();
         if (isPreset && isPreset === "preset") {
             const preset = interaction.options.getSubcommand();
@@ -248,11 +249,11 @@ exports.default = {
         const embed = discord_js_1.EmbedBuilder.from(embedCode);
         if (editedEmbedMessageId) {
             (_a = channel.messages.cache.get(editedEmbedMessageId)) === null || _a === void 0 ? void 0 : _a.edit({ embeds: [embed] });
-            interaction.reply("Сообщение было изменено");
+            interaction.editReply("Сообщение было изменено");
         }
         else {
             channel.send({ embeds: [embed] });
-            interaction.reply("Сообщение было отправлено");
+            interaction.editReply("Сообщение было отправлено");
         }
     }),
 };
