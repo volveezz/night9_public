@@ -64,7 +64,7 @@ exports.default = {
                             .join("\n")}`,
                     }, {
                         name: "⁣",
-                        value: `\`\`\`fix\nРоли за дополнения\`\`\`\n　╭✧<@&${roles_1.seasonalRoles.curSeasonRole}>\n　︰Роли за наличие сезонного пропуска\n　╰✧<@&${roles_1.seasonalRoles.nonCurSeasonRole}>\n\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.frs}> — за покупку Отвергнутых\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.sk}> — за покупку Обители Теней\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.bl}> — за покупку За гранью Света\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.anni}> — за покупку набора к 30-летию\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.twq}> — за покупку Королевы-ведьмы\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.lf}> — за покупку Конца Света`,
+                        value: `\`\`\`fix\nРоли за дополнения\`\`\`\n　╭✧<@&${roles_1.seasonalRoles.curSeasonRole}>\n　︰За наличие сезонного пропуска\n　╰✧<@&${roles_1.seasonalRoles.nonCurSeasonRole}>\n\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.frs}> — за покупку Отвергнутых\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.sk}> — за покупку Обители Теней\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.bl}> — за покупку За гранью Света\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.anni}> — за покупку набора к 30-летию\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.twq}> — за покупку Королевы-ведьмы\n　<:dot:1018321568218226788><@&${roles_1.dlcsRoles.lf}> — за покупку Конца Света`,
                     });
                     const classRolesRaw = new discord_js_1.EmbedBuilder()
                         .setTitle("⁣　　　　　　　　　　　　Классовые роли")
@@ -88,7 +88,7 @@ exports.default = {
                         .setColor(16755712)
                         .addFields({
                         name: "⁣",
-                        value: `\`\`\`fix\n⁣　　　　Счет триумфов\`\`\`\n<:dot:1018321568218226788>Выдается за (${roles_1.rStats.active
+                        value: `\`\`\`fix\n⁣　　　　Счет триумфов\`\`\`\n<:dot:1018321568218226788>За (${roles_1.rStats.active
                             .map((r) => r.triumphScore)
                             .sort((a, b) => a - b)
                             .map((r) => `**${r}**`)
@@ -96,7 +96,7 @@ exports.default = {
                         inline: true,
                     }, {
                         name: "⁣",
-                        value: `\`\`\`fix\n⁣　　　　　　　 У/С\`\`\`\n<:dot:1018321568218226788>Выдается за соотношение убийств/смерти (${roles_1.rStats.kd
+                        value: `\`\`\`fix\n⁣　　　　　　　 У/С\`\`\`\n<:dot:1018321568218226788>За соотношение убийств/смерти (${roles_1.rStats.kd
                             .map((r) => r.kd)
                             .sort((a, b) => a - b)
                             .map((r) => `**${r}**`)
@@ -105,19 +105,19 @@ exports.default = {
                     });
                     const trialsRolesRaw = new discord_js_1.EmbedBuilder()
                         .setTitle("⁣　　　　　　　　Статистика Испытаний Осириса")
-                        .setDescription("⁣　⁣Для отображения категории требуется одно безупречное прохождение Испытаний Осириса")
+                        .setDescription("⁣　⁣Для отображения категории требуется от одного безупречного прохождения")
                         .setColor(16755712)
                         .addFields({
                         name: "⁣",
-                        value: `\`\`\`fix\n　⁣ ⁣У/С в Испытаниях Осириса\`\`\`\n<:dot:1018321568218226788>Выдается за соотношение убийств/смерти (${roles_1.rTrials.kd
+                        value: `\`\`\`fix\n　⁣ ⁣У/С в Испытаниях Осириса\`\`\`\n<:dot:1018321568218226788>За соотношение убийств/смерти (${roles_1.rTrials.kd
                             .map((r) => r.kd)
                             .sort((a, b) => a - b)
                             .map((r) => `**${r}**`)
-                            .join(", ")})\n<:dot:1018321568218226788>За 10 и более нечестных матчей выдается роль <@&${roles_1.rTrials.wintrader}>`,
+                            .join(", ")})\n<:dot:1018321568218226788>За 10 и более нечестных матчей выдается <@&${roles_1.rTrials.wintrader}>`,
                         inline: true,
                     }, {
                         name: "⁣",
-                        value: `\`\`\`fix\n⁣　⁣Число безупречных билетов\`\`\`\n<:dot:1018321568218226788>Выдается по достижению (${roles_1.rTrials.roles
+                        value: `\`\`\`fix\n⁣　⁣Число безупречных билетов\`\`\`\n<:dot:1018321568218226788>За достижение (${roles_1.rTrials.roles
                             .map((r) => r.totalFlawless)
                             .sort((a, b) => a - b)
                             .map((r) => `**${r}**`)
@@ -126,15 +126,15 @@ exports.default = {
                     });
                     const titlesRaw = new discord_js_1.EmbedBuilder()
                         .setTitle("⁣　　　　　　　　　　　　　 Титулы")
-                        .setDescription("⁣　Для отображения этой категории необходимо выполнить требования как минимум для 1 печати")
+                        .setDescription("⁣　⁣Для отображения категории требуется от одной выполненной печати")
                         .setColor(16755712)
                         .addFields({
                         name: "⁣",
-                        value: "```fix\n　　　　⁣Обычные печати```\n<:dot:1018321568218226788>Для получения выполните печать в игре",
+                        value: "```fix\n　　　　⁣Обычные печати```\n<:dot:1018321568218226788>За выполнение печати в игре",
                         inline: true,
                     }, {
                         name: "⁣",
-                        value: "```fix\n⁣　　　　 Золотые печати```\n<:dot:1018321568218226788>Для получения улучшите печать в игре",
+                        value: "```fix\n⁣　　　　Золотые печати```\n<:dot:1018321568218226788>За улучшение печати в игре",
                         inline: true,
                     });
                     const triumphsRaw = new discord_js_1.EmbedBuilder()
@@ -143,7 +143,7 @@ exports.default = {
                         .setColor(16755712);
                     const activityRolesRaw = new discord_js_1.EmbedBuilder()
                         .setTitle("⁣　　　　　　　　　　Активность на сервере")
-                        .setDescription("⁣　Учитывается каждое отправленное вами сообщение в любом из каналов. Время в голосовых каналах учитывается везде, кроме AFK-канала")
+                        .setDescription("⁣　Учитывается каждое отправленное вами сообщение в любом из каналов. Время в AFK-канале не учитывается")
                         .setColor(16755712)
                         .addFields({
                         name: "⁣",
