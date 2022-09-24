@@ -589,6 +589,7 @@ exports.default = (client) => {
                             });
                         });
                     }
+                    member.id !== ids_1.ownerId ? console.log("debug 6") : "";
                     function checker() {
                         var _a;
                         return __awaiter(this, void 0, void 0, function* () {
@@ -620,6 +621,7 @@ exports.default = (client) => {
                     }
                 }
                 if (mode === 4) {
+                    member.id !== ids_1.ownerId ? console.log("debug 1") : "";
                     const filter = (activity) => {
                         const filtered = completedActivities.filter((a) => a === activity).length;
                         completedActivities = completedActivities.filter((a) => a !== activity);
@@ -638,6 +640,7 @@ exports.default = (client) => {
                     const vog = filter(3881495763);
                     const vogMaster = filter(1681562271) + filter(1485585878);
                     const lw = filter(2122313384) + filter(1661734046);
+                    member.id !== ids_1.ownerId ? console.log("debug 2") : "";
                     exports.completedRaidsData.set(member.id, {
                         kf,
                         kfMaster,
@@ -650,6 +653,7 @@ exports.default = (client) => {
                         lw,
                         totalRaidCount,
                     });
+                    member.id !== ids_1.ownerId ? console.log("debug 3") : "";
                     for (const step of roles_1.rRaids.roles) {
                         if (kf + kfMaster >= (step.individualClears >= 30 ? Math.trunc(step.individualClears / 2) : step.individualClears) &&
                             votd + votdMaster >= step.individualClears &&
@@ -657,6 +661,7 @@ exports.default = (client) => {
                             dsc >= step.individualClears &&
                             gos >= step.individualClears &&
                             lw >= step.individualClears) {
+                            member.id !== ids_1.ownerId ? console.log("debug 4") : "";
                             if (!member.roles.cache.has(step.roleId)) {
                                 member.roles.add(step.roleId);
                                 setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 5000);
@@ -664,6 +669,7 @@ exports.default = (client) => {
                             break;
                         }
                         else if (kf + kfMaster + votdMaster + votd + vog + vogMaster + dsc + gos + lw >= step.totalClears) {
+                            member.id !== ids_1.ownerId ? console.log("debug 5") : "";
                             if (!member.roles.cache.has(step.roleId)) {
                                 member.roles.add(step.roleId);
                                 setTimeout(() => member.roles.remove(roles_1.rRaids.allRoles.filter((r) => r !== step.roleId)), 5000);

@@ -80,13 +80,18 @@ function activityReporter(pgcrId) {
                     const userData = completedUsers.get(entry.player.destinyUserInfo.membershipId);
                     completedUsers.set(entry.player.destinyUserInfo.membershipId, {
                         bungieName: entry.player.destinyUserInfo.bungieGlobalDisplayName,
-                        classHash: (userData === null || userData === void 0 ? void 0 : userData.completed)
-                            ? userData.classHash
-                            : entry.player.classHash === 671679327
+                        classHash: entry.values.completed.basic.value === 1
+                            ? (entry.player.classHash === 671679327
                                 ? "<:hunter:995496474978824202>"
                                 : entry.player.classHash === 2271682572
                                     ? "<:warlock:995496471526920232>"
-                                    : "<:titan:995496472722284596>",
+                                    : "<:titan:995496472722284596>") + ((userData === null || userData === void 0 ? void 0 : userData.classHash) || "")
+                            : ((userData === null || userData === void 0 ? void 0 : userData.classHash) || "") +
+                                String(entry.player.classHash === 671679327
+                                    ? "<:deadHunter:1023051800653344859>"
+                                    : entry.player.classHash === 2271682572
+                                        ? "<:deadWarlock:1023051796932989059>"
+                                        : "<:deadTitan:1023051798740729876>"),
                         completed: entry.values.completed.basic.value === 1 ? true : false,
                         kills: entry.values.kills.basic.value + ((userData === null || userData === void 0 ? void 0 : userData.kills) || 0),
                         deaths: entry.values.deaths.basic.value + ((userData === null || userData === void 0 ? void 0 : userData.deaths) || 0),
