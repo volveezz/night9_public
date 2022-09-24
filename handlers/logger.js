@@ -75,7 +75,6 @@ function activityReporter(pgcrId) {
                     : embed.setFooter({ text: footerText });
                 manifestData.pgcrImage ? embed.setThumbnail(`https://bungie.net${manifestData.pgcrImage}`) : "";
                 const completedUsers = new Map();
-                const membersMembershipIds = Array.from(completedUsers.keys());
                 response.Response.entries.forEach((entry) => {
                     const userData = completedUsers.get(entry.player.destinyUserInfo.membershipId);
                     completedUsers.set(entry.player.destinyUserInfo.membershipId, {
@@ -99,6 +98,7 @@ function activityReporter(pgcrId) {
                         timeInRaid: entry.values.timePlayedSeconds.basic.value + ((userData === null || userData === void 0 ? void 0 : userData.timeInRaid) || 0),
                     });
                 });
+                const membersMembershipIds = Array.from(completedUsers.keys());
                 completedUsers.forEach((value, key) => {
                     const arr = [];
                     arr.push(value.timeInRaid >= 3600 ? Math.trunc(value.timeInRaid / 60 / 60) + "ч" : "");
@@ -256,12 +256,10 @@ exports.default = (client) => {
             .setTimestamp()
             .setFooter({ text: String(`Id: ` + member.id) })
             .setDescription(`<@${member.id}> ${member.user.username}#${member.user.discriminator}`)
-            .addFields([
-            {
-                name: "Дата создания аккаунта",
-                value: String("<t:" + Math.round(member.user.createdTimestamp / 1000) + ">"),
-            },
-        ])
+            .addFields({
+            name: "Дата создания аккаунта",
+            value: String("<t:" + Math.round(member.user.createdTimestamp / 1000) + ">"),
+        })
             .setThumbnail(String(member.displayAvatarURL()));
         if (member.communicationDisabledUntil !== null) {
             embed.addFields([
