@@ -54,7 +54,7 @@ exports.default = {
                             });
                             const embed = new discord_js_1.EmbedBuilder()
                                 .setColor("Green")
-                                .setTitle(`Вы ${d[1].rows[0].roles_cat[Number(categoryId)] ? "включили" : "отключили"} роли за ${categoryId === "1"
+                                .setTitle(`Вы ${d[1].rows[0].roles_cat[Number(categoryId) - 1] ? "включили" : "отключили"} роли за ${categoryId === "1"
                                 ? "общую статистику"
                                 : categoryId === "2"
                                     ? "статистику Испытаний Осириса"
@@ -65,19 +65,19 @@ exports.default = {
                                             : "активность на сервере"}`)
                                 .setDescription(`<:dot:1018321568218226788>Общая статистика - ${changedRows[0]}\n<:dot:1018321568218226788>Статистика Испытаний Осириса - ${changedRows[1]}\n<:dot:1018321568218226788>Титулы - ${changedRows[2]}\n<:dot:1018321568218226788>Триумфы - ${changedRows[3]}\n<:dot:1018321568218226788>Активность на сервере - ${changedRows[4]}`);
                             interaction.reply({ embeds: [embed], ephemeral: true });
-                            if (d[1].rows[0].roles_cat[Number(categoryId)] === true)
+                            if (d[1].rows[0].roles_cat[Number(categoryId) - 1] === true)
                                 return;
                             let removedRoles = [];
-                            switch (categoryId) {
-                                case "1":
+                            switch (Number(categoryId) - 1) {
+                                case 0:
                                     removedRoles.push(roles_1.rStats.category);
                                     member.roles.remove(removedRoles.concat(roles_1.rStats.allActive, roles_1.rStats.allKd, removedRoles));
                                     break;
-                                case "2":
+                                case 1:
                                     removedRoles.push(roles_1.rTrials.category, roles_1.rTrials.wintrader);
                                     member.roles.remove(removedRoles.concat(roles_1.rTrials.allKd, roles_1.rTrials.allRoles, removedRoles));
                                     break;
-                                case "3":
+                                case 2:
                                     const allTitlesRoles = yield sequelize_1.role_data.findAll({ where: { category: 3 } });
                                     removedRoles.push(roles_1.rTitles.category);
                                     allTitlesRoles.forEach((r) => {
@@ -86,7 +86,7 @@ exports.default = {
                                     });
                                     member.roles.remove(removedRoles.filter((r) => r !== null));
                                     break;
-                                case "4":
+                                case 3:
                                     const allTriumphsRoles = yield sequelize_1.role_data.findAll({ where: { category: 4 } });
                                     removedRoles.push(roles_1.rTriumphs.category);
                                     allTriumphsRoles.forEach((r) => {
@@ -95,7 +95,7 @@ exports.default = {
                                     });
                                     member.roles.remove(removedRoles.concat(roles_1.rClanJoinDate.allRoles));
                                     break;
-                                case "5":
+                                case 4:
                                     removedRoles.push(roles_1.rActivity.category);
                                     member.roles.remove(removedRoles.concat(roles_1.rActivity.allMessages, roles_1.rActivity.allVoice, removedRoles));
                                     break;
