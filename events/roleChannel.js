@@ -48,7 +48,6 @@ exports.default = {
                 default:
                     {
                         const categoryId = String(Number(commandFull.pop()) + 1);
-                        const statusDisable = commandFull.pop();
                         (_a = sequelize_1.auth_data.sequelize) === null || _a === void 0 ? void 0 : _a.query(`UPDATE auth_data SET roles_cat[${categoryId.toString()}]=NOT roles_cat[${categoryId.toString()}] WHERE discord_id=${interaction.user.id} RETURNING roles_cat`).then((d) => __awaiter(void 0, void 0, void 0, function* () {
                             const changedRows = d[1].rows[0].roles_cat.map((b) => {
                                 return b === false ? "<:crossmark:1020504750350934026>" : "<:successCheckmark:1018320951173189743>";
@@ -56,7 +55,7 @@ exports.default = {
                             const embed = new discord_js_1.EmbedBuilder()
                                 .setColor("Green")
                                 .setTitle(`Вы ${changedRows[Number(categoryId)] ? "включили" : "отключили"} роли за ${categoryId === "1"
-                                ? "**общую статистику**"
+                                ? "общую статистику"
                                 : categoryId === "2"
                                     ? "статистику Испытаний Осириса"
                                     : categoryId === "3"
@@ -66,7 +65,7 @@ exports.default = {
                                             : "активность на сервере"}`)
                                 .setDescription(`<:dot:1018321568218226788>Общая статистика - ${changedRows[0]}\n<:dot:1018321568218226788>Статистика Испытаний Осириса - ${changedRows[1]}\n<:dot:1018321568218226788>Титулы - ${changedRows[2]}\n<:dot:1018321568218226788>Триумфы - ${changedRows[3]}\n<:dot:1018321568218226788>Активность на сервере - ${changedRows[4]}`);
                             interaction.reply({ embeds: [embed], ephemeral: true });
-                            if (statusDisable === "enable")
+                            if (d[1].rows[0].roles_cat[categoryId] === true)
                                 return;
                             let removedRoles = [];
                             switch (categoryId) {
