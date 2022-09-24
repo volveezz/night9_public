@@ -612,9 +612,11 @@ exports.default = (client) => {
                                         deaths += activity.values.deaths.basic.value;
                                     }
                                 });
+                                member.id === ids_1.ownerId ? console.log("debug 8") : "";
                                 if (response.Response.activities.length === 250) {
                                     page++;
                                     yield checker();
+                                    member.id === ids_1.ownerId ? console.log("debug 7") : "";
                                 }
                             }
                         });
@@ -681,7 +683,7 @@ exports.default = (client) => {
                         console.log(`Found new raidIds`, completedActivities);
                 }
                 else if (mode === 84) {
-                    if (wtmatches >= 10 && member.id === ids_1.ownerId) {
+                    if (wtmatches >= 10 && member.id !== ids_1.ownerId) {
                         if (!member.roles.cache.has(roles_1.rTrials.wintrader)) {
                             member.roles.add(roles_1.rTrials.wintrader);
                             setTimeout(() => member.roles.remove(roles_1.rTrials.allKd), 6000);
