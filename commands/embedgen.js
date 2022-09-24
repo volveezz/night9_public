@@ -126,7 +126,7 @@ exports.default = {
                     });
                     const titlesRaw = new discord_js_1.EmbedBuilder()
                         .setTitle("⁣　　　　　　　　　　　　　 Титулы")
-                        .setDescription("⁣　⁣Для отображения категории требуется от одной выполненной печати")
+                        .setDescription("⁣　⁣Для отображения категории требуется наличие как минимум 1 актуальной печати")
                         .setColor(16755712)
                         .addFields({
                         name: "⁣",

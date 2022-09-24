@@ -66,60 +66,95 @@ function activityReporter(pgcrId) {
                 const footerText = `Активность была начата ${response.Response.activityWasStartedFromBeginning === true ? "с начала" : "с чекпоинта"}`;
                 const referenceId = response.Response.activityDetails.referenceId;
                 const manifestData = (yield manifestHandler_1.DestinyActivityDefinition)[referenceId];
-                embed.setTitle(manifestData.displayProperties.name);
+                embed.setTitle(manifestData.displayProperties.name +
+                    response.Response.entries[0].values.activityDurationSeconds.basic.displayValue.replace("h", "ч").replace("m", "м").replace("s", "с"));
                 manifestData.displayProperties.hasIcon
                     ? manifestData.displayProperties.highResIcon
                         ? embed.setFooter({ text: footerText, iconURL: `https://bungie.net${manifestData.displayProperties.highResIcon}` })
                         : embed.setFooter({ text: footerText, iconURL: `https://bungie.net${manifestData.displayProperties.icon}` })
                     : embed.setFooter({ text: footerText });
                 manifestData.pgcrImage ? embed.setThumbnail(`https://bungie.net${manifestData.pgcrImage}`) : "";
-                const membersMembershipIds = [];
+                const completedUsers = new Map();
+                const membersMembershipIds = Array.from(completedUsers.keys());
                 response.Response.entries.forEach((entry) => {
-                    if (entry.values.completed.basic.value !== 1)
+                    const userData = completedUsers.get(entry.player.destinyUserInfo.membershipId);
+                    completedUsers.set(entry.player.destinyUserInfo.membershipId, {
+                        bungieName: entry.player.destinyUserInfo.bungieGlobalDisplayName,
+                        classHash: (userData === null || userData === void 0 ? void 0 : userData.completed)
+                            ? userData.classHash
+                            : entry.player.classHash === 671679327
+                                ? "<:hunter:995496474978824202>"
+                                : entry.player.classHash === 2271682572
+                                    ? "<:warlock:995496471526920232>"
+                                    : "<:titan:995496472722284596>",
+                        completed: entry.values.completed.basic.value === 1 ? true : false,
+                        kills: entry.values.kills.basic.value + ((userData === null || userData === void 0 ? void 0 : userData.kills) || 0),
+                        deaths: entry.values.deaths.basic.value + ((userData === null || userData === void 0 ? void 0 : userData.deaths) || 0),
+                        assists: entry.values.assists.basic.value + ((userData === null || userData === void 0 ? void 0 : userData.assists) || 0),
+                        timeInRaid: entry.values.timePlayedSeconds.basic.value + ((userData === null || userData === void 0 ? void 0 : userData.timeInRaid) || 0),
+                    });
+                });
+                completedUsers.forEach((value, key) => {
+                    const arr = [];
+                    arr.push(value.timeInRaid >= 3600 ? Math.trunc(value.timeInRaid / 60 / 60) + "ч" : "");
+                    arr.push(value.timeInRaid >= 60
+                        ? (value.timeInRaid > 660
+                            ? Math.trunc(value.timeInRaid / 60) - Math.trunc(value.timeInRaid / 60 / 60) * 60
+                            : Math.trunc(value.timeInRaid / 60)) + "м"
+                        : "");
+                    arr.push(value.timeInRaid - Math.trunc(value.timeInRaid / 60) * 60 !== 0 ? value.timeInRaid - Math.trunc(value.timeInRaid / 60) * 60 + "с" : "");
+                    if (!value.completed) {
                         return;
+                    }
+                    else {
+                        completedUsers.delete(key);
+                    }
                     embed.addFields({
-                        name: `${entry.player.destinyUserInfo.bungieGlobalDisplayName}`,
-                        value: `${entry.player.classHash === 671679327
-                            ? "<:hunter:995496474978824202>"
-                            : entry.player.classHash === 2271682572
-                                ? "<:warlock:995496471526920232>"
-                                : "<:titan:995496472722284596>"}У: ${entry.values.kills.basic.displayValue} С: ${entry.values.deaths.basic.displayValue} П: ${entry.values.assists.basic.displayValue}\nВремя в рейде: ${entry.values.timePlayedSeconds.basic.displayValue}`,
+                        name: `${value.bungieName}`,
+                        value: `${value.classHash}У: ${value.kills} С: ${value.deaths} П: ${value.assists}\nВ рейде: ${arr.join(" ").trim()}`,
                         inline: true,
                     });
-                    membersMembershipIds.push(String(entry.player.destinyUserInfo.membershipId));
                 });
                 (_c = embed.data.fields) === null || _c === void 0 ? void 0 : _c.sort((a, b) => a.name.localeCompare(b.name));
-                const filteredmembersMembershipIds = membersMembershipIds.filter((a) => a && a != undefined && a != null);
-                if (filteredmembersMembershipIds.length <= 0)
+                completedUsers.forEach((value, key) => {
+                    const arr = [];
+                    arr.push(value.timeInRaid >= 3600 ? Math.trunc(value.timeInRaid / 60 / 60) + "ч" : "");
+                    arr.push(value.timeInRaid >= 60
+                        ? (value.timeInRaid > 660
+                            ? Math.trunc(value.timeInRaid / 60) - Math.trunc(value.timeInRaid / 60 / 60) * 60
+                            : Math.trunc(value.timeInRaid / 60)) + "м"
+                        : "");
+                    arr.push(value.timeInRaid - Math.trunc(value.timeInRaid / 60) * 60 !== 0 ? value.timeInRaid - Math.trunc(value.timeInRaid / 60) * 60 + "с" : "");
+                    embed.addFields({
+                        name: `❌${value.bungieName}`,
+                        value: `${value.classHash}У: ${value.kills} С: ${value.deaths} П: ${value.assists}\nВ рейде: ${arr.join(" ").trim()}`,
+                        inline: true,
+                    });
+                });
+                if (membersMembershipIds.length <= 0)
                     return;
-                const dbData = yield sequelize_2.auth_data.findAll({ where: { bungie_id: { [sequelize_3.Op.any]: `{${filteredmembersMembershipIds.toString()}}` } } });
+                const dbData = yield sequelize_2.auth_data.findAll({ where: { bungie_id: { [sequelize_3.Op.any]: `{${membersMembershipIds.toString()}}` } } });
                 if (dbData.length > 1) {
                     const msg = yield activityChannel.send({ embeds: [embed] });
-                    console.log(`activityReporter debugger: ${dbData.length} ${pgcrId}`);
                     dbData.forEach((dbMemberData) => __awaiter(this, void 0, void 0, function* () {
                         var _d;
                         const dbRaidData = yield sequelize_1.raids.findOne({ where: { creator: dbMemberData.discord_id } });
-                        if (dbRaidData) {
-                            console.log(`activityReporter advanced debugger: ${dbRaidData.id}-${dbRaidData.raid} ${pgcrId} ${dbMemberData.discord_id === dbRaidData.creator}`);
-                            if (dbRaidData.time < new Date().getTime()) {
-                                const embed = new discord_js_1.EmbedBuilder()
-                                    .setColor("Blue")
-                                    .setFooter({ text: `RId: ${dbRaidData.id} | Alpha function` })
-                                    .setTitle("Созданный вами рейд был завершен")
-                                    .setDescription(`Вы создавали рейд ${dbRaidData.id}-${dbRaidData.raid} на <t:${dbRaidData.time}> и сейчас он был завершен.\nПодтвердите завершение рейда и набор будет удален.\n\n[История активностей](https://discord.com/channels/${msg.guildId + "/" + msg.channelId + "/" + msg.id})\n\nВ случае ошибок отправьте скриншот ошибки (если отображается) или опишите её в этом же чате.`);
-                                return (_d = __1.BotClient.users.cache
-                                    .get(dbRaidData.creator)) === null || _d === void 0 ? void 0 : _d.send({
-                                    embeds: [embed],
-                                    components: [
-                                        {
-                                            type: discord_js_1.ComponentType.ActionRow,
-                                            components: [
-                                                new discord_js_1.ButtonBuilder().setCustomId("raidInChnButton_delete").setLabel("Удалить набор").setStyle(discord_js_1.ButtonStyle.Danger),
-                                            ],
-                                        },
-                                    ],
-                                }).then((m) => console.log(`activityReporter final debugger: msg sent to ${dbRaidData.creator}`)).catch((e) => console.error(`acitvityReporter final error`, e));
-                            }
+                        if (dbRaidData && dbRaidData.time < new Date().getTime()) {
+                            const embed = new discord_js_1.EmbedBuilder()
+                                .setColor("Blurple")
+                                .setFooter({ text: `RId: ${dbRaidData.id} | Beta test` })
+                                .setTitle("Созданный вами рейд был завершен")
+                                .setDescription(`Вы создавали рейд ${dbRaidData.id}-${dbRaidData.raid} на <t:${dbRaidData.time}> и сейчас он был завершен.\nПодтвердите завершение рейда и набор будет удален.\n\n[История активностей](https://discord.com/channels/${msg.guildId + "/" + msg.channelId + "/" + msg.id})`);
+                            return (_d = __1.BotClient.users.cache
+                                .get(dbRaidData.creator)) === null || _d === void 0 ? void 0 : _d.send({
+                                embeds: [embed],
+                                components: [
+                                    {
+                                        type: discord_js_1.ComponentType.ActionRow,
+                                        components: [new discord_js_1.ButtonBuilder().setCustomId("raidInChnButton_delete").setLabel("Удалить набор").setStyle(discord_js_1.ButtonStyle.Danger)],
+                                    },
+                                ],
+                            }).catch((e) => console.error(`acitvityReporter final error`, e));
                         }
                     }));
                 }

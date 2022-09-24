@@ -26,7 +26,7 @@ exports.default = {
                 ? yield sequelize_2.raids.findOne({
                     where: {
                         [sequelize_1.Op.and]: [
-                            { id: (_b = (_a = interaction.message.embeds[0].data.footer) === null || _a === void 0 ? void 0 : _a.text.split(` | `).shift()) === null || _b === void 0 ? void 0 : _b.split("RId: ").shift() },
+                            { id: parseInt((_b = (_a = interaction.message.embeds[0].data.footer) === null || _a === void 0 ? void 0 : _a.text.split(` | `).shift()) === null || _b === void 0 ? void 0 : _b.split("RId: ").pop()) },
                             { creator: interaction.user.id },
                         ],
                     },
