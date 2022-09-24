@@ -48,13 +48,13 @@ exports.default = {
                 default:
                     {
                         const categoryId = String(Number(commandFull.pop()) + 1);
-                        (_a = sequelize_1.auth_data.sequelize) === null || _a === void 0 ? void 0 : _a.query(`UPDATE auth_data SET roles_cat[${categoryId.toString()}]=NOT roles_cat[${categoryId.toString()}] WHERE discord_id=${interaction.user.id} RETURNING roles_cat`).then((d) => __awaiter(void 0, void 0, void 0, function* () {
+                        (_a = sequelize_1.auth_data.sequelize) === null || _a === void 0 ? void 0 : _a.query(`UPDATE auth_data SET roles_cat[${categoryId}]=NOT roles_cat[${categoryId}] WHERE discord_id=${interaction.user.id} RETURNING roles_cat`).then((d) => __awaiter(void 0, void 0, void 0, function* () {
                             const changedRows = d[1].rows[0].roles_cat.map((b) => {
                                 return b === false ? "<:crossmark:1020504750350934026>" : "<:successCheckmark:1018320951173189743>";
                             });
                             const embed = new discord_js_1.EmbedBuilder()
                                 .setColor("Green")
-                                .setTitle(`Вы ${changedRows[Number(categoryId)] ? "включили" : "отключили"} роли за ${categoryId === "1"
+                                .setTitle(`Вы ${d[1].rows[0].roles_cat[Number(categoryId)] ? "включили" : "отключили"} роли за ${categoryId === "1"
                                 ? "общую статистику"
                                 : categoryId === "2"
                                     ? "статистику Испытаний Осириса"
@@ -65,7 +65,7 @@ exports.default = {
                                             : "активность на сервере"}`)
                                 .setDescription(`<:dot:1018321568218226788>Общая статистика - ${changedRows[0]}\n<:dot:1018321568218226788>Статистика Испытаний Осириса - ${changedRows[1]}\n<:dot:1018321568218226788>Титулы - ${changedRows[2]}\n<:dot:1018321568218226788>Триумфы - ${changedRows[3]}\n<:dot:1018321568218226788>Активность на сервере - ${changedRows[4]}`);
                             interaction.reply({ embeds: [embed], ephemeral: true });
-                            if (d[1].rows[0].roles_cat[categoryId] === true)
+                            if (d[1].rows[0].roles_cat[Number(categoryId)] === true)
                                 return;
                             let removedRoles = [];
                             switch (categoryId) {
