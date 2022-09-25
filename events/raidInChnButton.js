@@ -22,11 +22,10 @@ exports.default = {
             yield interaction.deferUpdate();
             const buttonId = interaction.customId;
             const inChnMsg = interaction.message.id;
-            const PH_raidId = !interaction.channel
-                ? parseInt((_b = (_a = interaction.message.embeds[0].data.footer) === null || _a === void 0 ? void 0 : _a.text.split(` | `).shift()) === null || _b === void 0 ? void 0 : _b.split("RId: ").pop())
-                : undefined;
+            const PH_raidId = parseInt((_b = (_a = interaction.message.embeds[0].data.footer) === null || _a === void 0 ? void 0 : _a.text.split(` | `).shift()) === null || _b === void 0 ? void 0 : _b.split("RId: ").pop());
             if (!interaction.channel)
-                console.log(PH_raidId);
+                console.log(`PH Id:`, PH_raidId);
+            console.log(`PH Id:`, PH_raidId, !interaction.channel);
             const raidData = !interaction.channel
                 ? yield sequelize_2.raids.findOne({
                     where: {
@@ -45,7 +44,6 @@ exports.default = {
             }
             if (!raidData) {
                 throw {
-                    interaction: interaction,
                     name: "Критическая ошибка",
                     message: "Рейд не найден. Повторите спустя несколько секунд\nПожалуйста, не нажимайте кнопку более 2х раз - за каждую такую ошибку администрация получает оповещение",
                 };
