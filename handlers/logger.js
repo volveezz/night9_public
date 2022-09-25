@@ -144,12 +144,12 @@ function activityReporter(pgcrId) {
                     dbData.forEach((dbMemberData) => __awaiter(this, void 0, void 0, function* () {
                         var _d;
                         const dbRaidData = yield sequelize_1.raids.findOne({ where: { creator: dbMemberData.discord_id } });
-                        if (dbRaidData && dbRaidData.time < new Date().getTime()) {
+                        if (dbRaidData && dbRaidData.time < Math.trunc(new Date().getTime() / 1000)) {
                             const embed = new discord_js_1.EmbedBuilder()
                                 .setColor("Blurple")
-                                .setFooter({ text: `RId: ${dbRaidData.id} | Beta test` })
+                                .setFooter({ text: `RId: ${dbRaidData.id}` })
                                 .setTitle("Созданный вами рейд был завершен")
-                                .setDescription(`Вы создавали рейд ${dbRaidData.id}-${dbRaidData.raid} на <t:${dbRaidData.time}> и сейчас он был завершен.\nПодтвердите завершение рейда и набор будет удален.\n\n[История активностей](https://discord.com/channels/${msg.guildId + "/" + msg.channelId + "/" + msg.id})`);
+                                .setDescription(`Вы создавали рейд ${dbRaidData.id}-${dbRaidData.raid} на <t:${dbRaidData.time}> и сейчас он был завершен.\nПодтвердите завершение рейда для удаления набора.\n\n[История активностей](https://discord.com/channels/${msg.guildId + "/" + msg.channelId + "/" + msg.id})`);
                             return (_d = __1.BotClient.users.cache
                                 .get(dbRaidData.creator)) === null || _d === void 0 ? void 0 : _d.send({
                                 embeds: [embed],
