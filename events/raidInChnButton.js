@@ -16,19 +16,21 @@ const colors_1 = require("../base/colors");
 const ids_1 = require("../base/ids");
 const sequelize_2 = require("../handlers/sequelize");
 exports.default = {
-    callback: (client, interaction, _member, guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
+    callback: (client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
         var _a, _b, _c, _d, _e, _f;
         if (interaction.isButton() && interaction.customId.startsWith("raidInChnButton")) {
             yield interaction.deferUpdate();
             const buttonId = interaction.customId;
             const inChnMsg = interaction.message.id;
+            const PH_raidId = !interaction.channel
+                ? parseInt((_b = (_a = interaction.message.embeds[0].data.footer) === null || _a === void 0 ? void 0 : _a.text.split(` | `).shift()) === null || _b === void 0 ? void 0 : _b.split("RId: ").pop())
+                : undefined;
+            if (!interaction.channel)
+                console.log(PH_raidId);
             const raidData = !interaction.channel
                 ? yield sequelize_2.raids.findOne({
                     where: {
-                        [sequelize_1.Op.and]: [
-                            { id: parseInt((_b = (_a = interaction.message.embeds[0].data.footer) === null || _a === void 0 ? void 0 : _a.text.split(` | `).shift()) === null || _b === void 0 ? void 0 : _b.split("RId: ").pop()) },
-                            { creator: interaction.user.id },
-                        ],
+                        [sequelize_1.Op.and]: [{ id: PH_raidId }, { creator: interaction.user.id }],
                     },
                 })
                 : yield sequelize_2.raids.findOne({ where: { inChnMsg: inChnMsg } });
