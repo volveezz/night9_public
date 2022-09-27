@@ -100,7 +100,9 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
                 console.error(commandName, "error", e.stack || e);
                 const embed = new discord_js_1.EmbedBuilder().setColor("Red");
                 embed.setTitle(e === null || e === void 0 ? void 0 : e.name);
-                String(e === null || e === void 0 ? void 0 : e.message).localeCompare("русский") ? embed.setDescription(e.message) : [];
+                e && e.message && e.message !== undefined && typeof e.message === "string" && e.message.length > 5 && e.message.localeCompare("русский")
+                    ? embed.setDescription(e.message)
+                    : [];
                 interaction.followUp({ ephemeral: true, embeds: [embed] });
             });
         }
