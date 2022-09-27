@@ -118,6 +118,9 @@ exports.default = (client) => {
                         case 383:
                             dlcs = [true, true, true, false, true, false];
                             break;
+                        case 895:
+                            dlcs = [true, true, true, false, true, true];
+                            break;
                         case 391:
                             dlcs = [false, false, false, true, true, false];
                             break;
@@ -132,6 +135,9 @@ exports.default = (client) => {
                             break;
                         case 511:
                             dlcs = [true, true, true, true, true, false];
+                            break;
+                        case 511:
+                            dlcs = [true, true, true, true, true, true];
                             break;
                         default:
                             console.log(`[AUTOROLE] NOT FOUND DATA FOR THIS NUMBER ${version}, BungieId: ${data.platform}/${data.bungie_id}`);
