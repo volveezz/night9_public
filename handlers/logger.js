@@ -67,6 +67,7 @@ function activityReporter(pgcrId) {
                 const referenceId = response.Response.activityDetails.referenceId;
                 const manifestData = (yield manifestHandler_1.DestinyActivityDefinition)[referenceId];
                 embed.setTitle(manifestData.displayProperties.name +
+                    " - " +
                     response.Response.entries[0].values.activityDurationSeconds.basic.displayValue.replace("h", "ч").replace("m", "м").replace("s", "с"));
                 manifestData.displayProperties.hasIcon
                     ? manifestData.displayProperties.highResIcon
@@ -91,7 +92,7 @@ function activityReporter(pgcrId) {
                                     : entry.player.classHash === 2271682572
                                         ? "<:deadWarlock:1023051796932989059>"
                                         : "<:deadTitan:1023051798740729876>"),
-                        completed: entry.values.completed.basic.value === 1 ? true : false,
+                        completed: !(userData === null || userData === void 0 ? void 0 : userData.completed) ? (entry.values.completed.basic.value === 1 ? true : false) : true,
                         kills: entry.values.kills.basic.value + ((userData === null || userData === void 0 ? void 0 : userData.kills) || 0),
                         deaths: entry.values.deaths.basic.value + ((userData === null || userData === void 0 ? void 0 : userData.deaths) || 0),
                         assists: entry.values.assists.basic.value + ((userData === null || userData === void 0 ? void 0 : userData.assists) || 0),

@@ -94,13 +94,13 @@ exports.default = {
                 where: { msgId: interaction.message.id },
             });
             if (!raidData) {
-                console.log(`Raid not found ${interaction.user.id}/${interaction.user.username}, ${interaction.channel.id}`);
-                throw { name: "Критическая ошибка, рейд не найден :(" };
+                console.error(interaction);
+                throw { name: "Критическая ошибка. Рейд не найден" };
             }
             switch (interaction.customId) {
                 case "raidEvent_btn_join": {
                     if (raidData.joined.includes(interaction.user.id)) {
-                        throw { name: "Ошибка. Вы не были добавлены на рейд" };
+                        throw { name: "Вы уже записаны на этот рейд" };
                     }
                     if (raidData.reqClears > 0) {
                         const userRaidClears = full_checker_1.completedRaidsData.get(interaction.user.id);

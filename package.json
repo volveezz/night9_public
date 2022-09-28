@@ -14,13 +14,18 @@
   "author": "Volve",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "^14.3.0",
-    "dotenv": "^16.0.1",
+    "discord.js": "^14.5.0",
+    "dotenv": "^16.0.2",
     "express": "^4.18.1",
-    "pg": "^8.7.3",
+    "pg": "^8.8.0",
     "pg-hstore": "^2.3.4",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
-    "sequelize": "^6.21.3"
+    "sequelize": "^6.23.2"
+  },
+  "devDependencies": {
+    "@types/request-promise-native": "^1.0.18",
+    "concurrent": "^0.3.2",
+    "nodemon": "^2.0.20"
   }
 }
