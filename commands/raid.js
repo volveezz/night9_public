@@ -655,7 +655,7 @@ exports.default = {
             if (raidDescription !== null && raidDescription.length < 1024) {
                 embed.spliceFields(2, 0, {
                     name: "Описание",
-                    value: raidDescription,
+                    value: raidDescription.replace(/\\n/g, "\n"),
                 });
             }
             const mainComponents = [
@@ -905,7 +905,7 @@ exports.default = {
                 if (change.description) {
                     const field = {
                         name: `Описание`,
-                        value: change.description,
+                        value: change.description.replace(/\\n/g, "\n"),
                     };
                     var checker = false;
                     (_b = raidEmbed.data.fields) === null || _b === void 0 ? void 0 : _b.map((k, v) => {
