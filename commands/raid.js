@@ -686,7 +686,7 @@ exports.default = {
                         id: member.guild.roles.everyone,
                     },
                     {
-                        allow: ["ViewChannel", "ManageMessages"],
+                        allow: ["ViewChannel", "ManageMessages", "MentionEveryone"],
                         id: member.id,
                     },
                 ],
@@ -863,11 +863,11 @@ exports.default = {
                     guild.channels.cache.get(raidData.chnId).edit({
                         permissionOverwrites: [
                             {
-                                deny: "ManageMessages",
+                                deny: ["ManageMessages", "MentionEveryone"],
                                 id: raidData.creator,
                             },
                             {
-                                allow: "ManageMessages",
+                                allow: ["ManageMessages", "MentionEveryone", "ViewChannel"],
                                 id: newRaidLeader.id,
                             },
                         ],

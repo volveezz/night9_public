@@ -465,7 +465,7 @@ exports.default = (client) => {
                                     if (!member.roles.cache.has(roles_1.rTriumphs.category))
                                         member.roles.add(roles_1.rTriumphs.category);
                                     member.roles.add(step.roleId).then((m) => {
-                                        member.roles.remove(roles_1.rClanJoinDate.allRoles.filter((r) => r != step.roleId));
+                                        member.roles.remove(roles_1.rClanJoinDate.allRoles.filter((r) => r !== step.roleId));
                                     });
                                 }
                                 clanJoinDateCheck.add(result.destinyUserInfo.membershipId);

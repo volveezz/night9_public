@@ -121,7 +121,9 @@ function activityReporter(pgcrId) {
                         inline: true,
                     });
                 });
-                (_c = embed.data.fields) === null || _c === void 0 ? void 0 : _c.sort((a, b) => a.name.localeCompare(b.name));
+                embed.data.fields = (_c = embed.data.fields) === null || _c === void 0 ? void 0 : _c.sort((a, b) => {
+                    return a.name.localeCompare(b.name);
+                });
                 completedUsers.forEach((value, key) => {
                     const arr = [];
                     arr.push(value.timeInRaid >= 3600 ? Math.trunc(value.timeInRaid / 60 / 60) + "ч" : "");
@@ -144,7 +146,13 @@ function activityReporter(pgcrId) {
                     const msg = yield activityChannel.send({ embeds: [embed] });
                     dbData.forEach((dbMemberData) => __awaiter(this, void 0, void 0, function* () {
                         var _d;
-                        const dbRaidData = yield sequelize_1.raids.findOne({ where: { creator: dbMemberData.discord_id } });
+                        const dbRaidData = yield sequelize_1.raids.findAll({ where: { creator: dbMemberData.discord_id } }).then((data) => {
+                            for (let i = 0; i < data.length; i++) {
+                                const row = data[i];
+                                if (row.time < Math.trunc(new Date().getTime() / 1000))
+                                    return row;
+                            }
+                        });
                         if (dbRaidData && dbRaidData.time < Math.trunc(new Date().getTime() / 1000)) {
                             const embed = new discord_js_1.EmbedBuilder()
                                 .setColor("Blurple")
