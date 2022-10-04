@@ -132,7 +132,9 @@ function activityReporter(pgcrId) {
                             ? Math.trunc(value.timeInRaid / 60) - Math.trunc(value.timeInRaid / 60 / 60) * 60
                             : Math.trunc(value.timeInRaid / 60)) + "м"
                         : "");
-                    arr.push(value.timeInRaid - Math.trunc(value.timeInRaid / 60) * 60 !== 0 ? value.timeInRaid - Math.trunc(value.timeInRaid / 60) * 60 + "с" : "");
+                    value.timeInRaid < 3600
+                        ? arr.push(value.timeInRaid - Math.trunc(value.timeInRaid / 60) * 60 !== 0 ? value.timeInRaid - Math.trunc(value.timeInRaid / 60) * 60 + "с" : "")
+                        : [];
                     embed.addFields({
                         name: `❌${value.bungieName}`,
                         value: `${value.classHash}У: ${value.kills} С: ${value.deaths} П: ${value.assists}\nВ рейде: ${arr.join(" ").trim()}`,
@@ -154,6 +156,7 @@ function activityReporter(pgcrId) {
                             }
                         });
                         if (dbRaidData && dbRaidData.time < Math.trunc(new Date().getTime() / 1000)) {
+                            console.log(`Activity logger debug`, dbData.some((v) => v.clan));
                             const embed = new discord_js_1.EmbedBuilder()
                                 .setColor("Blurple")
                                 .setFooter({ text: `RId: ${dbRaidData.id}` })

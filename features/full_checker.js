@@ -427,16 +427,11 @@ exports.default = (client) => {
                 return console.error(`[clanCheckerError] StatusCode: ${e.statusCode}, ${e.error}`);
             });
             if (clanList === undefined) {
-                setTimeout(() => {
-                    console.log("Clan checker restarts");
-                    clan(bungie_array);
-                }, 5000);
+                console.log("[CRITICAL CLAN CHECKER ERROR]", clanList === null || clanList === void 0 ? void 0 : clanList.statusCode);
                 return;
             }
             if (clanList.Response.results.length < 5) {
                 console.error("[CRITICAL CLAN CHECKER ERROR]", (_b = (_a = clanList === null || clanList === void 0 ? void 0 : clanList.Response) === null || _a === void 0 ? void 0 : _a.results) === null || _b === void 0 ? void 0 : _b.length);
-                yield timer(30000);
-                clan(bungie_array);
                 return;
             }
             if (clanList.ErrorCode !== 1) {
