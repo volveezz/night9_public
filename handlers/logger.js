@@ -108,7 +108,9 @@ function activityReporter(pgcrId) {
                             ? Math.trunc(value.timeInRaid / 60) - Math.trunc(value.timeInRaid / 60 / 60) * 60
                             : Math.trunc(value.timeInRaid / 60)) + "м"
                         : "");
-                    arr.push(value.timeInRaid - Math.trunc(value.timeInRaid / 60) * 60 !== 0 ? value.timeInRaid - Math.trunc(value.timeInRaid / 60) * 60 + "с" : "");
+                    value.timeInRaid < 3600
+                        ? arr.push(value.timeInRaid - Math.trunc(value.timeInRaid / 60) * 60 !== 0 ? value.timeInRaid - Math.trunc(value.timeInRaid / 60) * 60 + "с" : "")
+                        : [];
                     if (!value.completed) {
                         return;
                     }
@@ -146,6 +148,7 @@ function activityReporter(pgcrId) {
                 const dbData = yield sequelize_2.auth_data.findAll({ where: { bungie_id: { [sequelize_3.Op.any]: `{${membersMembershipIds.toString()}}` } } });
                 if (dbData.length > 1) {
                     const msg = yield activityChannel.send({ embeds: [embed] });
+                    console.log(`Activity logger debug`, dbData.some((v) => v.clan));
                     dbData.forEach((dbMemberData) => __awaiter(this, void 0, void 0, function* () {
                         var _d;
                         const dbRaidData = yield sequelize_1.raids.findAll({ where: { creator: dbMemberData.discord_id } }).then((data) => {
@@ -156,7 +159,6 @@ function activityReporter(pgcrId) {
                             }
                         });
                         if (dbRaidData && dbRaidData.time < Math.trunc(new Date().getTime() / 1000)) {
-                            console.log(`Activity logger debug`, dbData.some((v) => v.clan));
                             const embed = new discord_js_1.EmbedBuilder()
                                 .setColor("Blurple")
                                 .setFooter({ text: `RId: ${dbRaidData.id}` })
