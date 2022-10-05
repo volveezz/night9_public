@@ -146,9 +146,9 @@ function activityReporter(pgcrId) {
                 if (membersMembershipIds.length <= 0)
                     return;
                 const dbData = yield sequelize_2.auth_data.findAll({ where: { bungie_id: { [sequelize_3.Op.any]: `{${membersMembershipIds.toString()}}` } } });
-                if (dbData.length > 1) {
+                if (dbData.length > 1 && dbData.some((v) => v.clan)) {
                     const msg = yield activityChannel.send({ embeds: [embed] });
-                    console.log(`Activity logger debug`, dbData.some((v) => v.clan));
+                    console.log(`Activity logger debug`, dbData.filter((a) => a.clan).length, "clan member");
                     dbData.forEach((dbMemberData) => __awaiter(this, void 0, void 0, function* () {
                         var _d;
                         const dbRaidData = yield sequelize_1.raids.findAll({ where: { creator: dbMemberData.discord_id } }).then((data) => {
