@@ -119,7 +119,7 @@ function activityReporter(pgcrId) {
                     }
                     embed.addFields({
                         name: `${value.bungieName}`,
-                        value: `${value.classHash}У: ${value.kills} С: ${value.deaths} П: ${value.assists}\nВ рейде: ${arr.join(" ").trim()}`,
+                        value: `${value.classHash}У: **${value.kills}** С: **${value.deaths}** П: **${value.assists}**\nВ рейде: **${arr.join(" ").trim()}**`,
                         inline: true,
                     });
                 });
@@ -139,7 +139,7 @@ function activityReporter(pgcrId) {
                         : [];
                     embed.addFields({
                         name: `❌${value.bungieName}`,
-                        value: `${value.classHash}У: ${value.kills} С: ${value.deaths} П: ${value.assists}\nВ рейде: ${arr.join(" ").trim()}`,
+                        value: `${value.classHash}У: **${value.kills}** С: **${value.deaths}** П: **${value.assists}**\nВ рейде: **${arr.join(" ").trim()}**`,
                         inline: true,
                     });
                 });
