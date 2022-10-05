@@ -146,9 +146,8 @@ function activityReporter(pgcrId) {
                 if (membersMembershipIds.length <= 0)
                     return;
                 const dbData = yield sequelize_2.auth_data.findAll({ where: { bungie_id: { [sequelize_3.Op.any]: `{${membersMembershipIds.toString()}}` } } });
-                if (dbData.length > 1 && dbData.some((v) => v.clan)) {
+                if (dbData.length > 1 && dbData.filter((a) => a.clan).length > 1) {
                     const msg = yield activityChannel.send({ embeds: [embed] });
-                    console.log(`Activity logger debug`, dbData.filter((a) => a.clan).length, "clan member");
                     dbData.forEach((dbMemberData) => __awaiter(this, void 0, void 0, function* () {
                         var _d;
                         const dbRaidData = yield sequelize_1.raids.findAll({ where: { creator: dbMemberData.discord_id } }).then((data) => {
@@ -158,6 +157,9 @@ function activityReporter(pgcrId) {
                                     return row;
                             }
                         });
+                        if (dbMemberData.clan && dbData.filter((a) => a.clan).length > 2) {
+                            sequelize_1.discord_activities.increment("raids", { by: 1, where: { authDatumDiscordId: dbMemberData.discord_id } });
+                        }
                         if (dbRaidData && dbRaidData.time < Math.trunc(new Date().getTime() / 1000)) {
                             const embed = new discord_js_1.EmbedBuilder()
                                 .setColor("Blurple")

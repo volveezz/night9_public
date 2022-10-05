@@ -31,7 +31,7 @@ exports.default = () => {
                     },
                     json: true,
                 }).catch((err) => {
-                    console.error(`[tokenGen error] ${row.bungie_id} data was lost`, err.toString());
+                    console.error(`[tokenGen error] ${row.bungie_id} data was lost`, err.statusCode);
                     return false;
                 });
                 if (request === null || request === void 0 ? void 0 : request.access_token) {

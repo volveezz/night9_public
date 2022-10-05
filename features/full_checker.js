@@ -424,18 +424,18 @@ exports.default = (client) => {
                 },
                 json: true,
             }).catch((e) => {
-                return console.error(`[clanCheckerError] StatusCode: ${e.statusCode}, ${e.error}`);
+                return console.error(`Clan checker error | 1`, e.statusCode);
             });
             if (clanList === undefined) {
-                console.log("[CRITICAL CLAN CHECKER ERROR]", clanList === null || clanList === void 0 ? void 0 : clanList.statusCode);
+                console.log("Clan checker error | 2", clanList === null || clanList === void 0 ? void 0 : clanList.statusCode);
                 return;
             }
             if (clanList.Response.results.length < 5) {
-                console.error("[CRITICAL CLAN CHECKER ERROR]", (_b = (_a = clanList === null || clanList === void 0 ? void 0 : clanList.Response) === null || _a === void 0 ? void 0 : _a.results) === null || _b === void 0 ? void 0 : _b.length);
+                console.error("Clan checker error | 3", (_b = (_a = clanList === null || clanList === void 0 ? void 0 : clanList.Response) === null || _a === void 0 ? void 0 : _a.results) === null || _b === void 0 ? void 0 : _b.length);
                 return;
             }
             if (clanList.ErrorCode !== 1) {
-                console.error("[Clan checker error]", clanList.ErrorStatus, clanList.error);
+                console.error("Clan checker error | 4", clanList.ErrorStatus, clanList.error);
                 return;
             }
             const onlineCounter = clanList.Response.results.filter((f) => f.isOnline === true).length;
@@ -453,7 +453,7 @@ exports.default = (client) => {
                             return clanJoinDateCheck.add(result.destinyUserInfo.membershipId);
                         const member = (_c = client.guilds.cache.get(ids_1.guildId)) === null || _c === void 0 ? void 0 : _c.members.cache.get(clan_member.discord_id);
                         if (!member)
-                            return console.error(`ClanJoinedDate checker error, not found member`, member, clan_member.discord_id, clan_member.displayname);
+                            return console.error(`Clan checker error | 5`, member, clan_member.discord_id, clan_member.displayname);
                         for (const step of roles_1.rClanJoinDate.roles) {
                             if (step.days <= Math.trunc((new Date().getTime() - new Date(result.joinDate).getTime()) / 1000 / 60 / 60 / 24)) {
                                 if (!member.roles.cache.has(step.roleId)) {
@@ -500,7 +500,7 @@ exports.default = (client) => {
                 yield t.commit();
             }
             catch (error) {
-                console.error("[Clan checker error] Error during commiting", error);
+                console.error("Clan checker error | 6", error);
             }
         });
     }
@@ -706,11 +706,11 @@ exports.default = (client) => {
             }
         });
     }
-    let kd = 2, raids = 2, trialsCD = 4;
+    let kd = 2, raids = 1, trialsCD = 4;
     setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
         kd >= 9 ? (kd = 0) : kd++;
-        raids >= 4 ? (raids = 0) : raids++;
+        raids >= 3 ? (raids = 0) : raids++;
         trialsCD >= 15 ? (trialsCD = 0) : trialsCD++;
         const t = yield sequelize_1.db.transaction();
         const role_db = yield sequelize_1.role_data.findAll({
@@ -743,7 +743,9 @@ exports.default = (client) => {
                 return console.error("roleManager error, member not found", member, db_row.discord_id);
             !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.6 ? longOffline.delete(member.id) : "";
             db_row.roles_cat[0] && kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
-            raids === 3 && member.roles.cache.hasAny(roles_1.statusRoles.clanmember, roles_1.statusRoles.member) ? activityStatsChecker(db_row, member, 4) : [];
+            raids === 2 && member.roles.cache.hasAny(roles_1.statusRoles.clanmember, roles_1.statusRoles.member) && !longOffline.has(member.id)
+                ? activityStatsChecker(db_row, member, 4)
+                : [];
             db_row.roles_cat[1] &&
                 trialsCD === 7 &&
                 !longOffline.has(member.id) &&
