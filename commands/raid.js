@@ -718,7 +718,7 @@ exports.default = {
                     msgId: (yield msg).id,
                 }, { where: { chnId: member.id }, returning: true });
                 interaction.editReply({
-                    content: `Рейд успешно создан. <#${chn.id}>, [ссылка на набор](https://discord.com/channels/${guild.id}/${chn.id}/${(yield msg).id})`,
+                    content: `Рейд успешно создан. <#${chn.id}>, [ссылка на набор](https://discord.com/channels/${guild.id}/${raidChannel.id}/${(yield msg).id})`,
                 });
                 raidInGameChecker(raidDb);
                 raidDataInChnMsg((yield insertedRaidData)[1][0]);

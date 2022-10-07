@@ -631,7 +631,7 @@ exports.default = (client) => {
                     if (totalRaidCount_Before && totalRaidCount_Before > totalRaidCount)
                         return;
                     const kf = filter(1374392663);
-                    const kfMaster = filter(1063970578);
+                    const kfMaster = filter(1063970578) + filter(2964135793);
                     const votd = filter(1441982566);
                     const votdMaster = filter(4217492330);
                     const dsc = filter(910380154) + filter(3976949817);
