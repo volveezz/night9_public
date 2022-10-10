@@ -130,6 +130,9 @@ exports.default = (client) => {
                         case 455:
                             dlcs = [false, false, true, true, true, false];
                             break;
+                        case 479:
+                            dlcs = [true, false, true, true, true, false];
+                            break;
                         case 487:
                             dlcs = [false, true, true, true, true, false];
                             break;
