@@ -531,7 +531,10 @@ exports.default = (client) => {
             }
         })
             .catch((e) => {
-            e.statusCode === 401 ? console.error("kdChecker 401 error", db_row.displayname) : console.log(`kdChecker`, e.stack, db_row.displayname);
+            var _a;
+            e.statusCode === 401 || e.statusCode === 500 || e.statusCode === 503
+                ? console.error(`kdChecker ${e.statusCode} error`, db_row.displayname, (_a = e.error) === null || _a === void 0 ? void 0 : _a.ErrorStatus)
+                : console.error(`kdChecker`, e.error, db_row.displayname);
         });
     }
     function activityStatsChecker(data, member, mode) {
@@ -711,7 +714,7 @@ exports.default = (client) => {
     }
     let kd = 2, raids = 1, trialsCD = 4;
     setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
-        var _a;
+        var _a, _b;
         kd >= 9 ? (kd = 0) : kd++;
         raids >= 3 ? (raids = 0) : raids++;
         trialsCD >= 15 ? (trialsCD = 0) : trialsCD++;
@@ -727,23 +730,32 @@ exports.default = (client) => {
             },
             transaction: t,
         });
-        const db_plain = (yield sequelize_1.auth_data.findAll({
+        const dbNotFiltred = yield sequelize_1.auth_data.findAll({
             transaction: t,
             include: sequelize_1.discord_activities,
-        })).filter((data) => { var _a; return (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.has(data.discord_id); });
+        });
         try {
             yield t.commit();
         }
         catch (error) {
             return console.error("[Checker commit error]", error);
         }
+        const dbNotFoundUsers = dbNotFiltred
+            .filter((data) => { var _a; return !((_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.has(data.discord_id)); })
+            .map((d) => {
+            return `${d.displayname}/${d.discord_id} not found at server`;
+        });
+        dbNotFoundUsers.length > 0 ? console.log(dbNotFoundUsers) : [];
+        const db_plain = dbNotFiltred.filter((data) => { var _a; return (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.has(data.discord_id); });
         if (!db_plain || db_plain.length === 0)
             return console.error(`[Checker error] DB is ${(db_plain === null || db_plain === void 0 ? void 0 : db_plain.length) === 0 ? "empty" : `${db_plain === null || db_plain === void 0 ? void 0 : db_plain.length} length`} or missing data`);
         for (let i = 0; i < db_plain.length; i++) {
             const db_row = db_plain[i];
             const member = (_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.members.cache.get(db_row.discord_id);
-            if (!member)
-                return console.error("roleManager error, member not found", member, db_row.discord_id);
+            if (!member) {
+                yield ((_b = client.guilds.cache.get(ids_1.guildId)) === null || _b === void 0 ? void 0 : _b.members.fetch());
+                return console.error("roleManager error, member not found", db_row);
+            }
             !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.6 ? longOffline.delete(member.id) : "";
             db_row.roles_cat[0] && kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
             raids === 2 && member.roles.cache.hasAny(roles_1.statusRoles.clanmember, roles_1.statusRoles.member) && !longOffline.has(member.id)

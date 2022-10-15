@@ -280,7 +280,7 @@ function getRaid(raidId, interaction) {
     });
 }
 function raidMsgUpdate(raidData, interaction) {
-    var _a;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
     return __awaiter(this, void 0, void 0, function* () {
         const msg = yield (0, channels_1.msgFetcher)(ids_1.ids.raidChnId, raidData.msgId);
         if (!msg || !msg.embeds || !msg.embeds[0]) {
@@ -299,8 +299,8 @@ function raidMsgUpdate(raidData, interaction) {
         }
         const isDescription = ((_a = embed.data.fields) === null || _a === void 0 ? void 0 : _a.findIndex((d) => d.name.startsWith("Описание"))) ? 1 : 0;
         const findK = (k) => {
-            var _a;
-            const index = (_a = embed.data.fields) === null || _a === void 0 ? void 0 : _a.findIndex((d) => d.name.startsWith(k));
+            var _a, _b;
+            const index = (_b = (_a = embed === null || embed === void 0 ? void 0 : embed.data) === null || _a === void 0 ? void 0 : _a.fields) === null || _b === void 0 ? void 0 : _b.findIndex((d) => d.name.startsWith(k));
             if (index === -1) {
                 if (k === "Участник")
                     return 2 + isDescription;
@@ -314,29 +314,29 @@ function raidMsgUpdate(raidData, interaction) {
                 return index;
             }
         };
-        if (raidData.joined.length && raidData.joined.length >= 1) {
-            embed.spliceFields(findK("Участник"), findK("Участник") !== -1 ? 1 : 0, {
-                name: `Участник${raidData.joined.length === 1 ? "" : "и"}: ${raidData.joined.length}/6`,
+        if (((_b = raidData.joined) === null || _b === void 0 ? void 0 : _b.length) && ((_c = raidData.joined) === null || _c === void 0 ? void 0 : _c.length) >= 1) {
+            embed === null || embed === void 0 ? void 0 : embed.spliceFields(findK("Участник"), findK("Участник") !== -1 ? 1 : 0, {
+                name: `Участник${((_d = raidData.joined) === null || _d === void 0 ? void 0 : _d.length) === 1 ? "" : "и"}: ${(_e = raidData.joined) === null || _e === void 0 ? void 0 : _e.length}/6`,
                 value: joined,
             });
         }
         else {
-            embed.spliceFields(findK("Участник"), findK("Участник") !== -1 ? 1 : 0);
+            embed === null || embed === void 0 ? void 0 : embed.spliceFields(findK("Участник"), findK("Участник") !== -1 ? 1 : 0);
         }
-        if (raidData.hotJoined.length && raidData.hotJoined.length >= 1) {
-            embed.spliceFields(findK("Замена"), findK("Замена") !== -1 ? 1 : 0, { name: `Замена: ${raidData.hotJoined.length}`, value: hotJoined });
+        if (((_f = raidData.hotJoined) === null || _f === void 0 ? void 0 : _f.length) && ((_g = raidData.hotJoined) === null || _g === void 0 ? void 0 : _g.length) >= 1) {
+            embed === null || embed === void 0 ? void 0 : embed.spliceFields(findK("Замена"), findK("Замена") !== -1 ? 1 : 0, { name: `Замена: ${(_h = raidData.hotJoined) === null || _h === void 0 ? void 0 : _h.length}`, value: hotJoined });
         }
         else {
-            embed.spliceFields(findK("Замена"), findK("Замена") !== -1 ? 1 : 0);
+            embed === null || embed === void 0 ? void 0 : embed.spliceFields(findK("Замена"), findK("Замена") !== -1 ? 1 : 0);
         }
-        if (raidData.alt.length && raidData.alt.length >= 1) {
-            embed.spliceFields(findK("Возможно"), findK("Возможно") !== -1 ? 1 : 0, {
-                name: `Возможно буд${raidData.alt.length === 1 ? "ет" : "ут"}: ${raidData.alt.length}`,
+        if (((_j = raidData.alt) === null || _j === void 0 ? void 0 : _j.length) && ((_k = raidData.alt) === null || _k === void 0 ? void 0 : _k.length) >= 1) {
+            embed === null || embed === void 0 ? void 0 : embed.spliceFields(findK("Возможно"), findK("Возможно") !== -1 ? 1 : 0, {
+                name: `Возможно буд${((_l = raidData.alt) === null || _l === void 0 ? void 0 : _l.length) === 1 ? "ет" : "ут"}: ${(_m = raidData.alt) === null || _m === void 0 ? void 0 : _m.length}`,
                 value: alt,
             });
         }
         else {
-            embed.spliceFields(findK("Возможно"), findK("Возможно") !== -1 ? 1 : 0);
+            embed === null || embed === void 0 ? void 0 : embed.spliceFields(findK("Возможно"), findK("Возможно") !== -1 ? 1 : 0);
         }
         if (interaction instanceof discord_js_1.ButtonInteraction) {
             yield interaction.editReply({ embeds: [embed] });

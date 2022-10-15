@@ -343,14 +343,14 @@ exports.default = (client) => {
         if (member.roles.cache.hasAny(roles_1.statusRoles.clanmember, roles_1.statusRoles.member, roles_1.statusRoles.kicked, roles_1.statusRoles.newbie)) {
             embed.addFields({
                 name: "Статус пользователя",
-                value: `Роль: ${member.roles.cache.has(roles_1.statusRoles.clanmember)
-                    ? `<@&${roles_1.statusRoles.clanmember}>`
+                value: `${member.roles.cache.has(roles_1.statusRoles.clanmember)
+                    ? `Участник клана`
                     : member.roles.cache.has(roles_1.statusRoles.member)
-                        ? `<@&${roles_1.statusRoles.member}>`
+                        ? `Участник сервера`
                         : member.roles.cache.has(roles_1.statusRoles.kicked)
-                            ? `<@&${roles_1.statusRoles.kicked}>`
+                            ? `Исключенный участник`
                             : member.roles.cache.has(roles_1.statusRoles.newbie)
-                                ? `<@&${roles_1.statusRoles.newbie}>`
+                                ? `Неизвестный`
                                 : "Роли не найдены"}`,
             });
         }
@@ -417,10 +417,10 @@ exports.default = (client) => {
             .setTimestamp();
         if (oldMember.roles !== newMember.roles) {
             const removedRoles = [], gotRoles = [];
-            oldMember.roles.cache.forEach((role) => {
+            oldMember === null || oldMember === void 0 ? void 0 : oldMember.roles.cache.forEach((role) => {
                 !newMember.roles.cache.has(role.id) ? removedRoles.push(`<@&${role.id}>`) : [];
             });
-            newMember.roles.cache.forEach((role) => {
+            newMember === null || newMember === void 0 ? void 0 : newMember.roles.cache.forEach((role) => {
                 !oldMember.roles.cache.has(role.id) ? gotRoles.push(`<@&${role.id}>`) : [];
             });
             if (removedRoles.length > 0) {
@@ -790,36 +790,6 @@ exports.default = (client) => {
             },
         ]);
         guildChannel.send({ embeds: [embed] });
-    });
-    client.on("userUpdate", (oldUser, newUser) => {
-        var _a;
-        if (oldUser.displayAvatarURL() === newUser.displayAvatarURL() ||
-            client.guilds.cache.get(ids_1.guildId).members.cache.get(newUser.id).roles.cache.has(roles_1.statusRoles.clanmember) === false)
-            return;
-        const embed = new discord_js_1.EmbedBuilder()
-            .setColor(colors_1.colors.default)
-            .setAuthor({ name: "userUpdate" })
-            .setFooter({ text: String("Id: " + newUser.id) })
-            .setTimestamp();
-        embed
-            .setAuthor({
-            name: `${newUser.username} обновил свой аватар`,
-            iconURL: newUser.displayAvatarURL(),
-        })
-            .addFields([
-            {
-                name: "До",
-                value: String(`[Изображение](${oldUser.displayAvatarURL()})`),
-                inline: true,
-            },
-            {
-                name: "После",
-                value: String(`[Изображение](${newUser.displayAvatarURL()})`),
-                inline: true,
-            },
-        ]);
-        if (((_a = embed.data.fields) === null || _a === void 0 ? void 0 : _a.length) > 0)
-            guildMemberChannel.send({ embeds: [embed] });
     });
     client.on("voiceStateUpdate", (oldState, newState) => {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
