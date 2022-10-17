@@ -55,7 +55,7 @@ function chnFetcher(chn) {
             return chn;
         }
         else {
-            throw { name: "Произошла ошибка. Попробуйте снова", chn: `${chn}, ${chn.name}`, code: 2 };
+            throw { name: "Произошла ошибка. Попробуйте снова", chn: chn };
         }
     }
 }

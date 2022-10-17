@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
+const channels_1 = require("../base/channels");
 const colors_1 = require("../base/colors");
 const roles_1 = require("../base/roles");
 const manifestHandler_1 = require("../handlers/manifestHandler");
@@ -40,7 +41,6 @@ exports.default = {
         },
     ],
     callback: (_client, interaction, _member, _guild, channel) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a;
         const isPreset = interaction.options.getSubcommand();
         if (isPreset && isPreset === "preset") {
             const preset = interaction.options.getString("code", true).toLowerCase();
@@ -245,15 +245,15 @@ exports.default = {
                     const embed = new discord_js_1.EmbedBuilder()
                         .setColor(colors_1.colors.default)
                         .setTitle("Вступление в клан")
-                        .setDescription("Для вступления в клан достаточно выполнить эти 2 пункта. Если вы нам подходите - вы будете автоматически приняты")
+                        .setDescription("Для вступления в клан достаточно выполнить пункты ниже. Если вы нам подходите, то будете автоматически приняты в ближайшее время")
                         .addFields({
-                        name: "||<:successCheckmark:1018320951173189743>||",
-                        value: "Зарегистрируйтесь у кланового бота - перейдите по ссылке через кнопку ниже или введите `/init` (для русской локализации - `/регистрация`)",
+                        name: "1",
+                        value: "Зарегистрируйтесь у кланового бота - перейдите по ссылке по кнопке ниже или введите `/init` (для русской локализации - `/регистрация`)",
                     }, {
-                        name: "||<:successCheckmark:1018320951173189743>||",
+                        name: "2",
                         value: "Заполните форму по кнопке ниже",
                     }, {
-                        name: "||<:successCheckmark:1018320951173189743>||",
+                        name: "3",
                         value: "Вступите в клан через любой удобный вам способ:\n<:dot:1018321568218226788>Получите приглашение в клан через сообщение [после регистрации](https://discord.com/channels/@me/774617169169743872/1030544092880453762)\n<:dot:1018321568218226788>Вступите в клан через [Bungie.net](https://www.bungie.net/ru/ClanV2/Chat?groupId=4123712)\n<:dot:1018321568218226788>Вступите в клан через любого участника в игре",
                     }, {
                         name: "⁣",
@@ -278,12 +278,12 @@ exports.default = {
         const editedEmbedMessageId = interaction.options.getString("message");
         const embed = discord_js_1.EmbedBuilder.from(embedCode);
         if (editedEmbedMessageId) {
-            (_a = channel.messages.cache.get(editedEmbedMessageId)) === null || _a === void 0 ? void 0 : _a.edit({ embeds: [embed] });
-            interaction.editReply("Сообщение было изменено");
+            (yield (0, channels_1.msgFetcher)(channel, editedEmbedMessageId)).edit({ embeds: [embed] });
+            interaction.deferred ? interaction.editReply("Сообщение было изменено") : interaction.reply({ ephemeral: true, content: "Сообщение было изменено" });
         }
         else {
             channel.send({ embeds: [embed] });
-            interaction.editReply("Сообщение было отправлено");
+            interaction.deferred ? interaction.editReply("Сообщение было отправлено") : interaction.reply({ ephemeral: true, content: "Сообщение было изменено" });
         }
     }),
 };
