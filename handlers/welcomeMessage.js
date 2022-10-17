@@ -44,7 +44,18 @@ function welcomeMessage(client, member) {
             },
         ]);
         member
-            .send({ embeds: [embed] })
+            .send({
+            embeds: [embed],
+            components: [
+                {
+                    type: discord_js_1.ComponentType.ActionRow,
+                    components: [
+                        new discord_js_1.ButtonBuilder().setCustomId(`initEvent_register`).setLabel("Регистрация").setStyle(discord_js_1.ButtonStyle.Success),
+                        new discord_js_1.ButtonBuilder().setCustomId(`clanJoinEvent_modalBtn`).setLabel("Форма на вступление").setStyle(discord_js_1.ButtonStyle.Secondary),
+                    ],
+                },
+            ],
+        })
             .then((m) => {
             setTimeout(() => {
                 sequelize_1.auth_data
@@ -60,7 +71,17 @@ function welcomeMessage(client, member) {
                                 value: `⁣　⁣Ранее вы уже регистрировались под аккаунтом ${data.displayname} ([bungie.net](https://www.bungie.net/7/ru/User/Profile/254/${data.membership_id}))`,
                             },
                         ]);
-                        m.edit({ embeds: [embed] });
+                        m.edit({
+                            embeds: [embed],
+                            components: [
+                                {
+                                    type: discord_js_1.ComponentType.ActionRow,
+                                    components: [
+                                        new discord_js_1.ButtonBuilder().setCustomId(`clanJoinEvent_modalBtn`).setLabel("Форма на вступление").setStyle(discord_js_1.ButtonStyle.Secondary),
+                                    ],
+                                },
+                            ],
+                        });
                     }
                 });
             }, 3333);
