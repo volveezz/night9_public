@@ -23,7 +23,7 @@ exports.default = {
             const userId = interaction.message.embeds[0].footer.text.split(" | MId: ").shift().split("UId: ").pop();
             const replyMember = guild.members.cache.get(userId);
             if (!replyMember)
-                throw { name: "User not found, dmfunc" };
+                throw { name: "[dmChnFunc error] User not found", userId };
             switch (buttonId) {
                 case "dmChnFunc_reply": {
                     const embed = new discord_js_1.EmbedBuilder()

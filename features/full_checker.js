@@ -22,6 +22,8 @@ exports.character_data = new Map();
 const longOffline = new Set();
 const clanJoinDateCheck = new Set();
 exports.default = (client) => {
+    if (ids_1.guildId === "1007814171267707001")
+        return;
     function role_manager(data, member, role_db) {
         const give_roles = [], remove_roles = [], c = member.roles.cache;
         (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/${data.platform}/Profile/${data.bungie_id}/?components=100,900,1100`, {

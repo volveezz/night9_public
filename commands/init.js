@@ -9,21 +9,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.initCommand_register = void 0;
 const discord_js_1 = require("discord.js");
 const colors_1 = require("../base/colors");
 const logger_1 = require("../handlers/logger");
 const sequelize_1 = require("../handlers/sequelize");
 const emoji = "<:dot:933355027307823174>";
-exports.default = {
-    name: "init",
-    nameLocalizations: {
-        ru: "регистрация",
-        "en-US": "register",
-    },
-    description: "Свяжите свой аккаунт Destiny с аккаунтом Discord",
-    global: true,
-    callback: (_client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
-        yield interaction.deferReply({ ephemeral: true });
+function initCommand_register(interaction) {
+    return __awaiter(this, void 0, void 0, function* () {
         const checker = yield sequelize_1.auth_data.findOne({
             where: { discord_id: interaction.user.id },
         });
@@ -45,6 +38,20 @@ exports.default = {
             .setColor(colors_1.colors.default)
             .setDescription(`${emoji}По нажатию на ссылку вы будете перенаправлены на сайт Bungie (bungie.net)\n${emoji}На сайте достаточно авторизоваться через любой удобный для вас способ\n${emoji}К 1 аккаунту Discord можно привязать лишь 1 аккаунт Bungie`);
         (0, logger_1.init_register)(request.state, interaction.user, created);
-        return interaction.editReply({ embeds: [embed] });
+        return embed;
+    });
+}
+exports.initCommand_register = initCommand_register;
+exports.default = {
+    name: "init",
+    nameLocalizations: {
+        ru: "регистрация",
+        "en-US": "register",
+    },
+    description: "Свяжите свой аккаунт Destiny с аккаунтом Discord",
+    global: true,
+    callback: (_client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
+        yield interaction.deferReply({ ephemeral: true });
+        return interaction.editReply({ embeds: [yield initCommand_register(interaction)] });
     }),
 };

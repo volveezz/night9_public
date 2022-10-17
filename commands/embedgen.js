@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
+const colors_1 = require("../base/colors");
 const roles_1 = require("../base/roles");
 const manifestHandler_1 = require("../handlers/manifestHandler");
 const sequelize_1 = require("../handlers/sequelize");
@@ -32,18 +33,17 @@ exports.default = {
             ],
         },
         {
-            type: discord_js_1.ApplicationCommandOptionType.SubcommandGroup,
+            type: discord_js_1.ApplicationCommandOptionType.Subcommand,
             name: "preset",
             description: "Choose one of embed presets",
-            options: [{ type: discord_js_1.ApplicationCommandOptionType.Subcommand, name: "roles", description: "Guild roles preset" }],
+            options: [{ type: discord_js_1.ApplicationCommandOptionType.String, name: "code", description: "Preset code", required: true }],
         },
     ],
     callback: (_client, interaction, _member, _guild, channel) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
-        interaction.deferReply({ ephemeral: true });
-        const isPreset = interaction.options.getSubcommandGroup();
+        const isPreset = interaction.options.getSubcommand();
         if (isPreset && isPreset === "preset") {
-            const preset = interaction.options.getSubcommand();
+            const preset = interaction.options.getString("code", true).toLowerCase();
             switch (preset) {
                 case "roles": {
                     const roleData = yield sequelize_1.role_data.findAll({ where: { category: 4 } });
@@ -240,6 +240,36 @@ exports.default = {
                         embeds: [activityRolesRaw],
                         components: components(rowNumber++),
                     });
+                }
+                case "clanjoin": {
+                    const embed = new discord_js_1.EmbedBuilder()
+                        .setColor(colors_1.colors.default)
+                        .setTitle("Вступление в клан")
+                        .setDescription("Для вступления в клан достаточно выполнить эти 2 пункта. Если вы нам подходите - вы будете автоматически приняты")
+                        .addFields({
+                        name: "||<:successCheckmark:1018320951173189743>||",
+                        value: "Зарегистрируйтесь у кланового бота - перейдите по ссылке через кнопку ниже или введите `/init` (для русской локализации - `/регистрация`)",
+                    }, {
+                        name: "||<:successCheckmark:1018320951173189743>||",
+                        value: "Заполните форму по кнопке ниже",
+                    }, {
+                        name: "||<:successCheckmark:1018320951173189743>||",
+                        value: "Вступите в клан через любой удобный вам способ:\n<:dot:1018321568218226788>Получите приглашение в клан через сообщение [после регистрации](https://discord.com/channels/@me/774617169169743872/1030544092880453762)\n<:dot:1018321568218226788>Вступите в клан через [Bungie.net](https://www.bungie.net/ru/ClanV2/Chat?groupId=4123712)\n<:dot:1018321568218226788>Вступите в клан через любого участника в игре",
+                    }, {
+                        name: "⁣",
+                        value: "По любым вопросам вы можете обращаться в личные сообщения <@719557130188750920> или <@298353895258980362>, а также в <#694119710677008425>",
+                    });
+                    const components = [
+                        {
+                            type: discord_js_1.ComponentType.ActionRow,
+                            components: [
+                                new discord_js_1.ButtonBuilder().setCustomId(`initEvent_register`).setLabel("Регистрация").setStyle(discord_js_1.ButtonStyle.Success),
+                                new discord_js_1.ButtonBuilder().setCustomId(`clanJoinEvent_modalBtn`).setLabel("Форма на вступление").setStyle(discord_js_1.ButtonStyle.Secondary),
+                            ],
+                        },
+                    ];
+                    interaction.reply({ content: "Success", fetchReply: false, ephemeral: true });
+                    return interaction.channel.send({ embeds: [embed], components: components });
                 }
             }
             return;
