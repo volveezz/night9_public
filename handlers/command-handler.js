@@ -41,7 +41,7 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
         events[event.slice(0, -3).toLowerCase()] = commandFile;
     }
     client.on("interactionCreate", (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         if ((interaction.isChatInputCommand() || interaction.isUserContextMenuCommand()) && interaction.channel !== null) {
             const { commandName } = interaction;
             const guild = interaction.guild || client.guilds.cache.get(ids_1.guildId) || (yield client.guilds.fetch(ids_1.guildId));
@@ -92,11 +92,10 @@ exports.default = (client, commandDir, eventsDir) => __awaiter(void 0, void 0, v
             const commandName = ((_b = customId.split("_").shift()) === null || _b === void 0 ? void 0 : _b.toLowerCase()) || "blank";
             if (!events[commandName])
                 return;
-            const memberName = interaction.member instanceof discord_js_1.GuildMember
-                ? interaction.member.displayName
-                : ((_d = (_c = client.guilds.cache.get(ids_1.guildId)) === null || _c === void 0 ? void 0 : _c.members.cache.get(interaction.user.id)) === null || _d === void 0 ? void 0 : _d.displayName) || interaction.user.username;
+            const member = interaction.member instanceof discord_js_1.GuildMember ? interaction.member : (_c = client.guilds.cache.get(ids_1.guildId)) === null || _c === void 0 ? void 0 : _c.members.cache.get(interaction.user.id);
+            const memberName = member.displayName;
             console.log(`${memberName} used ${customId}${interaction.channel && !interaction.channel.isDMBased() ? ` at ${interaction.channel.name}` : ""}`);
-            events[commandName].callback(client, interaction, interaction.member, interaction.guild, interaction.channel).catch((e) => {
+            events[commandName].callback(client, interaction, member, interaction.guild, interaction.channel).catch((e) => {
                 console.error(commandName, "error", e.stack || e);
                 const embed = new discord_js_1.EmbedBuilder().setColor("Red");
                 embed.setTitle(e === null || e === void 0 ? void 0 : e.name);

@@ -14,7 +14,7 @@ const discord_js_1 = require("discord.js");
 const colors_1 = require("../base/colors");
 const logger_1 = require("../handlers/logger");
 const sequelize_1 = require("../handlers/sequelize");
-const emoji = "<:dot:933355027307823174>";
+const emoji = "<:dot:1018321568218226788>";
 function initCommand_register(interaction) {
     return __awaiter(this, void 0, void 0, function* () {
         const checker = yield sequelize_1.auth_data.findOne({
