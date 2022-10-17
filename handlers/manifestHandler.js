@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DestinyActivityDefinition = exports.DestinyMetricDefinition = exports.DestinyRecordDefinition = exports.manifestData = void 0;
+exports.DestinyActivityDefinition = exports.DestinyActivityModifierDefinition = exports.DestinyMetricDefinition = exports.DestinyRecordDefinition = exports.manifestData = void 0;
 const request_promise_native_1 = require("request-promise-native");
 function getManifest() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -38,4 +38,5 @@ function getSpecificManifest(page) {
 exports.manifestData = getManifest();
 exports.DestinyRecordDefinition = getSpecificManifest("DestinyRecordDefinition");
 exports.DestinyMetricDefinition = getSpecificManifest("DestinyMetricDefinition");
+exports.DestinyActivityModifierDefinition = getSpecificManifest("DestinyActivityModifierDefinition");
 exports.DestinyActivityDefinition = getSpecificManifest("DestinyActivityDefinition");

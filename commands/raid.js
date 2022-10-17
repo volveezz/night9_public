@@ -8,8 +8,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.raidMsgUpdate = exports.raidDataFetcher = exports.timerConverter = exports.raidDataInChnMsg = exports.raidInGameChecker = void 0;
+exports.raidMsgUpdate = exports.raidDataFetcher = exports.timerConverter = exports.raidDataInChnMsg = void 0;
 const discord_js_1 = require("discord.js");
 const channels_1 = require("../base/channels");
 const colors_1 = require("../base/colors");
@@ -18,12 +21,67 @@ const full_checker_1 = require("../features/full_checker");
 const roles_1 = require("../base/roles");
 const ids_1 = require("../base/ids");
 const __1 = require("..");
-const runningRaids = new Map();
+const request_promise_native_1 = __importDefault(require("request-promise-native"));
+const manifestHandler_1 = require("../handlers/manifestHandler");
+const gameRaidChallenges_1 = require("../base/gameRaidChallenges");
 const noDataRaids = new Set();
-function raidInGameChecker(raidDb) {
-    runningRaids.set(raidDb.id, raidDb.time * 1000);
+function raidChallenges(raidData, inChnMsg, startTime, difficulty) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function* () {
+        if (difficulty > 2)
+            return;
+        const milestoneRequest = yield request_promise_native_1.default.get("https://bungie.net/Platform/Destiny2/Milestones/", {
+            headers: {
+                "Content-Type": "application/json",
+                "X-API-KEY": process.env.XAPI,
+            },
+            json: true,
+        });
+        const raidMilestone = milestoneRequest.Response[raidData.milestoneHash];
+        const manifest = yield manifestHandler_1.DestinyActivityModifierDefinition;
+        const raidChallengesArray = [];
+        const raidModifiersArray = [];
+        const raidDataChallanges = (0, gameRaidChallenges_1.gameRaidChallenges)(raidData.raid);
+        (_a = raidDataChallanges.find((a) => a.hash === 5)) === null || _a === void 0 ? void 0 : _a.description;
+        raidMilestone === null || raidMilestone === void 0 ? void 0 : raidMilestone.activities[(raidMilestone === null || raidMilestone === void 0 ? void 0 : raidMilestone.activities.length) > 1 ? (difficulty === 1 ? 0 : 1) : 0].modifierHashes.forEach((modifier) => {
+            var _a;
+            if (modifier === 1123720291 ||
+                modifier === 1783825372 ||
+                modifier === 782039530 ||
+                modifier === 2006149364 ||
+                (difficulty !== 1 && modifier === 97112028))
+                return;
+            if (String(manifest[modifier].displayProperties.description).toLowerCase().startsWith("вас ждет испытание")) {
+                const challenge = new Date(raidMilestone.endDate).getTime() > startTime * 1000
+                    ? raidDataChallanges.find((a) => a.hash === modifier)
+                    : ((_a = raidDataChallanges.find((a) => a.hash === modifier)) === null || _a === void 0 ? void 0 : _a.encounter) === raidDataChallanges.length
+                        ? raidDataChallanges.find((a) => a.encounter === 1)
+                        : raidDataChallanges.find((a) => a.encounter === raidDataChallanges.find((a) => a.hash === modifier).encounter + 1);
+                raidChallengesArray.push("⁣　⁣**" + manifest[challenge === null || challenge === void 0 ? void 0 : challenge.hash].displayProperties.name + `**, ${challenge.encounter} этап: ${challenge.description.toLowerCase()}`);
+            }
+            else if (new Date(raidMilestone.endDate).getTime() > startTime * 1000) {
+                if (modifier === 4038464106)
+                    return raidModifiersArray.push("⁣　⁣**Противники-воители:** вы встретитесь с барьерными, перегруженными и неудержимыми воителями");
+                if (modifier === 2116552995)
+                    return raidModifiersArray.push("⁣　⁣**Модификаторы «Мастер»:** больше воителей и щитов");
+                raidModifiersArray.push("⁣　⁣**" + manifest[modifier].displayProperties.name + ":** " + String(manifest[modifier].displayProperties.description).toLowerCase());
+            }
+        });
+        const embed = discord_js_1.EmbedBuilder.from(inChnMsg.embeds[0]);
+        embed.data.fields[0].name =
+            raidChallengesArray.length > 0
+                ? `**Испытани${raidChallengesArray.length === 1 ? "е" : "я"} ${new Date(raidMilestone.endDate).getTime() > startTime * 1000 ? "этой" : "следующей"} недели:**`
+                : raidModifiersArray.length > 0
+                    ? `**Модификатор${raidModifiersArray.length === 1 ? `` : `ы`} рейда:**`
+                    : "Объявление";
+        embed.data.fields[0].value = `${raidChallengesArray.join("\n")}${raidModifiersArray.length > 0
+            ? `${raidChallengesArray.length > 0 ? `\n\n**Модификатор${raidModifiersArray.length === 1 ? `` : `ы`} рейда:**` : ""}\n`
+            : ""}${raidModifiersArray.join("\n")}${raidChallengesArray.length === 0 && raidModifiersArray.length === 0
+            ? "⁣　⁣Продается __утепленный__ гараж в восточном ГК. ***Дешево***. За подробностями в личку <@298353895258980362>"
+            : ""}`;
+        return inChnMsg.edit({ embeds: [embed] });
+    });
 }
-exports.raidInGameChecker = raidInGameChecker;
 function raidDataInChnMsg(raidData) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!raidData)
@@ -170,6 +228,7 @@ function raidDataFetcher(raid, difficulty) {
                 raidColor: difficulty === 2 ? "#FF063A" : "#a02200",
                 channelName: "-гибель-короля",
                 requiredRole: null,
+                milestoneHash: "292102995",
             };
         case "votd":
             return {
@@ -180,6 +239,7 @@ function raidDataFetcher(raid, difficulty) {
                 raidColor: difficulty === 2 ? "#FF063A" : "#52E787",
                 channelName: "-клятва-послушника",
                 requiredRole: roles_1.dlcsRoles.twq,
+                milestoneHash: "2136320298",
             };
         case "vog":
             return {
@@ -190,6 +250,7 @@ function raidDataFetcher(raid, difficulty) {
                 raidColor: difficulty === 2 ? "#FF063A" : "#52E787",
                 channelName: "-хрустальный-чертог",
                 requiredRole: null,
+                milestoneHash: "1888320892",
             };
         case "dsc":
             return {
@@ -200,6 +261,7 @@ function raidDataFetcher(raid, difficulty) {
                 raidColor: "#29ACFF",
                 channelName: "-склеп-глубокого-камня",
                 requiredRole: roles_1.dlcsRoles.bl,
+                milestoneHash: "541780856",
             };
         case "gos":
             return {
@@ -210,6 +272,7 @@ function raidDataFetcher(raid, difficulty) {
                 raidColor: "#45FFA2",
                 channelName: "-сад-спасения",
                 requiredRole: roles_1.dlcsRoles.sk,
+                milestoneHash: "2712317338",
             };
         case "lw":
             return {
@@ -220,6 +283,7 @@ function raidDataFetcher(raid, difficulty) {
                 raidColor: "#79A1FF",
                 channelName: "-последнее-желание",
                 requiredRole: roles_1.dlcsRoles.frs,
+                milestoneHash: "3181387331",
             };
     }
 }
@@ -693,7 +757,9 @@ exports.default = {
                 reason: `New raid by ${member.displayName}`,
             })
                 .then((chn) => __awaiter(void 0, void 0, void 0, function* () {
-                const premiumEmbed = new discord_js_1.EmbedBuilder().setColor("#F3AD0C").addFields([{ name: "Испытание этой недели", value: `> TBD` }]);
+                const premiumEmbed = new discord_js_1.EmbedBuilder()
+                    .setColor("#F3AD0C")
+                    .addFields([{ name: "⁣", value: `**Испытания этой недели:**\n　*на одном из этапов*\n\n**Модификаторы рейда:**\n　*если есть..*` }]);
                 const components = [
                     {
                         type: discord_js_1.ComponentType.ActionRow,
@@ -720,8 +786,8 @@ exports.default = {
                 interaction.editReply({
                     content: `Рейд успешно создан. <#${chn.id}>, [ссылка на набор](https://discord.com/channels/${guild.id}/${raidChannel.id}/${(yield msg).id})`,
                 });
-                raidInGameChecker(raidDb);
                 raidDataInChnMsg((yield insertedRaidData)[1][0]);
+                raidChallenges(raidData, yield inChnMsg, parsedTime, difficulty);
             }));
         }
         else if (subCommand === "изменить") {
@@ -852,7 +918,6 @@ exports.default = {
                     yield sequelize_1.raids.update({
                         time: changedTime,
                     }, { where: { id: raidData.id }, transaction: t });
-                    raidInGameChecker(raidData);
                 }
                 else {
                     changes.push(`Время старта осталось без изменений - указано время <t:${changedTime}>, <t:${changedTime}:R>, но оно в прошлом`);

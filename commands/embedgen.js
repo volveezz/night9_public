@@ -275,7 +275,7 @@ exports.default = {
             return;
         }
         const embedCode = JSON.parse(interaction.options.getString("embed", true));
-        const editedEmbedMessageId = interaction.options.getString("message");
+        const editedEmbedMessageId = interaction.options.getString("messageid");
         const embed = discord_js_1.EmbedBuilder.from(embedCode);
         if (editedEmbedMessageId) {
             (yield (0, channels_1.msgFetcher)(channel, editedEmbedMessageId)).edit({ embeds: [embed] });

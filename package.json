@@ -1,8 +1,8 @@
 {
   "name": "nightfuture",
-  "version": "1.3.5",
+  "version": "1.4",
   "engines": {
-    "node": "18.7.0"
+    "node": "18.11.0"
   },
   "description": "Discord bot for Destiny 2 clans Night 9 & Sunlight",
   "main": "index.js",
@@ -21,11 +21,6 @@
     "pg-hstore": "^2.3.4",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
-    "sequelize": "^6.25.1"
-  },
-  "devDependencies": {
-    "@types/request-promise-native": "^1.0.18",
-    "concurrently": "^7.4.0",
-    "nodemon": "^2.0.20"
+    "sequelize": "^6.25.2"
   }
 }
