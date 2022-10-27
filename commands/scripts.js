@@ -18,7 +18,7 @@ export default {
         switch (scriptId) {
             case "rolesweeper": {
                 const members = interaction.guild.members.cache.filter((m) => {
-                    (m.roles.cache.has(statusRoles.member) || m.roles.cache.has(statusRoles.kicked)) && m.roles.cache.has(statusRoles.verified);
+                    return (m.roles.cache.has(statusRoles.member) || m.roles.cache.has(statusRoles.kicked)) && m.roles.cache.has(statusRoles.verified);
                 });
                 const updatedMembers = members.map((member) => {
                     member.roles
@@ -34,7 +34,7 @@ export default {
                         interaction.followUp(`Возникла ошибка во время обновления ${member.displayName}`);
                     });
                 });
-                const embed = new EmbedBuilder().setColor("Green").setTitle(`${updatedMembers.length} пользователей было обновлено`);
+                const embed = new EmbedBuilder().setColor("Green").setTitle(`${updatedMembers.length} пользователей было обновлено из ${members.size}`);
                 interaction.editReply({ embeds: [embed] });
                 return;
             }
