@@ -20,8 +20,8 @@ export default {
                 const members = interaction.guild.members.cache.filter((m) => {
                     return (m.roles.cache.has(statusRoles.member) || m.roles.cache.has(statusRoles.kicked)) && m.roles.cache.has(statusRoles.verified);
                 });
-                const updatedMembers = members.map((member) => {
-                    member.roles
+                const updatedMembers = members.map(async (member) => {
+                    await member.roles
                         .set([
                         member.roles.cache.has(statusRoles.member)
                             ? statusRoles.member
@@ -32,6 +32,9 @@ export default {
                     ])
                         .catch((e) => {
                         interaction.followUp(`Возникла ошибка во время обновления ${member.displayName}`);
+                    });
+                    await new Promise((res) => {
+                        setTimeout(res, 500);
                     });
                 });
                 const embed = new EmbedBuilder().setColor("Green").setTitle(`${updatedMembers.length} пользователей было обновлено из ${members.size}`);
