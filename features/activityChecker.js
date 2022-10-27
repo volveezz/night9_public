@@ -27,18 +27,13 @@ export default (client) => {
             for (const character of character_data.get(member.id)) {
                 await checker();
                 async function activities() {
-                    return fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Character/${character}/Stats/Activities/?count=2&mode=${mode}&page=0`, data)
-                        .then((response) => {
-                        return response;
-                    })
-                        .catch((e) => e.statusCode === 401 || e.statusCode === 500 || e.statusCode === 503
-                        ? console.error(`[activityChecker web ${e.statusCode} error] [Error code: 1004]`, data.displayname, e.error?.ErrorStatus)
-                        : console.error("[activityChecker] [Error code: 1001]", e.error, data.displayname));
+                    const response = await fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Character/${character}/Stats/Activities/?count=2&mode=${mode}&page=0`, data);
+                    return response;
                 }
                 async function checker() {
                     const response = await activities();
                     if (!response)
-                        return console.error("[activityChecker] [Error code: 1000]", data.displayname, character);
+                        return console.error("[activityChecker] [Error code: 1000]", data.displayname, character, response);
                     if (response.activities?.length > 0) {
                         response.activities.forEach((activity) => {
                             if (activity.values.completed.basic.value &&

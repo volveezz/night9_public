@@ -1,4 +1,4 @@
-import { EmbedBuilder, GuildMember, InteractionType, } from "discord.js";
+import { ApplicationCommandType, EmbedBuilder, GuildMember, InteractionType, PermissionsBitField, } from "discord.js";
 import { guildId } from "../base/ids.js";
 import { getFiles } from "./file-reader.js";
 const commands = {};
@@ -20,6 +20,66 @@ export default async (client, commandDir, eventsDir) => {
     for (const command of files) {
         const { default: commandFile } = await import(`../commands/${command}`);
         const { name: commandName, description: commandDescription, global, options, defaultMemberPermissions, type, nameLocalizations } = commandFile;
+        setTimeout(() => {
+            if (type == undefined || type[0] === true) {
+                if (global) {
+                    client.application?.commands.create({
+                        name: commandName,
+                        nameLocalizations: nameLocalizations || undefined,
+                        description: commandDescription || commandName,
+                        type: ApplicationCommandType.ChatInput,
+                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new PermissionsBitField(defaultMemberPermissions).bitfield,
+                        options: options,
+                    });
+                }
+                else {
+                    client.guilds.cache.get(guildId)?.commands.create({
+                        name: commandName,
+                        nameLocalizations: nameLocalizations || undefined,
+                        description: commandDescription || commandName,
+                        type: ApplicationCommandType.ChatInput,
+                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new PermissionsBitField(defaultMemberPermissions).bitfield,
+                        options: options,
+                    });
+                }
+            }
+            if (type && type[1] === true) {
+                if (global) {
+                    client.application?.commands.create({
+                        name: commandName,
+                        type: ApplicationCommandType.User,
+                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new PermissionsBitField(defaultMemberPermissions).bitfield,
+                    });
+                }
+                else {
+                    client.guilds.cache.get(guildId)?.commands.create({
+                        name: commandName,
+                        type: ApplicationCommandType.User,
+                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new PermissionsBitField(defaultMemberPermissions).bitfield,
+                    });
+                }
+            }
+            if (type && type[2] === true) {
+                if (global) {
+                    client.application?.commands.create({
+                        name: commandName,
+                        description: commandDescription || commandName,
+                        type: ApplicationCommandType.Message,
+                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new PermissionsBitField(defaultMemberPermissions).bitfield,
+                        options: options,
+                    });
+                }
+                else {
+                    client.guilds.cache.get(guildId)?.commands.create({
+                        name: commandName,
+                        description: commandDescription || commandName,
+                        type: ApplicationCommandType.Message,
+                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new PermissionsBitField(defaultMemberPermissions).bitfield,
+                        options: options,
+                    });
+                }
+            }
+        }, 2000);
         commands[commandName.toLowerCase()] = commandFile;
     }
     for (const event of eventsFiles) {
@@ -92,7 +152,11 @@ export default async (client, commandDir, eventsDir) => {
                 const embed = new EmbedBuilder().setColor("Red");
                 embed.setTitle(e?.name);
                 e && e.message && e.message !== undefined && typeof e.message === "string" && e.message.length > 5 ? embed.setDescription(e.message) : [];
-                interaction.followUp({ ephemeral: true, embeds: [embed] });
+                setTimeout(() => {
+                    interaction.deferred || interaction.replied
+                        ? interaction.followUp({ ephemeral: true, embeds: [embed] })
+                        : interaction.reply({ ephemeral: true, embeds: [embed] });
+                }, 500);
             });
         }
         else if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
