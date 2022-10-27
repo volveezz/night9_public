@@ -7,12 +7,11 @@ import { clan_joinLeave } from "./logger.js";
 import { BotClient as client } from "../index.js";
 import fetch from "node-fetch";
 export async function fetchRequest(url, auth_data) {
-    const cleanUrl = url.startsWith("https://bungie.net/")
+    const cleanUrl = url.startsWith("https://bungie.net/") || url.startsWith("https://www.bungie.net/")
         ? console.error("[Error code: 1025]", "Wrong url", url)
         : url.startsWith("/")
             ? url.slice(1)
             : url;
-    console.debug("DEBUG", auth_data && auth_data.access_token, auth_data);
     const response = await (await fetch(`https://www.bungie.net/${cleanUrl}`, {
         headers: { "X-API-KEY": process.env.XAPI, Authorization: auth_data && auth_data.access_token ? `Bearer ${auth_data.access_token}` : "" },
     })).json();
@@ -23,16 +22,16 @@ export default async (code, state, res) => {
     if (!json)
         return console.error("No data found", code, state);
     if (json.discord_id) {
+        const form = new FormData();
+        form.append("grant_type", "authorization_code");
+        form.append("code", code);
         const body = await fetch("https://www.bungie.net/Platform/App/OAuth/Token/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
                 Authorization: `Basic ${process.env.AUTH}`,
             },
-            body: JSON.stringify({
-                grant_type: "authorization_code",
-                code: code,
-            }),
+            body: form,
         });
         if (body.error === "invalid_request") {
             res.send(`<script>location.replace('error.html')</script>`);
@@ -44,8 +43,6 @@ export default async (code, state, res) => {
         }
         else {
             const request = await fetchRequest(`Platform/User/GetMembershipsForCurrentUser/`, body);
-            console.debug(request);
-            console.debug(body);
             if (!request) {
                 res.send(`<script>location.replace('error.html')</script>`);
                 return console.error(`[Error code: 1034] State: ${state} / Code: ${code}`, body);
@@ -68,7 +65,7 @@ export default async (code, state, res) => {
                     }
                 })[0];
             }
-            const fetchedData = await getData();
+            const fetchedData = getData();
             if (!fetchedData) {
                 res.send(`<script>location.replace('error.html')</script>`);
                 return console.error("[Error code: 1011]", `State: ${state} / Code:${code}`, body);
