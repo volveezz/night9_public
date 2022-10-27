@@ -92,9 +92,7 @@ export default async (client, commandDir, eventsDir) => {
                 const embed = new EmbedBuilder().setColor("Red");
                 embed.setTitle(e?.name);
                 e && e.message && e.message !== undefined && typeof e.message === "string" && e.message.length > 5 ? embed.setDescription(e.message) : [];
-                interaction.deferred || interaction.replied
-                    ? interaction.followUp({ ephemeral: true, embeds: [embed] })
-                    : interaction.reply({ ephemeral: true, embeds: [embed] });
+                interaction.followUp({ ephemeral: true, embeds: [embed] });
             });
         }
         else if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {

@@ -464,7 +464,7 @@ export default (client) => {
         fetchRequest(`Platform/Destiny2/${db_row.platform}/Account/${db_row.bungie_id}/Character/0/Stats/?groups=1&modes=5&periodType=2`, db_row)
             .then((data) => {
             for (const step of rStats.kd) {
-                if (step.kd <= data["allTime"]["allPvP"]["allTime"]?.["killsDeathsRatio"]?.["basic"]?.["value"]) {
+                if (step.kd <= data["allPvP"]["allTime"]?.["killsDeathsRatio"]?.["basic"]?.["value"]) {
                     if (!member.roles.cache.has(step.roleId)) {
                         member.roles.remove(rStats.allKd.filter((r) => r !== step.roleId));
                         setTimeout(() => member.roles.add(step.roleId), 6000);
