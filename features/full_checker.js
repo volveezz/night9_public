@@ -501,9 +501,6 @@ export default (client) => {
                 await checker();
                 async function activities(page) {
                     const response = await fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Character/${character}/Stats/Activities/?count=250&mode=${mode}&page=${page}`, data);
-                    response.catch((e) => e.statusCode === 401 || e.statusCode === 500 || e.statusCode === 503
-                        ? console.error(`activityStatsChecker ${e.statusCode} error`, data.displayname, e.error?.ErrorStatus)
-                        : console.error(`activityStatsChecker`, e.error?.stack || e.error || e, data.displayname, e.statusCode));
                     return response;
                 }
                 async function checker() {
