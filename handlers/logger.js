@@ -65,7 +65,7 @@ export async function activityReporter(pgcrId) {
             response.entries.forEach((entry) => {
                 const userData = completedUsers.get(entry.player.destinyUserInfo.membershipId);
                 const miscArray = userData?.misc || [];
-                entry.extended.weapons.some((a) => a.referenceId === 4103414242) && !miscArray.some((a) => a.endsWith("**Божественность**"))
+                entry.extended.weapons?.some((a) => a.referenceId === 4103414242) && !miscArray.some((a) => a.endsWith("**Божественность**"))
                     ? miscArray.push("<a:catbowtie:1034701666580189256>**Божественность**")
                     : false;
                 completedUsers.set(entry.player.destinyUserInfo.membershipId, {

@@ -16,9 +16,10 @@ export default (client) => {
         const give_roles = [], remove_roles = [], c = member.roles.cache;
         fetchRequest(`Platform/Destiny2/${data.platform}/Profile/${data.bungie_id}/?components=100,900,1100`, data)
             .then(async (Response) => {
-            if (!character_data.get(data.discord_id)) {
+            if (!Response.profile || !Response.profile.data)
+                return console.error("[Error code: 1039]", data.displayname, Response.profile);
+            if (!character_data.get(data.discord_id))
                 character_data.set(data.discord_id, Response["profile"]["data"]["characterIds"]);
-            }
             if (new Date().getTime() - new Date(Response.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60 * 2)
                 longOffline.add(member.id);
             if (!c.has(statusRoles.verified))
@@ -659,7 +660,7 @@ export default (client) => {
             const member = client.guilds.cache.get(guildId)?.members.cache.get(db_row.discord_id);
             if (!member) {
                 await client.guilds.cache.get(guildId)?.members.fetch();
-                return console.error("[Error code: 1023] roleManager, member not found", db_row);
+                return console.error("[Error code: 1023] roleManager, member not found", db_row.toJSON());
             }
             if (member.roles.cache.has(statusRoles.clanmember) ||
                 (db_row.discord_activity &&

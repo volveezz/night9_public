@@ -27,8 +27,13 @@ export default (client) => {
             for (const character of character_data.get(member.id)) {
                 await checker();
                 async function activities() {
-                    const response = await fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Character/${character}/Stats/Activities/?count=2&mode=${mode}&page=0`, data);
-                    return response;
+                    const response = fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Character/${character}/Stats/Activities/?count=2&mode=${mode}&page=0`, data);
+                    response.catch((e) => {
+                        console.error("[Error code: 1040] [activityChecker]", e);
+                        return;
+                    });
+                    const fetchedResponse = await response;
+                    return fetchedResponse;
                 }
                 async function checker() {
                     const response = await activities();

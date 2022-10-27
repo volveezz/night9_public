@@ -1,4 +1,4 @@
-import { EmbedBuilder, GuildMember, InteractionType, } from "discord.js";
+import { ChatInputCommandInteraction, EmbedBuilder, GuildMember, InteractionType, } from "discord.js";
 import { guildId } from "../base/ids.js";
 import { getFiles } from "./file-reader.js";
 const commands = {};
@@ -35,7 +35,7 @@ export default async (client, commandDir, eventsDir) => {
             const member = memberPre instanceof GuildMember ? memberPre : await guild.members.fetch(memberPre.user.id);
             if (!commands[commandName])
                 return;
-            console.log(member.displayName, `used`, commandName, interaction?.options?.data
+            console.log(member.displayName, `used`, commandName, interaction instanceof ChatInputCommandInteraction ? interaction.options.getSubcommand() : "", interaction?.options?.data
                 ? interaction.options.data
                     .map((d) => {
                     return d.options
@@ -49,7 +49,7 @@ export default async (client, commandDir, eventsDir) => {
             try {
                 commands[commandName].callback(client, interaction, member, guild, channel).catch((err) => {
                     const embed = new EmbedBuilder().setColor("Red");
-                    console.error(`[Error code: 1027] Slash command error`, err);
+                    console.error(`[Error code: 1027] Slash command error. Reply to`, member.displayName, err);
                     if (!err.stack && err.name) {
                         embed.setTitle(err.name);
                         if (err.message)
