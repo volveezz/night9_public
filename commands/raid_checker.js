@@ -31,7 +31,7 @@ export default {
             }
             throw { name: "Эта команда доступна после регистрации" };
         }
-        const characters_list = await fetchRequest(`Platform/Destiny2/${db_data.platform}/Profile/${db_data.bungie_id}/?components=200`);
+        const characters_list = await fetchRequest(`Platform/Destiny2/${db_data.platform}/Profile/${db_data.bungie_id}/?components=200`, db_data);
         const manifest = interaction instanceof ChatInputCommandInteraction && interaction.options.getBoolean("nonraidchecker") === true
             ? CachedDestinyActivityDefinition
             : Object.keys(CachedDestinyActivityDefinition).reduce(function (acc, val) {
@@ -76,27 +76,26 @@ export default {
             ],
         ];
         await Promise.all(characters.map(async (character, index) => {
-            await fetchRequest(`Platform/Destiny2/${db_data.platform}/Account/${db_data.bungie_id}/Character/${character}/Stats/AggregateActivityStats/`).then(async (activities) => {
-                const activity_fresh = activities.activities;
-                arr.forEach(async (activity_data) => {
-                    const clears = activity_fresh.filter((d) => d.activityHash == activity_data.activity)[0]?.values.activityCompletions.basic.value;
-                    if (clears !== undefined && clears >= 1) {
-                        activity_map.set(activity_data.acitivty_name, {
-                            activity: activity_data.acitivty_name,
+            const { activities: activity_fresh } = await fetchRequest(`Platform/Destiny2/${db_data.platform}/Account/${db_data.bungie_id}/Character/${character}/Stats/AggregateActivityStats/`, db_data);
+            arr.forEach(async (activity_data) => {
+                const clears = activity_fresh.filter((d) => d.activityHash === Number(activity_data.activity))[0]?.values.activityCompletions.basic
+                    .value;
+                if (clears !== undefined && clears >= 1) {
+                    activity_map.set(activity_data.acitivty_name, {
+                        activity: activity_data.acitivty_name,
+                    });
+                    if (set[index][0].has(activity_data.acitivty_name)) {
+                        set[index][0].set(activity_data.acitivty_name, {
+                            clears: clears +
+                                set[index][0].get(activity_data.acitivty_name)?.clears,
                         });
-                        if (set[index][0].has(activity_data.acitivty_name)) {
-                            set[index][0].set(activity_data.acitivty_name, {
-                                clears: clears +
-                                    set[index][0].get(activity_data.acitivty_name)?.clears,
-                            });
-                        }
-                        else {
-                            set[index][0].set(activity_data.acitivty_name, {
-                                clears: clears,
-                            });
-                        }
                     }
-                });
+                    else {
+                        set[index][0].set(activity_data.acitivty_name, {
+                            clears: clears,
+                        });
+                    }
+                }
             });
         }));
         const embed = new EmbedBuilder()
