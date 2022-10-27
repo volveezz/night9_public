@@ -43,7 +43,7 @@ export default (client) => {
                         response.activities.forEach((activity) => {
                             if (activity.values.completed.basic.value &&
                                 new Date(activity.period).getTime() + activity.values.activityDurationSeconds.basic.value * 1000 >
-                                    new Date().getTime() - 1000 * 60 * 50)
+                                    new Date().getTime() - 1000 * 60 * 7)
                                 activityReporter(activity.activityDetails.instanceId);
                         });
                     }
