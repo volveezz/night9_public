@@ -25,14 +25,15 @@ export default async (code, state, res) => {
         const form = new FormData();
         form.append("grant_type", "authorization_code");
         form.append("code", code);
-        const body = await fetch("https://www.bungie.net/Platform/App/OAuth/Token/", {
+        const body = await (await fetch("https://www.bungie.net/Platform/App/OAuth/Token/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
                 Authorization: `Basic ${process.env.AUTH}`,
             },
             body: form,
-        });
+        })).json();
+        console.debug(body);
         if (body.error === "invalid_request") {
             res.send(`<script>location.replace('error.html')</script>`);
             return console.error("[Error code: 1010]", `There is problem with fetching authData from state: ${state}`, body);
