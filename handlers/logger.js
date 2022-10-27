@@ -148,6 +148,9 @@ export async function activityReporter(pgcrId) {
             if (dbData.length >= 1 && dbData.filter((a) => a.clan).length >= 1) {
                 if (response.activityDetails.mode === 4 && dbData.length <= 1 && dbData.filter((a) => a.clan).length <= 1)
                     return;
+                if (response.activityDetails.mode === 82 &&
+                    (dbData.filter((a) => a.clan).length < 1 || (membersMembershipIds.length > 1 && dbData.length <= 1)))
+                    return;
                 const msg = await activityChannel.send({ embeds: [embed] });
                 dbData.forEach(async (dbMemberData) => {
                     if (response.activityDetails.mode === 82 && dbData.filter((a) => a.clan).length > 1)
