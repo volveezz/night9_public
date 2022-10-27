@@ -14,7 +14,7 @@ export default (client) => {
         return;
     function role_manager(data, member, role_db) {
         const give_roles = [], remove_roles = [], c = member.roles.cache;
-        fetchRequest(`https://www.bungie.net/Platform/Destiny2/${data.platform}/Profile/${data.bungie_id}/?components=100,900,1100`, data)
+        fetchRequest(`Platform/Destiny2/${data.platform}/Profile/${data.bungie_id}/?components=100,900,1100`, data)
             .then(async (Response) => {
             if (!character_data.get(data.discord_id)) {
                 character_data.set(data.discord_id, Response["profile"]["data"]["characterIds"]);
@@ -387,7 +387,7 @@ export default (client) => {
         }
     }
     async function clan(bungie_array) {
-        const clanList = await fetchRequest("https://www.bungie.net/Platform/GroupV2/4123712/Members/?memberType=None").catch((e) => console.error(`Clan checker error | 1`, e.statusCode));
+        const clanList = await fetchRequest("Platform/GroupV2/4123712/Members/?memberType=None").catch((e) => console.error(`Clan checker error | 1`, e.statusCode));
         if (!clanList) {
             console.log("[Clan checker]", "[Error code: 1013]", clanList);
             return;
@@ -461,7 +461,7 @@ export default (client) => {
         }
     }
     function kdChecker(db_row, member) {
-        fetchRequest(`https://www.bungie.net/platform/Destiny2/${db_row.platform}/Account/${db_row.bungie_id}/Character/0/Stats/?groups=1&modes=5&periodType=2`, db_row)
+        fetchRequest(`Platform/Destiny2/${db_row.platform}/Account/${db_row.bungie_id}/Character/0/Stats/?groups=1&modes=5&periodType=2`, db_row)
             .then((data) => {
             for (const step of rStats.kd) {
                 if (step.kd <= data["allTime"]["allPvP"]["allTime"]?.["killsDeathsRatio"]?.["basic"]?.["value"]) {
