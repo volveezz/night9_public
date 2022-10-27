@@ -74,7 +74,7 @@ export default async (client, commandDir, eventsDir) => {
                 });
             }
             catch (error) {
-                console.error("Command error:", error);
+                console.error("[Error code: 1038] Command error:", error);
             }
         }
         else if (interaction.isButton() || interaction.isSelectMenu() || interaction.isModalSubmit()) {
@@ -82,7 +82,9 @@ export default async (client, commandDir, eventsDir) => {
             const commandName = customId.split("_").shift()?.toLowerCase() || "blank";
             if (!events[commandName])
                 return;
-            const member = interaction.member instanceof GuildMember ? interaction.member : client.guilds.cache.get(guildId)?.members.cache.get(interaction.user.id);
+            const member = interaction.member instanceof GuildMember
+                ? interaction.member
+                : client.guilds.cache.get(guildId)?.members.cache.get(interaction.user.id);
             const memberName = member.displayName;
             console.log(memberName, `used ${customId}${interaction.channel && !interaction.channel.isDMBased() ? ` at ${interaction.channel.name}` : ""}`);
             events[commandName].callback(client, interaction, member, interaction.guild, interaction.channel).catch((e) => {
@@ -90,7 +92,9 @@ export default async (client, commandDir, eventsDir) => {
                 const embed = new EmbedBuilder().setColor("Red");
                 embed.setTitle(e?.name);
                 e && e.message && e.message !== undefined && typeof e.message === "string" && e.message.length > 5 ? embed.setDescription(e.message) : [];
-                interaction.deferred ? interaction.followUp({ ephemeral: true, embeds: [embed] }) : interaction.reply({ ephemeral: true, embeds: [embed] });
+                interaction.deferred || interaction.replied
+                    ? interaction.followUp({ ephemeral: true, embeds: [embed] })
+                    : interaction.reply({ ephemeral: true, embeds: [embed] });
             });
         }
         else if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
@@ -105,7 +109,9 @@ export default async (client, commandDir, eventsDir) => {
                 console.error(`Slash command [Error code: 1029]`, e);
                 const embed = new EmbedBuilder().setColor("Red");
                 embed.setTitle(e?.name);
-                interaction.deferred ? interaction.followUp({ ephemeral: true, embeds: [embed] }) : interaction.reply({ ephemeral: true, embeds: [embed] });
+                interaction.deferred
+                    ? interaction.followUp({ ephemeral: true, embeds: [embed] })
+                    : interaction.reply({ ephemeral: true, embeds: [embed] });
             });
         }
     });

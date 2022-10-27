@@ -623,10 +623,10 @@ export default (client) => {
             }
         }
     }
-    let kd = 2, raids = 1, trialsCD = 4;
+    let kd = 2, raids = 4, trialsCD = 4;
     setInterval(async () => {
         kd >= 9 ? (kd = 0) : kd++;
-        raids >= 3 ? (raids = 0) : raids++;
+        raids >= 6 ? (raids = 0) : raids++;
         trialsCD >= 15 ? (trialsCD = 0) : trialsCD++;
         const t = await db.transaction();
         const role_db = await role_data.findAll({
@@ -675,7 +675,7 @@ export default (client) => {
                 return;
             !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.6 ? longOffline.delete(member.id) : "";
             db_row.roles_cat[0] && kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
-            raids === 2 && member.roles.cache.hasAny(statusRoles.clanmember, statusRoles.member) && !longOffline.has(member.id)
+            raids === 5 && member.roles.cache.hasAny(statusRoles.clanmember, statusRoles.member) && !longOffline.has(member.id)
                 ? activityStatsChecker(db_row, member, 4)
                 : [];
             db_row.roles_cat[1] &&

@@ -40,7 +40,9 @@ export default {
             fetch(interaction.options.getBoolean("global", true));
         }
         else if (subCommand === "delete") {
-            commandDelete(interaction.options.getString("id", true));
+            commandDelete(interaction.options.getString("id", true)).catch((e) => {
+                throw { name: e.name };
+            });
         }
         async function commandDelete(id) {
             if (isNaN(parseInt(id))) {

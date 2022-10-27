@@ -12,7 +12,7 @@ export default {
         if (inviteCd.has(interaction.user.id) || interaction.user.id === ownerId) {
             throw {
                 name: "Время вышло",
-                message: `Приглашения действуют лишь в течении 15-ти минут\nДля вступления в клан вручную подайте заявку через [сайт bungie.net](https://www.bungie.net/ru/ClanV2?groupid=4123712)`,
+                message: `Приглашения действуют лишь в течении часа\nДля вступления в клан вручную подайте заявку через [сайт bungie.net](https://www.bungie.net/ru/ClanV2?groupid=4123712)`,
             };
         }
         const authData = await auth_data.findAll({
@@ -32,20 +32,18 @@ export default {
         if (authData.length === 2) {
             if (invitee_clan === true) {
                 interaction.channel?.messages.fetch(interaction.message.id).then((msg) => {
-                    const reEmbed = EmbedBuilder.from(msg.embeds[0]);
-                    reEmbed.setDescription(null);
+                    const reEmbed = EmbedBuilder.from(msg.embeds[0]).setDescription(null);
                     msg.edit({ components: [] });
                     interaction.editReply({ embeds: [reEmbed] });
                 });
                 return;
             }
             try {
-                const fetchQuery = await fetch(`https://www.bungie.net/platform/GroupV2/4123712/Members/IndividualInvite/${invitee_platform}/${invitee_bungie_id}/`, {
+                await fetch(`https://www.bungie.net/platform/GroupV2/4123712/Members/IndividualInvite/${invitee_platform}/${invitee_bungie_id}/`, {
                     method: "POST",
                     headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${inviter_access_token}` },
                     body: JSON.stringify({ message: "IndividualInvite" }),
                 });
-                var request = fetchQuery;
             }
             catch (err) {
                 if (err.error?.ErrorCode === 676) {
@@ -62,7 +60,6 @@ export default {
                     return;
                 }
             }
-            console.log("webHanderEvent clan invite debug", request);
             if (true) {
                 const embed = new EmbedBuilder()
                     .setColor("Green")
@@ -82,14 +79,12 @@ export default {
                 setTimeout(() => {
                     inviteCd.add(interaction.user.id);
                     fetch(`https://www.bungie.net/platform/GroupV2/4123712/Members/IndividualInviteCancel/${invitee_platform}/${invitee_bungie_id}/`, {
+                        method: "POST",
                         headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${inviter_access_token}` },
                     }).catch((e) => {
                         return console.error("webHandler invite cancel err", e);
                     });
-                }, 1000 * 60 * 16);
-            }
-            else {
-                throw { name: "Произошла неизвестная ошибка" };
+                }, 1000 * 60 * 60);
             }
         }
         else {
