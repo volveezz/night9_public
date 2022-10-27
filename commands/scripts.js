@@ -18,7 +18,7 @@ export default {
         switch (scriptId) {
             case "rolesweeper": {
                 const members = interaction.guild.members.cache.filter((m) => {
-                    m.roles.cache.has(statusRoles.member) || (m.roles.cache.has(statusRoles.kicked) && m.roles.cache.has(statusRoles.verified));
+                    (m.roles.cache.has(statusRoles.member) || m.roles.cache.has(statusRoles.kicked)) && m.roles.cache.has(statusRoles.verified);
                 });
                 const updatedMembers = members.map((member) => {
                     member.roles
