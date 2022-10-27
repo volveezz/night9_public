@@ -672,7 +672,8 @@ export default (client) => {
                     db_row.discord_activity.messages === 0 &&
                     db_row.discord_activity.raids === 0 &&
                     db_row.discord_activity.dungeons === 0))
-                return;
+                return console.debug(`Check skipped`, db_row.displayname);
+            console.debug("Checking", db_row.displayname);
             !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.6 ? longOffline.delete(member.id) : "";
             db_row.roles_cat[0] && kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
             raids === 5 && member.roles.cache.hasAny(statusRoles.clanmember, statusRoles.member) && !longOffline.has(member.id)
