@@ -42,7 +42,7 @@ export default async (code, state, res) => {
             return console.error(`${body.error_description} for: ${state}\nCode:${code}`);
         }
         else {
-            const request = await fetchRequest(`Platform/User/GetMembershipsForCurrentUser/`, body);
+            const request = await (await fetchRequest(`Platform/User/GetMembershipsForCurrentUser/`, body)).json();
             if (!request) {
                 res.send(`<script>location.replace('error.html')</script>`);
                 return console.error(`[Error code: 1034] State: ${state} / Code: ${code}`, body);

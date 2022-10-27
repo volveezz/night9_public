@@ -375,7 +375,7 @@ export default (client) => {
             .catch((e) => {
             e.statusCode === 401 || e.statusCode === 503 || e.statusCode === 500
                 ? console.error(`roleManager ${e.statusCode} error`, data.displayname)
-                : console.error(`roleManager`, e.error, data.displayname, e.statusCode);
+                : console.error(`roleManager`, e.error?.stack || e.error || e, data.displayname, e.statusCode);
         });
     }
     function name_change(discord_id, name) {
@@ -476,7 +476,7 @@ export default (client) => {
             .catch((e) => {
             e.statusCode === 401 || e.statusCode === 500 || e.statusCode === 503
                 ? console.error(`kdChecker ${e.statusCode} error`, db_row.displayname, e.error?.ErrorStatus)
-                : console.error(`kdChecker`, e.error, db_row.displayname);
+                : console.error(`kdChecker`, e.error?.stack || e.error || e, db_row.displayname, e.statusCode);
         });
     }
     async function activityStatsChecker(data, member, mode) {
@@ -491,7 +491,7 @@ export default (client) => {
                 .catch((e) => {
                 e.statusCode === 401 || e.statusCode === 503 || e.statusCode === 500
                     ? console.error(`[activityStatsChecker web ${e.statusCode} error]`, "[Error code: 1017]", data.displayname)
-                    : console.error(`[activityStatsChecker]`, "[Error code: 1016]", e.error, data.displayname, e.statusCode);
+                    : console.error(`[activityStatsChecker]`, "[Error code: 1016]", e.error?.stack || e.error || e, data.displayname, e.statusCode);
             });
         }
         else {
@@ -506,7 +506,7 @@ export default (client) => {
                     })
                         .catch((e) => e.statusCode === 401 || e.statusCode === 500 || e.statusCode === 503
                         ? console.error(`activityStatsChecker ${e.statusCode} error`, data.displayname, e.error?.ErrorStatus)
-                        : console.error(`activityStatsChecker`, e.error, data.displayname));
+                        : console.error(`activityStatsChecker`, e.error?.stack || e.error || e, data.displayname, e.statusCode));
                 }
                 async function checker() {
                     const response = await activities(page);
