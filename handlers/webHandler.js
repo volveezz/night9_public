@@ -47,30 +47,30 @@ export default async (code, state, res) => {
                 res.send(`<script>location.replace('error.html')</script>`);
                 return console.error(`[Error code: 1034] State: ${state} / Code: ${code}`, body);
             }
-            async function getData() {
-                for await (const membership of request.destinyMemberships) {
+            function getData() {
+                return request.destinyMemberships.map((membership) => {
                     if (membership.crossSaveOverride === membership.membershipType) {
-                        const platform = membership.membershipType;
-                        const bungie_id = membership.membershipId;
-                        const displayname = membership.bungieGlobalDisplayName || membership.displayName;
-                        return [platform, bungie_id, displayname];
+                        return {
+                            platform: membership.membershipType,
+                            bungie_id: membership.membershipId,
+                            displayname: membership.bungieGlobalDisplayName || membership.displayName,
+                        };
                     }
-                    else if (request.destinyMemberships.length === 0 || request.destinyMemberships.length === 1) {
-                        const displayname = membership.bungieGlobalDisplayName || membership.displayName;
-                        const platform = membership.membershipType;
-                        const bungie_id = membership.membershipId;
-                        return [platform, bungie_id, displayname];
+                    else if (request.destinyMemberships.length <= 1) {
+                        return {
+                            platform: membership.membershipType,
+                            bungie_id: membership.membershipId,
+                            displayname: membership.bungieGlobalDisplayName || membership.displayName,
+                        };
                     }
-                }
+                })[0];
             }
             const fetchedData = await getData();
             if (!fetchedData) {
                 res.send(`<script>location.replace('error.html')</script>`);
                 return console.error("[Error code: 1011]", `State: ${state} / Code:${code}`, body);
             }
-            const platform = fetchedData[0];
-            const bungie_id = fetchedData[1];
-            const displayname = fetchedData[2];
+            const { platform, bungie_id, displayname } = fetchedData;
             const result = await auth_data.create({
                 discord_id: json.discord_id,
                 bungie_id: bungie_id,
