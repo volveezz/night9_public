@@ -22,7 +22,7 @@ export default async (code, state, res) => {
     if (!json)
         return console.error("No data found", code, state);
     if (json.discord_id) {
-        const form = new FormData();
+        const form = new URLSearchParams();
         form.append("grant_type", "authorization_code");
         form.append("code", code);
         const body = await (await fetch("https://www.bungie.net/Platform/App/OAuth/Token/", {
@@ -33,7 +33,6 @@ export default async (code, state, res) => {
             },
             body: form,
         })).json();
-        console.debug(body);
         if (body.error === "invalid_request") {
             res.send(`<script>location.replace('error.html')</script>`);
             return console.error("[Error code: 1010]", `There is problem with fetching authData from state: ${state}`, body);
