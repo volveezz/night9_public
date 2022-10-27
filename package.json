@@ -1,13 +1,14 @@
 {
   "name": "nightfuture",
-  "version": "1.4",
+  "version": "1.5",
   "engines": {
-    "node": "18.11.0"
+    "node": "19.0.0"
   },
+  "type": "module",
   "description": "Discord bot for Destiny 2 clans Night 9 & Sunlight",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node --es-module-specifier-resolution=node index.js",
     "prepush": "npx tsc --watch",
     "dev": "concurrently \"npx tsc --watch\" \"nodemon -q index.js\""
   },
@@ -17,10 +18,15 @@
     "discord.js": "^14.6.0",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "form-data": "^4.0.0",
+    "node-fetch": "^3.2.10",
     "pg": "^8.8.0",
     "pg-hstore": "^2.3.4",
-    "request": "^2.88.2",
-    "request-promise-native": "^1.0.9",
-    "sequelize": "^6.25.2"
+    "sequelize": "^6.25.3"
+  },
+  "devDependencies": {
+    "bungie-api-ts": "^4.19.0",
+    "concurrently": "^7.4.0",
+    "nodemon": "^2.0.20"
   }
 }

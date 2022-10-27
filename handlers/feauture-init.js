@@ -1,13 +1,8 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const file_reader_1 = __importDefault(require("./file-reader"));
-exports.default = (client, featuresDir) => {
-    const files = (0, file_reader_1.default)(featuresDir);
+import { getFiles } from "./file-reader.js";
+export default async (client, featuresDir) => {
+    const files = getFiles(featuresDir);
     for (const command of files) {
-        let { default: commandFile } = require(`../features/${command}`);
+        let { default: commandFile } = await import(`../features/${command}`);
         try {
             commandFile(client);
         }

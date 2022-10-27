@@ -1,94 +1,77 @@
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
+import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { statusRoles } from "../base/roles.js";
+import { colors } from "../base/colors.js";
+import { guildId } from "../base/ids.js";
+import { clan } from "../base/channels.js";
+import { auth_data } from "./sequelize.js";
+export async function welcomeMessage(client, member) {
+    member.roles.add(statusRoles.newbie).catch((err) => {
+        console.error(err.code === 50013 ? `welcomeMessage err: Missing permissions to give role to ${member.displayName}` : err);
     });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.welcomeMessage = void 0;
-const discord_js_1 = require("discord.js");
-const roles_1 = require("../base/roles");
-const colors_1 = require("../base/colors");
-const ids_1 = require("../base/ids");
-const channels_1 = require("../base/channels");
-const sequelize_1 = require("./sequelize");
-function welcomeMessage(client, member) {
-    var _a, _b;
-    return __awaiter(this, void 0, void 0, function* () {
-        member.roles.add(roles_1.statusRoles.newbie).catch((err) => {
-            console.error(err.code === 50013 ? `welcomeMessage err: Missing permissions to give role to ${member.displayName}` : err);
-        });
-        const embed = new discord_js_1.EmbedBuilder()
-            .setColor(colors_1.colors.default)
-            .setAuthor({
-            name: "Добро пожаловать на сервер клана Night 9",
-            iconURL: ((_a = client.guilds.cache.get(ids_1.guildId)) === null || _a === void 0 ? void 0 : _a.iconURL()) || ((_b = client.user) === null || _b === void 0 ? void 0 : _b.displayAvatarURL()),
-        })
-            .setTimestamp()
-            .addFields([
+    const embed = new EmbedBuilder()
+        .setColor(colors.default)
+        .setAuthor({
+        name: "Добро пожаловать на сервер клана Night 9",
+        iconURL: client.guilds.cache.get(guildId)?.iconURL() || client.user?.displayAvatarURL(),
+    })
+        .setTimestamp()
+        .addFields({
+        name: "Вступление в клан",
+        value: `⁣　⁣Для вступления в клан перейдите в канал <#${clan.joinRequest.chnId}> и следуйте [инструкции](https://discord.com/channels/${guildId}/${clan.joinRequest.chnId}/${clan.joinRequest.joinRequestGuideMessageId})`,
+    }, {
+        name: "Общение без вступления",
+        value: `⁣　⁣Для получения доступа к каналам сервера вам достаточно зарегистрироваться через кнопку ниже`,
+    }, {
+        name: "FAQ",
+        value: `⁣　По каким-либо вопросам вы можете задать их напрямую в этом чате или в канале <#${clan.questionChnId}>`,
+    });
+    member
+        .send({
+        embeds: [embed],
+        components: [
             {
-                name: "Вступление в клан",
-                value: `⁣　⁣Для вступления в клан перейдите в канал <#${channels_1.clan.joinRequest.chnId}> и следуйте [инструкции](https://discord.com/channels/${ids_1.guildId}/${channels_1.clan.joinRequest.chnId}/${channels_1.clan.joinRequest.joinRequestGuideMessageId})`,
+                type: ComponentType.ActionRow,
+                components: [
+                    new ButtonBuilder().setCustomId(`initEvent_register`).setLabel("Регистрация").setStyle(ButtonStyle.Success),
+                    new ButtonBuilder().setCustomId(`clanJoinEvent_modalBtn`).setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
+                ],
             },
-            {
-                name: "Общение без вступления",
-                value: `⁣　⁣Для получения доступа к каналам у нас необязательно быть участником клана. Достаточно зарегистрироваться в канале <#${channels_1.clan.registerChnId}> после этого вам будут выданы временные права`,
-            },
-            {
-                name: "FAQ",
-                value: `⁣　⁣При вопросах заходите в канал <#${channels_1.clan.questionChnId}> или задайте их напрямую одному из администраторов клана`,
-            },
-        ]);
-        member
-            .send({
-            embeds: [embed],
-            components: [
-                {
-                    type: discord_js_1.ComponentType.ActionRow,
-                    components: [
-                        new discord_js_1.ButtonBuilder().setCustomId(`initEvent_register`).setLabel("Регистрация").setStyle(discord_js_1.ButtonStyle.Success),
-                        new discord_js_1.ButtonBuilder().setCustomId(`clanJoinEvent_modalBtn`).setLabel("Форма на вступление").setStyle(discord_js_1.ButtonStyle.Secondary),
-                    ],
-                },
-            ],
-        })
-            .then((m) => {
-            setTimeout(() => {
-                sequelize_1.auth_data
-                    .findOne({
-                    where: { discord_id: member.id },
-                    attributes: ["displayname", "membership_id"],
-                })
-                    .then((data) => {
-                    if (data !== null) {
-                        embed.addFields([
+        ],
+    })
+        .then((m) => {
+        setTimeout(() => {
+            auth_data
+                .findOne({
+                where: { discord_id: member.id },
+                attributes: ["displayname", "membership_id"],
+            })
+                .then((data) => {
+                if (data !== null) {
+                    embed.addFields([
+                        {
+                            name: "Регистрация восстановлена",
+                            value: `⁣　⁣Ранее вы уже регистрировались под аккаунтом ${data.displayname} ([bungie.net](https://www.bungie.net/7/ru/User/Profile/254/${data.membership_id}))`,
+                        },
+                    ]);
+                    m.edit({
+                        embeds: [embed],
+                        components: [
                             {
-                                name: "Регистрация восстановлена",
-                                value: `⁣　⁣Ранее вы уже регистрировались под аккаунтом ${data.displayname} ([bungie.net](https://www.bungie.net/7/ru/User/Profile/254/${data.membership_id}))`,
+                                type: ComponentType.ActionRow,
+                                components: [
+                                    new ButtonBuilder()
+                                        .setCustomId(`clanJoinEvent_modalBtn`)
+                                        .setLabel("Форма на вступление")
+                                        .setStyle(ButtonStyle.Secondary),
+                                ],
                             },
-                        ]);
-                        m.edit({
-                            embeds: [embed],
-                            components: [
-                                {
-                                    type: discord_js_1.ComponentType.ActionRow,
-                                    components: [
-                                        new discord_js_1.ButtonBuilder().setCustomId(`clanJoinEvent_modalBtn`).setLabel("Форма на вступление").setStyle(discord_js_1.ButtonStyle.Secondary),
-                                    ],
-                                },
-                            ],
-                        });
-                    }
-                });
-            }, 3333);
-        })
-            .catch((err) => {
-            console.error(err.code === 50007 ? `welcomeMessage err: ${member.displayName} blocked DMs from server members` : err);
-        });
+                        ],
+                    });
+                }
+            });
+        }, 3333);
+    })
+        .catch((err) => {
+        console.error(err.code === 50007 ? `welcomeMessage err: ${member.displayName} blocked DMs from server members` : err);
     });
 }
-exports.welcomeMessage = welcomeMessage;

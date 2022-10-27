@@ -1,7 +1,6 @@
-"use strict";
-const fs_1 = require("fs");
-const getFiles = (dir) => {
-    const files = (0, fs_1.readdirSync)(dir, {
+import { readdirSync } from "fs";
+export const getFiles = (dir) => {
+    const files = readdirSync(dir, {
         withFileTypes: true,
     });
     let jsFiles = [];
@@ -15,4 +14,3 @@ const getFiles = (dir) => {
     }
     return jsFiles;
 };
-module.exports = getFiles;

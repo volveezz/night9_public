@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.gameRaidChallenges = void 0;
 const gameRaidChallenges = (raid) => {
     switch (raid) {
         case "kf": {
@@ -80,4 +77,4 @@ const gameRaidChallenges = (raid) => {
         }
     }
 };
-exports.gameRaidChallenges = gameRaidChallenges;
+export { gameRaidChallenges };

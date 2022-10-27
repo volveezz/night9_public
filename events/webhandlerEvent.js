@@ -1,39 +1,27 @@
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const discord_js_1 = require("discord.js");
-const request_promise_native_1 = require("request-promise-native");
-const sequelize_1 = require("sequelize");
-const ids_1 = require("../base/ids");
-const sequelize_2 = require("../handlers/sequelize");
+import { EmbedBuilder } from "discord.js";
+import { Op } from "sequelize";
+import { ownerId } from "../base/ids.js";
+import { auth_data } from "../handlers/sequelize.js";
+import fetch from "node-fetch";
 const inviteCd = new Set();
-exports.default = {
-    callback: (_client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c;
+export default {
+    callback: async (_client, interaction, _member, _guild, _channel) => {
         if (interaction.customId !== "webhandlerEvent_clan_request")
             return;
-        yield interaction.deferReply({ ephemeral: true });
-        if (inviteCd.has(interaction.user.id) || interaction.user.id === ids_1.ownerId) {
+        await interaction.deferReply({ ephemeral: true });
+        if (inviteCd.has(interaction.user.id) || interaction.user.id === ownerId) {
             throw {
                 name: "Время вышло",
                 message: `Приглашения действуют лишь в течении 15-ти минут\nДля вступления в клан вручную подайте заявку через [сайт bungie.net](https://www.bungie.net/ru/ClanV2?groupid=4123712)`,
             };
         }
-        const authData = yield sequelize_2.auth_data.findAll({
+        const authData = await auth_data.findAll({
             attributes: ["clan", "bungie_id", "platform", "access_token"],
             where: {
-                [sequelize_1.Op.or]: [{ discord_id: interaction.user.id }, { discord_id: ids_1.ownerId }],
+                [Op.or]: [{ discord_id: interaction.user.id }, { discord_id: ownerId }],
             },
         });
-        if (authData[0].toJSON().discord_id === ids_1.ownerId) {
+        if (authData[0].toJSON().discord_id === ownerId) {
             var { clan: invitee_clan, bungie_id: invitee_bungie_id, platform: invitee_platform } = authData[1].toJSON();
             var { access_token: inviter_access_token } = authData[0].toJSON();
         }
@@ -43,8 +31,8 @@ exports.default = {
         }
         if (authData.length === 2) {
             if (invitee_clan === true) {
-                (_a = interaction.channel) === null || _a === void 0 ? void 0 : _a.messages.fetch(interaction.message.id).then((msg) => {
-                    const reEmbed = discord_js_1.EmbedBuilder.from(msg.embeds[0]);
+                interaction.channel?.messages.fetch(interaction.message.id).then((msg) => {
+                    const reEmbed = EmbedBuilder.from(msg.embeds[0]);
                     reEmbed.setDescription(null);
                     msg.edit({ components: [] });
                     interaction.editReply({ embeds: [reEmbed] });
@@ -52,19 +40,18 @@ exports.default = {
                 return;
             }
             try {
-                var request = yield (0, request_promise_native_1.post)(`https://www.bungie.net/platform/GroupV2/4123712/Members/IndividualInvite/${invitee_platform}/${invitee_bungie_id}/`, {
-                    headers: { "X-API-Key": process.env.XAPI },
-                    auth: { bearer: inviter_access_token },
-                    json: true,
-                    body: { message: "IndividualInvite" },
+                const fetchQuery = await fetch(`https://www.bungie.net/platform/GroupV2/4123712/Members/IndividualInvite/${invitee_platform}/${invitee_bungie_id}/`, {
+                    headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${inviter_access_token}` },
+                    body: JSON.stringify({ message: "IndividualInvite" }),
                 });
+                var request = fetchQuery;
             }
             catch (err) {
                 if (err.error.ErrorCode === 676) {
-                    const embed = new discord_js_1.EmbedBuilder().setColor("DarkGreen").setTitle("Вы уже участник нашего клана :)");
+                    const embed = new EmbedBuilder().setColor("DarkGreen").setTitle("Вы уже участник нашего клана :)");
                     interaction.editReply({ embeds: [embed] });
-                    (_b = interaction.channel) === null || _b === void 0 ? void 0 : _b.messages.fetch(interaction.message.id).then((msg) => {
-                        const reEmbed = discord_js_1.EmbedBuilder.from(msg.embeds[0]).setDescription(null);
+                    interaction.channel?.messages.fetch(interaction.message.id).then((msg) => {
+                        const reEmbed = EmbedBuilder.from(msg.embeds[0]).setDescription(null);
                         msg.edit({ components: [], embeds: [reEmbed] });
                     });
                     return;
@@ -74,38 +61,38 @@ exports.default = {
                     return;
                 }
             }
-            if (request.ErrorCode === 1) {
-                const embed = new discord_js_1.EmbedBuilder()
+            console.log("webHanderEvent clan invite debug", request.resolution);
+            if (true) {
+                const embed = new EmbedBuilder()
                     .setColor("Green")
                     .setTitle("Приглашение было отправлено")
                     .setDescription(`Приглашение будет действительно лишь в течении 15-ти минут`);
                 interaction.editReply({ embeds: [embed] });
-                (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.messages.fetch(interaction.message.id).then((msg) => {
-                    const reEmbed = discord_js_1.EmbedBuilder.from(msg.embeds[0]).setDescription(null);
+                interaction.channel?.messages
+                    .fetch(interaction.message.id)
+                    .then((msg) => {
+                    const reEmbed = EmbedBuilder.from(msg.embeds[0]).setDescription(null);
                     msg.edit({ components: [], embeds: [reEmbed] });
-                }).catch((err) => {
+                })
+                    .catch((err) => {
                     if (err.code !== 10008)
                         console.error(err);
                 });
                 setTimeout(() => {
                     inviteCd.add(interaction.user.id);
-                    (0, request_promise_native_1.post)(`https://www.bungie.net/platform/GroupV2/4123712/Members/IndividualInviteCancel/${invitee_platform}/${invitee_bungie_id}/`, {
-                        headers: { "X-API-Key": process.env.XAPI },
-                        auth: { bearer: inviter_access_token },
-                        json: true,
+                    fetch(`https://www.bungie.net/platform/GroupV2/4123712/Members/IndividualInviteCancel/${invitee_platform}/${invitee_bungie_id}/`, {
+                        headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${inviter_access_token}` },
                     }).catch((e) => {
-                        console.error("webHandler invite cancel err", e);
+                        return console.error("webHandler invite cancel err", e);
                     });
-                }, 1000 * 60 * 15);
+                }, 1000 * 60 * 16);
             }
             else {
-                interaction.editReply("Произошла ошибка :(");
-                return console.log(request);
+                throw { name: "Произошла неизвестная ошибка" };
             }
         }
         else {
-            interaction.editReply("Произошла ошибка :(");
-            return;
+            throw { name: "Произошла неизвестная ошибка" };
         }
-    }),
+    },
 };

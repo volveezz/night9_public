@@ -1,34 +1,21 @@
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const discord_js_1 = require("discord.js");
-const request_promise_native_1 = require("request-promise-native");
-const sequelize_1 = require("sequelize");
-const colors_1 = require("../base/colors");
-const sequelize_2 = require("../handlers/sequelize");
-exports.default = {
+import { EmbedBuilder, ApplicationCommandOptionType } from "discord.js";
+import fetch from "node-fetch";
+import { Op } from "sequelize";
+import { colors } from "../base/colors.js";
+import { auth_data } from "../handlers/sequelize.js";
+export default {
     name: "auth",
     description: "Manual auth renewal",
     defaultMemberPermissions: ["Administrator"],
     options: [
         {
-            type: discord_js_1.ApplicationCommandOptionType.String,
+            type: ApplicationCommandOptionType.String,
             name: "id",
             description: "id",
             required: true,
         },
     ],
-    callback: (_client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a;
-        yield interaction.deferReply({ ephemeral: true });
+    callback: async (_client, interaction, _member, _guild, _channel) => {
         let id = interaction.options.getString("id", true) === "me" ? interaction.user.id : interaction.options.getString("id", true);
         try {
             BigInt(id);
@@ -36,31 +23,33 @@ exports.default = {
         catch (error) {
             throw { name: "Ошибка Id", message: error.toString() };
         }
-        const data = yield sequelize_2.auth_data.findOne({
-            where: { [sequelize_1.Op.or]: [{ discord_id: id }, { bungie_id: id }] },
+        const data = await auth_data.findOne({
+            where: { [Op.or]: [{ discord_id: id }, { bungie_id: id }] },
             attributes: ["refresh_token"],
         });
         if (!data) {
-            throw { name: "Запись в БД отсутствует", message: `Id: ${id}`, falseAlarm: true };
+            throw { name: "Запись в БД отсутствует", message: `Id: ${id}` };
         }
         try {
-            var token = yield (0, request_promise_native_1.post)(`https://www.bungie.net/Platform/App/OAuth/Token/`, {
+            const form = new URLSearchParams();
+            form.append("grant_type", "refresh_token");
+            form.append("refresh_token", data.refresh_token);
+            var token = await fetch(`https://www.bungie.net/Platform/App/OAuth/Token/`, {
+                method: "POST",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
                     Authorization: `Basic ${process.env.AUTH}`,
                 },
-                form: {
-                    grant_type: "refresh_token",
-                    refresh_token: data.refresh_token,
-                },
-                json: true,
+                body: form,
+            }).then(async (response) => {
+                return response.json();
             });
         }
         catch (err) {
-            throw { name: "Request error", message: ((_a = err === null || err === void 0 ? void 0 : err.error) === null || _a === void 0 ? void 0 : _a.error_description) || "no description available" };
+            throw { name: "Request error", message: err?.error?.error_description || "no description available", err };
         }
         if (token) {
-            yield sequelize_2.auth_data.update({
+            await auth_data.update({
                 access_token: token.access_token,
                 refresh_token: token.refresh_token,
             }, {
@@ -68,15 +57,14 @@ exports.default = {
                     membership_id: token.membership_id,
                 },
             });
-            const embed = new discord_js_1.EmbedBuilder()
-                .setColor(colors_1.colors.default)
-                .setTimestamp()
+            const embed = new EmbedBuilder()
+                .setColor(colors.default)
                 .setFooter({ text: `Id: ${id}` })
                 .setTitle(`MembershipId: ${token.membership_id} обновлен`);
-            interaction.editReply({ embeds: [embed] });
+            interaction.reply({ embeds: [embed], ephemeral: true });
         }
         else {
-            throw { name: `${id} not updated`, userId: interaction.user.id };
+            throw { name: `${id} not updated` };
         }
-    }),
+    },
 };

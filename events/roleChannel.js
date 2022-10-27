@@ -1,20 +1,8 @@
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const discord_js_1 = require("discord.js");
-const roles_1 = require("../base/roles");
-const sequelize_1 = require("../handlers/sequelize");
-exports.default = {
-    callback: (_client, interaction, member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a;
+import { EmbedBuilder } from "discord.js";
+import { classRoles, rActivity, rClanJoinDate, rStats, rTitles, rTrials, rTriumphs } from "../base/roles.js";
+import { auth_data, role_data } from "../handlers/sequelize.js";
+export default {
+    callback: async (_client, interaction, member, _guild, _channel) => {
         if (interaction.isButton() && interaction.customId.startsWith("roleChannel")) {
             const commandFull = interaction.customId.split("_").slice(1);
             const commandId = commandFull.shift();
@@ -22,7 +10,7 @@ exports.default = {
                 case "classRoles": {
                     const className = commandFull.pop();
                     member.roles
-                        .remove(roles_1.classRoles
+                        .remove(classRoles
                         .filter((r) => r.className !== className)
                         .map((r) => {
                         return r.id;
@@ -31,10 +19,10 @@ exports.default = {
                         if (className === "disable")
                             return;
                         setTimeout(() => {
-                            member.roles.add(roles_1.classRoles.find((r) => r.className === className).id);
+                            member.roles.add(classRoles.find((r) => r.className === className).id);
                         }, 1500);
                     });
-                    const embed = new discord_js_1.EmbedBuilder()
+                    const embed = new EmbedBuilder()
                         .setColor("Green")
                         .setTitle(className === "disable"
                         ? "Вы отключили основной класс"
@@ -48,11 +36,13 @@ exports.default = {
                 default:
                     {
                         const categoryId = String(Number(commandFull.pop()) + 1);
-                        (_a = sequelize_1.auth_data.sequelize) === null || _a === void 0 ? void 0 : _a.query(`UPDATE auth_data SET roles_cat[${categoryId}]=NOT roles_cat[${categoryId}] WHERE discord_id=${interaction.user.id} RETURNING roles_cat`).then((d) => __awaiter(void 0, void 0, void 0, function* () {
+                        auth_data.sequelize
+                            ?.query(`UPDATE auth_data SET roles_cat[${categoryId}]=NOT roles_cat[${categoryId}] WHERE discord_id=${interaction.user.id} RETURNING roles_cat`)
+                            .then(async (d) => {
                             const changedRows = d[1].rows[0].roles_cat.map((b) => {
                                 return b === false ? "<:crossmark:1020504750350934026>" : "<:successCheckmark:1018320951173189743>";
                             });
-                            const embed = new discord_js_1.EmbedBuilder()
+                            const embed = new EmbedBuilder()
                                 .setColor("Green")
                                 .setTitle(`Вы ${d[1].rows[0].roles_cat[Number(categoryId) - 1] ? "включили" : "отключили"} роли за ${categoryId === "1"
                                 ? "общую статистику"
@@ -70,16 +60,16 @@ exports.default = {
                             let removedRoles = [];
                             switch (Number(categoryId) - 1) {
                                 case 0:
-                                    removedRoles.push(roles_1.rStats.category);
-                                    member.roles.remove(removedRoles.concat(roles_1.rStats.allActive, roles_1.rStats.allKd, removedRoles));
+                                    removedRoles.push(rStats.category);
+                                    member.roles.remove(removedRoles.concat(rStats.allActive, rStats.allKd, removedRoles));
                                     break;
                                 case 1:
-                                    removedRoles.push(roles_1.rTrials.category, roles_1.rTrials.wintrader);
-                                    member.roles.remove(removedRoles.concat(roles_1.rTrials.allKd, roles_1.rTrials.allRoles, removedRoles));
+                                    removedRoles.push(rTrials.category, rTrials.wintrader);
+                                    member.roles.remove(removedRoles.concat(rTrials.allKd, rTrials.allRoles, removedRoles));
                                     break;
                                 case 2:
-                                    const allTitlesRoles = yield sequelize_1.role_data.findAll({ where: { category: 3 } });
-                                    removedRoles.push(roles_1.rTitles.category);
+                                    const allTitlesRoles = await role_data.findAll({ where: { category: 3 } });
+                                    removedRoles.push(rTitles.category);
                                     allTitlesRoles.forEach((r) => {
                                         removedRoles.push(r.role_id);
                                         r.guilded_roles && r.guilded_roles.length > 0 ? (removedRoles = removedRoles.concat(r.guilded_roles)) : [];
@@ -87,23 +77,23 @@ exports.default = {
                                     member.roles.remove(removedRoles.filter((r) => r !== null));
                                     break;
                                 case 3:
-                                    const allTriumphsRoles = yield sequelize_1.role_data.findAll({ where: { category: 4 } });
-                                    removedRoles.push(roles_1.rTriumphs.category);
+                                    const allTriumphsRoles = await role_data.findAll({ where: { category: 4 } });
+                                    removedRoles.push(rTriumphs.category);
                                     allTriumphsRoles.forEach((r) => {
                                         removedRoles.push(r.role_id);
                                         r.guilded_roles && r.guilded_roles.length > 0 ? (removedRoles = removedRoles.concat(r.guilded_roles)) : [];
                                     });
-                                    member.roles.remove(removedRoles.concat(roles_1.rClanJoinDate.allRoles));
+                                    member.roles.remove(removedRoles.concat(rClanJoinDate.allRoles));
                                     break;
                                 case 4:
-                                    removedRoles.push(roles_1.rActivity.category);
-                                    member.roles.remove(removedRoles.concat(roles_1.rActivity.allMessages, roles_1.rActivity.allVoice, removedRoles));
+                                    removedRoles.push(rActivity.category);
+                                    member.roles.remove(removedRoles.concat(rActivity.allMessages, rActivity.allVoice, removedRoles));
                                     break;
                             }
-                        }));
+                        });
                     }
                     break;
             }
         }
-    }),
+    },
 };

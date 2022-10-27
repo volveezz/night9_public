@@ -1,15 +1,12 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.rTrials = exports.rTitles = exports.rActivity = exports.rStats = exports.rClanJoinDate = exports.rRaids = exports.rTriumphs = exports.classRoles = exports.dlcsRoles = exports.seasonalRoles = exports.statusRoles = void 0;
-exports.statusRoles = {
+export const statusRoles = {
     clanmember: "677554696566734899",
     member: "678945074113019914",
     newbie: "696309469235380335",
     kicked: "724592037868863569",
     verified: "797468596498464808",
 };
-exports.seasonalRoles = { curSeasonRole: "938681964494454844", nonCurSeasonRole: "938682145923280947" };
-exports.dlcsRoles = {
+export const seasonalRoles = { curSeasonRole: "938681964494454844", nonCurSeasonRole: "938682145923280947" };
+export const dlcsRoles = {
     vanilla: "938682627332919306",
     frs: "938682287929839656",
     sk: "938682322692231208",
@@ -18,15 +15,15 @@ exports.dlcsRoles = {
     twq: "938682450098389053",
     lf: "1008002337622720523",
 };
-exports.classRoles = [
+export const classRoles = [
     { className: "hunter", id: "708383261163913218" },
     { className: "warlock", id: "708383326045601805" },
     { className: "titan", id: "708383397050974329" },
 ];
-exports.rTriumphs = {
+export const rTriumphs = {
     category: "694117833650602004",
 };
-exports.rRaids = {
+export const rRaids = {
     allRoles: ["791393286182535169", "694193991733739611", "695205572454252555", "744832404153172048"],
     roles: [
         { roleId: "791393286182535169", individualClears: 50, totalClears: 500 },
@@ -35,7 +32,7 @@ exports.rRaids = {
         { roleId: "744832404153172048", individualClears: 2, totalClears: 20 },
     ],
 };
-exports.rClanJoinDate = {
+export const rClanJoinDate = {
     allRoles: [
         "1015833639101136936",
         "737249705922396270",
@@ -55,7 +52,7 @@ exports.rClanJoinDate = {
         { roleId: "945239463435599954", days: 1 * 7 },
     ],
 };
-exports.rStats = {
+export const rStats = {
     category: "744835253490941952",
     allActive: [
         "850783884341805126",
@@ -108,7 +105,7 @@ exports.rStats = {
         { roleId: "1006749274652024872", kd: 0.5 },
     ],
 };
-exports.rActivity = {
+export const rActivity = {
     category: "713055691535024249",
     allVoice: ["1006749934395084820", "1006750189110960258", "1006750356182675527", "713054787389620245"],
     allMessages: ["1006751299393560687", "1006751293857071185", "1006751278912766103", "713055203682943007"],
@@ -125,10 +122,10 @@ exports.rActivity = {
         { roleId: "713055203682943007", messageCount: 5 },
     ],
 };
-exports.rTitles = {
+export const rTitles = {
     category: "694116514881601537",
 };
-exports.rTrials = {
+export const rTrials = {
     allRoles: [
         "804998006054453248",
         "804997990334595122",

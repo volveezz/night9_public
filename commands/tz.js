@@ -1,30 +1,16 @@
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const discord_js_1 = require("discord.js");
-const colors_1 = require("../base/colors");
-exports.default = {
+import { ComponentType, EmbedBuilder, SelectMenuBuilder } from "discord.js";
+import { colors } from "../base/colors.js";
+export default {
     name: "tz",
-    nameLocalizations: {
-        "en-US": "timezone",
-    },
     description: "Укажите свой часовой пояс",
     global: true,
-    callback: (_client, interaction, _member, _guild, _channel) => __awaiter(void 0, void 0, void 0, function* () {
-        yield interaction.deferReply({ ephemeral: true });
-        const embed = new discord_js_1.EmbedBuilder()
-            .setColor(colors_1.colors.default)
+    callback: async (_client, interaction, _member, _guild, _channel) => {
+        await interaction.deferReply({ ephemeral: true });
+        const embed = new EmbedBuilder()
+            .setColor(colors.default)
             .setTitle(`Выберите свой часовой пояс`)
             .setDescription(`Если не знаете свой - в описании каждого часового пояса есть текущее время по нему`);
-        const tzBlank = new discord_js_1.SelectMenuBuilder()
+        const tzBlank = new SelectMenuBuilder()
             .setCustomId("tzEvent_selectmenu")
             .setPlaceholder("Часовой пояс не выбран")
             .addOptions([
@@ -90,6 +76,6 @@ exports.default = {
             option.setDescription(`${tzTime.getHours()}:${tzTime.getMinutes()}:${tzTime.getSeconds()} - время сейчас по +${i + 2} часовому поясу`);
             tzTime.setHours(tzTime.getHours() + 1);
         });
-        interaction.editReply({ embeds: [embed], components: [{ type: discord_js_1.ComponentType.ActionRow, components: [tzBlank] }] });
-    }),
+        interaction.editReply({ embeds: [embed], components: [{ type: ComponentType.ActionRow, components: [tzBlank] }] });
+    },
 };

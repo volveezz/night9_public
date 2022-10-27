@@ -1,33 +1,20 @@
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.clan_joinLeave = exports.init_register = exports.activityReporter = exports.dmChnSentMsgsLogger = void 0;
-const discord_js_1 = require("discord.js");
-const colors_1 = require("../base/colors");
-const ids_1 = require("../base/ids");
-const sequelize_1 = require("./sequelize");
-const sequelize_2 = require("./sequelize");
-const request_promise_native_1 = require("request-promise-native");
-const roles_1 = require("../base/roles");
-const channels_1 = require("../base/channels");
-const welcomeMessage_1 = require("./welcomeMessage");
-const __1 = require("..");
-const manifestHandler_1 = require("./manifestHandler");
-const sequelize_3 = require("sequelize");
+import { ButtonBuilder, ButtonStyle, ComponentType, DiscordAPIError, EmbedBuilder } from "discord.js";
+import { colors } from "../base/colors.js";
+import { ids, guildId } from "../base/ids.js";
+import { db, discord_activities, lost_data, raids, auth_data } from "./sequelize.js";
+import { statusRoles } from "../base/roles.js";
+import { chnFetcher } from "../base/channels.js";
+import { welcomeMessage } from "./welcomeMessage.js";
+import { BotClient, BotClient as client } from "../index.js";
+import { CachedDestinyActivityDefinition } from "./manifestHandler.js";
+import { Op } from "sequelize";
+import { fetchRequest } from "./webHandler.js";
 const pgcrIds = new Set();
-const guildMemberChannel = (0, channels_1.chnFetcher)(ids_1.ids.guildMemberChnId), guildChannel = (0, channels_1.chnFetcher)(ids_1.ids.guildChnId), messageChannel = (0, channels_1.chnFetcher)(ids_1.ids.messagesChnId), voiceChannel = (0, channels_1.chnFetcher)(ids_1.ids.voiceChnId), destinyClanChannel = (0, channels_1.chnFetcher)(ids_1.ids.clanChnId), discordBotChannel = (0, channels_1.chnFetcher)(ids_1.ids.botChnId), activityChannel = (0, channels_1.chnFetcher)(ids_1.ids.activityChnId);
-function dmChnSentMsgsLogger(member, text, id) {
-    const dmChn = (0, channels_1.chnFetcher)(ids_1.ids.dmMsgsChnId);
-    const embed = new discord_js_1.EmbedBuilder()
-        .setColor(colors_1.colors.default)
+const guildMemberChannel = chnFetcher(ids.guildMemberChnId), guildChannel = chnFetcher(ids.guildChnId), messageChannel = chnFetcher(ids.messagesChnId), voiceChannel = chnFetcher(ids.voiceChnId), destinyClanChannel = chnFetcher(ids.clanChnId), discordBotChannel = chnFetcher(ids.botChnId), activityChannel = chnFetcher(ids.activityChnId);
+export function dmChnSentMsgsLogger(member, text, id) {
+    const dmChn = chnFetcher(ids.dmMsgsChnId);
+    const embed = new EmbedBuilder()
+        .setColor(colors.default)
         .setTitle("Отправлено сообщение")
         .setAuthor({
         name: `Отправлено: ${member.displayName || member.user.username}${member.user.username !== member.displayName ? ` (${member.user.username})` : ""}`,
@@ -40,216 +27,236 @@ function dmChnSentMsgsLogger(member, text, id) {
         embeds: [embed],
         components: [
             {
-                type: discord_js_1.ComponentType.ActionRow,
+                type: ComponentType.ActionRow,
                 components: [
-                    new discord_js_1.ButtonBuilder().setCustomId("dmChnFunc_reply").setLabel("Ответить").setStyle(discord_js_1.ButtonStyle.Success),
-                    new discord_js_1.ButtonBuilder().setCustomId("dmChnFunc_delete").setLabel("Удалить сообщение").setStyle(discord_js_1.ButtonStyle.Danger),
+                    new ButtonBuilder().setCustomId("dmChnFunc_reply").setLabel("Ответить").setStyle(ButtonStyle.Success),
+                    new ButtonBuilder().setCustomId("dmChnFunc_delete").setLabel("Удалить сообщение").setStyle(ButtonStyle.Danger),
                 ],
             },
         ],
     });
 }
-exports.dmChnSentMsgsLogger = dmChnSentMsgsLogger;
-function activityReporter(pgcrId) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (!pgcrIds.has(pgcrId)) {
-            pgcrIds.add(pgcrId);
-            (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`, { headers: { "X-API-KEY": process.env.XAPI }, json: true })
-                .then((response) => __awaiter(this, void 0, void 0, function* () {
-                var _a, _b, _c;
-                const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTimestamp(new Date(response.Response.period));
-                ((_a = response.Response.activityDetails) === null || _a === void 0 ? void 0 : _a.mode) === 4
-                    ? embed.setAuthor({ name: `Raid Report`, url: `https://raid.report/pgcr/${pgcrId}` })
-                    : ((_b = response.Response.activityDetails) === null || _b === void 0 ? void 0 : _b.mode) === 82
-                        ? embed.setAuthor({ name: `Dungeon Report`, url: `https://dungeon.report/pgcr/${pgcrId}` })
-                        : embed.setAuthor({ name: "Bungie PGCR", url: `https://www.bungie.net/ru/PGCR/${pgcrId}` });
-                const footerText = `Активность была начата ${response.Response.activityWasStartedFromBeginning === true ? "с начала" : "с чекпоинта"}`;
-                const referenceId = response.Response.activityDetails.referenceId;
-                const manifestData = (yield manifestHandler_1.DestinyActivityDefinition)[referenceId];
-                embed.setTitle(manifestData.displayProperties.name +
-                    " - " +
-                    response.Response.entries[0].values.activityDurationSeconds.basic.displayValue.replace("h", "ч").replace("m", "м").replace("s", "с"));
-                manifestData.displayProperties.hasIcon
-                    ? manifestData.displayProperties.highResIcon
-                        ? embed.setFooter({ text: footerText, iconURL: `https://bungie.net${manifestData.displayProperties.highResIcon}` })
-                        : embed.setFooter({ text: footerText, iconURL: `https://bungie.net${manifestData.displayProperties.icon}` })
-                    : embed.setFooter({ text: footerText });
-                manifestData.pgcrImage ? embed.setThumbnail(`https://bungie.net${manifestData.pgcrImage}`) : "";
-                const completedUsers = new Map();
-                response.Response.entries.forEach((entry) => {
-                    const userData = completedUsers.get(entry.player.destinyUserInfo.membershipId);
-                    completedUsers.set(entry.player.destinyUserInfo.membershipId, {
-                        bungieName: entry.player.destinyUserInfo.bungieGlobalDisplayName,
-                        classHash: entry.values.completed.basic.value === 1
-                            ? (entry.player.classHash === 671679327
-                                ? "<:hunter:995496474978824202>"
+export async function activityReporter(pgcrId) {
+    if (!pgcrIds.has(pgcrId)) {
+        pgcrIds.add(pgcrId);
+        fetchRequest(`Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`)
+            .then(async (response) => {
+            if (!response.activityDetails)
+                return console.error(`[PGCR Checker] [Error code: 1009]`, pgcrId, response);
+            const embed = new EmbedBuilder().setColor("Green").setTimestamp(new Date(response.period));
+            response.activityDetails.mode === 4
+                ? embed.setAuthor({ name: `Raid Report`, url: `https://raid.report/pgcr/${pgcrId}` })
+                : response.activityDetails.mode === 82
+                    ? embed.setAuthor({ name: `Dungeon Report`, url: `https://dungeon.report/pgcr/${pgcrId}` })
+                    : embed.setAuthor({ name: "Bungie PGCR", url: `https://www.bungie.net/ru/PGCR/${pgcrId}` });
+            const footerText = `Активность была начата ${response.activityWasStartedFromBeginning ? "с начала" : "с сохранения"}`;
+            const referenceId = response.activityDetails.referenceId;
+            const manifestData = CachedDestinyActivityDefinition[referenceId];
+            embed.setTitle(manifestData.displayProperties.name +
+                " - " +
+                response.entries[0].values.activityDurationSeconds.basic.displayValue.replace("h", "ч").replace("m", "м").replace("s", "с"));
+            manifestData.displayProperties.hasIcon
+                ? manifestData.displayProperties.highResIcon
+                    ? embed.setFooter({ text: footerText, iconURL: `https://bungie.net${manifestData.displayProperties.highResIcon}` })
+                    : embed.setFooter({ text: footerText, iconURL: `https://bungie.net${manifestData.displayProperties.icon}` })
+                : embed.setFooter({ text: footerText });
+            manifestData.pgcrImage ? embed.setThumbnail(`https://bungie.net${manifestData.pgcrImage}`) : "";
+            const completedUsers = new Map();
+            response.entries.forEach((entry) => {
+                const userData = completedUsers.get(entry.player.destinyUserInfo.membershipId);
+                const miscArray = userData?.misc || [];
+                entry.extended.weapons.some((a) => a.referenceId === 4103414242) && !miscArray.some((a) => a.endsWith("**Божественность**"))
+                    ? miscArray.push("<a:catbowtie:1034701666580189256>**Божественность**")
+                    : false;
+                completedUsers.set(entry.player.destinyUserInfo.membershipId, {
+                    bungieName: entry.player.destinyUserInfo.bungieGlobalDisplayName,
+                    classHash: entry.values.completed.basic.value === 1
+                        ? (entry.player.classHash === 671679327
+                            ? "<:hunter:995496474978824202>"
+                            : entry.player.classHash === 2271682572
+                                ? "<:warlock:995496471526920232>"
+                                : "<:titan:995496472722284596>") + (userData?.classHash || "")
+                        : (userData?.classHash || "") +
+                            String(entry.player.classHash === 671679327
+                                ? "<:deadHunter:1023051800653344859>"
                                 : entry.player.classHash === 2271682572
-                                    ? "<:warlock:995496471526920232>"
-                                    : "<:titan:995496472722284596>") + ((userData === null || userData === void 0 ? void 0 : userData.classHash) || "")
-                            : ((userData === null || userData === void 0 ? void 0 : userData.classHash) || "") +
-                                String(entry.player.classHash === 671679327
-                                    ? "<:deadHunter:1023051800653344859>"
-                                    : entry.player.classHash === 2271682572
-                                        ? "<:deadWarlock:1023051796932989059>"
-                                        : "<:deadTitan:1023051798740729876>"),
-                        completed: !(userData === null || userData === void 0 ? void 0 : userData.completed) ? (entry.values.completed.basic.value === 1 ? true : false) : true,
-                        kills: entry.values.kills.basic.value + ((userData === null || userData === void 0 ? void 0 : userData.kills) || 0),
-                        deaths: entry.values.deaths.basic.value + ((userData === null || userData === void 0 ? void 0 : userData.deaths) || 0),
-                        assists: entry.values.assists.basic.value + ((userData === null || userData === void 0 ? void 0 : userData.assists) || 0),
-                        timeInRaid: entry.values.timePlayedSeconds.basic.value + ((userData === null || userData === void 0 ? void 0 : userData.timeInRaid) || 0),
-                    });
+                                    ? "<:deadWarlock:1023051796932989059>"
+                                    : "<:deadTitan:1023051798740729876>"),
+                    completed: !userData?.completed ? (entry.values.completed.basic.value === 1 ? true : false) : true,
+                    kills: entry.values.kills.basic.value + (userData?.kills || 0),
+                    deaths: entry.values.deaths.basic.value + (userData?.deaths || 0),
+                    assists: entry.values.assists.basic.value + (userData?.assists || 0),
+                    timeInActivity: entry.values.timePlayedSeconds.basic.value + (userData?.timeInActivity || 0),
+                    misc: miscArray,
                 });
-                const membersMembershipIds = Array.from(completedUsers.keys());
-                completedUsers.forEach((value, key) => {
-                    const arr = [];
-                    arr.push(value.timeInRaid >= 3600 ? Math.trunc(value.timeInRaid / 60 / 60) + "ч" : "");
-                    arr.push(value.timeInRaid >= 60
-                        ? (value.timeInRaid > 660
-                            ? Math.trunc(value.timeInRaid / 60) - Math.trunc(value.timeInRaid / 60 / 60) * 60
-                            : Math.trunc(value.timeInRaid / 60)) + "м"
-                        : "");
-                    value.timeInRaid < 3600
-                        ? arr.push(value.timeInRaid - Math.trunc(value.timeInRaid / 60) * 60 !== 0 ? value.timeInRaid - Math.trunc(value.timeInRaid / 60) * 60 + "с" : "")
-                        : [];
-                    if (!value.completed) {
-                        return;
-                    }
-                    else {
-                        completedUsers.delete(key);
-                    }
-                    embed.addFields({
-                        name: `${value.bungieName}`,
-                        value: `${value.classHash}У: **${value.kills}** С: **${value.deaths}** П: **${value.assists}**\nВ рейде: **${arr.join(" ").trim()}**`,
-                        inline: true,
-                    });
-                });
-                embed.data.fields = (_c = embed.data.fields) === null || _c === void 0 ? void 0 : _c.sort((a, b) => {
-                    return a.name.localeCompare(b.name);
-                });
-                completedUsers.forEach((value, key) => {
-                    const arr = [];
-                    arr.push(value.timeInRaid >= 3600 ? Math.trunc(value.timeInRaid / 60 / 60) + "ч" : "");
-                    arr.push(value.timeInRaid >= 60
-                        ? (value.timeInRaid > 660
-                            ? Math.trunc(value.timeInRaid / 60) - Math.trunc(value.timeInRaid / 60 / 60) * 60
-                            : Math.trunc(value.timeInRaid / 60)) + "м"
-                        : "");
-                    value.timeInRaid < 3600
-                        ? arr.push(value.timeInRaid - Math.trunc(value.timeInRaid / 60) * 60 !== 0 ? value.timeInRaid - Math.trunc(value.timeInRaid / 60) * 60 + "с" : "")
-                        : [];
-                    embed.addFields({
-                        name: `❌${value.bungieName}`,
-                        value: `${value.classHash}У: **${value.kills}** С: **${value.deaths}** П: **${value.assists}**\nВ рейде: **${arr.join(" ").trim()}**`,
-                        inline: true,
-                    });
-                });
-                if (membersMembershipIds.length <= 0)
+            });
+            const membersMembershipIds = Array.from(completedUsers.keys());
+            completedUsers.forEach((value, key) => {
+                const arr = [];
+                arr.push(value.timeInActivity >= 3600 ? Math.trunc(value.timeInActivity / 60 / 60) + "ч" : "");
+                arr.push(value.timeInActivity >= 60
+                    ? (value.timeInActivity > 660
+                        ? Math.trunc(value.timeInActivity / 60) - Math.trunc(value.timeInActivity / 60 / 60) * 60
+                        : Math.trunc(value.timeInActivity / 60)) + "м"
+                    : "");
+                value.timeInActivity < 3600
+                    ? arr.push(value.timeInActivity - Math.trunc(value.timeInActivity / 60) * 60 !== 0
+                        ? value.timeInActivity - Math.trunc(value.timeInActivity / 60) * 60 + "с"
+                        : "")
+                    : [];
+                if (!value.completed) {
                     return;
-                const dbData = yield sequelize_2.auth_data.findAll({ where: { bungie_id: { [sequelize_3.Op.any]: `{${membersMembershipIds.toString()}}` } } });
-                if (dbData.length > 1 && dbData.filter((a) => a.clan).length > 1) {
-                    const msg = yield activityChannel.send({ embeds: [embed] });
-                    dbData.forEach((dbMemberData) => __awaiter(this, void 0, void 0, function* () {
-                        var _d;
-                        const dbRaidData = yield sequelize_1.raids.findAll({ where: { creator: dbMemberData.discord_id } }).then((data) => {
-                            for (let i = 0; i < data.length; i++) {
-                                const row = data[i];
-                                if (row.time < Math.trunc(new Date().getTime() / 1000))
-                                    return row;
-                            }
-                        });
-                        if (dbMemberData.clan && dbData.filter((a) => a.clan).length > 2) {
-                            sequelize_1.discord_activities.increment("raids", { by: 1, where: { authDatumDiscordId: dbMemberData.discord_id } });
-                        }
-                        if (dbRaidData && dbRaidData.time < Math.trunc(new Date().getTime() / 1000)) {
-                            const embed = new discord_js_1.EmbedBuilder()
-                                .setColor("Blurple")
-                                .setFooter({ text: `RId: ${dbRaidData.id}` })
-                                .setTitle("Созданный вами рейд был завершен")
-                                .setDescription(`Вы создавали рейд ${dbRaidData.id}-${dbRaidData.raid} на <t:${dbRaidData.time}> и сейчас он был завершен.\nПодтвердите завершение рейда для удаления набора.\n\n[История активностей](https://discord.com/channels/${msg.guildId + "/" + msg.channelId + "/" + msg.id})`);
-                            return (_d = __1.BotClient.users.cache
-                                .get(dbRaidData.creator)) === null || _d === void 0 ? void 0 : _d.send({
-                                embeds: [embed],
-                                components: [
-                                    {
-                                        type: discord_js_1.ComponentType.ActionRow,
-                                        components: [new discord_js_1.ButtonBuilder().setCustomId("raidInChnButton_delete").setLabel("Удалить набор").setStyle(discord_js_1.ButtonStyle.Danger)],
-                                    },
-                                ],
-                            }).catch((e) => console.error(`acitvityReporter final error`, e));
-                        }
-                    }));
                 }
-            }))
-                .catch((e) => console.log(`activityReporter error`, pgcrId, e, e.statusCode));
-        }
-    });
+                else {
+                    completedUsers.delete(key);
+                }
+                embed.addFields({
+                    name: value.bungieName,
+                    value: `${value.classHash}У: **${value.kills}** С: **${value.deaths}** П: **${value.assists}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
+                        ? `\nВ ${response.activityDetails.mode === 4 ? "рейде" : response.activityDetails.mode === 82 ? "подземелье" : "активности"}: **${arr.join(" ").trim()}**`
+                        : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
+                    inline: true,
+                });
+            });
+            embed.data.fields = embed.data.fields?.sort((a, b) => {
+                return a.name.localeCompare(b.name);
+            });
+            completedUsers.forEach((value, _key) => {
+                const arr = [];
+                arr.push(value.timeInActivity >= 3600 ? Math.trunc(value.timeInActivity / 60 / 60) + "ч" : "");
+                arr.push(value.timeInActivity >= 60
+                    ? (value.timeInActivity > 660
+                        ? Math.trunc(value.timeInActivity / 60) - Math.trunc(value.timeInActivity / 60 / 60) * 60
+                        : Math.trunc(value.timeInActivity / 60)) + "м"
+                    : "");
+                value.timeInActivity < 3600
+                    ? arr.push(value.timeInActivity - Math.trunc(value.timeInActivity / 60) * 60 !== 0
+                        ? value.timeInActivity - Math.trunc(value.timeInActivity / 60) * 60 + "с"
+                        : "")
+                    : [];
+                embed.addFields({
+                    name: "❌" + value.bungieName,
+                    value: `${value.classHash}У: **${value.kills}** С: **${value.deaths}** П: **${value.assists}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
+                        ? `\nВ ${response.activityDetails.mode === 4 ? "рейде" : response.activityDetails.mode === 82 ? "подземелье" : "активности"}: **${arr.join(" ").trim()}**`
+                        : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
+                    inline: true,
+                });
+            });
+            if (membersMembershipIds.length <= 0)
+                return;
+            const dbData = await auth_data.findAll({ where: { bungie_id: { [Op.any]: `{${membersMembershipIds}}` } } });
+            if (dbData.length >= 1 && dbData.filter((a) => a.clan).length >= 1) {
+                if (response.activityDetails.mode === 4 && dbData.length <= 1 && dbData.filter((a) => a.clan).length <= 1)
+                    return;
+                const msg = await activityChannel.send({ embeds: [embed] });
+                dbData.forEach(async (dbMemberData) => {
+                    if (response.activityDetails.mode === 82 && dbData.filter((a) => a.clan).length > 1)
+                        return discord_activities.increment("dungeons", { by: 1, where: { authDatumDiscordId: dbMemberData.discord_id } });
+                    if (response.activityDetails.mode !== 4)
+                        return;
+                    if (dbMemberData.clan && dbData.filter((a) => a.clan).length > 2)
+                        discord_activities.increment("raids", { by: 1, where: { authDatumDiscordId: dbMemberData.discord_id } });
+                    const dbRaidData = await raids.findAll({ where: { creator: dbMemberData.discord_id } }).then((data) => {
+                        for (let i = 0; i < data.length; i++) {
+                            const row = data[i];
+                            if (row.time < Math.trunc(new Date().getTime() / 1000))
+                                return row;
+                        }
+                    });
+                    if (dbRaidData && dbRaidData.time < Math.trunc(new Date().getTime() / 1000)) {
+                        const embed = new EmbedBuilder()
+                            .setColor("Blurple")
+                            .setFooter({ text: `RId: ${dbRaidData.id}` })
+                            .setTitle("Созданный вами рейд был завершен")
+                            .setDescription(`Вы создавали рейд ${dbRaidData.id}-${dbRaidData.raid} на <t:${dbRaidData.time}> и сейчас он был завершен.\nПодтвердите завершение рейда для удаления набора.\n\n[История активностей](https://discord.com/channels/${msg.guildId + "/" + msg.channelId + "/" + msg.id})`);
+                        return BotClient.users.cache
+                            .get(dbRaidData.creator)
+                            ?.send({
+                            embeds: [embed],
+                            components: [
+                                {
+                                    type: ComponentType.ActionRow,
+                                    components: [
+                                        new ButtonBuilder().setCustomId("raidInChnButton_delete").setLabel("Удалить набор").setStyle(ButtonStyle.Danger),
+                                    ],
+                                },
+                            ],
+                        })
+                            .catch((e) => console.error(`acitvityReporter final error`, e));
+                    }
+                });
+            }
+        })
+            .catch((e) => console.log(`activityReporter error`, pgcrId, e, e.statusCode));
+    }
 }
-exports.activityReporter = activityReporter;
-function init_register(state, user, rowCreated) {
-    const embed = new discord_js_1.EmbedBuilder()
-        .setColor(colors_1.colors.default)
+export function init_register(state, user, rowCreated) {
+    const embed = new EmbedBuilder()
+        .setColor(colors.default)
         .setAuthor({
         name: `${user.username} начал регистрацию`,
         iconURL: user.displayAvatarURL(),
     })
-        .setTimestamp()
         .setFooter({ text: `Id: ${user.id}` })
-        .addFields({ name: "Пользователь", value: `<@${user.id}>`, inline: true }, { name: "State", value: state, inline: true }, { name: "Впервые", value: String(rowCreated), inline: true });
+        .addFields([
+        { name: "Пользователь", value: `<@${user.id}>`, inline: true },
+        { name: "State", value: state, inline: true },
+        { name: "Впервые", value: String(rowCreated), inline: true },
+    ]);
     discordBotChannel.send({ embeds: [embed] });
 }
-exports.init_register = init_register;
-function clan_joinLeave(result, join) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const member = __1.BotClient.guilds.cache.get(ids_1.guildId).members.cache.get(result.discord_id);
-        const embed = new discord_js_1.EmbedBuilder().addFields({ name: "Пользователь", value: `<@${result.discord_id}>`, inline: true }, { name: "BungieId", value: result.bungie_id, inline: true }, { name: "Ник в игре", value: result.displayname, inline: true });
-        if (member) {
-            if (join) {
-                member.roles.add(roles_1.statusRoles.clanmember).then((m) => m.roles.remove([roles_1.statusRoles.kicked, roles_1.statusRoles.newbie, roles_1.statusRoles.member]));
-                embed
-                    .setAuthor({
-                    name: `${member.displayName} вступил в клан`,
-                    iconURL: member.displayAvatarURL(),
-                })
-                    .setColor("Green");
-            }
-            else {
-                member.roles.add(roles_1.statusRoles.kicked).then((m) => m.roles.remove([roles_1.statusRoles.clanmember, roles_1.statusRoles.newbie, roles_1.statusRoles.member]));
-                embed
-                    .setAuthor({
-                    name: `${member.displayName} покинул клан`,
-                    iconURL: member.displayAvatarURL(),
-                })
-                    .setColor(colors_1.colors.kicked);
-            }
+export async function clan_joinLeave(result, join) {
+    const member = client.guilds.cache.get(guildId).members.cache.get(result.discord_id);
+    const embed = new EmbedBuilder().addFields([
+        { name: "Пользователь", value: `<@${result.discord_id}>`, inline: true },
+        { name: "BungieId", value: result.bungie_id, inline: true },
+        { name: "Ник в игре", value: result.displayname, inline: true },
+    ]);
+    if (member) {
+        if (join) {
+            member.roles.add(statusRoles.clanmember).then((m) => m.roles.remove([statusRoles.kicked, statusRoles.newbie, statusRoles.member]));
+            embed
+                .setAuthor({
+                name: `${member.displayName} вступил в клан`,
+                iconURL: member.displayAvatarURL(),
+            })
+                .setColor("Green");
         }
         else {
-            if (join) {
-                embed
-                    .setAuthor({
-                    name: `Неизвестный на сервере пользователь вступил в клан`,
-                })
-                    .setColor("Green");
-            }
-            else {
-                embed
-                    .setAuthor({
-                    name: `Неизвестный на сервере пользователь покинул клан`,
-                })
-                    .setColor(colors_1.colors.kicked);
-            }
+            member.roles.add(statusRoles.kicked).then((m) => m.roles.remove([statusRoles.clanmember, statusRoles.newbie, statusRoles.member]));
+            embed
+                .setAuthor({
+                name: `${member.displayName} покинул клан`,
+                iconURL: member.displayAvatarURL(),
+            })
+                .setColor(colors.kicked);
         }
-        destinyClanChannel.send({ embeds: [embed] });
-    });
+    }
+    else {
+        if (join) {
+            embed
+                .setAuthor({
+                name: `Неизвестный на сервере пользователь вступил в клан`,
+            })
+                .setColor("Green");
+        }
+        else {
+            embed
+                .setAuthor({
+                name: `Неизвестный на сервере пользователь покинул клан`,
+            })
+                .setColor(colors.kicked);
+        }
+    }
+    destinyClanChannel.send({ embeds: [embed] });
 }
-exports.clan_joinLeave = clan_joinLeave;
-exports.default = (client) => {
+export default (client) => {
     const voiceUsers = new Map();
     process.on("unhandledRejection", (error) => {
-        var _a;
-        if (error instanceof discord_js_1.DiscordAPIError) {
+        if (error instanceof DiscordAPIError) {
             if (error.code === 50035) {
                 const err = error;
-                console.error(`Discord embed error`, err.message, (_a = err.requestBody.json) === null || _a === void 0 ? void 0 : _a.embeds);
+                console.error("[Error code: 1026]", `Discord embed error`, err, err.message, err.requestBody.json?.embeds[0]);
             }
             else {
                 console.error(`Discord API error promise rejection`, error);
@@ -262,10 +269,10 @@ exports.default = (client) => {
     process.on("uncaughtException", (error) => {
         console.error("Unhandled exception:", error);
     });
-    client.on("guildMemberAdd", (member) => __awaiter(void 0, void 0, void 0, function* () {
-        (0, welcomeMessage_1.welcomeMessage)(client, member);
-        const embed = new discord_js_1.EmbedBuilder()
-            .setColor(colors_1.colors.default)
+    client.on("guildMemberAdd", async (member) => {
+        welcomeMessage(client, member);
+        const embed = new EmbedBuilder()
+            .setColor(colors.default)
             .setAuthor({
             name: "Присоединился новый участник",
         })
@@ -285,16 +292,16 @@ exports.default = (client) => {
                 },
             ]);
         }
-        guildMemberChannel.send({ embeds: [embed] }).then((m) => __awaiter(void 0, void 0, void 0, function* () {
-            const data = yield sequelize_1.lost_data.findOne({
+        guildMemberChannel.send({ embeds: [embed] }).then(async (m) => {
+            const data = await lost_data.findOne({
                 where: { discord_id: member.id },
             });
             if (!data)
                 return;
-            const transaction = yield sequelize_1.db.transaction();
+            const transaction = await db.transaction();
             const embed = m.embeds[0];
             try {
-                yield sequelize_2.auth_data.create({
+                await auth_data.create({
                     discord_id: data.discord_id,
                     bungie_id: data.bungie_id,
                     displayname: data.displayname,
@@ -306,7 +313,7 @@ exports.default = (client) => {
                 }, {
                     transaction: transaction,
                 });
-                yield sequelize_1.lost_data.destroy({
+                await lost_data.destroy({
                     where: { discord_id: data.discord_id },
                     transaction: transaction,
                 });
@@ -314,11 +321,11 @@ exports.default = (client) => {
                     name: "Данные аккаунта восстановлены",
                     value: `${data.displayname} (${data.platform}/${data.bungie_id})`,
                 });
-                yield transaction.commit();
+                await transaction.commit();
                 m.edit({ embeds: [embed] });
             }
             catch (error) {
-                yield transaction.rollback();
+                await transaction.rollback();
                 embed.fields.push({
                     name: "Ошибка",
                     value: "Во время восстановления данных произошла ошибка",
@@ -326,48 +333,52 @@ exports.default = (client) => {
                 console.error(error, data, transaction);
                 m.edit({ embeds: [embed] });
             }
-        }));
-    }));
+        });
+    });
     client.on("guildMemberRemove", (member) => {
         if (member.guild.bans.cache.has(member.id))
             return;
-        const embed = new discord_js_1.EmbedBuilder()
+        const embed = new EmbedBuilder()
             .setAuthor({ name: "Участник покинул сервер", iconURL: member.displayAvatarURL() })
             .setColor("Red")
             .setTimestamp()
-            .addFields({
-            name: "Дата присоединения к серверу",
-            value: String(`<t:` + Math.round(member.joinedTimestamp / 1000) + ">"),
-        })
+            .addFields([
+            { name: `Пользователь`, value: `${member.displayName}/${member}`, inline: true },
+            {
+                name: "Дата присоединения к серверу",
+                value: String(`<t:` + Math.round(member.joinedTimestamp / 1000) + ">"),
+                inline: true,
+            },
+        ])
             .setFooter({ text: `Id: ${member.id}` });
-        if (member.roles.cache.hasAny(roles_1.statusRoles.clanmember, roles_1.statusRoles.member, roles_1.statusRoles.kicked, roles_1.statusRoles.newbie)) {
+        if (member.roles.cache.hasAny(statusRoles.clanmember, statusRoles.member, statusRoles.kicked, statusRoles.newbie)) {
             embed.addFields({
                 name: "Статус пользователя",
-                value: `${member.roles.cache.has(roles_1.statusRoles.clanmember)
+                value: `${member.roles.cache.has(statusRoles.clanmember)
                     ? `Участник клана`
-                    : member.roles.cache.has(roles_1.statusRoles.member)
+                    : member.roles.cache.has(statusRoles.member)
                         ? `Участник сервера`
-                        : member.roles.cache.has(roles_1.statusRoles.kicked)
+                        : member.roles.cache.has(statusRoles.kicked)
                             ? `Исключенный участник`
-                            : member.roles.cache.has(roles_1.statusRoles.newbie)
+                            : member.roles.cache.has(statusRoles.newbie)
                                 ? `Неизвестный`
                                 : "Роли не найдены"}`,
             });
         }
-        guildMemberChannel.send({ embeds: [embed] }).then((m) => __awaiter(void 0, void 0, void 0, function* () {
-            const data = yield sequelize_2.auth_data.findOne({
+        guildMemberChannel.send({ embeds: [embed] }).then(async (m) => {
+            const data = await auth_data.findOne({
                 where: { discord_id: member.id },
             });
             if (!data)
                 return;
-            const transaction = yield sequelize_1.db.transaction();
+            const transaction = await db.transaction();
             const embed = m.embeds[0];
             try {
-                yield sequelize_2.auth_data.destroy({
+                await auth_data.destroy({
                     where: { discord_id: data.discord_id },
                     transaction: transaction,
                 });
-                yield sequelize_1.lost_data.create({
+                await lost_data.create({
                     discord_id: data.discord_id,
                     bungie_id: data.bungie_id,
                     displayname: data.displayname,
@@ -379,7 +390,7 @@ exports.default = (client) => {
                 }, {
                     transaction: transaction,
                 });
-                yield transaction.commit();
+                await transaction.commit();
                 embed.fields.push({
                     name: "BungieId",
                     value: `${data.platform}/${data.bungie_id}`,
@@ -396,7 +407,7 @@ exports.default = (client) => {
                 m.edit({ embeds: [embed] });
             }
             catch (error) {
-                yield transaction.rollback();
+                await transaction.rollback();
                 embed.fields.push({
                     name: "Ошибка",
                     value: "Произошла ошибка во время удаления данных в БД",
@@ -404,23 +415,22 @@ exports.default = (client) => {
                 console.error(error, data, transaction);
                 m.edit({ embeds: [embed] });
             }
-        }));
+        });
     });
-    client.on("guildMemberUpdate", (oldMember, newMember) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a;
+    client.on("guildMemberUpdate", async (oldMember, newMember) => {
         if (oldMember.joinedTimestamp === null || (oldMember.nickname === null && oldMember.roles.cache.size === 0))
             return;
-        const embed = new discord_js_1.EmbedBuilder()
+        const embed = new EmbedBuilder()
             .setAuthor({ name: "guildMemberUpdate" })
-            .setColor(colors_1.colors.default)
+            .setColor(colors.default)
             .setFooter({ text: `Id: ${oldMember.id}` })
             .setTimestamp();
         if (oldMember.roles !== newMember.roles) {
             const removedRoles = [], gotRoles = [];
-            oldMember === null || oldMember === void 0 ? void 0 : oldMember.roles.cache.forEach((role) => {
+            oldMember?.roles.cache.forEach((role) => {
                 !newMember.roles.cache.has(role.id) ? removedRoles.push(`<@&${role.id}>`) : [];
             });
-            newMember === null || newMember === void 0 ? void 0 : newMember.roles.cache.forEach((role) => {
+            newMember?.roles.cache.forEach((role) => {
                 !oldMember.roles.cache.has(role.id) ? gotRoles.push(`<@&${role.id}>`) : [];
             });
             if (removedRoles.length > 0) {
@@ -429,10 +439,18 @@ exports.default = (client) => {
                     name: `У ${newMember.displayName} ${removedRoles.length === 1 ? "была удалена роль" : "были удалены роли"}`,
                     iconURL: newMember.displayAvatarURL(),
                 })
-                    .addFields({
-                    name: removedRoles.length === 1 ? "Роль" : "Роли",
-                    value: removedRoles.toString().length > 1023 ? "Слишком много ролей :(" : removedRoles.toString(),
-                });
+                    .addFields([
+                    {
+                        name: "Пользователь",
+                        value: `<@${newMember.id}>`,
+                        inline: true,
+                    },
+                    {
+                        name: removedRoles.length === 1 ? "Роль" : "Роли",
+                        value: removedRoles.toString().length > 1023 ? "Слишком много ролей" : removedRoles.toString(),
+                        inline: true,
+                    },
+                ]);
             }
             else if (gotRoles.length > 0) {
                 embed
@@ -440,10 +458,18 @@ exports.default = (client) => {
                     name: `${newMember.displayName} ${gotRoles.length === 1 ? "была выдана роль" : "были выданы роли"}`,
                     iconURL: newMember.displayAvatarURL(),
                 })
-                    .addFields({
-                    name: gotRoles.length === 1 ? "Роль" : "Роли",
-                    value: gotRoles.toString() || "error",
-                });
+                    .addFields([
+                    {
+                        name: "Пользователь",
+                        value: `<@${newMember.id}>`,
+                        inline: true,
+                    },
+                    {
+                        name: gotRoles.length === 1 ? "Роль" : "Роли",
+                        value: gotRoles.toString() || "error",
+                        inline: true,
+                    },
+                ]);
             }
         }
         if (oldMember.displayName !== newMember.displayName) {
@@ -452,7 +478,11 @@ exports.default = (client) => {
                 name: `${newMember.displayName} обновил никнейм`,
                 iconURL: newMember.displayAvatarURL(),
             })
-                .addFields({ name: "Пользователь", value: `<@${newMember.id}>`, inline: true }, { name: "До изменения", value: `\`` + oldMember.displayName + `\``, inline: true }, { name: "После", value: `\`` + newMember.displayName + `\``, inline: true });
+                .addFields([
+                { name: "Пользователь", value: `<@${newMember.id}>`, inline: true },
+                { name: "До изменения", value: `\`` + oldMember.displayName + `\``, inline: true },
+                { name: "После", value: `\`` + newMember.displayName + `\``, inline: true },
+            ]);
         }
         if (oldMember.communicationDisabledUntilTimestamp !== newMember.communicationDisabledUntilTimestamp) {
             if (oldMember.communicationDisabledUntilTimestamp === null) {
@@ -461,11 +491,14 @@ exports.default = (client) => {
                     name: `${newMember.displayName} был выдан тайм-аут`,
                     iconURL: newMember.displayAvatarURL(),
                 })
-                    .setColor(colors_1.colors.default)
-                    .addFields({ name: "Пользователь", value: `<@${newMember.id}>`, inline: true }, {
-                    name: "Тайм-аут до",
-                    value: `<t:${Math.round(newMember.communicationDisabledUntilTimestamp / 1000)}>`,
-                });
+                    .setColor(colors.default)
+                    .addFields([
+                    { name: "Пользователь", value: `<@${newMember.id}>`, inline: true },
+                    {
+                        name: "Тайм-аут до",
+                        value: `<t:${Math.round(newMember.communicationDisabledUntilTimestamp / 1000)}>`,
+                    },
+                ]);
             }
             else {
                 embed
@@ -473,17 +506,16 @@ exports.default = (client) => {
                     name: `${newMember.displayName} был снят тайм-аут`,
                     iconURL: newMember.displayAvatarURL(),
                 })
-                    .setColor(colors_1.colors.default);
+                    .setColor(colors.default);
             }
         }
-        if (((_a = embed.data.author) === null || _a === void 0 ? void 0 : _a.name) !== "guildMemberUpdate") {
+        if (embed.data.author?.name !== "guildMemberUpdate") {
             guildMemberChannel.send({ embeds: [embed] });
         }
-    }));
-    client.on("guildBanAdd", (member) => __awaiter(void 0, void 0, void 0, function* () {
-        var _b;
-        const joinedDate = Math.round(((_b = member.guild.members.cache.get(member.user.id)) === null || _b === void 0 ? void 0 : _b.joinedTimestamp) / 1000);
-        const embed = new discord_js_1.EmbedBuilder()
+    });
+    client.on("guildBanAdd", async (member) => {
+        const joinedDate = Math.round(member.guild.members.cache.get(member.user.id)?.joinedTimestamp / 1000);
+        const embed = new EmbedBuilder()
             .setAuthor({
             name: `${member.user.username} был забанен`,
             iconURL: member.user.displayAvatarURL(),
@@ -497,7 +529,7 @@ exports.default = (client) => {
                 value: String(isNaN(joinedDate) ? "не найдена" : `<t:${joinedDate}>`),
             },
         ]);
-        yield member.fetch();
+        await member.fetch();
         if (member.reason !== null) {
             embed.addFields([
                 {
@@ -507,9 +539,9 @@ exports.default = (client) => {
             ]);
         }
         guildMemberChannel.send({ embeds: [embed] });
-    }));
+    });
     client.on("guildBanRemove", (member) => {
-        const embed = new discord_js_1.EmbedBuilder()
+        const embed = new EmbedBuilder()
             .setColor("Green")
             .setAuthor({
             name: `${member.user.username} разбанен`,
@@ -527,10 +559,9 @@ exports.default = (client) => {
         }
         guildMemberChannel.send({ embeds: [embed] });
     });
-    client.on("guildUpdate", (oldGuild, newGuild) => __awaiter(void 0, void 0, void 0, function* () {
-        var _c;
-        const embed = new discord_js_1.EmbedBuilder()
-            .setColor(colors_1.colors.default)
+    client.on("guildUpdate", async (oldGuild, newGuild) => {
+        const embed = new EmbedBuilder()
+            .setColor(colors.default)
             .setAuthor({
             name: "Сервер обновлен",
         })
@@ -563,16 +594,15 @@ exports.default = (client) => {
             embed.addFields([
                 {
                     name: "Владелец сервера обновлен",
-                    value: String(yield newGuild.fetchOwner().then((own) => `\`` + own.displayName + `\``)),
+                    value: String(await newGuild.fetchOwner().then((own) => `\`` + own.displayName + `\``)),
                 },
             ]);
         }
-        if (((_c = embed.data.fields) === null || _c === void 0 ? void 0 : _c.length) > 0)
+        if (embed.data.fields?.length > 0)
             guildChannel.send({ embeds: [embed] });
-    }));
+    });
     client.on("channelCreate", (createdChannel) => {
-        var _a;
-        const embed = new discord_js_1.EmbedBuilder()
+        const embed = new EmbedBuilder()
             .setColor("Green")
             .setAuthor({ name: `Канал ${createdChannel.name} создан` })
             .setTimestamp()
@@ -580,32 +610,21 @@ exports.default = (client) => {
             .addFields([
             { name: `Канал`, value: `<#${createdChannel.id}>`, inline: true },
             {
-                name: `Тип`,
-                value: createdChannel.type.toString(),
-                inline: true,
-            },
-            {
                 name: "Позиция",
                 value: `${createdChannel.position}/raw ${createdChannel.rawPosition}`,
                 inline: true,
             },
         ]);
-        if (((_a = embed.data.fields) === null || _a === void 0 ? void 0 : _a.length) > 0)
+        if (embed.data.fields?.length > 0)
             guildChannel.send({ embeds: [embed] });
     });
     client.on("channelDelete", (deletedChannel) => {
-        var _a;
-        const embed = new discord_js_1.EmbedBuilder().setColor("Red").setAuthor({ name: `Канал удален` }).setTimestamp();
+        const embed = new EmbedBuilder().setColor("Red").setAuthor({ name: `Канал удален` }).setTimestamp();
         if (!deletedChannel.isDMBased()) {
             embed.setFooter({ text: `ChnId: ${deletedChannel.id}` }).addFields([
                 {
                     name: "Название",
                     value: deletedChannel.name,
-                    inline: true,
-                },
-                {
-                    name: "Тип",
-                    value: deletedChannel.type.toString(),
                     inline: true,
                 },
                 {
@@ -617,17 +636,17 @@ exports.default = (client) => {
         }
         else
             console.log(`Deleted channel found as DM`, deletedChannel);
-        if (((_a = embed.data.fields) === null || _a === void 0 ? void 0 : _a.length) > 0)
+        if (embed.data.fields?.length > 0)
             guildChannel.send({ embeds: [embed] });
     });
     client.on("inviteCreate", (invite) => {
-        var _a, _b, _c;
-        if (invite.inviterId === ((_a = client.user) === null || _a === void 0 ? void 0 : _a.id))
+        if (invite.inviterId === client.user?.id)
             return;
-        const embed = new discord_js_1.EmbedBuilder()
+        const member = client.guilds.cache.get(invite.guild.id).members.cache.get(invite.inviterId);
+        const embed = new EmbedBuilder()
             .setAuthor({
-            name: `${(_b = invite.inviter) === null || _b === void 0 ? void 0 : _b.username} создал приглашение`,
-            iconURL: (_c = invite.inviter) === null || _c === void 0 ? void 0 : _c.displayAvatarURL(),
+            name: `${member?.displayName || invite.inviter?.username} создал приглашение`,
+            iconURL: member?.displayAvatarURL() || invite.inviter?.displayAvatarURL(),
         })
             .setTimestamp()
             .setFooter({ text: `Id: ${invite.inviterId}` })
@@ -649,11 +668,11 @@ exports.default = (client) => {
                 inline: true,
             },
         ])
-            .setColor(`#cd1ecf`);
+            .setColor(colors.default);
         guildChannel.send({ embeds: [embed] });
     });
     client.on("inviteDelete", (invite) => {
-        const embed = new discord_js_1.EmbedBuilder()
+        const embed = new EmbedBuilder()
             .setAuthor({ name: `Приглашение ${invite.code} удалено` })
             .setColor("Red")
             .setTimestamp()
@@ -667,13 +686,12 @@ exports.default = (client) => {
         guildChannel.send({ embeds: [embed] });
     });
     client.on("messageDelete", (message) => {
-        var _a, _b, _c, _d, _e;
         if (message.system ||
-            ((_a = message.author) === null || _a === void 0 ? void 0 : _a.id) === ((_b = client.user) === null || _b === void 0 ? void 0 : _b.id) ||
-            (((_c = message.content) === null || _c === void 0 ? void 0 : _c.length) === 0 && message.attachments.size === 0 && message.stickers.size === 0) ||
+            message.author?.id === client.user?.id ||
+            (message.content?.length === 0 && message.attachments.size === 0 && message.stickers.size === 0) ||
             message.author === null)
             return;
-        const embed = new discord_js_1.EmbedBuilder()
+        const embed = new EmbedBuilder()
             .setColor("DarkRed")
             .setAuthor({ name: "Сообщение удалено" })
             .setFooter({ text: `MsgId: ${message.id}` })
@@ -695,11 +713,11 @@ exports.default = (client) => {
         else {
             embed.setAuthor({ name: "Неизвестное сообщение удалено" }).addFields([{ name: "Удалено в", value: `<#${message.channelId}>` }]);
         }
-        if (((_d = message.content) === null || _d === void 0 ? void 0 : _d.length) > 0) {
+        if (message.content?.length > 0) {
             embed.addFields([
                 {
                     name: "Текст",
-                    value: `\`${((_e = message.content) === null || _e === void 0 ? void 0 : _e.length) > 1000 ? "слишком длинное сообщение" : message.content}\``,
+                    value: `\`${message.content?.length > 1000 ? "слишком длинное сообщение" : message.content}\``,
                 },
             ]);
         }
@@ -733,14 +751,15 @@ exports.default = (client) => {
         messageChannel.send({ embeds: [embed] });
     });
     client.on("messageDeleteBulk", (message) => {
-        var _a, _b, _c;
-        const embed = new discord_js_1.EmbedBuilder().setColor("DarkRed").setAuthor({ name: "Группа сообщений удалена" }).setTimestamp();
+        const embed = new EmbedBuilder().setColor("DarkRed").setAuthor({ name: "Группа сообщений удалена" }).setTimestamp();
         for (let i = 0; i < message.size && i < 24; i++) {
             const m = message.at(i);
             embed.addFields([
                 {
-                    name: `Сообщение ${(_a = m === null || m === void 0 ? void 0 : m.member) === null || _a === void 0 ? void 0 : _a.displayName} (${m === null || m === void 0 ? void 0 : m.id})`,
-                    value: `${((_b = m === null || m === void 0 ? void 0 : m.content) === null || _b === void 0 ? void 0 : _b.length) > 0 ? `\`${((_c = m === null || m === void 0 ? void 0 : m.content) === null || _c === void 0 ? void 0 : _c.length) > 1000 ? "*в сообщении слишком много текста*" : m === null || m === void 0 ? void 0 : m.content}\`` : "в сообщении нет текста"}`,
+                    name: `Сообщение ${m?.member?.displayName} (${m?.id})`,
+                    value: `${m?.content?.length > 0
+                        ? `\`${m?.content?.length > 1000 ? "*в сообщении слишком много текста*" : m?.content}\``
+                        : "в сообщении нет текста"}`,
                 },
             ]);
         }
@@ -748,25 +767,27 @@ exports.default = (client) => {
         messageChannel.send({ embeds: [embed] });
     });
     client.on("messageUpdate", (oldMessage, newMessage) => {
-        var _a, _b;
-        if (((_a = oldMessage.content) === null || _a === void 0 ? void 0 : _a.length) <= 0 || oldMessage.content === newMessage.content)
+        if (oldMessage.content?.length <= 0 || oldMessage.content === newMessage.content)
             return;
-        const embed = new discord_js_1.EmbedBuilder()
-            .setColor(colors_1.colors.default)
+        const embed = new EmbedBuilder()
+            .setColor(colors.default)
             .setTimestamp()
             .setAuthor({ name: "Сообщение изменено" })
             .setDescription(`<@${newMessage.author.id}> изменил сообщение в <#${newMessage.channelId}>. [Перейти к сообщению](https://discord.com/channels/${newMessage.guildId}/${newMessage.channelId}/${newMessage.id})`);
         oldMessage.content && oldMessage.content.length <= 1000 && newMessage.content && newMessage.content.length <= 1000
-            ? embed.addFields({
-                name: "До изменения",
-                value: oldMessage.content === null || ((_b = oldMessage.content) === null || _b === void 0 ? void 0 : _b.length) <= 0 ? "сообщение не было в кеше" : "`" + oldMessage.content + "`",
-            }, { name: "После", value: "`" + newMessage.content + "`" })
+            ? embed.addFields([
+                {
+                    name: "До изменения",
+                    value: oldMessage.content === null || oldMessage.content?.length <= 0 ? "сообщение не было в кеше" : "`" + oldMessage.content + "`",
+                },
+                { name: "После", value: "`" + newMessage.content + "`" },
+            ])
             : embed.addFields({ name: "⁣", value: "Текст сообщения слишком длинный" });
         messageChannel.send({ embeds: [embed] });
     });
     client.on("roleCreate", (role) => {
-        const embed = new discord_js_1.EmbedBuilder()
-            .setColor(colors_1.colors.default)
+        const embed = new EmbedBuilder()
+            .setColor(colors.default)
             .setAuthor({ name: "Роль была создана" })
             .setFooter({ text: `RoleId: ${role.id}` })
             .setTimestamp()
@@ -778,8 +799,8 @@ exports.default = (client) => {
         guildChannel.send({ embeds: [embed] });
     });
     client.on("roleDelete", (role) => {
-        const embed = new discord_js_1.EmbedBuilder()
-            .setColor(colors_1.colors.kicked)
+        const embed = new EmbedBuilder()
+            .setColor(colors.kicked)
             .setTimestamp()
             .setAuthor({ name: "Роль удалена" })
             .setDescription(`Удаленная роль \`${role.name}\` (${role.id})`)
@@ -792,31 +813,30 @@ exports.default = (client) => {
         guildChannel.send({ embeds: [embed] });
     });
     client.on("voiceStateUpdate", (oldState, newState) => {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
-        const embed = new discord_js_1.EmbedBuilder().setColor("Green").setTimestamp();
+        const embed = new EmbedBuilder().setColor("Green").setTimestamp();
         if (!oldState.channelId) {
-            voiceUsers.set((_a = newState.member) === null || _a === void 0 ? void 0 : _a.id, {
+            voiceUsers.set(newState.member?.id, {
                 joinTimestamp: new Date().getTime(),
             });
             embed
                 .setAuthor({
-                name: `${((_b = oldState.member) === null || _b === void 0 ? void 0 : _b.displayName) || ((_c = newState.member) === null || _c === void 0 ? void 0 : _c.displayName) || "пользователь не найден"} присоединился к голосовому каналу`,
-                iconURL: ((_d = oldState.member) === null || _d === void 0 ? void 0 : _d.displayAvatarURL()) || ((_e = newState.member) === null || _e === void 0 ? void 0 : _e.displayAvatarURL()),
+                name: `${oldState.member?.displayName || newState.member?.displayName || "пользователь не найден"} присоединился к голосовому каналу`,
+                iconURL: oldState.member?.displayAvatarURL() || newState.member?.displayAvatarURL(),
             })
                 .setFooter({
-                text: `UId: ${(_f = newState.member) === null || _f === void 0 ? void 0 : _f.id} | ChnId: ${newState.channelId}`,
+                text: `UId: ${newState.member?.id} | ChnId: ${newState.channelId}`,
             })
                 .addFields([{ name: "Канал", value: `<#${newState.channelId}>` }]);
         }
         if (!newState.channelId) {
-            const getTimestamp = (_h = voiceUsers.get((_g = oldState.member) === null || _g === void 0 ? void 0 : _g.id)) === null || _h === void 0 ? void 0 : _h.joinTimestamp;
+            const getTimestamp = voiceUsers.get(oldState.member?.id)?.joinTimestamp;
             embed
                 .setAuthor({
-                name: `${((_j = oldState.member) === null || _j === void 0 ? void 0 : _j.displayName) || ((_k = newState.member) === null || _k === void 0 ? void 0 : _k.displayName) || "пользователь не найден"} вышел из голосового канала`,
-                iconURL: ((_l = oldState.member) === null || _l === void 0 ? void 0 : _l.displayAvatarURL()) || ((_m = newState.member) === null || _m === void 0 ? void 0 : _m.displayAvatarURL()),
+                name: `${oldState.member?.displayName || newState.member?.displayName || "пользователь не найден"} вышел из голосового канала`,
+                iconURL: oldState.member?.displayAvatarURL() || newState.member?.displayAvatarURL(),
             })
                 .setFooter({
-                text: `UId: ${(_o = oldState.member) === null || _o === void 0 ? void 0 : _o.id} | ChnId: ${oldState.channelId}`,
+                text: `UId: ${oldState.member?.id} | ChnId: ${oldState.channelId}`,
             })
                 .setColor("DarkRed")
                 .addFields([
@@ -838,8 +858,8 @@ exports.default = (client) => {
                         inline: true,
                     },
                 ]);
-                ((_p = newState.guild.afkChannel) === null || _p === void 0 ? void 0 : _p.id) !== newState.channelId
-                    ? sequelize_1.discord_activities.increment("voice", { by: difference, where: { authDatumDiscordId: oldState.member.id } })
+                newState.guild.afkChannel?.id !== newState.channelId
+                    ? discord_activities.increment("voice", { by: difference, where: { authDatumDiscordId: oldState.member.id } })
                     : "";
             }
             voiceUsers.delete(oldState.member.id);
@@ -847,11 +867,11 @@ exports.default = (client) => {
         if (oldState.channelId !== null && newState.channelId !== null && oldState.channelId !== newState.channelId) {
             embed
                 .setAuthor({
-                name: `${((_q = oldState.member) === null || _q === void 0 ? void 0 : _q.displayName) || ((_r = newState.member) === null || _r === void 0 ? void 0 : _r.displayName) || "пользователь не найден"} сменил голосовой канал`,
-                iconURL: ((_s = oldState.member) === null || _s === void 0 ? void 0 : _s.displayAvatarURL()) || ((_t = newState.member) === null || _t === void 0 ? void 0 : _t.displayAvatarURL()),
+                name: `${oldState.member?.displayName || newState.member?.displayName || "пользователь не найден"} сменил голосовой канал`,
+                iconURL: oldState.member?.displayAvatarURL() || newState.member?.displayAvatarURL(),
             })
                 .setFooter({
-                text: `UId: ${(_u = newState.member) === null || _u === void 0 ? void 0 : _u.id} | ChnId: ${newState.channelId}`,
+                text: `UId: ${newState.member?.id} | ChnId: ${newState.channelId}`,
             })
                 .addFields([
                 { name: "До", value: `<#${oldState.channelId}>`, inline: true },
@@ -862,10 +882,8 @@ exports.default = (client) => {
                 },
             ]);
         }
-        if (((_v = embed.data.fields) === null || _v === void 0 ? void 0 : _v.length) > 0)
+        if (embed.data.fields?.length > 0)
             voiceChannel.send({ embeds: [embed] });
     });
-    client.rest.on("rateLimited", (rateLimit) => {
-        console.error(`Bot was rateLimited for ${rateLimit.timeToReset}, route: ${rateLimit.route}, parameter: ${rateLimit.majorParameter}`);
-    });
+    client.rest.on("rateLimited", (rateLimit) => console.error("Bot was rateLimited for", rateLimit.timeToReset, "ms, route:", rateLimit.route, ", parameter:", rateLimit.majorParameter));
 };

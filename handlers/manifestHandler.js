@@ -1,42 +1,25 @@
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DestinyActivityDefinition = exports.DestinyActivityModifierDefinition = exports.DestinyMetricDefinition = exports.DestinyRecordDefinition = exports.manifestData = void 0;
-const request_promise_native_1 = require("request-promise-native");
-function getManifest() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const manifest = (0, request_promise_native_1.get)(`https://www.bungie.net/Platform/Destiny2/Manifest/`, {
-                json: true,
-            });
-            return (yield manifest)["Response"];
-        }
-        catch (e) {
-            getManifest();
-            throw { name: "Manifest error", message: e.statusCode };
-        }
-    });
+import { fetchRequest } from "./webHandler.js";
+async function getManifest() {
+    try {
+        const manifest = await fetchRequest("Platform/Destiny2/Manifest/");
+        console.log("Manifest cached. Version:", manifest.version);
+        return manifest;
+    }
+    catch (e) {
+        throw { name: "Manifest error", e };
+    }
 }
-function getSpecificManifest(page) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const link = yield exports.manifestData;
-        return (0, request_promise_native_1.get)(`https://www.bungie.net${link.jsonWorldComponentContentPaths.ru[page]}`, { json: true })
-            .then((manifest) => {
-            return manifest;
-        })
-            .catch((e) => console.error(`getSpecificManifest error`, page, e.statusCode));
-    });
+async function getSpecificManifest(page) {
+    return fetchRequest(`${manifestData.jsonWorldComponentContentPaths.ru[page]}`)
+        .then((manifest) => {
+        return manifest;
+    })
+        .catch((e) => console.error(`getSpecificManifest error`, page, e.statusCode));
 }
-exports.manifestData = getManifest();
-exports.DestinyRecordDefinition = getSpecificManifest("DestinyRecordDefinition");
-exports.DestinyMetricDefinition = getSpecificManifest("DestinyMetricDefinition");
-exports.DestinyActivityModifierDefinition = getSpecificManifest("DestinyActivityModifierDefinition");
-exports.DestinyActivityDefinition = getSpecificManifest("DestinyActivityDefinition");
+export const manifestData = await getManifest();
+export const CachedDestinyRecordDefinition = await getSpecificManifest("DestinyRecordDefinition");
+export const CachedDestinyMetricDefinition = await getSpecificManifest("DestinyMetricDefinition");
+export const CachedDestinyActivityModifierDefinition = await getSpecificManifest("DestinyActivityModifierDefinition");
+export const CachedDestinyActivityDefinition = await getSpecificManifest("DestinyActivityDefinition");
+export const CachedDestinyProgressionDefinition = await getSpecificManifest("DestinyProgressionDefinition");
+export const CachedDestinyMilestoneDefinition = await getSpecificManifest("DestinyMilestoneDefinition");
