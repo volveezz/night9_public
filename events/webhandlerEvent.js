@@ -41,13 +41,14 @@ export default {
             }
             try {
                 const fetchQuery = await fetch(`https://www.bungie.net/platform/GroupV2/4123712/Members/IndividualInvite/${invitee_platform}/${invitee_bungie_id}/`, {
+                    method: "POST",
                     headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${inviter_access_token}` },
                     body: JSON.stringify({ message: "IndividualInvite" }),
                 });
                 var request = fetchQuery;
             }
             catch (err) {
-                if (err.error.ErrorCode === 676) {
+                if (err.error?.ErrorCode === 676) {
                     const embed = new EmbedBuilder().setColor("DarkGreen").setTitle("Вы уже участник нашего клана :)");
                     interaction.editReply({ embeds: [embed] });
                     interaction.channel?.messages.fetch(interaction.message.id).then((msg) => {
@@ -61,7 +62,7 @@ export default {
                     return;
                 }
             }
-            console.log("webHanderEvent clan invite debug", request.resolution);
+            console.log("webHanderEvent clan invite debug", request);
             if (true) {
                 const embed = new EmbedBuilder()
                     .setColor("Green")
