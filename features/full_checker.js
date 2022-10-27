@@ -666,27 +666,26 @@ export default (client) => {
                 await client.guilds.cache.get(guildId)?.members.fetch();
                 return console.error("[Error code: 1023] roleManager, member not found", db_row);
             }
-            if (!member.roles.cache.has(statusRoles.clanmember) ||
-                !db_row.discord_activity ||
-                (db_row.discord_activity.voice === 0 &&
-                    db_row.discord_activity.messages === 0 &&
-                    db_row.discord_activity.raids === 0 &&
-                    db_row.discord_activity.dungeons === 0))
-                return console.debug(`Check skipped`, db_row.displayname);
-            console.debug("Checking", db_row.displayname);
-            !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.6 ? longOffline.delete(member.id) : "";
-            db_row.roles_cat[0] && kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
-            raids === 5 && member.roles.cache.hasAny(statusRoles.clanmember, statusRoles.member) && !longOffline.has(member.id)
-                ? activityStatsChecker(db_row, member, 4)
-                : [];
-            db_row.roles_cat[1] &&
-                trialsCD === 7 &&
-                !longOffline.has(member.id) &&
-                !member.roles.cache.has(rTrials.wintrader) &&
-                member.roles.cache.has(rTrials.category)
-                ? activityStatsChecker(db_row, member, 84)
-                : [];
-            await timer(700);
+            if (member.roles.cache.has(statusRoles.clanmember) ||
+                (db_row.discord_activity &&
+                    (db_row.discord_activity.voice > 0 ||
+                        db_row.discord_activity.messages > 0 ||
+                        db_row.discord_activity.raids > 0 ||
+                        db_row.discord_activity.dungeons > 0))) {
+                !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.6 ? longOffline.delete(member.id) : "";
+                db_row.roles_cat[0] && kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
+                raids === 5 && member.roles.cache.hasAny(statusRoles.clanmember, statusRoles.member) && !longOffline.has(member.id)
+                    ? activityStatsChecker(db_row, member, 4)
+                    : [];
+                db_row.roles_cat[1] &&
+                    trialsCD === 7 &&
+                    !longOffline.has(member.id) &&
+                    !member.roles.cache.has(rTrials.wintrader) &&
+                    member.roles.cache.has(rTrials.category)
+                    ? activityStatsChecker(db_row, member, 84)
+                    : [];
+                await timer(700);
+            }
         }
         clan(db_plain);
     }, 1000 * 60 * 2);
