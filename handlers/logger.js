@@ -68,6 +68,9 @@ export async function activityReporter(pgcrId) {
                 entry.extended.weapons?.some((a) => a.referenceId === 4103414242) && !miscArray.some((a) => a.endsWith("**Божественность**"))
                     ? miscArray.push("<a:catbowtie:1034701666580189256>**Божественность**")
                     : false;
+                entry.extended.weapons?.some((a) => a.referenceId === 3580904581) && !miscArray.some((a) => a.endsWith("**Буксировщик**"))
+                    ? miscArray.push("<:moyaichad:1018345835962044559>**Буксировщик**")
+                    : false;
                 completedUsers.set(entry.player.destinyUserInfo.membershipId, {
                     bungieName: entry.player.destinyUserInfo.bungieGlobalDisplayName,
                     classHash: entry.values.completed.basic.value === 1
