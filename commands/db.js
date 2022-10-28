@@ -123,7 +123,7 @@ export default {
     ],
     callback: async (client, interaction, member, _guild, _channel) => {
         const start = new Date().getTime();
-        await interaction.deferReply({ ephemeral: true });
+        const deferredReply = interaction.deferReply({ ephemeral: true });
         const { options } = interaction;
         const Subcommand = options.getSubcommand();
         const id = options.getString("id") ? (options.getString("id") === "me" ? member.id : options.getString("id", true)) : [];
@@ -199,6 +199,7 @@ export default {
                         },
                     ]);
                 }
+                await deferredReply;
                 interaction.editReply({ embeds: [embed] });
                 break;
             }
@@ -216,6 +217,7 @@ export default {
                 const embed = new EmbedBuilder().setColor(colors.default).setAuthor({
                     name: `${request === 1 ? `Успех. Удалено ${request} строк` : `Удалено ${request} строк`}`,
                 });
+                await deferredReply;
                 interaction.editReply({ embeds: [embed] });
                 break;
             }
@@ -225,20 +227,22 @@ export default {
                     where: { discord_id: id },
                     attributes: ["displayname"],
                 })
-                    .then((data) => {
+                    .then(async (data) => {
                     if (!data) {
                         const embed = new EmbedBuilder().setColor("Red").setTitle(`${id} not found in DB`);
+                        await deferredReply;
                         return interaction.editReply({ embeds: [embed] });
                     }
                     if (data.displayname.startsWith("⁣")) {
                         auth_data
                             .update({
-                            displayname: data.displayname.slice(1),
+                            displayname: data.displayname.replace("⁣", ""),
                         }, {
                             where: { displayname: data.displayname },
                         })
-                            .then((_resp) => {
+                            .then(async (_resp) => {
                             const embed = new EmbedBuilder().setColor("Green").setTitle(`Autonickname disabled for ${data.displayname}`);
+                            await deferredReply;
                             interaction.editReply({ embeds: [embed] });
                         });
                     }
@@ -247,8 +251,9 @@ export default {
                             .update({
                             displayname: `⁣${data.displayname}`,
                         }, { where: { displayname: data.displayname } })
-                            .then((_resp) => {
+                            .then(async (_resp) => {
                             const embed = new EmbedBuilder().setColor("Green").setTitle(`Autonickname enabled for ${data.displayname}`);
+                            await deferredReply;
                             return interaction.editReply({ embeds: [embed] });
                         });
                     }
@@ -258,7 +263,7 @@ export default {
             case "add": {
                 const hash = options.getInteger("hash", true);
                 const roleId = options.getString("roleid");
-                const record_manifest = await CachedDestinyRecordDefinition;
+                const record_manifest = CachedDestinyRecordDefinition;
                 const unique = options.getInteger("unique") || -99;
                 if ((await record_manifest[hash]) === undefined) {
                     throw { name: "Триумф под таким хешем не найден", message: `Hash: ${hash}`, falseAlarm: true };
@@ -310,7 +315,7 @@ export default {
                 if (record_manifest[hash].displayProperties.description) {
                     embed.addFields({
                         name: "Описание роли",
-                        value: await record_manifest[hash].displayProperties.description,
+                        value: record_manifest[hash].displayProperties.description,
                     });
                 }
                 if (unique && unique >= 1) {
@@ -325,6 +330,7 @@ export default {
                         .setDisabled(db_query?.role_id ? true : false),
                     new ButtonBuilder().setCustomId("db_roles_add_cancel").setLabel("Отменить").setStyle(ButtonStyle.Danger),
                 ];
+                await deferredReply;
                 await interaction.editReply({
                     embeds: [embed],
                     components: [
@@ -345,6 +351,7 @@ export default {
                     if (!collected.deferred)
                         await collected.deferUpdate().catch((e) => console.log(e));
                     if (collected.customId === "db_roles_add_cancel") {
+                        await deferredReply;
                         interaction.editReply({ components: [], embeds: [], content: "Отменено" });
                         collector.stop("Canceled");
                     }
@@ -399,6 +406,7 @@ export default {
                             }
                             catch (e) {
                                 const errorEmbed = new EmbedBuilder().setColor("Red").setTitle(`Ошибка ${e.parent.name}`).setDescription(e.parent.detail);
+                                await deferredReply;
                                 interaction.editReply({ embeds: [errorEmbed], components: [] });
                                 collector.stop("error");
                                 role.delete("Got error during creation");
@@ -406,7 +414,9 @@ export default {
                             }
                             embed = new EmbedBuilder()
                                 .setColor("Green")
-                                .addFields([{ name: "Роль была создана", value: `<@&${role.id}>${guildedRoles.length > 0 ? `, <@&${guildedRoles[0]}>` : ""}` }]);
+                                .addFields([
+                                { name: "Роль была создана", value: `<@&${role.id}>${guildedRoles.length > 0 ? `, <@&${guildedRoles[0]}>` : ""}` },
+                            ]);
                         }
                         else {
                             var newHash = db_query.hash;
@@ -416,9 +426,12 @@ export default {
                             }, {
                                 where: { role_id: db_query.role_id },
                             });
-                            embed = new EmbedBuilder().setColor("Green").addFields([{ name: "Требования к роли были дополнены", value: `<@&${role.id}>` }]);
+                            embed = new EmbedBuilder()
+                                .setColor("Green")
+                                .addFields([{ name: "Требования к роли были дополнены", value: `<@&${role.id}>` }]);
                         }
                         collector.stop("Completed");
+                        await deferredReply;
                         interaction.editReply({
                             embeds: [embed],
                             components: [],
@@ -433,16 +446,18 @@ export default {
                         })
                             .on("collect", (msg) => {
                             msg.delete();
-                            interaction.fetchReply().then((m) => {
+                            interaction.fetchReply().then(async (m) => {
                                 const embed = m.embeds[0];
                                 embed.fields[0].value = `${msg.cleanContent}`;
                                 title_name = guildableTitle ? "⚜️" + msg.cleanContent : msg.cleanContent;
+                                await deferredReply;
                                 interaction.editReply({ embeds: [embed] });
                             });
                         });
                     }
                 })
-                    .on("end", () => {
+                    .on("end", async () => {
+                    await deferredReply;
                     interaction.editReply({
                         components: [],
                     });
@@ -461,6 +476,7 @@ export default {
                     });
                     if (embed.data.fields?.length === 25 || i === data.length - 1) {
                         if (i === 24) {
+                            await deferredReply;
                             await interaction.editReply({ embeds: [embed] });
                             embed.setTitle(null).spliceFields(0, 25);
                         }
@@ -472,6 +488,7 @@ export default {
                 }
                 if (data.length === 0) {
                     embed.setDescription("There are no auto-roles");
+                    await deferredReply;
                     interaction.editReply({ embeds: [embed] });
                     break;
                 }
@@ -480,7 +497,10 @@ export default {
             case "remove": {
                 const removeroleid = options.getString("removeroleid", true);
                 const t = await db.transaction();
-                var selectQuery = await role_data.findOne({ where: { [Op.or]: [{ role_id: removeroleid }, { hash: `{${removeroleid}}` }] }, transaction: t });
+                var selectQuery = await role_data.findOne({
+                    where: { [Op.or]: [{ role_id: removeroleid }, { hash: `{${removeroleid}}` }] },
+                    transaction: t,
+                });
                 if (interaction.guild?.roles.cache.has(removeroleid)) {
                     var query = await role_data.destroy({ where: { role_id: removeroleid }, transaction: t });
                 }
@@ -494,8 +514,11 @@ export default {
                 if (query) {
                     const embed = new EmbedBuilder().setColor("Green").setTitle(`Удалена ${query} авто-роль`);
                     const fetchedRole = selectQuery ? interaction.guild.roles.cache.get(String(selectQuery.role_id)) : undefined;
-                    selectQuery ? embed.addFields({ name: `Hash: ${selectQuery.hash}`, value: fetchedRole ? `Role: ${fetchedRole.name}` : "Role not found" }) : "";
+                    selectQuery
+                        ? embed.addFields({ name: `Hash: ${selectQuery.hash}`, value: fetchedRole ? `Role: ${fetchedRole.name}` : "Role not found" })
+                        : "";
                     fetchedRole ? fetchedRole.delete("Deleting auto-role") : [];
+                    await deferredReply;
                     interaction.editReply({ embeds: [embed] });
                 }
                 else {

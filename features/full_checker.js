@@ -17,7 +17,7 @@ export default (client) => {
         fetchRequest(`Platform/Destiny2/${data.platform}/Profile/${data.bungie_id}/?components=100,900,1100`, data)
             .then(async (Response) => {
             if (!Response.profile || !Response.profile.data)
-                return console.error("[Error code: 1039]", data.displayname, Response.profile);
+                return console.error("[Error code: 1039]", data.displayname, Response);
             if (!character_data.get(data.discord_id))
                 character_data.set(data.discord_id, Response["profile"]["data"]["characterIds"]);
             if (new Date().getTime() - new Date(Response.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60 * 2)

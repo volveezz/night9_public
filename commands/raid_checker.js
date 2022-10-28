@@ -19,7 +19,7 @@ export default {
     description: "Статистика по рейдам",
     type: [true, true, false],
     callback: async (_client, interaction, _member, _guild, _channel) => {
-        await interaction.deferReply({ ephemeral: true });
+        const deferredReply = interaction.deferReply({ ephemeral: true });
         const user = interaction instanceof ChatInputCommandInteraction ? interaction.options.getUser("пользователь") : interaction.targetUser;
         const db_data = await auth_data.findOne({
             where: { discord_id: user ? user.id : interaction.user.id },
@@ -114,10 +114,11 @@ export default {
         const embed_map = new Map([...activity_map].sort());
         let replied = false, i = 0;
         const e = embed;
-        embed_map.forEach((_activity_name, key) => {
+        embed_map.forEach(async (_activity_name, key) => {
             i++;
             if (embed.data.fields?.length === 25) {
                 if (i === 26) {
+                    await deferredReply;
                     interaction.editReply({ embeds: [e] });
                     e.data.fields = [];
                     e.data.footer = undefined;
@@ -147,6 +148,7 @@ export default {
                 console.error(`Error during addin raids to embed raidChecker`, e.stack);
             }
         });
+        await deferredReply;
         !replied
             ? interaction.editReply({ embeds: [embed] }).catch((e) => {
                 console.error(e);

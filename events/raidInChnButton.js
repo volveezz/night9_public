@@ -7,7 +7,7 @@ import { raids } from "../handlers/sequelize.js";
 export default {
     callback: async (client, interaction, _member, _guild, _channel) => {
         if (interaction.isButton() && interaction.customId.startsWith("raidInChnButton")) {
-            await interaction.deferUpdate();
+            const deferredReply = interaction.deferUpdate();
             const buttonId = interaction.customId;
             const inChnMsg = interaction.message.id;
             const raidData = interaction.channel?.isDMBased()
@@ -239,6 +239,7 @@ export default {
                         .setColor("Green")
                         .setTitle(`${movedUsers.length}/${raidData.joined.length - alreadyMovedUsers.length} пользователей перемещено`)
                         .setDescription(`${movedUsers.join("\n") + "\n" + alreadyMovedUsers.join("\n")}`);
+                    await deferredReply;
                     interaction.followUp({ ephemeral: true, embeds: [replyEmbed] });
                     break;
                 }
@@ -302,6 +303,7 @@ export default {
                         ],
                     });
                     const resEmbed = new EmbedBuilder().setColor("Green").setTitle(`Вы ${status} набор`);
+                    await deferredReply;
                     interaction.followUp({ embeds: [resEmbed], ephemeral: true });
                     break;
                 }
@@ -316,6 +318,7 @@ export default {
                             ],
                         },
                     ];
+                    await deferredReply;
                     const msg = await interaction.followUp({
                         ephemeral: true,
                         embeds: [embed],
@@ -368,9 +371,10 @@ export default {
                     return interaction.channel
                         ?.send({ embeds: [interaction.message.embeds[0]], components: interaction.message.components })
                         .then((msg) => {
-                        raids.update({ inChnMsg: msg.id }, { where: { chnId: interaction.channelId } }).then((response) => {
+                        raids.update({ inChnMsg: msg.id }, { where: { chnId: interaction.channelId } }).then(async (response) => {
                             interaction.message.delete();
                             const embed = new EmbedBuilder().setColor("Green").setTitle("Сообщение обновлено");
+                            await deferredReply;
                             interaction.followUp({ embeds: [embed], ephemeral: true });
                         });
                     });

@@ -31,7 +31,9 @@ export default {
     description: "Свяжите свой аккаунт Destiny с аккаунтом Discord",
     global: true,
     callback: async (_client, interaction, _member, _guild, _channel) => {
-        await interaction.deferReply({ ephemeral: true });
-        return interaction.editReply({ embeds: [await initCommand_register(interaction)] });
+        const deferredReply = interaction.deferReply({ ephemeral: true });
+        const embed = await initCommand_register(interaction);
+        await deferredReply;
+        return interaction.editReply({ embeds: [embed] });
     },
 };

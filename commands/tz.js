@@ -5,7 +5,6 @@ export default {
     description: "Укажите свой часовой пояс",
     global: true,
     callback: async (_client, interaction, _member, _guild, _channel) => {
-        await interaction.deferReply({ ephemeral: true });
         const embed = new EmbedBuilder()
             .setColor(colors.default)
             .setTitle(`Выберите свой часовой пояс`)
@@ -76,6 +75,6 @@ export default {
             option.setDescription(`${tzTime.getHours()}:${tzTime.getMinutes()}:${tzTime.getSeconds()} - время сейчас по +${i + 2} часовому поясу`);
             tzTime.setHours(tzTime.getHours() + 1);
         });
-        interaction.editReply({ embeds: [embed], components: [{ type: ComponentType.ActionRow, components: [tzBlank] }] });
+        interaction.reply({ ephemeral: true, embeds: [embed], components: [{ type: ComponentType.ActionRow, components: [tzBlank] }] });
     },
 };

@@ -14,7 +14,7 @@ export default {
         },
     ],
     callback: async (_client, interaction, _member, guild, _channel) => {
-        await interaction.deferReply({ ephemeral: true });
+        const deferredReply = interaction.deferReply({ ephemeral: true });
         const clanMembers = await auth_data.findAll({ where: { clan: true }, include: discord_activities });
         const discordMembers = guild.members.cache;
         const destinyRequest = await fetchRequest("Platform/GroupV2/4123712/Members/?memberType=None");
@@ -71,6 +71,7 @@ export default {
             embed.addFields({ name: `${i + 1} ${field.name}`, value: field.value });
             if (embed.data.fields?.length === 25 || i === fields.length - 1) {
                 if (i === 24) {
+                    await deferredReply;
                     await interaction.editReply({ embeds: [e] });
                     e.setTitle(null).spliceFields(0, 25);
                 }

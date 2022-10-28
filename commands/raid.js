@@ -622,7 +622,7 @@ export default {
         },
     ],
     callback: async (_client, interaction, member, guild, _channel) => {
-        await interaction.deferReply({ ephemeral: true });
+        const deferredReply = interaction.deferReply({ ephemeral: true });
         const { options } = interaction;
         const subCommand = options.getSubcommand(true);
         if (subCommand === "создать") {
@@ -741,6 +741,7 @@ export default {
                     inChnMsg: (await inChnMsg).id,
                     msgId: (await msg).id,
                 }, { where: { chnId: member.id }, returning: true });
+                await deferredReply;
                 interaction.editReply({
                     content: `Рейд создан. <#${chn.id}>, [ссылка на набор](https://discord.com/channels/${guild.id}/${raidChannel.id}/${(await msg).id})`,
                 });
@@ -768,12 +769,10 @@ export default {
             const msgId = raidData.msgId;
             const changes = [];
             const embedChanges = [];
-            const embed = async () => {
-                return (await msgFetcher(ids.raidChnId, msgId)).embeds[0];
-            };
+            const embed = msgFetcher(ids.raidChnId, msgId);
             const t = await db.transaction();
             const changesForChannel = [];
-            if (newRaid !== null || newDifficulty !== null || newReqClears !== null) {
+            if (newRaid || newDifficulty || newReqClears) {
                 changes.push(`Рейд был измнен`);
                 newRaid
                     ? changesForChannel.push({
@@ -786,7 +785,7 @@ export default {
                         name: "Требование для вступления",
                         value: `Требование для вступления \`отключено\``,
                     })
-                    : newReqClears !== null
+                    : newReqClears
                         ? changesForChannel.push({
                             name: "Требование для вступления",
                             value: `Теперь для вступления нужно от \`${newReqClears}\` закрытий`,
@@ -801,17 +800,17 @@ export default {
                 embedChanges.push({
                     color: raidInfo.raidColor,
                 }, {
-                    title: newReqClears !== null || reqClears >= 1 || newDifficulty !== null
-                        ? `Рейд: ${raidInfo.raidName}${(newReqClears !== null && newReqClears === 0) || (newReqClears === null && reqClears === 0)
+                    title: newReqClears || reqClears >= 1 || newDifficulty
+                        ? `Рейд: ${raidInfo.raidName}${(newReqClears && newReqClears === 0) || (!newReqClears && reqClears === 0)
                             ? ""
-                            : newReqClears !== null
+                            : newReqClears
                                 ? ` от ${newReqClears} закрытий`
                                 : ` от ${reqClears} закрытий`}`
                         : `Рейд: ${raidInfo.raidName}`,
                 }, {
                     thumbnail: raidInfo.raidBanner,
                 });
-                if (newRaid !== null) {
+                if (newRaid) {
                     await raids.update({
                         raid: raidInfo.raid,
                     }, {
@@ -821,7 +820,7 @@ export default {
                     raidChallenges(raidInfo, await msgFetcher(raidData.chnId, raidData.inChnMsg), raidData.time, newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : raidData.difficulty);
                     chnFetcher(raidData.chnId).edit({ name: `├💪${raidData.id}-${raidInfo.channelName}` });
                 }
-                if ((newDifficulty !== null && raidInfo.maxDifficulty >= newDifficulty) || newRaid !== null) {
+                if ((newDifficulty && raidInfo.maxDifficulty >= newDifficulty) || newRaid) {
                     await raids.update({
                         difficulty: newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : 1,
                     }, {
@@ -914,17 +913,14 @@ export default {
                     changes.push(`Создатель рейда не был изменен - нельзя назначить бота создателем`);
                 }
             }
-            const raidEmbed = EmbedBuilder.from(await embed());
+            const raidEmbed = EmbedBuilder.from((await embed).embeds[0]);
             embedChanges.forEach(async (change) => {
-                if (change.color) {
+                if (change.color)
                     raidEmbed.setColor(change.color);
-                }
-                if (change.title) {
+                if (change.title)
                     raidEmbed.setTitle(change.title);
-                }
-                if (change.thumbnail) {
+                if (change.thumbnail)
                     raidEmbed.setThumbnail(change.thumbnail);
-                }
                 if (change.description) {
                     const field = {
                         name: `Описание`,
@@ -943,9 +939,8 @@ export default {
                             }
                         }
                     });
-                    if (!checker) {
+                    if (!checker)
                         raidEmbed.spliceFields(2, 0, field);
-                    }
                 }
                 if (change.raidLeader) {
                     raidEmbed.setFooter({
@@ -981,6 +976,7 @@ export default {
                     .setTitle(`Рейд ${raidData.id} был изменен`)
                     .setDescription(changes.join(`\n`).toString())
                     .setTimestamp();
+                await deferredReply;
                 interaction.editReply({ embeds: [replyEmbed] });
                 const editedEmbedReplyInChn = new EmbedBuilder()
                     .setColor(colors.default)
@@ -995,7 +991,8 @@ export default {
             }
             else {
                 t.rollback();
-                const replyEmbed = new EmbedBuilder().setColor("DarkRed").setTitle("Никакие из параметров не были введены");
+                const replyEmbed = new EmbedBuilder().setColor("DarkRed").setTitle("Параметры не были указаны");
+                await deferredReply;
                 interaction.editReply({ embeds: [replyEmbed] });
             }
         }
@@ -1022,6 +1019,7 @@ export default {
                     e.code !== 10008 ? console.error(e) : "";
                 }
                 const embed = new EmbedBuilder().setColor("Green").setTitle(`Рейд ${raidData.id}-${raidData.raid} был удален`);
+                await deferredReply;
                 interaction.editReply({ embeds: [embed] });
             })
                 .catch((e) => console.log(`/raid delete error`, e));
@@ -1058,14 +1056,13 @@ export default {
                     const embed = new EmbedBuilder()
                         .setColor("Green")
                         .setTitle(`${interaction.guild.members.cache.get(addedUser.id).displayName} был записан как возможный участник на ${raidData.id}-${raidData.raid}`);
+                    await deferredReply;
                     interaction.editReply({ embeds: [embed] });
                     raidDataInChnMsg(raidData);
                 }
                 else {
                     throw {
-                        name: "Ошибка",
-                        message: "Пользователь уже находится в возможных участниках",
-                        falseAlarm: true,
+                        name: "Пользователь уже записан как возможный участник",
                     };
                 }
             }
@@ -1076,7 +1073,6 @@ export default {
                             throw {
                                 name: "Ошибка",
                                 message: `Набор ${raidData.id}-${raidData.raid} полон, а ${interaction.guild.members.cache.get(addedUser.id).displayName} уже добавлен в запас`,
-                                falseAlarm: true,
                             };
                         }
                         raidData.hotJoined.push(addedUser.id);
@@ -1091,13 +1087,11 @@ export default {
                             iconURL: addedUser.displayAvatarURL(),
                         });
                         raidData.joined.push(addedUser.id);
-                        if (raidData.hotJoined.includes(addedUser.id)) {
+                        if (raidData.hotJoined.includes(addedUser.id))
                             raidData.hotJoined.splice(raidData.hotJoined.indexOf(addedUser.id), 1);
-                        }
                     }
-                    if (raidData.alt.includes(addedUser.id)) {
+                    if (raidData.alt.includes(addedUser.id))
                         raidData.alt.splice(raidData.alt.indexOf(addedUser.id), 1);
-                    }
                     const raidChn = chnFetcher(raidData.chnId);
                     raidChn.send({ embeds: [embedReply] });
                     raidChn.permissionOverwrites.create(addedUser.id, {
@@ -1114,6 +1108,7 @@ export default {
                     const embed = new EmbedBuilder()
                         .setColor("Green")
                         .setTitle(`${interaction.guild.members.cache.get(addedUser.id).displayName} был записан на ${raidData.id}-${raidData.raid}`);
+                    await deferredReply;
                     interaction.editReply({ embeds: [embed] });
                     raidDataInChnMsg(raidData);
                 }
@@ -1159,6 +1154,7 @@ export default {
             raidChn.send({ embeds: [inChnEmbed] });
             raidChn.permissionOverwrites.delete(kickableUser.id);
             embed.setDescription(`${interaction.guild.members.cache.get(kickableUser.id).displayName} был исключен с рейда ${raidData.id}-${raidData.raid}`);
+            await deferredReply;
             interaction.editReply({ embeds: [embed] });
             raidDataInChnMsg(raidData);
         }

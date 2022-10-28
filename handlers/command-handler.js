@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, EmbedBuilder, GuildMember, InteractionType, } from "discord.js";
+import { ApplicationCommandType, ChatInputCommandInteraction, EmbedBuilder, GuildMember, InteractionType, PermissionsBitField, } from "discord.js";
 import { guildId } from "../base/ids.js";
 import { getFiles } from "./file-reader.js";
 const commands = {};
@@ -16,10 +16,69 @@ export class AutocompleteHandler {
 export default async (client, commandDir, eventsDir) => {
     const files = getFiles(commandDir);
     const eventsFiles = getFiles(eventsDir);
-    await new Promise((res) => setTimeout(res, 1000));
     for (const command of files) {
         const { default: commandFile } = await import(`../commands/${command}`);
         const { name: commandName, description: commandDescription, global, options, defaultMemberPermissions, type, nameLocalizations } = commandFile;
+        setTimeout(() => {
+            if (type == undefined || type[0] === true) {
+                if (global) {
+                    client.application?.commands.create({
+                        name: commandName,
+                        nameLocalizations: nameLocalizations || undefined,
+                        description: commandDescription || commandName,
+                        type: ApplicationCommandType.ChatInput,
+                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new PermissionsBitField(defaultMemberPermissions).bitfield,
+                        options: options,
+                    });
+                }
+                else {
+                    client.guilds.cache.get(guildId)?.commands.create({
+                        name: commandName,
+                        nameLocalizations: nameLocalizations || undefined,
+                        description: commandDescription || commandName,
+                        type: ApplicationCommandType.ChatInput,
+                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new PermissionsBitField(defaultMemberPermissions).bitfield,
+                        options: options,
+                    });
+                }
+            }
+            if (type && type[1] === true) {
+                if (global) {
+                    client.application?.commands.create({
+                        name: commandName,
+                        type: ApplicationCommandType.User,
+                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new PermissionsBitField(defaultMemberPermissions).bitfield,
+                    });
+                }
+                else {
+                    client.guilds.cache.get(guildId)?.commands.create({
+                        name: commandName,
+                        type: ApplicationCommandType.User,
+                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new PermissionsBitField(defaultMemberPermissions).bitfield,
+                    });
+                }
+            }
+            if (type && type[2] === true) {
+                if (global) {
+                    client.application?.commands.create({
+                        name: commandName,
+                        description: commandDescription || commandName,
+                        type: ApplicationCommandType.Message,
+                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new PermissionsBitField(defaultMemberPermissions).bitfield,
+                        options: options,
+                    });
+                }
+                else {
+                    client.guilds.cache.get(guildId)?.commands.create({
+                        name: commandName,
+                        description: commandDescription || commandName,
+                        type: ApplicationCommandType.Message,
+                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new PermissionsBitField(defaultMemberPermissions).bitfield,
+                        options: options,
+                    });
+                }
+            }
+        }, 2000);
         commands[commandName.toLowerCase()] = commandFile;
     }
     for (const event of eventsFiles) {
@@ -27,15 +86,17 @@ export default async (client, commandDir, eventsDir) => {
         events[event.slice(0, -3).toLowerCase()] = commandFile;
     }
     client.on("interactionCreate", async (interaction) => {
-        if ((interaction.isChatInputCommand() || interaction.isUserContextMenuCommand()) && interaction.channel !== null) {
+        if ((interaction.isChatInputCommand() || interaction.isUserContextMenuCommand()) && interaction.channel) {
             const { commandName } = interaction;
             const guild = interaction.guild || client.guilds.cache.get(guildId) || (await client.guilds.fetch(guildId));
-            const memberPre = interaction.member || guild?.members.cache.get(interaction.user.id) || (await guild.members.fetch(interaction.user.id));
+            const memberPre = interaction.member || guild.members.cache.get(interaction.user.id) || (await guild.members.fetch(interaction.user.id));
             const channel = interaction.channel;
             const member = memberPre instanceof GuildMember ? memberPre : await guild.members.fetch(memberPre.user.id);
             if (!commands[commandName])
                 return;
-            console.log(member.displayName, `used`, commandName, interaction instanceof ChatInputCommandInteraction ? interaction.options.getSubcommand() : "", interaction?.options?.data
+            console.log(member.displayName, `used`, commandName, interaction instanceof ChatInputCommandInteraction && interaction.options.data.some((d) => d.type === 1)
+                ? interaction.options.getSubcommand()
+                : "", interaction?.options?.data
                 ? interaction.options.data
                     .map((d) => {
                     return d.options

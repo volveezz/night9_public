@@ -5,9 +5,9 @@ import { guildId } from "../base/ids.js";
 import { clan } from "../base/channels.js";
 import { auth_data } from "./sequelize.js";
 export async function welcomeMessage(client, member) {
-    member.roles.add(statusRoles.newbie).catch((err) => {
-        console.error(err.code === 50013 ? `welcomeMessage err: Missing permissions to give role to ${member.displayName}` : err);
-    });
+    member.roles
+        .add(statusRoles.newbie)
+        .catch((err) => console.error(err.code === 50013 ? `welcomeMessage err: Missing permissions to give role to ${member.displayName}` : err));
     const embed = new EmbedBuilder()
         .setColor(colors.default)
         .setAuthor({

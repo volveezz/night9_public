@@ -21,13 +21,14 @@ export default {
         },
     ],
     callback: async (_client, interaction, _member, _guild, _channel) => {
-        await interaction.deferReply({ ephemeral: true });
+        const deferredReply = interaction.deferReply({ ephemeral: true });
         if (!interaction.channel || interaction.channel.type !== ChannelType.GuildText)
             return;
         const msgs = interaction.options.getInteger("messages");
         const user = interaction.options.getUser("user");
         if (!msgs || msgs > 100) {
             const embed = new EmbedBuilder().setColor("Red").setTitle(`Параметр "сообщений" должен быть больше или равен 1 и меньше 100`);
+            await deferredReply;
             return interaction.editReply({ embeds: [embed] });
         }
         if (user) {
@@ -38,13 +39,15 @@ export default {
             });
             interaction.channel
                 .bulkDelete(fetched)
-                .then((response) => {
+                .then(async (response) => {
                 const embed = new EmbedBuilder().setColor("Green").setTitle(`${response.size} сообщений ${user.username} были удалены`);
+                await deferredReply;
                 interaction.editReply({ embeds: [embed] });
             })
-                .catch((e) => {
+                .catch(async (e) => {
                 console.log(e);
                 const embed = new EmbedBuilder().setColor("Red").setTitle(`Error: ${e.code}`).setDescription(e.toString());
+                await deferredReply;
                 interaction.editReply({ embeds: [embed] });
                 return;
             });
@@ -55,14 +58,16 @@ export default {
             });
             interaction.channel
                 .bulkDelete(msgArray)
-                .then((response) => {
+                .then(async (response) => {
                 const embed = new EmbedBuilder().setColor("Green").setTitle(`${response.size} сообщений были удалены`);
+                await deferredReply;
                 interaction.editReply({ embeds: [embed] });
                 return;
             })
-                .catch((e) => {
+                .catch(async (e) => {
                 console.log(e);
                 const embed = new EmbedBuilder().setColor("Red").setTitle(`Error: ${e.code}`).setDescription(e.toString());
+                await deferredReply;
                 interaction.editReply({ embeds: [embed] });
                 return;
             });

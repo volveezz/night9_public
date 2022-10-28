@@ -7,7 +7,7 @@ export default async (client, featuresDir) => {
             commandFile(client);
         }
         catch (error) {
-            console.log(`Feauture error:`, error);
+            console.error(`[Error code: 1043] Feauture error:`, error);
         }
     }
 };

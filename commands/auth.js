@@ -27,9 +27,8 @@ export default {
             where: { [Op.or]: [{ discord_id: id }, { bungie_id: id }] },
             attributes: ["refresh_token"],
         });
-        if (!data) {
+        if (!data)
             throw { name: "Запись в БД отсутствует", message: `Id: ${id}` };
-        }
         try {
             const form = new URLSearchParams();
             form.append("grant_type", "refresh_token");

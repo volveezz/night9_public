@@ -34,7 +34,7 @@ export default {
         },
     ],
     callback: async (client, interaction, _member, _guild, _channel) => {
-        await interaction.deferReply({ ephemeral: true });
+        const deferredReply = interaction.deferReply({ ephemeral: true });
         const subCommand = interaction.options.getSubcommand();
         if (subCommand === "fetch") {
             fetch(interaction.options.getBoolean("global", true));
@@ -56,7 +56,7 @@ export default {
             }
             client.application?.commands
                 .delete(id)
-                .then((resp) => {
+                .then(async (resp) => {
                 const embed = new EmbedBuilder()
                     .setColor("Green")
                     .setTitle(`Global command ${resp?.name} was deleted`)
@@ -69,6 +69,7 @@ export default {
                         },
                     ]);
                 }
+                await deferredReply;
                 interaction.editReply({ embeds: [embed] });
             })
                 .catch((e) => {
@@ -76,7 +77,7 @@ export default {
                     client.guilds.cache
                         .get(guildId)
                         ?.commands.delete(id)
-                        .then((resp) => {
+                        .then(async (resp) => {
                         const embed = new EmbedBuilder()
                             .setColor("Green")
                             .setTitle(`Guild command ${resp?.name} was deleted`)
@@ -89,6 +90,7 @@ export default {
                                 },
                             ]);
                         }
+                        await deferredReply;
                         interaction.editReply({ embeds: [embed] });
                     })
                         .catch((e) => {
@@ -148,6 +150,7 @@ export default {
             });
             if (embed.data.fields?.length === 0)
                 embed.setDescription("0 commands");
+            await deferredReply;
             interaction.editReply({ embeds: [embed] });
         }
     },

@@ -29,7 +29,7 @@ export default (client) => {
                 async function activities() {
                     const response = fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Character/${character}/Stats/Activities/?count=2&mode=${mode}&page=0`, data);
                     response.catch((e) => {
-                        console.error("[Error code: 1040] [activityChecker]", e);
+                        console.error("[Error code: 1040] [activityChecker]", e.stack);
                         return;
                     });
                     const fetchedResponse = await response;

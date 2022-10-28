@@ -22,7 +22,7 @@ export default {
     ],
     defaultMemberPermissions: ["Administrator"],
     callback: async (_client, interaction, _member, guild, _channel) => {
-        await interaction.deferReply({ ephemeral: true });
+        const deferredReply = interaction.deferReply({ ephemeral: true });
         const subCommand = interaction.options.getSubcommand();
         const user = subCommand === "set" ? interaction.options.getMember("user") : null;
         const role = interaction.options.getRole("role", true);
@@ -42,6 +42,7 @@ export default {
                     await timer(i * 366);
                 }
                 const embed = new EmbedBuilder().setColor("Green").setDescription(`Роль ${role} была удалена у ${i} участников`);
+                await deferredReply;
                 interaction.editReply({ embeds: [embed] });
                 return;
             }
@@ -50,8 +51,9 @@ export default {
                     const embed = new EmbedBuilder();
                     const u = user.roles
                         .set([role.id])
-                        .then((m) => {
+                        .then(async (m) => {
                         embed.setColor("Green").setDescription(`Роль ${role} установлена ${m}`);
+                        await deferredReply;
                         interaction.editReply({ embeds: [embed] });
                         return true;
                     })

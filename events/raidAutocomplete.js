@@ -11,9 +11,8 @@ export default {
                 value: data.id,
             })))
                 .catch((e) => {
-                if (e.code !== 10062) {
-                    console.error(e);
-                }
+                if (e.code !== 10062)
+                    console.error("[Error code: 1045]", e);
             });
         }
         else {
@@ -27,9 +26,8 @@ export default {
                 value: data.id,
             })))
                 .catch((e) => {
-                if (e.code !== 10062) {
-                    console.error(e);
-                }
+                if (e.code !== 10062)
+                    console.error("[Error code: 1044]", e);
             });
         }
     },
