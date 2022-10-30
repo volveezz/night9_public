@@ -14,7 +14,9 @@ export async function fetchRequest(url, auth_data) {
             : url;
     const response = await (await fetch(`https://bungie.net/${cleanUrl}`, {
         headers: { "X-API-KEY": process.env.XAPI, Authorization: auth_data && auth_data.access_token ? `Bearer ${auth_data.access_token}` : "" },
-    })).json();
+    }))
+        .json()
+        .catch((e) => console.error("[Error code: 1049]", e));
     return response.Response ? response.Response : response;
 }
 export default async (code, state, res) => {
