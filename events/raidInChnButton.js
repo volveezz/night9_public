@@ -8,7 +8,7 @@ export default {
     callback: async (client, interaction, _member, _guild, _channel) => {
         if (interaction.isButton() && interaction.customId.startsWith("raidInChnButton")) {
             const deferredReply = interaction.deferUpdate();
-            const buttonId = interaction.customId;
+            const { customId: buttonId } = interaction;
             const inChnMsg = interaction.message.id;
             const raidData = interaction.channel?.isDMBased()
                 ? await raids.findOne({
@@ -22,16 +22,14 @@ export default {
                 : await raids.findOne({ where: { inChnMsg: inChnMsg } });
             const member = interaction.member instanceof GuildMember ? interaction.member : client.guilds.cache.get(guildId)?.members.cache.get(interaction.user.id);
             const guild = interaction.guild || client.guilds.cache.get(guildId);
-            if (!member) {
+            if (!member)
                 throw {
-                    member: interaction.member,
+                    interaction,
                     name: "Вы не участник сервера",
                     message: "Пожалуйста, объясните администрации как вы получили эту ошибку",
                 };
-            }
-            if (!guild) {
+            if (!guild)
                 throw { interaction: interaction, name: "Ошибка, этот сервер недоступен" };
-            }
             if (!raidData) {
                 if (interaction.channel?.isDMBased())
                     interaction.message.edit({ components: [] });
@@ -40,13 +38,11 @@ export default {
                     message: "Рейд не найден. Повторите спустя несколько секунд\nПожалуйста, не нажимайте кнопку более 2х раз - за каждую такую ошибку администрация получает оповещение",
                 };
             }
-            if (raidData.creator !== interaction.user.id && !interaction.memberPermissions?.has("Administrator")) {
+            if (raidData.creator !== interaction.user.id && !interaction.memberPermissions?.has("Administrator"))
                 throw {
-                    interaction: interaction,
                     name: "Ошибка. Недостаточно прав",
                     message: `Изменение набора доступно только создателю рейда - <@${raidData.creator}>`,
                 };
-            }
             switch (buttonId) {
                 case "raidInChnButton_notify": {
                     const voiceChn = guild.channels.cache.filter((chn) => chn.type === ChannelType.GuildVoice);
@@ -55,21 +51,17 @@ export default {
                         .setTitle("Введите текст оповещения для участников или оставьте шаблон")
                         .setDescription(`Вас оповестил ${raidData.creator === interaction.user.id ? "создатель рейда" : "Администратор"} об скором начале рейда!\nЗаходите в голосовой канал, рейд не ждет!`);
                     const invite = await member.voice.channel?.createInvite({ reason: "Raid invite", maxAge: 60 * 120 });
-                    const raidChnInvite = member.guild.channels.cache
+                    const raidVoiceChannels = member.guild.channels.cache
                         .filter((chn) => chn.parentId === ids.raidChnCategoryId && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid Room"))
-                        .map(async (chn) => {
-                        if (chn.type === ChannelType.GuildVoice) {
-                            if (chn.userLimit > chn.members.size || chn.members.has(raidData.creator)) {
-                                return await chn.createInvite({ reason: "Raid invite", maxAge: 60 * 120 });
-                            }
-                            else {
-                                return undefined;
-                            }
+                        .reverse();
+                    const raidChnInvite = [];
+                    for await (const [i, chn] of raidVoiceChannels) {
+                        if (chn.type === ChannelType.GuildVoice &&
+                            (chn.userLimit === 0 || chn.userLimit - 6 > chn.members.size || chn.members.has(raidData.creator))) {
+                            raidChnInvite.push(await chn.createInvite({ reason: "Raid invite", maxAge: 60 * 120 }));
+                            break;
                         }
-                        else {
-                            return undefined;
-                        }
-                    });
+                    }
                     const components = [
                         new ButtonBuilder().setCustomId("raidAddFunc_notify_confirm").setLabel("Отправить").setStyle(ButtonStyle.Primary),
                         new ButtonBuilder().setCustomId("raidAddFunc_notify_edit").setLabel("Изменить текст").setStyle(ButtonStyle.Secondary),
@@ -77,13 +69,13 @@ export default {
                     ];
                     const linkComponent = [];
                     invite ? linkComponent.push(new ButtonBuilder({ style: ButtonStyle.Link, url: invite.url, label: "Перейти к создателю рейда" })) : "";
-                    (await raidChnInvite[0]) && raidChnInvite[0] !== undefined
-                        ? linkComponent.push(new ButtonBuilder({
+                    raidChnInvite.forEach((invite) => {
+                        linkComponent.push(new ButtonBuilder({
                             style: ButtonStyle.Link,
-                            url: (await raidChnInvite[0])?.url || "https://discord.gg/",
-                            label: "Перейти в канал сбора",
-                        }))
-                        : [];
+                            url: invite.url || "https://discord.gg/",
+                            label: "Перейти в рейдовый канал",
+                        }));
+                    });
                     const m = await interaction.user.send({
                         embeds: [embedForLeader],
                         components: [
@@ -133,9 +125,8 @@ export default {
                                     }
                                     else if (chn.isVoiceBased() && chn.members.has(raidData.creator)) {
                                         chn.members.forEach((member) => {
-                                            if (raidData.joined.includes(member.id)) {
+                                            if (raidData.joined.includes(member.id))
                                                 raidData.joined.splice(raidData.joined.indexOf(member.id), 1);
-                                            }
                                         });
                                     }
                                 }));

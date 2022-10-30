@@ -16,11 +16,12 @@ export default (client) => {
         const give_roles = [], remove_roles = [], c = member.roles.cache;
         fetchRequest(`Platform/Destiny2/${data.platform}/Profile/${data.bungie_id}/?components=100,900,1100`, data)
             .then(async (Response) => {
-            if (!Response.profile || !Response.profile.data)
-                return console.error("[Error code: 1039]", data.displayname, Response);
+            if (!Response.profile || !Response.profile.data) {
+                return console.error("[Error code: 1039]", data.displayname, Response.ErrorStatus, Response.ErrorCode !== 1688 ? Response.Message : "");
+            }
             if (!character_data.get(data.discord_id))
                 character_data.set(data.discord_id, Response["profile"]["data"]["characterIds"]);
-            if (new Date().getTime() - new Date(Response.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60 * 2)
+            if (new Date().getTime() - new Date(Response.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60)
                 longOffline.add(member.id);
             if (!c.has(statusRoles.verified))
                 give_roles.push(statusRoles.verified);

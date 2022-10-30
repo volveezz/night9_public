@@ -37,12 +37,10 @@ export default {
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const subCommand = interaction.options.getSubcommand();
         if (subCommand === "fetch") {
-            fetch(interaction.options.getBoolean("global", true));
+            return fetch(interaction.options.getBoolean("global", true));
         }
         else if (subCommand === "delete") {
-            commandDelete(interaction.options.getString("id", true)).catch((e) => {
-                throw { name: e.name };
-            });
+            return commandDelete(interaction.options.getString("id", true));
         }
         async function commandDelete(id) {
             if (isNaN(parseInt(id))) {

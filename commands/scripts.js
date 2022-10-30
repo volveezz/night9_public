@@ -12,7 +12,7 @@ export default {
             required: true,
         },
     ],
-    callback: async (_client, interaction, _member, _guild, _channel) => {
+    callback: async (_client, interaction, member, _guild, _channel) => {
         await interaction.deferReply({ ephemeral: true });
         const scriptId = interaction.options.getString("script", true).toLowerCase();
         switch (scriptId) {

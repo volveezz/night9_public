@@ -65,11 +65,11 @@ export default async (client, commandDir, eventsDir) => {
                                     ? `DB error ${err.parent?.code}`
                                     : `Error ${err.name}`}`);
                     }
-                    if (interaction.deferred) {
-                        interaction.editReply({ embeds: [embed] });
+                    try {
+                        interaction.deferred ? interaction.editReply({ embeds: [embed] }) : interaction.reply({ embeds: [embed], ephemeral: true });
                     }
-                    else {
-                        interaction.reply({ embeds: [embed], ephemeral: true });
+                    catch (error) {
+                        interaction.followUp({ embeds: [embed], ephemeral: true }).catch((e) => console.error("[Error code: 1048]", e));
                     }
                     return;
                 });
@@ -93,11 +93,10 @@ export default async (client, commandDir, eventsDir) => {
                 const embed = new EmbedBuilder().setColor("Red");
                 embed.setTitle(e?.name);
                 e && e.message && e.message !== undefined && typeof e.message === "string" && e.message.length > 5 ? embed.setDescription(e.message) : [];
-                setTimeout(() => {
-                    interaction.deferred || interaction.replied
-                        ? interaction.followUp({ ephemeral: true, embeds: [embed] })
-                        : interaction.reply({ ephemeral: true, embeds: [embed] });
-                }, 500);
+                interaction.reply({ ephemeral: true, embeds: [embed] }).catch((e) => {
+                    console.error("[Error code: 1046]", e);
+                    interaction.followUp({ ephemeral: true, embeds: [embed] }).catch((er) => console.error("[Error code: 1047]", er));
+                });
             });
         }
         else if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {

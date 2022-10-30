@@ -10,6 +10,7 @@ import { fetchRequest } from "../handlers/webHandler.js";
 import { CachedDestinyActivityModifierDefinition } from "../handlers/manifestHandler.js";
 import { gameRaidChallenges } from "../base/gameRaidChallenges.js";
 const noDataRaids = new Set();
+export const raidBlacklist = new Map();
 async function raidChallenges(raidData, inChnMsg, startTime, difficulty) {
     if (difficulty > 2)
         return;
@@ -593,6 +594,12 @@ export default {
                     required: true,
                 },
                 {
+                    type: ApplicationCommandOptionType.Boolean,
+                    name: "blacklist",
+                    nameLocalizations: { ru: "черный_список" },
+                    description: "Добавить участника в ЧС рейда",
+                },
+                {
                     type: ApplicationCommandOptionType.Integer,
                     min_value: 1,
                     max_value: 100,
@@ -1030,14 +1037,20 @@ export default {
             const isAlt = options.getBoolean("альтернатива");
             const raidData = await getRaid(raidId, interaction);
             const embedReply = new EmbedBuilder().setColor("Green");
-            if (isAlt === true) {
+            const blacklist = raidBlacklist.get(raidData.id);
+            if (blacklist) {
+                if (isAlt && blacklist.alt.includes(addedUser.id))
+                    blacklist.alt.splice(blacklist.alt.findIndex((a) => a === addedUser.id), 1);
+                if (!isAlt && blacklist.joined.includes(addedUser.id))
+                    blacklist.joined.splice(blacklist.joined.findIndex((a) => a === addedUser.id), 1);
+                raidBlacklist.set(raidData.id, { joined: blacklist.joined, alt: blacklist.alt });
+            }
+            if (isAlt) {
                 if (!raidData.alt.includes(addedUser.id)) {
-                    if (raidData.joined.includes(addedUser.id)) {
+                    if (raidData.joined.includes(addedUser.id))
                         raidData.joined.splice(raidData.joined.indexOf(addedUser.id), 1);
-                    }
-                    if (raidData.hotJoined.includes(addedUser.id)) {
+                    if (raidData.hotJoined.includes(addedUser.id))
                         raidData.hotJoined.splice(raidData.hotJoined.indexOf(addedUser.id), 1);
-                    }
                     raidData.alt.push(addedUser.id);
                     embedReply.setAuthor({
                         name: `${interaction.guild.members.cache.get(addedUser.id).displayName} был записан на рейд как возможный участник`,
@@ -1122,14 +1135,26 @@ export default {
             }
         }
         else if (subCommand === "исключить") {
+            const preFetch = getRaid(options.getInteger("id_рейда"), interaction);
             const kickableUser = options.getUser("участник", true);
-            const raidId = options.getInteger("id_рейда");
-            const raidData = await getRaid(raidId, interaction);
+            const isBlacklist = options.getBoolean("blacklist") || false;
+            const raidData = await preFetch;
+            if (!Array.prototype.concat(raidData.joined, raidData.alt, raidData.hotJoined).includes(kickableUser.id))
+                throw { name: `Исключаемый участник не состоит в рейде` };
             const embed = new EmbedBuilder().setColor("Green").setTitle("Пользователь исключен"), inChnEmbed = new EmbedBuilder()
                 .setColor("Red")
                 .setTitle("Пользователь был исключен с рейда")
                 .setTimestamp()
                 .setFooter({ text: `Исключитель: ${raidData.creator === interaction.user.id ? "Создатель рейда" : "Администратор"}` });
+            if (isBlacklist) {
+                const currentBlacklist = raidBlacklist.get(raidData.id) || raidBlacklist.set(raidData.id, { joined: [], alt: [] }).get(raidData.id);
+                if ((raidData.joined.includes(kickableUser.id) || raidData.hotJoined.includes(kickableUser.id)) &&
+                    !currentBlacklist.joined.includes(kickableUser.id))
+                    currentBlacklist.joined.push(kickableUser.id);
+                if (raidData.alt.includes(kickableUser.id) && !currentBlacklist.alt.includes(kickableUser.id))
+                    currentBlacklist.alt.push(kickableUser.id);
+                raidBlacklist.set(raidData.id, { joined: currentBlacklist.joined, alt: currentBlacklist.alt });
+            }
             if (raidData.joined.includes(kickableUser.id)) {
                 raidData.joined.splice(raidData.joined.indexOf(kickableUser.id), 1);
                 inChnEmbed.setDescription(`${interaction.guild.members.cache.get(kickableUser.id).displayName} исключен будучи участником рейда`);
@@ -1142,6 +1167,8 @@ export default {
                 raidData.hotJoined.splice(raidData.hotJoined.indexOf(kickableUser.id), 1);
                 inChnEmbed.setDescription(`${interaction.guild.members.cache.get(kickableUser.id).displayName} исключен будучи заменой участников рейда`);
             }
+            if (isBlacklist)
+                inChnEmbed.data.description += " и добавлен в ЧС рейда";
             await raidMsgUpdate(raidData, interaction);
             await raids.update({
                 joined: `{${raidData.joined}}`,

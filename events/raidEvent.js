@@ -1,6 +1,6 @@
-import { ComponentType, EmbedBuilder, GuildMember, InteractionType } from "discord.js";
+import { EmbedBuilder, GuildMember } from "discord.js";
 import { guildId, ids } from "../base/ids.js";
-import { raidDataInChnMsg, raidMsgUpdate } from "../commands/raid.js";
+import { raidBlacklist, raidDataInChnMsg, raidMsgUpdate } from "../commands/raid.js";
 import { raids } from "../handlers/sequelize.js";
 import { completedRaidsData } from "../features/full_checker.js";
 import { chnFetcher } from "../base/channels.js";
@@ -70,116 +70,121 @@ async function joinedFromHotJoined(raidData, userId, guild) {
     member.send({ embeds: [DMEmbed] });
 }
 export default {
-    callback: async (client, interaction, _member, _guild, _channel) => {
-        if (interaction.type === InteractionType.MessageComponent &&
-            interaction.componentType === ComponentType.Button &&
-            interaction.channel?.id === ids.raidChnId &&
-            interaction.member !== null) {
-            interaction.deferUpdate();
-            const raidData = await raids.findOne({
-                where: { msgId: interaction.message.id },
-            });
-            if (!raidData) {
-                console.error("[Error code: 1036]", interaction);
-                throw { name: "Критическая ошибка. Рейд не найден" };
+    callback: async (client, interaction, member, _guild, _channel) => {
+        interaction.deferUpdate();
+        const raidData = await raids.findOne({
+            where: { msgId: interaction.message.id },
+        });
+        if (!raidData) {
+            console.error("[Error code: 1036]", interaction);
+            throw { name: "Критическая ошибка. Рейд не найден" };
+        }
+        if (interaction.customId !== "raidEvent_btn_leave") {
+            const blacklist = raidBlacklist.get(raidData.id);
+            if (blacklist &&
+                ((interaction.customId === "raidEvent_btn_join" && blacklist.joined.includes(member.id)) ||
+                    (interaction.customId === "raidEvent_btn_alt" && blacklist.alt.includes(member.id)))) {
+                throw {
+                    name: "Ошибка. Вы в черном списке рейда",
+                    message: "Для записи попросите создателя рейда добавить вас вручную или подождите 24 часа для выхода из ЧС\nЧС распространяется лишь на ту группу, из которой вас исключили (если вы были в основном составе и вас исключили -> записаться можно только как возможный участник)",
+                };
             }
-            switch (interaction.customId) {
-                case "raidEvent_btn_join": {
-                    if (raidData.joined.includes(interaction.user.id)) {
-                        throw { name: "Вы уже записаны на этот рейд" };
-                    }
-                    if (raidData.reqClears > 0) {
-                        const userRaidClears = completedRaidsData.get(interaction.user.id);
-                        if (!userRaidClears) {
-                            throw {
-                                name: "Данные не найдены",
-                                message: `Для записи на этот рейд необходимо узнать количество закрытых вами рейдов, но статистика не была собрана\n\nПопробуйте снова через 1-3 минуты\n\n\nДля сбора статистики вы должны быть зарегистрированы у <@${client.user?.id}>, а также иметь роль <@&${statusRoles.clanmember}> или <@&${statusRoles.member}>`,
-                                userId: interaction.user.id,
-                            };
-                        }
-                        else {
-                            if (userRaidClears[raidData.raid] < raidData.reqClears) {
-                                throw {
-                                    name: "Недостаточно закрытий",
-                                    message: `Для записи на этот рейд необходимо ${raidData.reqClears} закрытий, а у вас ${userRaidClears[raidData.raid]}`,
-                                };
-                            }
-                        }
-                    }
-                    joinInChnMsg(interaction.member, "join", raidData.chnId, interaction.guild, raidData.alt.includes(interaction.user.id)
-                        ? "alt"
-                        : raidData.hotJoined.includes(interaction.user.id) && raidData.joined.length !== 6
-                            ? "hotJoined"
-                            : undefined);
-                    if (raidData.alt.includes(interaction.user.id))
-                        raidData.alt.splice(raidData.alt.indexOf(interaction.user.id), 1);
-                    if (raidData.hotJoined.includes(interaction.user.id))
-                        raidData.hotJoined.splice(raidData.hotJoined.indexOf(interaction.user.id), 1);
-                    if (raidData.joined.length === 6) {
-                        raidData.hotJoined.push(interaction.user.id);
+        }
+        switch (interaction.customId) {
+            case "raidEvent_btn_join": {
+                if (raidData.joined.includes(interaction.user.id))
+                    throw { name: "Вы уже записаны на этот рейд" };
+                if (raidData.reqClears > 0) {
+                    const userRaidClears = completedRaidsData.get(interaction.user.id);
+                    if (!userRaidClears) {
+                        throw {
+                            name: "Данные не найдены",
+                            message: `Для записи на этот рейд необходимо узнать количество закрытых вами рейдов, но статистика не была собрана\n\nПопробуйте снова через 1-3 минуты\n\n\nДля сбора статистики вы должны быть зарегистрированы у <@${client.user?.id}>, а также иметь роль <@&${statusRoles.clanmember}> или <@&${statusRoles.member}>`,
+                            userId: interaction.user.id,
+                        };
                     }
                     else {
-                        raidData.joined.push(interaction.user.id);
+                        if (userRaidClears[raidData.raid] < raidData.reqClears) {
+                            throw {
+                                name: "Недостаточно закрытий",
+                                message: `Для записи на этот рейд необходимо ${raidData.reqClears} закрытий, а у вас ${userRaidClears[raidData.raid]}`,
+                            };
+                        }
                     }
-                    chnFetcher(raidData.chnId).permissionOverwrites.create(interaction.user.id, {
-                        ViewChannel: true,
-                    });
-                    await raidMsgUpdate(raidData, interaction);
-                    await raids.update({ joined: `{${raidData.joined}}`, hotJoined: `{${raidData.hotJoined}}`, alt: `{${raidData.alt}}` }, { where: { id: raidData.id } });
-                    raidDataInChnMsg(raidData);
-                    break;
                 }
-                case "raidEvent_btn_leave": {
-                    if (!raidData.joined.includes(interaction.user.id) &&
-                        !raidData.hotJoined.includes(interaction.user.id) &&
-                        !raidData.alt.includes(interaction.user.id))
-                        return;
-                    joinInChnMsg(interaction.member, "leave", raidData.chnId, interaction.guild, raidData.joined.includes(interaction.user.id)
-                        ? "join"
+                joinInChnMsg(member, "join", raidData.chnId, interaction.guild, raidData.alt.includes(interaction.user.id)
+                    ? "alt"
+                    : raidData.hotJoined.includes(interaction.user.id) && raidData.joined.length !== 6
+                        ? "hotJoined"
+                        : undefined);
+                if (raidData.alt.includes(interaction.user.id))
+                    raidData.alt.splice(raidData.alt.indexOf(interaction.user.id), 1);
+                if (raidData.hotJoined.includes(interaction.user.id))
+                    raidData.hotJoined.splice(raidData.hotJoined.indexOf(interaction.user.id), 1);
+                if (raidData.joined.length === 6) {
+                    raidData.hotJoined.push(interaction.user.id);
+                }
+                else {
+                    raidData.joined.push(interaction.user.id);
+                }
+                chnFetcher(raidData.chnId).permissionOverwrites.create(interaction.user.id, {
+                    ViewChannel: true,
+                });
+                await raidMsgUpdate(raidData, interaction);
+                await raids.update({ joined: `{${raidData.joined}}`, hotJoined: `{${raidData.hotJoined}}`, alt: `{${raidData.alt}}` }, { where: { id: raidData.id } });
+                raidDataInChnMsg(raidData);
+                break;
+            }
+            case "raidEvent_btn_leave": {
+                if (!raidData.joined.includes(interaction.user.id) &&
+                    !raidData.hotJoined.includes(interaction.user.id) &&
+                    !raidData.alt.includes(interaction.user.id))
+                    return;
+                joinInChnMsg(member, "leave", raidData.chnId, interaction.guild, raidData.joined.includes(interaction.user.id)
+                    ? "join"
+                    : raidData.alt.includes(interaction.user.id)
+                        ? "alt"
                         : raidData.alt.includes(interaction.user.id)
-                            ? "alt"
-                            : raidData.alt.includes(interaction.user.id)
-                                ? "hotJoined"
-                                : undefined);
-                    if (raidData.joined.length === 6 && raidData.joined.includes(interaction.user.id) && raidData.hotJoined.length > 0) {
-                        const updatedJoined = raidData.hotJoined.shift();
-                        raidData.joined.push(updatedJoined);
-                        joinedFromHotJoined(raidData, updatedJoined, interaction.guild);
-                    }
-                    if (raidData.joined.includes(interaction.user.id))
-                        raidData.joined.splice(raidData.joined.indexOf(interaction.user.id), 1);
-                    if (raidData.alt.includes(interaction.user.id))
-                        raidData.alt.splice(raidData.alt.indexOf(interaction.user.id), 1);
-                    if (raidData.hotJoined.includes(interaction.user.id))
-                        raidData.hotJoined.splice(raidData.hotJoined.indexOf(interaction.user.id), 1);
-                    chnFetcher(raidData.chnId).permissionOverwrites.delete(interaction.user.id);
-                    await raidMsgUpdate(raidData, interaction);
-                    await raids.update({ joined: `{${raidData.joined}}`, hotJoined: `{${raidData.hotJoined}}`, alt: `{${raidData.alt}}` }, { where: { id: raidData.id } });
-                    raidDataInChnMsg(raidData);
-                    break;
+                            ? "hotJoined"
+                            : undefined);
+                if (raidData.joined.length === 6 && raidData.joined.includes(interaction.user.id) && raidData.hotJoined.length > 0) {
+                    const updatedJoined = raidData.hotJoined.shift();
+                    raidData.joined.push(updatedJoined);
+                    joinedFromHotJoined(raidData, updatedJoined, interaction.guild);
                 }
-                case "raidEvent_btn_alt": {
-                    if (raidData.alt.includes(interaction.user.id))
-                        return;
-                    joinInChnMsg(interaction.member, "alt", raidData.chnId, interaction.guild, raidData.joined.includes(interaction.user.id) ? "join" : raidData.hotJoined.includes(interaction.user.id) ? "hotJoined" : undefined);
-                    if (raidData.joined.length === 6 && raidData.joined.includes(interaction.user.id) && raidData.hotJoined.length > 0) {
-                        const updatedJoined = raidData.hotJoined.shift();
-                        raidData.joined.push(updatedJoined);
-                        joinedFromHotJoined(raidData, updatedJoined, interaction.guild);
-                    }
-                    if (raidData.joined.includes(interaction.user.id))
-                        raidData.joined.splice(raidData.joined.indexOf(interaction.user.id), 1);
-                    if (raidData.hotJoined.includes(interaction.user.id))
-                        raidData.hotJoined.splice(raidData.hotJoined.indexOf(interaction.user.id), 1);
-                    raidData.alt.push(interaction.user.id);
-                    chnFetcher(raidData.chnId).permissionOverwrites.create(interaction.user.id, {
-                        ViewChannel: true,
-                    });
-                    await raidMsgUpdate(raidData, interaction);
-                    await raids.update({ joined: `{${raidData.joined}}`, hotJoined: `{${raidData.hotJoined}}`, alt: `{${raidData.alt}}` }, { where: { id: raidData.id } });
-                    raidDataInChnMsg(raidData);
-                    break;
+                if (raidData.joined.includes(interaction.user.id))
+                    raidData.joined.splice(raidData.joined.indexOf(interaction.user.id), 1);
+                if (raidData.alt.includes(interaction.user.id))
+                    raidData.alt.splice(raidData.alt.indexOf(interaction.user.id), 1);
+                if (raidData.hotJoined.includes(interaction.user.id))
+                    raidData.hotJoined.splice(raidData.hotJoined.indexOf(interaction.user.id), 1);
+                chnFetcher(raidData.chnId).permissionOverwrites.delete(interaction.user.id);
+                await raidMsgUpdate(raidData, interaction);
+                await raids.update({ joined: `{${raidData.joined}}`, hotJoined: `{${raidData.hotJoined}}`, alt: `{${raidData.alt}}` }, { where: { id: raidData.id } });
+                raidDataInChnMsg(raidData);
+                break;
+            }
+            case "raidEvent_btn_alt": {
+                if (raidData.alt.includes(interaction.user.id))
+                    return;
+                joinInChnMsg(member, "alt", raidData.chnId, interaction.guild, raidData.joined.includes(interaction.user.id) ? "join" : raidData.hotJoined.includes(interaction.user.id) ? "hotJoined" : undefined);
+                if (raidData.joined.length === 6 && raidData.joined.includes(interaction.user.id) && raidData.hotJoined.length > 0) {
+                    const updatedJoined = raidData.hotJoined.shift();
+                    raidData.joined.push(updatedJoined);
+                    joinedFromHotJoined(raidData, updatedJoined, interaction.guild);
                 }
+                if (raidData.joined.includes(interaction.user.id))
+                    raidData.joined.splice(raidData.joined.indexOf(interaction.user.id), 1);
+                if (raidData.hotJoined.includes(interaction.user.id))
+                    raidData.hotJoined.splice(raidData.hotJoined.indexOf(interaction.user.id), 1);
+                raidData.alt.push(interaction.user.id);
+                chnFetcher(raidData.chnId).permissionOverwrites.create(interaction.user.id, {
+                    ViewChannel: true,
+                });
+                await raidMsgUpdate(raidData, interaction);
+                await raids.update({ joined: `{${raidData.joined}}`, hotJoined: `{${raidData.hotJoined}}`, alt: `{${raidData.alt}}` }, { where: { id: raidData.id } });
+                raidDataInChnMsg(raidData);
+                break;
             }
         }
     },
