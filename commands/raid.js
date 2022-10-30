@@ -73,12 +73,9 @@ export async function raidDataInChnMsg(raidData) {
         if (!raidData)
             return;
     }
-    const inChnMsg = await msgFetcher(raidData.chnId, raidData.inChnMsg);
-    if (!inChnMsg || !inChnMsg.embeds || !inChnMsg.embeds[0]) {
-        return console.error(`Error during raidDataInChnMsg`, raidData.chnId, raidData.inChnMsg, inChnMsg ? inChnMsg.id : inChnMsg, inChnMsg ? inChnMsg.embeds : "");
-    }
-    const embed = EmbedBuilder.from(inChnMsg.embeds[0]);
-    const gMembers = (id) => BotClient.guilds.cache.get(guildId).members.cache.get(id)?.displayName;
+    const inChnMsgPromise = msgFetcher(raidData.chnId, raidData.inChnMsg);
+    const guildMembers = BotClient.guilds.cache.get(guildId).members.cache;
+    const gMembers = (id) => guildMembers.get(id)?.displayName;
     const member = (id) => BotClient.guilds.cache.get(guildId).members.cache.get(id);
     const joined = raidData.joined.map((data) => {
         const raidUserData = completedRaidsData.get(data);
@@ -88,13 +85,20 @@ export async function raidDataInChnMsg(raidData) {
                 setTimeout(() => raidDataInChnMsg(raidData), 60 * 1000 * 5);
             }
             if (member(data)?.roles.cache.has(statusRoles.verified)) {
-                return `Данные <@${data}> не были закешированы`;
+                return `Данные <@${data}> не были закешированы. В течении 5-ти минут произойдет автоматическое обновление`;
             }
             else {
                 return `<@${data}> не зарегистрирован`;
             }
         }
-        return `${gMembers(data)} завершил: ${raidUserData.kf}${raidUserData.kfMaster > 0 ? `(${raidUserData.kfMaster})` : ""} ГК, ${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП, ${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
+        const raidClears = [];
+        raidClears.push(raidUserData.kf > 0 ? `${raidUserData.kf}${raidUserData.kfMaster > 0 ? `(${raidUserData.kfMaster})` : ""} ГК` : "");
+        raidClears.push(raidUserData.votd > 0 ? `${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП` : "");
+        raidClears.push(raidUserData.vog > 0 ? `${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ` : "");
+        raidClears.push(raidUserData.dsc > 0 ? `${raidUserData.dsc} СГК` : "");
+        raidClears.push(raidUserData.gos > 0 ? `${raidUserData.gos} СС` : "");
+        raidClears.push(raidUserData.lw > 0 ? `${raidUserData.lw} ПЖ` : "");
+        return `${raidClears.length > 0 ? `${gMembers(data)} завершил: ${raidClears.join(", ")}` : `${gMembers(data)} не проходил ранее рейды`}`;
     });
     const hotJoined = raidData.hotJoined.map((data) => {
         const raidUserData = completedRaidsData.get(data);
@@ -128,6 +132,11 @@ export async function raidDataInChnMsg(raidData) {
         }
         return `${gMembers(data)} завершил: ${raidUserData.kf}${raidUserData.kfMaster > 0 ? `(${raidUserData.kfMaster})` : ""} ГК, ${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП, ${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ, ${raidUserData.dsc} СГК, ${raidUserData.gos} СС, ${raidUserData.lw} ПЖ`;
     });
+    const inChnMsg = await inChnMsgPromise;
+    if (!inChnMsg || !inChnMsg.embeds || !inChnMsg.embeds[0]) {
+        return console.error(`Error during raidDataInChnMsg`, raidData.chnId, raidData.inChnMsg, inChnMsg ? inChnMsg.id : inChnMsg, inChnMsg ? inChnMsg.embeds : "");
+    }
+    const embed = EmbedBuilder.from(inChnMsg.embeds[0]);
     embed.spliceFields(1, 3);
     if (raidData.joined.length > 0) {
         embed.spliceFields(1, 0, { name: "Успешные закрытия рейдов у основной группы", value: joined.join("\n") });

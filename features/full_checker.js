@@ -377,7 +377,7 @@ export default (client) => {
             .catch((e) => {
             e.statusCode === 401 || e.statusCode === 503 || e.statusCode === 500
                 ? console.error(`roleManager ${e.statusCode} error`, data.displayname)
-                : console.error(`roleManager`, e.error?.stack || e.error || e, data.displayname, e.statusCode);
+                : console.error(`roleManager`, e.error?.stack || e.error || e, data.displayname, e.statusCode || e);
         });
     }
     function name_change(discord_id, name) {
