@@ -21,6 +21,7 @@ export default (client) => {
                 e.statusCode === 401 || e.statusCode === 503 || e.statusCode === 500
                     ? console.error(`[activityChecker web ${e.statusCode} error] [Error code: 1003]`, data.displayname)
                     : console.error("[activityChecker] [Error code: 1002]", e.error, data.displayname, e.statusCode);
+                throw { name: "Критическая ошибка" };
             });
         }
         else {
@@ -30,7 +31,7 @@ export default (client) => {
                     const response = fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Character/${character}/Stats/Activities/?count=2&mode=${mode}&page=0`, data);
                     response.catch((e) => {
                         e.code === "EPROTO" ? console.error("EPROTO ActivityChecker") : console.error("[Error code: 1040] [activityChecker]", e.stack);
-                        return;
+                        throw { name: "Критическая ошибка" };
                     });
                     const fetchedResponse = await response;
                     return fetchedResponse;

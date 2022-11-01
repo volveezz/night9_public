@@ -23,3 +23,4 @@ export const CachedDestinyActivityModifierDefinition = await getSpecificManifest
 export const CachedDestinyActivityDefinition = await getSpecificManifest("DestinyActivityDefinition");
 export const CachedDestinyProgressionDefinition = await getSpecificManifest("DestinyProgressionDefinition");
 export const CachedDestinyMilestoneDefinition = await getSpecificManifest("DestinyMilestoneDefinition");
+export const CachedDestinyRaceDefinition = await getSpecificManifest("DestinyRaceDefinition");

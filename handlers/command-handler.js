@@ -65,12 +65,14 @@ export default async (client, commandDir, eventsDir) => {
                                     ? `DB error ${err.parent?.code}`
                                     : `Error ${err.name}`}`);
                     }
-                    try {
-                        interaction.deferred ? interaction.editReply({ embeds: [embed] }) : interaction.reply({ embeds: [embed], ephemeral: true });
-                    }
-                    catch (error) {
-                        interaction.followUp({ embeds: [embed], ephemeral: true }).catch((e) => console.error("[Error code: 1048]", e));
-                    }
+                    (interaction.replied || interaction.deferred
+                        ? interaction.editReply({ embeds: [embed] })
+                        : interaction.reply({ embeds: [embed], ephemeral: true }))
+                        .catch((e) => {
+                        console.error("[Error code: 1050]", e);
+                        return interaction.followUp({ embeds: [embed], ephemeral: true });
+                    })
+                        .catch((e) => console.error("[Error code: 1048]", e));
                     return;
                 });
             }
