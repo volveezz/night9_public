@@ -16,7 +16,7 @@ export default (client) => {
         const give_roles = [], remove_roles = [], c = member.roles.cache;
         fetchRequest(`Platform/Destiny2/${data.platform}/Profile/${data.bungie_id}/?components=100,900,1100`, data)
             .then(async (Response) => {
-            if (!Response.profile || !Response.profile.data) {
+            if (!Response || !Response.metrics || !Response.profileRecords.data?.activeScore || !Response.profile || !Response.profile.data) {
                 return console.error("[Error code: 1039]", data.displayname, Response.ErrorStatus, Response.ErrorCode !== 1688 ? Response.Message : "");
             }
             if (!character_data.get(data.discord_id))
@@ -493,7 +493,7 @@ export default (client) => {
                 .catch((e) => {
                 e.statusCode === 401 || e.statusCode === 503 || e.statusCode === 500
                     ? console.error(`[activityStatsChecker web ${e.statusCode} error]`, "[Error code: 1017]", data.displayname)
-                    : console.error(`[activityStatsChecker]`, "[Error code: 1016]", e.error?.stack || e.error || e, data.displayname, e.statusCode);
+                    : console.error("[activityStatsChecker] [Error code: 1016]", e.error?.stack || e.error || e, data.displayname, e.statusCode);
             });
         }
         else {

@@ -13,19 +13,17 @@ import { Op } from "sequelize";
 const noDataRaids = new Set();
 export const raidBlacklist = new Map();
 const raidAnnounceSet = new Set();
-BotClient.once("ready", () => {
-    raids
-        .findAll({
-        where: {
-            [Op.and]: [
-                { time: { [Op.gt]: Math.trunc(new Date().getTime() / 1000) } },
-                { time: { [Op.lt]: Math.trunc(new Date().getTime() / 1000 + 24 * 60 * 60) } },
-            ],
-        },
-    })
-        .then((raids) => {
-        raids.forEach((raidData) => raidAnnounceSystem(raidData));
-    });
+raids
+    .findAll({
+    where: {
+        [Op.and]: [
+            { time: { [Op.gt]: Math.trunc(new Date().getTime() / 1000) } },
+            { time: { [Op.lt]: Math.trunc(new Date().getTime() / 1000 + 24 * 60 * 60) } },
+        ],
+    },
+})
+    .then((raids) => {
+    raids.forEach((raidData) => raidAnnounceSystem(raidData));
 });
 async function raidChallenges(raidData, inChnMsg, startTime, difficulty) {
     if (difficulty > 2)
@@ -101,7 +99,7 @@ export async function raidDataInChnMsg(raidData) {
                 setTimeout(() => raidDataInChnMsg(raidData), 60 * 1000 * 5);
             }
             if (member?.roles.cache.has(statusRoles.verified)) {
-                return `Данные <@${userId}> не были закеширован - в течение 5-ти минут они обновятся`;
+                return `Данные <@${userId}> не были закешированы - в течение 5-ти минут они обновятся`;
             }
             else {
                 return `<@${userId}> не зарегистрирован`;
@@ -183,6 +181,7 @@ export async function timerConverter(time, data) {
 }
 async function raidAnnounceSystem(raidData) {
     if (!raidAnnounceSet.has(raidData.id)) {
+        console.debug(`DEBUG: ${raidData.id} added to raidAnnounceSystem, ${raidData.time - Math.trunc(new Date().getTime() / 1000) - 60 * 15}`);
         raidAnnounceSet.add(raidData.id);
         const time = raidData.time - Math.trunc(new Date().getTime() / 1000);
         if (time <= 60 * 60 * 24)
