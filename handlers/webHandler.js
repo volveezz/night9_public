@@ -12,6 +12,7 @@ export async function fetchRequest(url, auth_data) {
         : url.startsWith("/")
             ? url.slice(1)
             : url;
+    console.debug(auth_data && auth_data.access_token ? `Bearer ${auth_data.access_token.length} ${auth_data}` : `No auth for request ${auth_data}`);
     const response = await (await fetch(`http://www.bungie.net/${cleanUrl}`, {
         headers: { "X-API-KEY": process.env.XAPI, Authorization: auth_data && auth_data.access_token ? `Bearer ${auth_data.access_token}` : "" },
     }))
