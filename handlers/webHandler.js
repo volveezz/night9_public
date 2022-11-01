@@ -6,14 +6,12 @@ import { statusRoles } from "../base/roles.js";
 import { clan_joinLeave } from "./logger.js";
 import { BotClient as client } from "../index.js";
 import fetch from "node-fetch";
-var reqs = 0;
 export async function fetchRequest(url, auth_data) {
     const cleanUrl = url.startsWith("https://bungie.net/") || url.startsWith("https://www.bungie.net/")
         ? console.error("[Error code: 1025]", "Wrong url", url)
         : url.startsWith("/")
             ? url.slice(1)
             : url;
-    reqs++;
     const response = await (await fetch(`http://www.bungie.net/${cleanUrl}`, {
         headers: { "X-API-KEY": process.env.XAPI, Authorization: auth_data && auth_data.access_token ? `Bearer ${auth_data.access_token}` : "" },
     }))
@@ -24,7 +22,6 @@ export async function fetchRequest(url, auth_data) {
     });
     return response?.Response ? response?.Response : response;
 }
-setInterval(() => console.log(reqs), 60 * 1000);
 export default async (code, state, res) => {
     const json = await init_data.findOne({ where: { state: state } });
     if (!json)
