@@ -18,14 +18,14 @@ export async function fetchRequest(url, auth_data) {
         .json()
         .catch((e) => {
         console.error("[Error code: 1049]", e);
-        throw { name: "Критическая ошибка" };
+        throw { name: "[Error code: 1052] Критическая ошибка" };
     });
     return response?.Response ? response?.Response : response;
 }
 export default async (code, state, res) => {
     const json = await init_data.findOne({ where: { state: state } });
     if (!json)
-        return console.error("No data found", code, state);
+        return console.error("[Error code: 1053] No data found", code, state);
     if (json.discord_id) {
         const form = new URLSearchParams();
         form.append("grant_type", "authorization_code");

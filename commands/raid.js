@@ -181,7 +181,6 @@ export async function timerConverter(time, data) {
 }
 async function raidAnnounceSystem(raidData) {
     if (!raidAnnounceSet.has(raidData.id)) {
-        console.debug(`DEBUG: ${raidData.id} added to raidAnnounceSystem, ${raidData.time - Math.trunc(new Date().getTime() / 1000) - 60 * 15}`);
         raidAnnounceSet.add(raidData.id);
         const time = raidData.time - Math.trunc(new Date().getTime() / 1000);
         if (time <= 60 * 60 * 24)

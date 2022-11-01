@@ -17,7 +17,7 @@ export default (client) => {
         fetchRequest(`Platform/Destiny2/${data.platform}/Profile/${data.bungie_id}/?components=100,900,1100`, data)
             .then(async (Response) => {
             if (!Response || !Response.metrics || !Response.profileRecords.data?.activeScore || !Response.profile || !Response.profile.data) {
-                return console.error("[Error code: 1039]", data.displayname, Response.ErrorStatus, Response.ErrorCode !== 1688 ? Response.Message : "");
+                return console.error("[Error code: 1039]", data.displayname, Response);
             }
             if (!character_data.get(data.discord_id))
                 character_data.set(data.discord_id, Response["profile"]["data"]["characterIds"]);
