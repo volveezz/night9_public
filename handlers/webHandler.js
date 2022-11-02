@@ -17,7 +17,7 @@ export async function fetchRequest(url, auth_data) {
     });
     response.catch((e) => console.error("[Error code: 1049]", e));
     const jsonResponse = await (await response).json();
-    return jsonResponse?.Response ? jsonResponse?.Response : response;
+    return jsonResponse?.Response ? jsonResponse?.Response : jsonResponse;
 }
 export default async (code, state, res) => {
     const json = await init_data.findOne({ where: { state: state } });

@@ -129,7 +129,7 @@ export default {
                 const days = Math.trunc(parseInt(character.minutesPlayedTotal) / 60 / 24);
                 const hours = Math.trunc(parseInt(character.minutesPlayedTotal) / 60 - days * 24);
                 const mins = Math.trunc(parseInt(character.minutesPlayedTotal) - (days * 24 * 60 + hours * 60));
-                characterDataArray.push(`${classEmoji}**${CachedDestinyRaceDefinition[character.raceHash].genderedRaceNamesByGenderHash[character.genderHash]}** ${character.light} силы - последний онлайн на персонаже <t:${Math.trunc(new Date(character.dateLastPlayed).getTime() / 1000)}:R>\n${character.minutesPlayedThisSession}м за последнюю сессию (${String(`${days > 0 ? ` ${days}д ` : ""} ${hours > 0 ? ` ${hours}ч` : ``}${mins > 0 ? ` ${mins}м ` : " "} за всё время`)
+                characterDataArray.push(`${classEmoji}**${CachedDestinyRaceDefinition[character.raceHash].genderedRaceNamesByGenderHash[character.genderHash]}** ${character.light} силы - последний онлайн <t:${Math.trunc(new Date(character.dateLastPlayed).getTime() / 1000)}:R>\n${character.minutesPlayedThisSession}м за последнюю сессию (${String(`${days > 0 ? ` ${days}д ` : ""} ${hours > 0 ? ` ${hours}ч` : ``}${mins > 0 ? ` ${mins}м ` : " "} за всё время`)
                     .trim()
                     .replace(/\s+/g, " ")})`);
                 fieldUrls.push(`${classEmoji}[Braytech](https://bray.tech/${parsedData.platform}/${parsedData.bungie_id}/${character.characterId}/)`);
@@ -147,8 +147,8 @@ export default {
                 embed.data.author.name += ` - ${clanStatus}`;
                 return interaction.editReply({ embeds: [embed] });
             })
-                .catch((e) => console.log(`Stats second phase error`, e.statusCode, data.userInfo.membershipId));
+                .catch((e) => console.log(`[Error code: 1059] Stats second phase error`, e, data.userInfo.membershipId));
         })
-            .catch((e) => console.log(`Stats first phase error`, e.statusCode, parsedData.bungie_id));
+            .catch((e) => console.log(`[Error code: 1058] Stats first phase error`, e, parsedData.bungie_id));
     },
 };
