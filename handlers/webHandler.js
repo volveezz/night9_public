@@ -6,14 +6,21 @@ import { statusRoles } from "../base/roles.js";
 import { clan_joinLeave } from "./logger.js";
 import { BotClient as client } from "../index.js";
 import fetch from "node-fetch";
-export async function fetchRequest(url, auth_data) {
+export async function fetchRequest(url, authorizationData) {
     const cleanUrl = url.startsWith("https://bungie.net/") || url.startsWith("https://www.bungie.net/")
         ? console.error("[Error code: 1025]", "Wrong url", url)
         : url.startsWith("/")
             ? url.slice(1)
             : url;
+    const auth = authorizationData instanceof auth_data && authorizationData.access_token
+        ? `Bearer ${authorizationData.access_token}`
+        : typeof authorizationData === "object" && !(authorizationData instanceof auth_data)
+            ? Object.keys(authorizationData).includes("access_token")
+                ? `Bearer ${authorizationData.access_token}`
+                : ""
+            : "";
     const response = fetch(`http://www.bungie.net/${cleanUrl}`, {
-        headers: { "X-API-KEY": process.env.XAPI, Authorization: auth_data && auth_data.access_token ? `Bearer ${auth_data.access_token}` : "" },
+        headers: { "X-API-KEY": process.env.XAPI, Authorization: auth },
     });
     response.catch((e) => console.error("[Error code: 1049]", e));
     const jsonResponse = await (await response).json();
