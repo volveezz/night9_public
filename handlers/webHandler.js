@@ -19,6 +19,7 @@ export async function fetchRequest(url, authorizationData) {
                 ? `Bearer ${authorizationData.access_token}`
                 : ""
             : "";
+    console.debug(`DEBUG:`, auth);
     const response = fetch(`http://www.bungie.net/${cleanUrl}`, {
         headers: { "X-API-KEY": process.env.XAPI, Authorization: auth },
     });
