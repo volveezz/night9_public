@@ -49,6 +49,7 @@ export default async (code, state, res) => {
                 res.send(`<script>location.replace('error.html')</script>`);
                 return console.error(`[Error code: 1034] State: ${state} / Code: ${code}`, body);
             }
+            console.debug(`DEBUG:`, request, body);
             function getData() {
                 return request.destinyMemberships.map((membership) => {
                     if (membership.crossSaveOverride === membership.membershipType) {
