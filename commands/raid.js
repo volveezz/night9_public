@@ -112,7 +112,9 @@ export async function raidDataInChnMsg(raidData) {
         raidUserData.dsc > 0 ? raidClears.push(`${raidUserData.dsc} СГК`) : "";
         raidUserData.gos > 0 ? raidClears.push(`${raidUserData.gos} СС`) : "";
         raidUserData.lw > 0 ? raidClears.push(`${raidUserData.lw} ПЖ`) : "";
-        return `${raidClears.length > 0 ? `${member?.displayName} завершил: ${raidClears.join(", ")}` : `${member?.displayName} не проходил ранее рейды`}`;
+        return `${raidClears.length > 0
+            ? `${member?.displayName.replace(/\[[+](?:\d|\d\d)]/, "")} завершил: ${raidClears.join(", ")}`
+            : `${member?.displayName.replace(/\[[+](?:\d|\d\d)]/, "")} не проходил ранее рейды`}`;
     }
     const joined = raidData.joined.map((userId) => raidUserDataManager(userId));
     const hotJoined = raidData.hotJoined.map((userId) => raidUserDataManager(userId));
