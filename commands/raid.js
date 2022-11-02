@@ -205,7 +205,7 @@ async function raidAnnounce(oldRaidData) {
         .map((member, i) => {
         const userRaidClears = completedRaidsData.get(member.id);
         return `${i + 1 + ". **" + member.displayName.replace(/\[[+](?:\d|\d\d)]/, "")}**${userRaidClears
-            ? `— ${userRaidClears[raidData.raid]}${raidInfo?.maxDifficulty >= 2 ? `(${userRaidClears[(raidData.raid += "Master")]})` : ""} закрытий рейда`
+            ? `— ${userRaidClears[raidData.raid]}${raidInfo?.maxDifficulty >= 2 ? `(${userRaidClears[raidData.raid + "Master"]})` : ""} закрытий рейда`
             : ""} `;
     });
     const embed = new EmbedBuilder()
