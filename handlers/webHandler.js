@@ -19,7 +19,6 @@ export async function fetchRequest(url, authorizationData) {
                 ? `Bearer ${authorizationData.access_token}`
                 : ""
             : "";
-    console.debug(`DEBUG:`, auth);
     const response = fetch(`http://www.bungie.net/${cleanUrl}`, {
         headers: { "X-API-KEY": process.env.XAPI, Authorization: auth },
     });
@@ -52,11 +51,14 @@ export default async (code, state, res) => {
             return console.error(`${body.error_description} for: ${state}\nCode:${code}`);
         }
         else {
-            const request = await fetchRequest(`Platform/User/GetMembershipsForCurrentUser/`, body);
-            if (!request) {
+            const unfetchRequest = await (await fetch(`Platform/User/GetMembershipsForCurrentUser/`, {
+                headers: { "X-API-KEY": process.env.XAPI, Authorization: `Bearer ${body.access_token}` },
+            })).json();
+            if (!unfetchRequest) {
                 res.send(`<script>location.replace('error.html')</script>`);
                 return console.error(`[Error code: 1034] State: ${state} / Code: ${code}`, body);
             }
+            const request = unfetchRequest;
             console.debug(`DEBUG:`, request, body);
             function getData() {
                 return request.destinyMemberships.map((membership) => {
