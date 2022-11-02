@@ -1,4 +1,4 @@
-import { ButtonBuilder, ButtonStyle, ComponentType, DiscordAPIError, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
 import { colors } from "../base/colors.js";
 import { ids, guildId } from "../base/ids.js";
 import { db, discord_activities, lost_data, raids, auth_data } from "./sequelize.js";
@@ -258,23 +258,6 @@ export async function clan_joinLeave(result, join) {
 }
 export default (client) => {
     const voiceUsers = new Map();
-    process.on("unhandledRejection", (error) => {
-        if (error instanceof DiscordAPIError) {
-            if (error.code === 50035) {
-                const err = error;
-                console.error("[Error code: 1026]", `Discord embed error`, err, err.message, err.requestBody.json?.embeds[0]);
-            }
-            else {
-                console.error(`Discord API error promise rejection`, error);
-            }
-        }
-        else {
-            console.error(`Promise rejection`, error);
-        }
-    });
-    process.on("uncaughtException", (error) => {
-        console.error("Unhandled exception:", error);
-    });
     client.on("guildMemberAdd", async (member) => {
         welcomeMessage(client, member);
         const embed = new EmbedBuilder()

@@ -48,7 +48,7 @@ export default async (client, commandDir, eventsDir) => {
                     .join(" ")
                 : "no options");
             try {
-                commands[commandName].callback(client, interaction, member, guild, channel).catch((err) => {
+                commands[commandName].callback(client, interaction, member, guild, channel).catch(async (err) => {
                     const embed = new EmbedBuilder().setColor("Red");
                     console.error(`[Error code: 1027] Slash command error. Reply to`, member.displayName, err);
                     if (!err.stack && err.name) {
@@ -65,6 +65,8 @@ export default async (client, commandDir, eventsDir) => {
                                     ? `DB error ${err.parent?.code}`
                                     : `Error ${err.name}`}`);
                     }
+                    if (err.deferredReply)
+                        await err.deferredReply;
                     (interaction.replied || interaction.deferred
                         ? interaction.editReply({ embeds: [embed] })
                         : interaction.reply({ embeds: [embed], ephemeral: true }))
@@ -90,14 +92,18 @@ export default async (client, commandDir, eventsDir) => {
                 : client.guilds.cache.get(guildId)?.members.cache.get(interaction.user.id);
             const memberName = member.displayName;
             console.log(memberName, `used ${customId}${interaction.channel && !interaction.channel.isDMBased() ? ` at ${interaction.channel.name}` : ""}`);
-            events[commandName].callback(client, interaction, member, interaction.guild, interaction.channel).catch((e) => {
+            events[commandName].callback(client, interaction, member, interaction.guild, interaction.channel).catch(async (e) => {
                 console.error(commandName, "Button [Error code: 1028]", e.stack || e);
                 const embed = new EmbedBuilder().setColor("Red");
                 embed.setTitle(e?.name);
                 e && e.message && e.message !== undefined && typeof e.message === "string" && e.message.length > 5 ? embed.setDescription(e.message) : [];
-                interaction.reply({ ephemeral: true, embeds: [embed] }).catch((e) => {
+                if (e.deferredReply)
+                    await e.deferredReply;
+                (interaction.replied || interaction.deferred
+                    ? interaction.followUp({ embeds: [embed], ephemeral: true })
+                    : interaction.reply({ embeds: [embed], ephemeral: true })).catch(async (e) => {
                     console.error("[Error code: 1046]", e);
-                    interaction.followUp({ ephemeral: true, embeds: [embed] }).catch((er) => console.error("[Error code: 1047]", er));
+                    return interaction.followUp({ ephemeral: true, embeds: [embed] }).catch((er) => console.error("[Error code: 1047]", er));
                 });
             });
         }

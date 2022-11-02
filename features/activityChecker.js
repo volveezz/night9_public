@@ -30,13 +30,11 @@ export default (client) => {
                 async function activities() {
                     const response = fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Character/${character}/Stats/Activities/?count=2&mode=${mode}&page=0`, data);
                     response.catch((e) => {
-                        e.code === "EPROTO"
+                        return e.code === "EPROTO"
                             ? console.error("EPROTO ActivityChecker", member.displayName)
                             : console.error("[Error code: 1040] [activityChecker]", e.stack);
-                        throw { name: "[Error code: 1054] Критическая ошибка" };
                     });
-                    const fetchedResponse = await response;
-                    return fetchedResponse;
+                    return response.then((fetchedResponse) => fetchedResponse);
                 }
                 async function checker() {
                     const response = await activities();

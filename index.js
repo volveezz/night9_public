@@ -1,4 +1,4 @@
-import { GatewayIntentBits, Client, Partials, ActivityType } from "discord.js";
+import { GatewayIntentBits, Client, Partials, ActivityType, DiscordAPIError } from "discord.js";
 import "dotenv/config";
 import { resolve, join } from "path";
 import express from "express";
@@ -18,6 +18,18 @@ const client = new Client({
     ],
     partials: [Partials.GuildMember, Partials.Channel, Partials.Message, Partials.User],
 });
+process.on("unhandledRejection", (error) => {
+    if (error instanceof DiscordAPIError) {
+        if (error.code === 50035) {
+            console.error("[Error code: 1026] Discord embed error", error, error.message, error.requestBody.json);
+        }
+        else
+            console.error(`[Error code: 1057] Discord API error promise rejection`, error);
+    }
+    else
+        console.error(`[Error code: 1056] Promise rejection`, error);
+});
+process.on("uncaughtException", (error) => console.error("[Error code: 1055] Unhandled exception:", error));
 client.on("ready", async (client) => {
     console.log(`${client.user?.username} is ready since ${new Date().toLocaleTimeString()}`);
     client.user.setActivity(`Restarting...`, { type: ActivityType.Competing });

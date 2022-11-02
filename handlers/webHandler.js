@@ -12,15 +12,12 @@ export async function fetchRequest(url, auth_data) {
         : url.startsWith("/")
             ? url.slice(1)
             : url;
-    const response = await (await fetch(`http://www.bungie.net/${cleanUrl}`, {
+    const response = fetch(`http://www.bungie.net/${cleanUrl}`, {
         headers: { "X-API-KEY": process.env.XAPI, Authorization: auth_data && auth_data.access_token ? `Bearer ${auth_data.access_token}` : "" },
-    }))
-        .json()
-        .catch((e) => {
-        console.error("[Error code: 1049]", e);
-        throw { name: "[Error code: 1052] Критическая ошибка" };
     });
-    return response?.Response ? response?.Response : response;
+    response.catch((e) => console.error("[Error code: 1049]", e));
+    const jsonResponse = await (await response).json();
+    return jsonResponse?.Response ? jsonResponse?.Response : response;
 }
 export default async (code, state, res) => {
     const json = await init_data.findOne({ where: { state: state } });

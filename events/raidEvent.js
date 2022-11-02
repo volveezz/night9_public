@@ -14,19 +14,19 @@ async function joinInChnMsg(member, how, chnId, guild, was) {
     switch (how) {
         case "join":
             embed.setColor("Green").setAuthor({
-                name: `${member.displayName} записался на рейд${was ? (was === "alt" ? " ранее будучи возможным участником" : was === "hotJoined" ? " ранее будучи в запасе" : "") : ""}`,
+                name: `${member.displayName.replace(/\[[+](?:\d|\d\d)]/, "")} записался на рейд${was ? (was === "alt" ? " ранее будучи возможным участником" : was === "hotJoined" ? " ранее будучи в запасе" : "") : ""}`,
                 iconURL: member.displayAvatarURL(),
             });
             break;
         case "alt":
             embed.setColor("Yellow").setAuthor({
-                name: `${member.displayName} записался на рейд как возможный участник${was ? (was === "join" ? " ранее будучи участником" : was === "hotJoined" ? " ранее будучи в запасе" : "") : ""}`,
+                name: `${member.displayName.replace(/\[[+](?:\d|\d\d)]/, "")} записался на рейд как возможный участник${was ? (was === "join" ? " ранее будучи участником" : was === "hotJoined" ? " ранее будучи в запасе" : "") : ""}`,
                 iconURL: member.displayAvatarURL(),
             });
             break;
         case "leave":
             embed.setColor("Red").setAuthor({
-                name: `${member.displayName} покинул рейд${was
+                name: `${member.displayName.replace(/\[[+](?:\d|\d\d)]/, "")} покинул рейд${was
                     ? was === "join"
                         ? " ранее будучи участником"
                         : was === "alt"
@@ -41,7 +41,10 @@ async function joinInChnMsg(member, how, chnId, guild, was) {
         case "hotJoined":
             embed
                 .setColor("DarkGreen")
-                .setAuthor({ name: `${member.displayName} записался на рейд, но был записан в запас`, iconURL: member.displayAvatarURL() });
+                .setAuthor({
+                name: `${member.displayName.replace(/\[[+](?:\d|\d\d)]/, "")} записался на рейд, но был записан в запас`,
+                iconURL: member.displayAvatarURL(),
+            });
             break;
     }
     chnFetcher(chnId).send({ embeds: [embed] });
@@ -53,7 +56,7 @@ async function joinedFromHotJoined(raidData, userId, guild) {
     if (!member)
         return console.error(`joinedFromHotJoined error, member wasnt found`, userId, guild, raidData);
     const embed = new EmbedBuilder().setColor("Orange").setAuthor({
-        name: member.displayName + " был автоматически записан в основной состав ранее будучи в запасе",
+        name: member.displayName.replace(/\[[+](?:\d|\d\d)]/, "") + " был автоматически записан в основной состав ранее будучи в запасе",
         iconURL: member.displayAvatarURL(),
     });
     chnFetcher(raidData.chnId).send({ embeds: [embed] });

@@ -9,6 +9,7 @@ export const completedRaidsData = new Map();
 export const character_data = new Map();
 export const longOffline = new Set();
 const clanJoinDateCheck = new Set();
+const throttleSet = new Set();
 export default (client) => {
     if (guildId === "1007814171267707001")
         return;
@@ -17,6 +18,9 @@ export default (client) => {
         fetchRequest(`Platform/Destiny2/${data.platform}/Profile/${data.bungie_id}/?components=100,900,1100`, data)
             .then(async (Response) => {
             if (!Response || !Response.metrics || !Response.profileRecords.data?.activeScore || !Response.profile || !Response.profile.data) {
+                const ErrorResponse = Response;
+                if (ErrorResponse?.ErrorCode === 1688 || ErrorResponse?.ErrorCode === 1672)
+                    throttleSet.add(member.id);
                 return console.error("[Error code: 1039]", data.displayname, Response);
             }
             if (!character_data.get(data.discord_id))
@@ -658,6 +662,8 @@ export default (client) => {
             return console.error(`[Checker] [Error code: 1022] DB is ${db_plain?.length === 0 ? "empty" : `${db_plain?.length} length`} or missing data`);
         for (let i = 0; i < db_plain.length; i++) {
             const db_row = db_plain[i];
+            if (throttleSet.has(db_row.discord_id))
+                return throttleSet.delete(db_row.discord_id);
             const member = client.guilds.cache.get(guildId)?.members.cache.get(db_row.discord_id);
             if (!member) {
                 await client.guilds.cache.get(guildId)?.members.fetch();
