@@ -51,7 +51,7 @@ export default async (code, state, res) => {
             return console.error(`${body.error_description} for: ${state}\nCode:${code}`);
         }
         else {
-            const unfetchRequest = await (await fetch(`Platform/User/GetMembershipsForCurrentUser/`, {
+            const unfetchRequest = await (await fetch(`https://www.bungie.net/Platform/User/GetMembershipsForCurrentUser/`, {
                 headers: { "X-API-KEY": process.env.XAPI, Authorization: `Bearer ${body.access_token}` },
             })).json();
             if (!unfetchRequest) {
