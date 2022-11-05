@@ -20,7 +20,7 @@ export default (client) => {
                 .catch((e) => {
                 e.statusCode === 401 || e.statusCode === 503 || e.statusCode === 500
                     ? console.error(`[activityChecker web ${e.statusCode} error] [Error code: 1003]`, data.displayname)
-                    : console.error("[activityChecker] [Error code: 1002]", e.error, data.displayname, e.statusCode);
+                    : console.error("[activityChecker] [Error code: 1002]", e.error || e, data.displayname, e.statusCode || "");
                 throw { name: "Критическая ошибка" };
             });
         }
@@ -32,7 +32,7 @@ export default (client) => {
                     response.catch((e) => {
                         return e.code === "EPROTO"
                             ? console.error("EPROTO ActivityChecker", member.displayName)
-                            : console.error("[Error code: 1040] [activityChecker]", e.stack);
+                            : console.error("[Error code: 1040] [activityChecker]", e);
                     });
                     return response.then((fetchedResponse) => fetchedResponse);
                 }

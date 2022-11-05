@@ -40,7 +40,7 @@ export default () => {
                 })
                     .then((query) => {
                     if (!query || query[0] !== 1)
-                        console.error(`[Error code: 1031] [tokenGen] DB query error for`, row.bungie_id, request.toString(), query);
+                        console.error(`[Error code: 1031] [tokenGen] DB query error for`, row.bungie_id, request, query);
                 });
             }
             await timer(150);

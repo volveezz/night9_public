@@ -21,7 +21,8 @@ export default (client) => {
                 const ErrorResponse = Response;
                 if (ErrorResponse?.ErrorCode === 1688 || ErrorResponse?.ErrorCode === 1672)
                     throttleSet.add(member.id);
-                return console.error("[Error code: 1039]", data.displayname, Response);
+                ErrorResponse.MessageData && ErrorResponse.MessageData.length === 0 ? delete ErrorResponse.MessageData : "";
+                return console.error("[Error code: 1039]", data.displayname, ErrorResponse);
             }
             if (!character_data.get(data.discord_id))
                 character_data.set(data.discord_id, Response["profile"]["data"]["characterIds"]);
@@ -380,8 +381,8 @@ export default (client) => {
         })
             .catch((e) => {
             e.statusCode === 401 || e.statusCode === 503 || e.statusCode === 500
-                ? console.error(`roleManager ${e.statusCode} error`, data.displayname)
-                : console.error(`roleManager`, e.error?.stack || e.error || e, data.displayname, e.statusCode || e);
+                ? console.error(`[Error code: 1065] roleManager ${e.statusCode} error`, data.displayname)
+                : console.error(`[Error code: 1066] roleManager`, e.error?.stack || e.error || e, data.displayname, e.statusCode || e);
         });
     }
     function name_change(discord_id, name) {
@@ -653,13 +654,15 @@ export default (client) => {
         }
         const dbNotFoundUsers = dbNotFiltred
             .filter((data) => !client.guilds.cache.get(guildId)?.members.cache.has(data.discord_id))
-            .map((d) => {
-            return `${d.displayname}/${d.discord_id} not found on server, [Error code: 1021]`;
+            .map((val, ind) => {
+            return ind < 5 ? `${val.displayname}/${val.discord_id} not found on server, [Error code: 1021]` : null;
         });
-        dbNotFoundUsers.length > 0 ? console.error(dbNotFoundUsers) : [];
-        const db_plain = dbNotFiltred.filter((data) => client.guilds.cache.get(guildId)?.members.cache.has(data.discord_id));
-        if (!db_plain || db_plain.length === 0)
+        dbNotFoundUsers.length > 0 ? console.error(dbNotFoundUsers.filter((val, ind) => ind < 5)) : [];
+        const db_plain = dbNotFiltred.filter((data) => client.guilds.cache.get(guildId).members.cache.has(data.discord_id));
+        if (!db_plain || db_plain.length === 0) {
+            await client.guilds.cache.get(guildId).members.fetch();
             return console.error(`[Checker] [Error code: 1022] DB is ${db_plain?.length === 0 ? "empty" : `${db_plain?.length} length`} or missing data`);
+        }
         for (let i = 0; i < db_plain.length; i++) {
             const db_row = db_plain[i];
             if (throttleSet.has(db_row.discord_id))

@@ -48,9 +48,9 @@ export default async (client, commandDir, eventsDir) => {
                     .join(" ")
                 : "no options");
             try {
-                commands[commandName].callback(client, interaction, member, guild, channel).catch(async (err) => {
+                commands[commandName].callback(client, interaction, member, guild, channel).catch((err) => {
                     const embed = new EmbedBuilder().setColor("Red");
-                    console.error(`[Error code: 1027] Slash command error. Reply to`, member.displayName, err);
+                    console.error(`[Error code: 1027] Slash command error. Reply to ${member.displayName}\n`, err);
                     if (!err.stack && err.name) {
                         embed.setTitle(err.name);
                         if (err.message)
@@ -65,13 +65,11 @@ export default async (client, commandDir, eventsDir) => {
                                     ? `DB error ${err.parent?.code}`
                                     : `Error ${err.name}`}`);
                     }
-                    if (err.deferredReply)
-                        await err.deferredReply;
-                    (interaction.replied || interaction.deferred
+                    (err.interaction?.replied || interaction.replied || err.interaction?.deferred || interaction.deferred
                         ? interaction.editReply({ embeds: [embed] })
                         : interaction.reply({ embeds: [embed], ephemeral: true }))
                         .catch((e) => {
-                        console.error("[Error code: 1050]", e);
+                        e.code === 40060 ? "" : console.error("[Error code: 1050]", e);
                         return interaction.followUp({ embeds: [embed], ephemeral: true });
                     })
                         .catch((e) => console.error("[Error code: 1048]", e));

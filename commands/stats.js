@@ -1,6 +1,6 @@
 import { ButtonBuilder, EmbedBuilder, ApplicationCommandOptionType, ChatInputCommandInteraction, ButtonStyle, ComponentType, } from "discord.js";
 import { fetchRequest } from "../handlers/webHandler.js";
-import { auth_data } from "../handlers/sequelize.js";
+import { auth_data, discord_activities } from "../handlers/sequelize.js";
 import fetch from "node-fetch";
 import { CachedDestinyRaceDefinition } from "../handlers/manifestHandler.js";
 export default {
@@ -85,6 +85,7 @@ export default {
             where: {
                 discord_id: targetId,
             },
+            include: discord_activities,
             attributes: ["platform", "bungie_id", "access_token"],
         });
         if (!parsedData)
@@ -103,6 +104,26 @@ export default {
             new ButtonBuilder().setCustomId("statsEvent_old_events").setLabel("Статистика старых ивентов").setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId("statsEvent_pinnacle").setLabel("Доступная сверхмощка").setStyle(ButtonStyle.Secondary),
         ];
+        if (parsedData.discord_activity) {
+            const vcTime = new Date(parsedData.discord_activity.voice * 1000)
+                .toISOString()
+                .substring(8, 19)
+                .replace("T", "д ")
+                .replace(":", "ч ")
+                .replace(":", "м ") + "с";
+            embed.addFields([
+                {
+                    name: "Статистика на сервере",
+                    value: `Отправлено сообщений: ${parsedData.discord_activity.messages}\nВ голосовых каналах: ${vcTime}`,
+                    inline: true,
+                },
+                {
+                    name: "Статистика в игре",
+                    value: `Пройдено рейдов с сокланами: ${parsedData.discord_activity.raids}\nПройдено подземелий с сокланами: ${parsedData.discord_activity.dungeons}`,
+                    inline: true,
+                },
+            ]);
+        }
         interaction.editReply({
             embeds: [embed],
             components: optionId ? undefined : [{ type: ComponentType.ActionRow, components: components }],
