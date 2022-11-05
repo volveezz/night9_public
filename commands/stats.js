@@ -105,16 +105,18 @@ export default {
             new ButtonBuilder().setCustomId("statsEvent_pinnacle").setLabel("Доступная сверхмощка").setStyle(ButtonStyle.Secondary),
         ];
         if (parsedData.discord_activity) {
-            const vcTime = new Date(parsedData.discord_activity.voice * 1000)
+            let vcTime = new Date(parsedData.discord_activity.voice * 1000)
                 .toISOString()
                 .substring(8, 19)
                 .replace("T", "д ")
                 .replace(":", "ч ")
                 .replace(":", "м ") + "с";
+            let vcTimeArr = vcTime.split("");
+            vcTimeArr[1] = String(parseInt(vcTimeArr[1]) - 1);
             embed.addFields([
                 {
                     name: "Статистика на сервере",
-                    value: `Отправлено сообщений: ${parsedData.discord_activity.messages}\nВ голосовых каналах: ${vcTime}`,
+                    value: `Отправлено сообщений: ${parsedData.discord_activity.messages}\nВ голосовых каналах: ${vcTimeArr.join("")}`,
                     inline: true,
                 },
                 {
