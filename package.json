@@ -1,8 +1,8 @@
 {
 	"name": "nightfuture",
-	"version": "1.5.4.3",
+	"version": "1.5.4.4",
 	"engines": {
-		"node": "19.0.0"
+		"node": "19.0.1"
 	},
 	"type": "module",
 	"description": "Discord bot for Destiny 2 clans Night 9 & Sunlight",

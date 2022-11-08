@@ -34,7 +34,7 @@ export default async (client, commandDir, eventsDir) => {
             const member = memberPre instanceof GuildMember ? memberPre : await guild.members.fetch(memberPre.user.id);
             if (!commands[commandName])
                 return;
-            console.log(member.displayName, `used`, commandName, interaction instanceof ChatInputCommandInteraction && interaction.options.data.some((d) => d.type === 1)
+            console.log(`${member.displayName} used ${commandName}`, interaction instanceof ChatInputCommandInteraction && interaction.options.data.some((d) => d.type === 1)
                 ? interaction.options.getSubcommand()
                 : "", interaction?.options?.data
                 ? interaction.options.data
@@ -88,21 +88,22 @@ export default async (client, commandDir, eventsDir) => {
             const member = interaction.member instanceof GuildMember
                 ? interaction.member
                 : client.guilds.cache.get(guildId)?.members.cache.get(interaction.user.id);
-            const memberName = member.displayName;
-            console.log(memberName, `used ${customId}${interaction.channel && !interaction.channel.isDMBased() ? ` at ${interaction.channel.name}` : ""}`);
+            console.log(`${member.displayName} used ${customId}${interaction.channel && !interaction.channel.isDMBased() ? ` at ${interaction.channel.name}` : ""}`);
             events[commandName].callback(client, interaction, member, interaction.guild, interaction.channel).catch(async (e) => {
                 console.error(commandName, "Button [Error code: 1028]", e.stack || e);
                 const embed = new EmbedBuilder().setColor("Red");
                 embed.setTitle(e?.name);
-                e && e.message && e.message !== undefined && typeof e.message === "string" && e.message.length > 5 ? embed.setDescription(e.message) : [];
+                e && e.message && typeof e.message === "string" && e.message.length > 5 ? embed.setDescription(e.message) : [];
                 if (e.deferredReply)
                     await e.deferredReply;
-                (interaction.replied || interaction.deferred
-                    ? interaction.followUp({ embeds: [embed], ephemeral: true })
-                    : interaction.reply({ embeds: [embed], ephemeral: true })).catch(async (e) => {
-                    console.error("[Error code: 1046]", e);
-                    return interaction.followUp({ ephemeral: true, embeds: [embed] }).catch((er) => console.error("[Error code: 1047]", er));
-                });
+                (e.interaction?.replied || interaction.replied || e.interaction?.deferred || interaction.deferred
+                    ? interaction.editReply({ embeds: [embed] })
+                    : interaction.reply({ embeds: [embed], ephemeral: true }))
+                    .catch((e) => {
+                    e.code === 40060 ? "" : console.error("[Error code: 1046]", e);
+                    return interaction.followUp({ embeds: [embed], ephemeral: true });
+                })
+                    .catch((e) => console.error("[Error code: 1079]", e));
             });
         }
         else if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {

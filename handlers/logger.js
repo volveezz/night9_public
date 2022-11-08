@@ -188,12 +188,12 @@ export async function activityReporter(pgcrId) {
                                 },
                             ],
                         })
-                            .catch((e) => console.error(`acitvityReporter final error`, e));
+                            .catch((e) => console.error(`[Error code: 1071] acitvityReporter final error`, e));
                     }
                 });
             }
         })
-            .catch((e) => console.log(`activityReporter error`, pgcrId, e, e.statusCode));
+            .catch((e) => console.log(`[Error code: 1072] activityReporter error`, pgcrId, e, e.statusCode));
     }
 }
 export function init_register(state, user, rowCreated) {
@@ -220,7 +220,9 @@ export async function clan_joinLeave(result, join) {
     ]);
     if (member) {
         if (join) {
-            member.roles.add(statusRoles.clanmember).then((m) => m.roles.remove([statusRoles.kicked, statusRoles.newbie, statusRoles.member]));
+            member.roles
+                .add(statusRoles.clanmember, "Clan join")
+                .then((m) => m.roles.remove([statusRoles.kicked, statusRoles.newbie, statusRoles.member]));
             embed
                 .setAuthor({
                 name: `${member.displayName} вступил в клан`,
@@ -229,7 +231,7 @@ export async function clan_joinLeave(result, join) {
                 .setColor("Green");
         }
         else {
-            member.roles.add(statusRoles.kicked).then((m) => m.roles.remove([statusRoles.clanmember, statusRoles.newbie, statusRoles.member]));
+            member.roles.set([statusRoles.kicked, member.roles.cache.has(statusRoles.verified) ? statusRoles.verified : ""], "Clan leave");
             embed
                 .setAuthor({
                 name: `${member.displayName} покинул клан`,

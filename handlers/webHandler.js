@@ -23,9 +23,13 @@ export async function fetchRequest(url, authorizationData) {
         headers: { "X-API-KEY": process.env.XAPI, Authorization: auth },
     });
     const jsonResponse = await (await response).json().catch((e) => {
-        console.error(`[Error code: 1064]`, e);
+        console.error(`[Error code: 1064]\n`, response, "\n", e.stack);
         return undefined;
     });
+    if (jsonResponse.code === "ERPROTO") {
+        console.error(`[Error code: 1082] ERPROTO ${authorizationData?.displayName || ""}`);
+        return undefined;
+    }
     return jsonResponse?.Response ? jsonResponse?.Response : jsonResponse;
 }
 export default async (code, state, res) => {

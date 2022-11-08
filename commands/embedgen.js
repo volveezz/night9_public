@@ -168,7 +168,10 @@ export default {
                         {
                             type: ComponentType.ActionRow,
                             components: [
-                                new ButtonBuilder().setCustomId(`roleChannel_roles_enable_${roleRow}`).setLabel("Переключить").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder()
+                                    .setCustomId(`roleChannel_roles_enable_${roleRow}`)
+                                    .setLabel("Переключить")
+                                    .setStyle(ButtonStyle.Secondary),
                             ],
                         },
                     ];
@@ -260,6 +263,65 @@ export default {
                     interaction.reply({ content: "Success", fetchReply: false, ephemeral: true });
                     return interaction.channel.send({ embeds: [embed], components: components });
                 }
+                case "godmsg1": {
+                    const components = [
+                        {
+                            type: ComponentType.ActionRow,
+                            components: [
+                                new ButtonBuilder().setCustomId(`godEvent_customColor`).setLabel("Установить свой цвет ника").setStyle(ButtonStyle.Primary),
+                                new ButtonBuilder()
+                                    .setCustomId(`godEvent_customColor`)
+                                    .setLabel("Установить свое название роли")
+                                    .setStyle(ButtonStyle.Primary),
+                                new ButtonBuilder().setCustomId(`godEvent_getInvite`).setLabel("Приглашение на альфа-сервер").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder().setCustomId(`godEvent_achatAccess`).setLabel("Получить доступ к а-чату").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder()
+                                    .setCustomId(`godEvent_achatVoiceAccess`)
+                                    .setLabel("Доступ к голосовому а-чату")
+                                    .setStyle(ButtonStyle.Primary),
+                            ],
+                        },
+                        {
+                            type: ComponentType.ActionRow,
+                            components: [
+                                new ButtonBuilder()
+                                    .setCustomId(`godEvent_manifestAccess`)
+                                    .setLabel("Канал с обновлениями базы данных игры")
+                                    .setStyle(ButtonStyle.Primary),
+                                new ButtonBuilder().setCustomId(`godEvent_vchatAccess`).setLabel("Логи голосовых каналов").setStyle(ButtonStyle.Secondary),
+                            ],
+                        },
+                    ];
+                    const embed = new EmbedBuilder()
+                        .setColor("Gold")
+                        .setDescription(`Hex-код для установки собственного цвета роли можно найти [на этом сайте](https://htmlcolorcodes.com/)`);
+                    interaction.channel.send({ embeds: [embed], components: components });
+                    return;
+                }
+                case "godmsg2": {
+                    const components = [
+                        {
+                            type: ComponentType.ActionRow,
+                            components: [
+                                new ButtonBuilder().setCustomId(`godEvent_color_red`).setEmoji(":red_square:").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder().setCustomId(`godEvent_color_white`).setEmoji(":white_large_square:").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder().setCustomId(`godEvent_color_purple`).setEmoji(":purple_square:").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder().setCustomId(`godEvent_color_brown`).setEmoji(":brown_square:").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder().setCustomId(`godEvent_color_blue`).setEmoji(":blue_square:").setStyle(ButtonStyle.Secondary),
+                            ],
+                        },
+                        {
+                            type: ComponentType.ActionRow,
+                            components: [
+                                new ButtonBuilder().setCustomId(`godEvent_color_orange`).setEmoji(":orange_square:").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder().setCustomId(`godEvent_color_green`).setEmoji(":green_square:").setStyle(ButtonStyle.Secondary),
+                            ],
+                        },
+                    ];
+                    const embed = new EmbedBuilder().setColor("DarkVividPink").setTitle("Выберите любой из цветов ника");
+                    interaction.channel.send({ embeds: [embed], components: components });
+                    return;
+                }
             }
             return;
         }
@@ -268,11 +330,15 @@ export default {
         const embed = EmbedBuilder.from(embedCode);
         if (editedEmbedMessageId) {
             (await msgFetcher(channel, editedEmbedMessageId)).edit({ embeds: [embed] });
-            interaction.deferred ? interaction.editReply("Сообщение было изменено") : interaction.reply({ ephemeral: true, content: "Сообщение было изменено" });
+            interaction.deferred
+                ? interaction.editReply("Сообщение было изменено")
+                : interaction.reply({ ephemeral: true, content: "Сообщение было изменено" });
         }
         else {
             channel.send({ embeds: [embed] });
-            interaction.deferred ? interaction.editReply("Сообщение было отправлено") : interaction.reply({ ephemeral: true, content: "Сообщение было изменено" });
+            interaction.deferred
+                ? interaction.editReply("Сообщение было отправлено")
+                : interaction.reply({ ephemeral: true, content: "Сообщение было изменено" });
         }
     },
 };

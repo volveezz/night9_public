@@ -19,9 +19,12 @@ export default (client) => {
             .then(async (Response) => {
             if (!Response || !Response.metrics || !Response.profileRecords.data?.activeScore || !Response.profile || !Response.profile.data) {
                 const ErrorResponse = Response;
-                if (ErrorResponse?.ErrorCode === 1688 || ErrorResponse?.ErrorCode === 1672)
+                if (ErrorResponse?.ErrorCode === 1688 || ErrorResponse?.ErrorCode === 1672) {
+                    console.error(`[Error code: 1081] ${ErrorResponse.ErrorStatus} for ${data.displayname}`);
                     throttleSet.add(member.id);
-                ErrorResponse.MessageData && ErrorResponse.MessageData.length === 0 ? delete ErrorResponse.MessageData : "";
+                    return;
+                }
+                !ErrorResponse.MessageData ? delete ErrorResponse.MessageData : [];
                 return console.error("[Error code: 1039]", data.displayname, ErrorResponse);
             }
             if (!character_data.get(data.discord_id))
@@ -423,9 +426,10 @@ export default (client) => {
                             if (!member.roles.cache.has(step.roleId)) {
                                 if (!member.roles.cache.has(rTriumphs.category))
                                     member.roles.add(rTriumphs.category);
-                                member.roles.add(step.roleId).then((m) => {
+                                member.roles.add(step.roleId);
+                                setTimeout(() => {
                                     member.roles.remove(rClanJoinDate.allRoles.filter((r) => r !== step.roleId));
-                                });
+                                }, 1500);
                             }
                             clanJoinDateCheck.add(result.destinyUserInfo.membershipId);
                             break;
@@ -476,6 +480,8 @@ export default (client) => {
                         member.roles.remove(rStats.allKd.filter((r) => r !== step.roleId));
                         setTimeout(() => member.roles.add(step.roleId), 6000);
                     }
+                    if (!member.roles.cache.has(rStats.category))
+                        member.roles.add(rStats.category);
                     break;
                 }
             }
@@ -548,14 +554,14 @@ export default (client) => {
                 const totalRaidCount_Before = completedRaidsData.get(member.id)?.totalRaidCount;
                 if (totalRaidCount_Before && totalRaidCount_Before > totalRaidCount)
                     return;
-                const kf = filter(1374392663);
-                const kfMaster = filter(1063970578) + filter(2964135793);
+                const kf = filter(1374392663) + filter(1063970578);
+                const kfMaster = filter(2964135793);
                 const votd = filter(1441982566);
                 const votdMaster = filter(4217492330);
                 const dsc = filter(910380154) + filter(3976949817);
                 const gos = filter(3458480158) + filter(2497200493) + filter(2659723068) + filter(3845997235);
-                const vog = filter(3881495763);
-                const vogMaster = filter(1681562271) + filter(1485585878);
+                const vog = filter(3881495763) + filter(1485585878);
+                const vogMaster = filter(1681562271);
                 const lw = filter(2122313384) + filter(1661734046);
                 completedRaidsData.set(member.id, {
                     kf,

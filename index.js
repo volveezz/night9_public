@@ -20,9 +20,9 @@ const client = new Client({
 });
 process.on("unhandledRejection", (error) => {
     if (error.code === "ECONNRESET")
-        return console.error(`[Error code: 1060], ${error.code}, ${error.name}`);
+        return console.error(`[Error code: 1060] ${error.code} ${error.name}`);
     if (error.code === "EPROTO")
-        return console.error(`[Error code: 1061], ${error.code}, ${error.name}`);
+        return console.error(`[Error code: 1061] ${error.code} ${error.name}`);
     if (error instanceof DiscordAPIError) {
         if (error.code === 50035) {
             console.error("[Error code: 1026] Discord embed error", error, error.message, error.requestBody.json);

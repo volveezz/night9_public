@@ -105,13 +105,13 @@ export default {
             new ButtonBuilder().setCustomId("statsEvent_pinnacle").setLabel("Доступная сверхмощка").setStyle(ButtonStyle.Secondary),
         ];
         if (parsedData.discord_activity) {
-            let vcTime = new Date(parsedData.discord_activity.voice * 1000)
+            const vcTime = new Date(parsedData.discord_activity.voice * 1000)
                 .toISOString()
                 .substring(8, 19)
                 .replace("T", "д ")
                 .replace(":", "ч ")
                 .replace(":", "м ") + "с";
-            let vcTimeArr = vcTime.split("");
+            const vcTimeArr = vcTime.split("");
             vcTimeArr[1] = String(parseInt(vcTimeArr[1]) - 1);
             embed.addFields([
                 {
