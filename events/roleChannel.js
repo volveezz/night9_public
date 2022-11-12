@@ -32,7 +32,8 @@ export default {
                         : className === "warlock"
                             ? "<:warlock:995496471526920232>Варлока"
                             : "<:titan:995496472722284596>Титана"} как основной класс`);
-                return interaction.reply({ embeds: [embed], ephemeral: true });
+                await defferedReply;
+                return interaction.editReply({ embeds: [embed] });
             }
             default:
                 {
