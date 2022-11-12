@@ -39,13 +39,13 @@ export default {
                 {
                     const categoryId = Number(commandFull.pop());
                     const roleStatus = commandFull.pop() === "enable";
-                    const dbRow = await auth_data.findOne({ where: { discord_id: interaction.user.id }, attributes: ["rcat"] });
+                    const dbRow = await auth_data.findOne({ where: { discord_id: interaction.user.id }, attributes: ["roles_cat"] });
                     if (!dbRow)
                         throw new CustomError(interaction, "Возможность управления категориями доступна только после регистрации");
                     var { roles_cat } = dbRow;
                     const embed = new EmbedBuilder().setColor(colors.default);
                     if ((!(roles_cat & categoryId) && roleStatus) || (roles_cat & categoryId && !roleStatus)) {
-                        const updated = await auth_data.update({ rcat: roleStatus ? roles_cat | categoryId : roles_cat & ~categoryId }, { where: { discord_id: interaction.user.id }, returning: ["rcat"] });
+                        const updated = await auth_data.update({ roles_cat: roleStatus ? roles_cat | categoryId : roles_cat & ~categoryId }, { where: { discord_id: interaction.user.id }, returning: ["roles_cat"] });
                         roles_cat = updated[1][0].roles_cat;
                         const messageEmbed = embedPrep().setTitle(`Вы ${roleStatus ? "включили" : "отключили"} категорию`);
                         defferedReply.then((v) => interaction.editReply({ embeds: [messageEmbed] }));
