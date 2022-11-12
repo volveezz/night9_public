@@ -742,7 +742,7 @@ export default {
                     value: `<t:${parsedTime}>`,
                     inline: true,
                 },
-                { name: "Участники: 1/6", value: `<@${member.id}>` },
+                { name: "Участники: 1/6", value: member.displayName.replace(/\[[+](?:\d|\d\d)]/, "") },
             ]);
             if (raidDescription !== null && raidDescription.length < 1024) {
                 embed.spliceFields(2, 0, {
@@ -1046,9 +1046,14 @@ export default {
                     console.error(error);
                     t.rollback();
                 }
-                (await msgFetcher(ids.raidChnId, msgId)).edit({
-                    embeds: [raidEmbed],
-                });
+                newRaid
+                    ? (await msgFetcher(ids.raidChnId, msgId)).edit({
+                        content: "",
+                        embeds: [raidEmbed],
+                    })
+                    : (await msgFetcher(ids.raidChnId, msgId)).edit({
+                        embeds: [raidEmbed],
+                    });
                 const replyEmbed = new EmbedBuilder()
                     .setColor("Green")
                     .setTitle(`Рейд ${raidData.id} был изменен`)
@@ -1068,7 +1073,7 @@ export default {
                 chnFetcher(raidData.chnId).send({ embeds: [editedEmbedReplyInChn] });
             }
             else {
-                t.rollback();
+                await t.rollback();
                 throw { name: "Параметры не были указаны", deferredReply };
             }
         }

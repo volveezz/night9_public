@@ -24,7 +24,7 @@ auth_data.init({
         unique: true,
     },
     tz: { type: DataTypes.SMALLINT, allowNull: true },
-    roles_cat: { type: DataTypes.BOOLEAN },
+    roles_cat: { type: DataTypes.SMALLINT },
 }, { sequelize, timestamps: false, createdAt: false, updatedAt: false, modelName: "auth_data", freezeTableName: true, tableName: "auth_data" });
 class init_data extends Model {
 }
@@ -67,7 +67,15 @@ discord_activities.init({
     raids: { type: DataTypes.INTEGER, defaultValue: 0 },
     dungeons: { type: DataTypes.INTEGER, defaultValue: 0 },
     updatedAt: { type: DataTypes.INTEGER },
-}, { sequelize, timestamps: true, createdAt: false, updatedAt: true, modelName: "discord_activities", freezeTableName: true, tableName: "discord_activities" });
+}, {
+    sequelize,
+    timestamps: true,
+    createdAt: false,
+    updatedAt: true,
+    modelName: "discord_activities",
+    freezeTableName: true,
+    tableName: "discord_activities",
+});
 class raids extends Model {
 }
 raids.init({

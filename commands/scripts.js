@@ -13,7 +13,7 @@ export default {
         },
     ],
     callback: async (_client, interaction, member, _guild, _channel) => {
-        await interaction.deferReply({ ephemeral: true });
+        const defferedReply = interaction.deferReply({ ephemeral: true });
         const scriptId = interaction.options.getString("script", true).toLowerCase();
         switch (scriptId) {
             case "rolesweeper": {
@@ -30,18 +30,16 @@ export default {
                                 : "",
                         member.roles.cache.has(statusRoles.verified) ? statusRoles.verified : "",
                     ])
-                        .catch((e) => {
-                        interaction.followUp(`Возникла ошибка во время обновления ${member.displayName}`);
-                    });
-                    await new Promise((res) => {
-                        setTimeout(res, 500);
-                    });
+                        .catch((e) => defferedReply.then((v) => interaction.followUp(`Возникла ошибка во время обновления ${member.displayName}`)));
+                    await new Promise((res) => setTimeout(res, 500));
                 });
                 const embed = new EmbedBuilder().setColor("Green").setTitle(`${updatedMembers.length} пользователей было обновлено из ${members.size}`);
                 interaction.editReply({ embeds: [embed] });
                 return;
             }
             default:
+                await defferedReply;
+                interaction.editReply("Base response");
                 break;
         }
     },

@@ -115,7 +115,7 @@ export async function activityReporter(pgcrId) {
                 }
                 embed.addFields({
                     name: value.bungieName,
-                    value: `${value.classHash}У: **${value.kills}** С: **${value.deaths}** П: **${value.assists}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
+                    value: `${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
                         ? `\nВ ${response.activityDetails.mode === 4 ? "рейде" : response.activityDetails.mode === 82 ? "подземелье" : "активности"}: **${arr.join(" ").trim()}**`
                         : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
                     inline: true,
@@ -139,7 +139,7 @@ export async function activityReporter(pgcrId) {
                     : [];
                 embed.addFields({
                     name: "❌" + value.bungieName,
-                    value: `${value.classHash}У: **${value.kills}** С: **${value.deaths}** П: **${value.assists}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
+                    value: `${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
                         ? `\nВ ${response.activityDetails.mode === 4 ? "рейде" : response.activityDetails.mode === 82 ? "подземелье" : "активности"}: **${arr.join(" ").trim()}**`
                         : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
                     inline: true,
@@ -827,10 +827,11 @@ export default (client) => {
                 iconURL: oldState.member?.displayAvatarURL() || newState.member?.displayAvatarURL(),
             })
                 .setFooter({
-                text: `UId: ${oldState.member?.id} | ChnId: ${oldState.channelId}`,
+                text: `Chn: ${oldState.channel?.name}`,
             })
                 .setColor("DarkRed")
                 .addFields([
+                { name: "Пользователь", value: `<@${oldState.member?.id}`, inline: true },
                 {
                     name: "Канал",
                     value: `<#${oldState.channelId}>`,
@@ -839,8 +840,8 @@ export default (client) => {
             ]);
             if (getTimestamp) {
                 const difference = Math.round((new Date().getTime() - getTimestamp) / 1000);
-                const hours = Math.trunc(difference / 60 / 60);
-                const mins = Math.trunc(hours > 0 ? (difference - hours * 60 * 60) / 60 : difference / 60);
+                const hours = Math.trunc(difference / 3600);
+                const mins = Math.trunc(difference > 3600 ? (difference - (difference % 3600)) / 60 : difference / 60);
                 const secs = difference - Math.trunc(difference / 60) * 60;
                 embed.addFields([
                     {

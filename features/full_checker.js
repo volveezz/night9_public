@@ -50,111 +50,32 @@ export default (client) => {
                 }
             }
             async function dlc_rolesChecker(version) {
-                let dlcs = [false, false, false, false, false, false];
-                switch (version) {
-                    case 7:
-                        dlcs = [false, false, false, false, false, false];
-                        break;
-                    case 31:
-                        dlcs = [true, false, false, false, false, false];
-                        break;
-                    case 63:
-                        dlcs = [true, true, false, false, false, false];
-                        break;
-                    case 71:
-                        dlcs = [false, false, true, false, false, false];
-                        break;
-                    case 95:
-                        dlcs = [true, false, true, false, false, false];
-                        break;
-                    case 127:
-                        dlcs = [true, true, true, false, false, false];
-                        break;
-                    case 135:
-                        dlcs = [false, false, false, true, false, false];
-                        break;
-                    case 191:
-                        dlcs = [true, true, false, true, false, false];
-                        break;
-                    case 223:
-                        dlcs = [true, false, true, true, false, false];
-                        break;
-                    case 255:
-                        dlcs = [true, true, true, true, false, false];
-                        break;
-                    case 263:
-                        dlcs = [false, false, false, false, true, false];
-                        break;
-                    case 287:
-                        dlcs = [true, false, false, false, true, false];
-                        break;
-                    case 319:
-                        dlcs = [true, true, false, false, true, false];
-                        break;
-                    case 327:
-                        dlcs = [false, false, true, false, true, false];
-                        break;
-                    case 351:
-                        dlcs = [true, false, true, false, true, false];
-                        break;
-                    case 359:
-                        dlcs = [false, true, true, false, true, false];
-                        break;
-                    case 383:
-                        dlcs = [true, true, true, false, true, false];
-                        break;
-                    case 895:
-                        dlcs = [true, true, true, false, true, true];
-                        break;
-                    case 391:
-                        dlcs = [false, false, false, true, true, false];
-                        break;
-                    case 447:
-                        dlcs = [true, true, false, true, true, false];
-                        break;
-                    case 455:
-                        dlcs = [false, false, true, true, true, false];
-                        break;
-                    case 479:
-                        dlcs = [true, false, true, true, true, false];
-                        break;
-                    case 487:
-                        dlcs = [false, true, true, true, true, false];
-                        break;
-                    case 511:
-                        dlcs = [true, true, true, true, true, false];
-                        break;
-                    case 1023:
-                        dlcs = [true, true, true, true, true, true];
-                        break;
-                    default:
-                        console.log(`[AUTOROLE] NOT FOUND DATA FOR THIS NUMBER ${version}, BungieId: ${data.platform}/${data.bungie_id}`);
-                        break;
+                if (!version)
+                    return;
+                if (version > 7 && c.has(dlcsRoles["vanilla"])) {
+                    remove_roles.push(dlcsRoles["vanilla"]);
                 }
-                if (dlcs.includes(true) && c.has(dlcsRoles.vanilla)) {
-                    remove_roles.push(dlcsRoles.vanilla);
-                }
-                else if (!dlcs.includes(true) && !c.has(dlcsRoles.vanilla)) {
-                    give_roles.push(dlcsRoles.vanilla);
+                else if (version <= 7 && !c.has(dlcsRoles["vanilla"])) {
+                    give_roles.push(dlcsRoles["vanilla"]);
                     remove_roles.push(Object.values(dlcsRoles)
-                        .filter((a) => a !== dlcsRoles.vanilla)
+                        .filter((a) => a !== dlcsRoles["vanilla"])
                         .toString());
                 }
-                if (dlcs[0] && !c.has(dlcsRoles.frs))
+                if (version & 8 && !c.has(dlcsRoles.frs))
                     give_roles.push(dlcsRoles.frs);
-                if (dlcs[1] && !c.has(dlcsRoles.sk))
+                if (version & 32 && !c.has(dlcsRoles.sk))
                     give_roles.push(dlcsRoles.sk);
-                if (dlcs[2] && !c.has(dlcsRoles.bl))
+                if (version & 64 && !c.has(dlcsRoles.bl))
                     give_roles.push(dlcsRoles.bl);
-                if (dlcs[3] && !c.has(dlcsRoles.anni))
+                if (version & 128 && !c.has(dlcsRoles.anni))
                     give_roles.push(dlcsRoles.anni);
-                if (dlcs[4] && !c.has(dlcsRoles.twq))
+                if (version & 256 && !c.has(dlcsRoles.twq))
                     give_roles.push(dlcsRoles.twq);
-                if (dlcs[5] && !c.has(dlcsRoles.lf))
+                if (version & 512 && !c.has(dlcsRoles.lf))
                     give_roles.push(dlcsRoles.lf);
             }
             async function triumphsChecker() {
-                if (data.roles_cat[0]) {
+                if (data.roles_cat & 1) {
                     const activeTriumphs = Response.profileRecords.data.activeScore;
                     for (const step of rStats.active) {
                         if (activeTriumphs >= step.triumphScore) {
@@ -169,9 +90,9 @@ export default (client) => {
                     }
                 }
                 role_db.forEach(async (role) => {
-                    if (role.category === 3 && !data.roles_cat[2])
+                    if (role.category === 3 && !(data.roles_cat & 4))
                         return;
-                    if (role.category === 4 && !data.roles_cat[3])
+                    if (role.category === 4 && !(data.roles_cat & 8))
                         return;
                     const checkArray = [];
                     if (role.guilded_hash) {
@@ -221,7 +142,7 @@ export default (client) => {
                                                     }
                                                 }
                                                 else if (!nonGuildedRole) {
-                                                    return console.error(`Not found previous role of ${role.hash}`, lastKnownRole, nonGuildedRole);
+                                                    return console.error(`[Error code: 1089] Not found previous role of ${role.hash}`, lastKnownRole, nonGuildedRole);
                                                 }
                                                 const createdRole = await member.guild.roles.create({
                                                     name: `⚜️${nonGuildedRole.name} ${i + 1}`,
@@ -232,7 +153,7 @@ export default (client) => {
                                                 });
                                                 const dbRoleUpdated = await role_data.findOne({ where: { guilded_hash: role.guilded_hash } });
                                                 if (!dbRoleUpdated)
-                                                    throw { name: "Информация о роли не найдена в БД", message: dbRoleUpdated };
+                                                    return console.error("Информация о роли не найдена в БД", dbRoleUpdated);
                                                 dbRoleUpdated.guilded_roles[i] = createdRole.id;
                                                 for (let i = 0; i < index || i < dbRoleUpdated.guilded_roles.length; i++) {
                                                     const element = dbRoleUpdated.guilded_roles ? dbRoleUpdated.guilded_roles[i] : undefined;
@@ -262,7 +183,7 @@ export default (client) => {
                                     ? notGuidedTriumphRecord.objectives?.pop()?.complete === true
                                     : notGuidedTriumphRecord.intervalObjectives?.pop()?.complete === true) {
                                     if (!c.has(role.role_id)) {
-                                        if (role.category === 3 && !c.has(rTitles.category))
+                                        if (role.category & 4 && !c.has(rTitles.category))
                                             give_roles.push(rTitles.category);
                                         give_roles.push(role.role_id);
                                     }
@@ -270,7 +191,7 @@ export default (client) => {
                             }
                         }
                         else {
-                            console.error(`Profile record ${role.guilded_hash} not found for ${member.displayName}`);
+                            console.error(`[Error code: 1090] Profile record ${role.guilded_hash} not found for ${member.displayName}`);
                         }
                     }
                     else {
@@ -292,11 +213,11 @@ export default (client) => {
                                 remove_roles.push(role.role_id);
                         }
                         else {
-                            if (role.category === 3 && !c.has(rTitles.category))
+                            if (role.category & 4 && !c.has(rTitles.category))
                                 give_roles.push(rTitles.category);
-                            if (role.category === 4 && !c.has(rTriumphs.category))
+                            if (role.category & 8 && !c.has(rTriumphs.category))
                                 give_roles.push(rTriumphs.category);
-                            if (role.category === 5 && !c.has(rActivity.category))
+                            if (role.category & 16 && !c.has(rActivity.category))
                                 give_roles.push(rActivity.category);
                             if (!c.has(role.role_id))
                                 give_roles.push(role.role_id);
@@ -354,13 +275,15 @@ export default (client) => {
                     }
                 }
             }
-            seasonalRolesChecker().catch((e) => console.error(`seasonalRolesChecker`, e, member.displayName));
-            dlc_rolesChecker(Response.profile.data.versionsOwned).catch((e) => console.error(`dlc_rolesChecker`, e, member.displayName));
-            triumphsChecker().catch((e) => console.error(`triumphsChecker`, e, member.displayName));
-            data.roles_cat[1]
-                ? trialsChecker(Response.metrics.data.metrics["1765255052"]?.objectiveProgress.progress).catch((e) => console.error(`trialsChecker`, e, member.displayName))
+            seasonalRolesChecker().catch((e) => console.error(`[Error code: 1091] seasonalRolesChecker`, e, member.displayName));
+            dlc_rolesChecker(Response.profile.data.versionsOwned).catch((e) => console.error(`[Error code: 1092] dlc_rolesChecker`, e, member.displayName));
+            triumphsChecker().catch((e) => console.error(`[Error code: 1093] triumphsChecker`, e, member.displayName));
+            data.roles_cat & 2
+                ? trialsChecker(Response.metrics.data.metrics["1765255052"]?.objectiveProgress.progress).catch((e) => console.error(`[Error code: 1094] trialsChecker`, e, member.displayName))
                 : "";
-            data.roles_cat[4] ? voiceChecker().catch((e) => console.error("voiceChecker", e, member.displayName)) : "";
+            data.roles_cat & 16
+                ? voiceChecker().catch((e) => console.error("[Error code: 1095] voiceChecker", e, member.displayName))
+                : "";
             if (give_roles.length > 0) {
                 setTimeout(() => {
                     const gRoles = give_roles
@@ -368,9 +291,9 @@ export default (client) => {
                         .split(",")
                         .filter((r) => r.length > 10);
                     give_roles.filter((r) => r.length <= 10).length > 0
-                        ? console.error(`Error during removin roles`, member.displayName, give_roles)
+                        ? console.error(`[Error code: 1096] Error during removin roles`, member.displayName, give_roles)
                         : [];
-                    member.roles.add(gRoles, "+Autorole").catch((e) => console.error(`[Autorole error] ${e.toString()}`, gRoles));
+                    member.roles.add(gRoles, "+Autorole").catch((e) => console.error(`[Error code: 1097] [Autorole error] ${e.toString()}`, gRoles));
                 }, remove_roles.length > 0 ? 6000 : 0);
             }
             if (remove_roles.length > 0) {
@@ -393,17 +316,17 @@ export default (client) => {
             client.guilds.cache.get(guildId).members.cache.get(discord_id)?.setNickname(name, "GlobalNickname changed");
         }
         catch (error) {
-            console.error("[Checker error] Name change error", error);
+            console.error("[Error code: 1098] [Checker error] Name change error", error);
         }
     }
     async function clan(bungie_array) {
-        const clanList = await fetchRequest("Platform/GroupV2/4123712/Members/?memberType=None").catch((e) => console.error(`Clan checker error | 1`, e.statusCode));
+        const clanList = await fetchRequest("Platform/GroupV2/4123712/Members/?memberType=None").catch((e) => console.error(`[Error code: 1088] Clan checker error | 1`, e.statusCode));
         if (!clanList) {
-            console.log("[Clan checker]", "[Error code: 1013]", clanList);
+            console.log("[Error code: 1013] [Clan checker]", clanList);
             return;
         }
         if (clanList.results.length < 5) {
-            console.error("[Clan checker]", "[Error code: 1015]", clanList?.results?.length);
+            console.error("[Error code: 1015] [Clan checker]", clanList?.results?.length);
             return;
         }
         const onlineCounter = clanList.results.filter((f) => f.isOnline === true).length;
@@ -416,11 +339,11 @@ export default (client) => {
                 const [clan_member] = bungie_array.splice(bungie_array.findIndex((e) => e.bungie_id === result.destinyUserInfo.membershipId), 1);
                 if (!clanJoinDateCheck.has(result.destinyUserInfo.membershipId)) {
                     await timer(1000);
-                    if (!clan_member.roles_cat[3])
+                    if (!(clan_member.roles_cat & 8))
                         return clanJoinDateCheck.add(result.destinyUserInfo.membershipId);
                     const member = client.guilds.cache.get(guildId)?.members.cache.get(clan_member.discord_id);
                     if (!member)
-                        return console.error(`Clan checker error | 5`, member, clan_member.discord_id, clan_member.displayname);
+                        return console.error(`[Error code: 1087] Clan checker error | 5`, member, clan_member.discord_id, clan_member.displayname);
                     for (const step of rClanJoinDate.roles) {
                         if (step.days <= Math.trunc((new Date().getTime() - new Date(result.joinDate).getTime()) / 1000 / 60 / 60 / 24)) {
                             if (!member.roles.cache.has(step.roleId)) {
@@ -685,11 +608,11 @@ export default (client) => {
                         db_row.discord_activity.raids > 0 ||
                         db_row.discord_activity.dungeons > 0))) {
                 !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.6 ? longOffline.delete(member.id) : "";
-                db_row.roles_cat[0] && kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
+                db_row.roles_cat & 1 && kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
                 raids === 5 && member.roles.cache.hasAny(statusRoles.clanmember, statusRoles.member) && !longOffline.has(member.id)
                     ? activityStatsChecker(db_row, member, 4)
                     : [];
-                db_row.roles_cat[1] &&
+                db_row.roles_cat & 2 &&
                     trialsCD === 7 &&
                     !longOffline.has(member.id) &&
                     !member.roles.cache.has(rTrials.wintrader) &&

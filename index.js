@@ -2,6 +2,7 @@ import { GatewayIntentBits, Client, Partials, ActivityType, DiscordAPIError } fr
 import "dotenv/config";
 import { resolve, join } from "path";
 import express from "express";
+import { CustomError } from "./handlers/command-handler.js";
 const app = express();
 const port = process.env.PORT || 3000;
 const __dirname = resolve();
@@ -19,6 +20,8 @@ const client = new Client({
     partials: [Partials.GuildMember, Partials.Channel, Partials.Message, Partials.User],
 });
 process.on("unhandledRejection", (error) => {
+    if (error instanceof CustomError)
+        return;
     if (error.code === "ECONNRESET")
         return console.error(`[Error code: 1060] ${error.code} ${error.name}`);
     if (error.code === "EPROTO")

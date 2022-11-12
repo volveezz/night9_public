@@ -26,8 +26,12 @@ export async function fetchRequest(url, authorizationData) {
         console.error(`[Error code: 1064]\n`, response, "\n", e.stack);
         return undefined;
     });
-    if (jsonResponse.code === "ERPROTO") {
-        console.error(`[Error code: 1082] ERPROTO ${authorizationData?.displayName || ""}`);
+    if (!jsonResponse || (await jsonResponse?.status) >= 500) {
+        console.error(`[Error code: 1083] ${jsonResponse?.code}`);
+        return undefined;
+    }
+    if (jsonResponse?.code === "ERPROTO") {
+        console.error(`[Error code: 1082] ERPROTO${" " + authorizationData?.displayName || ""}`);
         return undefined;
     }
     return jsonResponse?.Response ? jsonResponse?.Response : jsonResponse;
@@ -80,6 +84,11 @@ export default async (code, state, res) => {
                             bungie_id: membership.membershipId,
                             displayname: membership.bungieGlobalDisplayName || membership.displayName,
                         };
+                    }
+                    else if (request.destinyMemberships.length >= 1 && membership.crossSaveOverride === 0) {
+                        const account = request.destinyMemberships.find((v) => v.membershipType === 3) || request.destinyMemberships[0];
+                        const { membershipType: platform, membershipId: bungie_id, displayName: displayname } = account;
+                        return { platform, bungie_id, displayname };
                     }
                 })[0];
             }

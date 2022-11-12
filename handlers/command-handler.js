@@ -13,6 +13,39 @@ export class EventHandler {
 export class AutocompleteHandler {
     callback;
 }
+export class CustomError extends Error {
+    name;
+    interaction;
+    constructor(interaction, name, message) {
+        super();
+        this.name = name;
+        this.interaction = interaction;
+        const actualProto = new.target.prototype;
+        if (Object.setPrototypeOf) {
+            Object.setPrototypeOf(this, actualProto);
+        }
+        else {
+            this.__proto__ = actualProto;
+        }
+        errorHandler(interaction, { name, message });
+    }
+}
+export async function errorHandler(interaction, error) {
+    const embed = new EmbedBuilder().setColor("Red");
+    console.error(`[Error code: 1084] Slash command error. Reply to ${interaction.member instanceof GuildMember ? interaction.member.displayName : interaction.user.username}\n`, error);
+    embed.setTitle(error.name);
+    if (error.message)
+        embed.setDescription(error?.message);
+    (interaction.replied || interaction.deferred
+        ? interaction.editReply({ embeds: [embed] })
+        : interaction.reply({ embeds: [embed], ephemeral: true }))
+        .catch((e) => {
+        e.code === 40060 ? "" : console.error("[Error code: 1085]", e);
+        return interaction.followUp({ embeds: [embed], ephemeral: true });
+    })
+        .catch((e) => console.error("[Error code: 1086]", e));
+    return;
+}
 export default async (client, commandDir, eventsDir) => {
     const files = getFiles(commandDir);
     const eventsFiles = getFiles(eventsDir);
@@ -90,7 +123,9 @@ export default async (client, commandDir, eventsDir) => {
                 : client.guilds.cache.get(guildId)?.members.cache.get(interaction.user.id);
             console.log(`${member.displayName} used ${customId}${interaction.channel && !interaction.channel.isDMBased() ? ` at ${interaction.channel.name}` : ""}`);
             events[commandName].callback(client, interaction, member, interaction.guild, interaction.channel).catch(async (e) => {
-                console.error(commandName, "Button [Error code: 1028]", e.stack || e);
+                const loggedError = e.deferredReply ? e : undefined;
+                loggedError ? delete loggedError.deferredReply : "";
+                console.error(`[Error code: 1028] CommandName: ${commandName}`, e.stack || loggedError);
                 const embed = new EmbedBuilder().setColor("Red");
                 embed.setTitle(e?.name);
                 e && e.message && typeof e.message === "string" && e.message.length > 5 ? embed.setDescription(e.message) : [];
@@ -100,7 +135,7 @@ export default async (client, commandDir, eventsDir) => {
                     ? interaction.editReply({ embeds: [embed] })
                     : interaction.reply({ embeds: [embed], ephemeral: true }))
                     .catch((e) => {
-                    e.code === 40060 ? "" : console.error("[Error code: 1046]", e);
+                    e.code === 40060 ? "" : console.error("[Error code: 1046]", e.stack);
                     return interaction.followUp({ embeds: [embed], ephemeral: true });
                 })
                     .catch((e) => console.error("[Error code: 1079]", e));

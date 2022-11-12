@@ -163,15 +163,12 @@ export default {
                         })
                             .join("\n")}`,
                     });
-                    let rowNumber = 0;
                     const components = (roleRow) => [
                         {
                             type: ComponentType.ActionRow,
                             components: [
-                                new ButtonBuilder()
-                                    .setCustomId(`roleChannel_roles_enable_${roleRow}`)
-                                    .setLabel("Переключить")
-                                    .setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder().setCustomId(`roleChannel_roles_enable_${roleRow}`).setLabel("Включить").setStyle(ButtonStyle.Success),
+                                new ButtonBuilder().setCustomId(`roleChannel_roles_disable_${roleRow}`).setLabel("Отключить").setStyle(ButtonStyle.Secondary),
                             ],
                         },
                     ];
@@ -210,27 +207,27 @@ export default {
                     await timer(1500);
                     channel.send({
                         embeds: [statsRolesRaw],
-                        components: components(rowNumber++),
+                        components: components(1),
                     });
                     await timer(1500);
                     channel.send({
                         embeds: [trialsRolesRaw],
-                        components: components(rowNumber++),
+                        components: components(2),
                     });
                     await timer(1500);
                     channel.send({
                         embeds: [titlesRaw],
-                        components: components(rowNumber++),
+                        components: components(4),
                     });
                     await timer(1500);
                     channel.send({
                         embeds: [triumphsRaw],
-                        components: components(rowNumber++),
+                        components: components(8),
                     });
                     await timer(1500);
                     channel.send({
                         embeds: [activityRolesRaw],
-                        components: components(rowNumber++),
+                        components: components(16),
                     });
                 }
                 case "clanjoin": {
@@ -268,9 +265,12 @@ export default {
                         {
                             type: ComponentType.ActionRow,
                             components: [
-                                new ButtonBuilder().setCustomId(`godEvent_customColor`).setLabel("Установить свой цвет ника").setStyle(ButtonStyle.Primary),
                                 new ButtonBuilder()
-                                    .setCustomId(`godEvent_customColor`)
+                                    .setCustomId(`godEvent_customRoleColor`)
+                                    .setLabel("Установить свой цвет ника")
+                                    .setStyle(ButtonStyle.Primary),
+                                new ButtonBuilder()
+                                    .setCustomId(`godEvent_customRoleName`)
                                     .setLabel("Установить свое название роли")
                                     .setStyle(ButtonStyle.Primary),
                                 new ButtonBuilder().setCustomId(`godEvent_getInvite`).setLabel("Приглашение на альфа-сервер").setStyle(ButtonStyle.Secondary),
@@ -303,22 +303,23 @@ export default {
                         {
                             type: ComponentType.ActionRow,
                             components: [
-                                new ButtonBuilder().setCustomId(`godEvent_color_red`).setEmoji(":red_square:").setStyle(ButtonStyle.Secondary),
-                                new ButtonBuilder().setCustomId(`godEvent_color_white`).setEmoji(":white_large_square:").setStyle(ButtonStyle.Secondary),
-                                new ButtonBuilder().setCustomId(`godEvent_color_purple`).setEmoji(":purple_square:").setStyle(ButtonStyle.Secondary),
-                                new ButtonBuilder().setCustomId(`godEvent_color_brown`).setEmoji(":brown_square:").setStyle(ButtonStyle.Secondary),
-                                new ButtonBuilder().setCustomId(`godEvent_color_blue`).setEmoji(":blue_square:").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder().setCustomId(`godEvent_color_red`).setEmoji("🟥").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder().setCustomId(`godEvent_color_white`).setEmoji("⬜").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder().setCustomId(`godEvent_color_purple`).setEmoji("🟪").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder().setCustomId(`godEvent_color_brown`).setEmoji("🟫").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder().setCustomId(`godEvent_color_blue`).setEmoji("🟦").setStyle(ButtonStyle.Secondary),
                             ],
                         },
                         {
                             type: ComponentType.ActionRow,
                             components: [
-                                new ButtonBuilder().setCustomId(`godEvent_color_orange`).setEmoji(":orange_square:").setStyle(ButtonStyle.Secondary),
-                                new ButtonBuilder().setCustomId(`godEvent_color_green`).setEmoji(":green_square:").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder().setCustomId(`godEvent_color_orange`).setEmoji("🟧").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder().setCustomId(`godEvent_color_green`).setEmoji("🟩").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder().setCustomId(`godEvent_color_reset`).setEmoji("❌").setStyle(ButtonStyle.Secondary),
                             ],
                         },
                     ];
-                    const embed = new EmbedBuilder().setColor("DarkVividPink").setTitle("Выберите любой из цветов ника");
+                    const embed = new EmbedBuilder().setColor("DarkGold").setTitle("Выберите любой из цветов ника");
                     interaction.channel.send({ embeds: [embed], components: components });
                     return;
                 }
