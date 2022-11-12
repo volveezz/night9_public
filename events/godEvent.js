@@ -1,5 +1,4 @@
-import { EmbedBuilder, Role } from "discord.js";
-import { chnFetcher } from "../base/channels.js";
+import { EmbedBuilder, Role, TextChannel, VoiceChannel } from "discord.js";
 import { colors } from "../base/colors.js";
 import { ids } from "../base/ids.js";
 import { CustomError } from "../handlers/command-handler.js";
@@ -142,17 +141,19 @@ export default {
                 return;
         }
         function chnPermGranter(chnId) {
-            const chn = chnFetcher(chnId);
-            const embed = new EmbedBuilder().setColor(colors.default);
-            if (chn.permissionsFor(interaction.user.id)?.has("ViewChannel")) {
-                chn.permissionOverwrites.delete(interaction.user.id);
-                embed.setDescription(`Вы **отключили** доступ к <#${chn.id}>`);
-                return interaction.reply({ embeds: [embed], ephemeral: true });
-            }
-            else {
-                chn.permissionOverwrites.create(interaction.user.id, { ViewChannel: true }, { reason: "godEvent button" });
-                embed.setDescription(`Вы **получили** доступ к <#${chn.id}>`);
-                return interaction.reply({ embeds: [embed], ephemeral: true });
+            const chn = guild.channels.cache.get(chnId);
+            if (chn instanceof TextChannel || chn instanceof VoiceChannel) {
+                const embed = new EmbedBuilder().setColor(colors.default);
+                if (chn.permissionsFor(interaction.user.id)?.has("ViewChannel")) {
+                    chn.permissionOverwrites.delete(interaction.user.id);
+                    embed.setDescription(`Вы **отключили** доступ к <#${chn.id}>`);
+                    return interaction.reply({ embeds: [embed], ephemeral: true });
+                }
+                else {
+                    chn.permissionOverwrites.create(interaction.user.id, { ViewChannel: true }, { reason: "godEvent button" });
+                    embed.setDescription(`Вы **получили** доступ к <#${chn.id}>`);
+                    return interaction.reply({ embeds: [embed], ephemeral: true });
+                }
             }
         }
     },

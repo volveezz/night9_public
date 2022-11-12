@@ -1,7 +1,6 @@
 import { EmbedBuilder } from "discord.js";
 import { colors } from "../base/colors.js";
 import { classRoles, rActivity, rStats, rTitles, rTrials, rTriumphs } from "../base/roles.js";
-import { CustomError } from "../handlers/command-handler.js";
 import { auth_data } from "../handlers/sequelize.js";
 export default {
     callback: async (_client, interaction, member, guild, _channel) => {
@@ -41,7 +40,7 @@ export default {
                     const roleStatus = commandFull.pop() === "enable";
                     const dbRow = await auth_data.findOne({ where: { discord_id: interaction.user.id }, attributes: ["roles_cat"] });
                     if (!dbRow)
-                        throw new CustomError(interaction, "Возможность управления категориями доступна только после регистрации");
+                        throw { name: "Ошибка. Вы не зарегистрированы", message: "Возможность управления категориями доступна только после регистрации" };
                     var { roles_cat } = dbRow;
                     const embed = new EmbedBuilder().setColor(colors.default);
                     if ((!(roles_cat & categoryId) && roleStatus) || (roles_cat & categoryId && !roleStatus)) {

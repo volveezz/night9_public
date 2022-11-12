@@ -229,6 +229,7 @@ export default {
                         embeds: [activityRolesRaw],
                         components: components(16),
                     });
+                    return;
                 }
                 case "clanjoin": {
                     const embed = new EmbedBuilder()
