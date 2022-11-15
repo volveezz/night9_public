@@ -72,10 +72,10 @@ export default (client) => {
             .map((d) => {
             return `[Error code: 1008] ${d.displayname}/${d.discord_id} not found on server`;
         });
-        dbNotFoundUsers.length > 0 ? console.error(dbNotFoundUsers, "[Error code: 1005]") : [];
+        dbNotFoundUsers.length > 0 ? console.error("[Error code: 1005]", dbNotFoundUsers) : [];
         const db_plain = dbNotFiltred.filter((data) => client.guilds.cache.get(guildId).members.cache.has(data.discord_id));
         if (!db_plain || db_plain.length === 0)
-            return console.error(`[activityChecker error] DB is ${db_plain?.length === 0 ? "empty" : `${db_plain?.length} length`} or missing data`, "[Error code: 1006]");
+            return console.error(`[Error code: 1006] DB is ${db_plain ? `${db_plain.length} size` : db_plain}`);
         for (let i = 0; i < db_plain.length; i++) {
             const db_row = db_plain[i];
             const member = client.guilds.cache.get(guildId).members.cache.get(db_row.discord_id);
