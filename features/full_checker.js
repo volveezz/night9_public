@@ -435,7 +435,7 @@ export default (client) => {
                 async function checker() {
                     const response = await activities(page);
                     if (!response)
-                        return console.error("[fullChecker]", "[Error code: 1018]");
+                        return console.error("[Error code: 1018]");
                     if (response.activities?.length > 0) {
                         response.activities.forEach((activity) => {
                             if (mode === 4 && activity.values.completed.basic.value) {

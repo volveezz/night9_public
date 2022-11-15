@@ -22,17 +22,21 @@ export async function fetchRequest(url, authorizationData) {
     const response = fetch(`http://www.bungie.net/${cleanUrl}`, {
         headers: { "X-API-KEY": process.env.XAPI, Authorization: auth },
     });
-    const jsonResponse = await (await response).json().catch((e) => {
+    const jsonResponse = await (await response).json().catch(async (e) => {
+        if ((await response).status === 502)
+            return console.error(`[Error code: 1099] Web error`);
         console.error(`[Error code: 1064]\n`, response, "\n", e.stack);
         return undefined;
     });
     if (!jsonResponse || (await jsonResponse?.status) >= 500) {
-        console.error(`[Error code: 1083] ${jsonResponse?.code}`);
-        return undefined;
+        if (jsonResponse == undefined)
+            return;
+        console.error(`[Error code: 1083] ${jsonResponse?.status}`);
+        return;
     }
     if (jsonResponse?.code === "ERPROTO") {
         console.error(`[Error code: 1082] ERPROTO${" " + authorizationData?.displayName || ""}`);
-        return undefined;
+        return;
     }
     return jsonResponse?.Response ? jsonResponse?.Response : jsonResponse;
 }

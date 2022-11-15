@@ -29,17 +29,21 @@ export default (client) => {
                 await checker();
                 async function activities() {
                     const response = fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Character/${character}/Stats/Activities/?count=2&mode=${mode}&page=0`, data);
+                    if (!response)
+                        return;
                     response.catch((e) => {
                         return e.code === "EPROTO"
-                            ? console.error("EPROTO ActivityChecker", member.displayName)
-                            : console.error("[Error code: 1040] [activityChecker]", e);
+                            ? console.error(`[Error code: 1101] ${member.displayName}`)
+                            : e.code === "ECONNRESET"
+                                ? console.error(`[Error code: 1100] ${member.displayName} ${e.code}`)
+                                : console.error("[Error code: 1040]", e);
                     });
                     return response.then((fetchedResponse) => fetchedResponse);
                 }
                 async function checker() {
                     const response = await activities();
                     if (!response)
-                        return console.error("[activityChecker] [Error code: 1000]", data.displayname, character, response);
+                        return console.error("[activityChecker] [Error code: 1000]", data.displayname);
                     if (response.activities?.length > 0) {
                         response.activities.forEach((activity) => {
                             if (activity.values.completed.basic.value &&
