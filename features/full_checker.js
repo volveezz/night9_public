@@ -13,7 +13,7 @@ const throttleSet = new Set();
 export default (client) => {
     if (guildId === "1007814171267707001")
         return;
-    function role_manager(data, member, role_db) {
+    function destinyUserStatsChecker(data, member, role_db) {
         const give_roles = [], remove_roles = [], c = member.roles.cache;
         fetchRequest(`Platform/Destiny2/${data.platform}/Profile/${data.bungie_id}/?components=100,900,1100`, data)
             .then(async (Response) => {
@@ -300,8 +300,8 @@ export default (client) => {
         })
             .catch((e) => {
             e.statusCode === 401 || e.statusCode === 503 || e.statusCode === 500
-                ? console.error(`[Error code: 1065] roleManager ${e.statusCode} error`, data.displayname)
-                : console.error(`[Error code: 1066] roleManager`, e.error?.stack || e.error || e, data.displayname, e.statusCode || e);
+                ? console.error(`[Error code: 1065] destinyUserStatsChecker ${e.statusCode} error`, data.displayname)
+                : console.error(`[Error code: 1066] destinyUserStatsChecker`, e.error?.stack || e.error || e, data.displayname, e.statusCode || e);
         });
     }
     function name_change(discord_id, name) {
@@ -387,7 +387,7 @@ export default (client) => {
             console.error("Clan checker error | 6", error);
         }
     }
-    function kdChecker(db_row, member) {
+    function destinyUserKDChecker(db_row, member) {
         fetchRequest(`Platform/Destiny2/${db_row.platform}/Account/${db_row.bungie_id}/Character/0/Stats/?groups=1&modes=5&periodType=2`, db_row)
             .then((data) => {
             for (const step of rStats.kd) {
@@ -404,23 +404,23 @@ export default (client) => {
         })
             .catch((e) => {
             e.statusCode === 401 || e.statusCode === 500 || e.statusCode === 503
-                ? console.error(`kdChecker ${e.statusCode} error`, db_row.displayname, e.error?.ErrorStatus)
-                : console.error(`kdChecker`, e.error?.stack || e.error || e, db_row.displayname, e.statusCode);
+                ? console.error(`destinyUserKDChecker ${e.statusCode} error`, db_row.displayname, e.error?.ErrorStatus)
+                : console.error(`destinyUserKDChecker`, e.error?.stack || e.error || e, db_row.displayname, e.statusCode);
         });
     }
-    async function activityStatsChecker(data, member, mode) {
+    async function destinyActivityStatsChecker(data, member, mode) {
         if (!character_data.get(member.id)) {
             fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Stats/?groups=1`, data)
                 .then((chars) => {
                 const charIdArray = [];
                 chars["characters"].forEach((ch) => charIdArray.push(ch.characterId));
                 character_data.set(data.discord_id, charIdArray);
-                activityStatsChecker(data, member, mode);
+                destinyActivityStatsChecker(data, member, mode);
             })
                 .catch((e) => {
                 e.statusCode === 401 || e.statusCode === 503 || e.statusCode === 500
-                    ? console.error(`[activityStatsChecker web ${e.statusCode} error]`, "[Error code: 1017]", data.displayname)
-                    : console.error("[activityStatsChecker] [Error code: 1016]", e.error?.stack || e.error || e, data.displayname, e.statusCode);
+                    ? console.error(`[destinyActivityStatsChecker web ${e.statusCode} error]`, "[Error code: 1017]", data.displayname)
+                    : console.error("[destinyActivityStatsChecker] [Error code: 1016]", e.error?.stack || e.error || e, data.displayname, e.statusCode);
             });
         }
         else {
@@ -572,12 +572,12 @@ export default (client) => {
             await t.commit();
         }
         catch (error) {
-            return console.error("[Checker commit]", "[Error code: 1020]", error);
+            return console.error("[Error code: 1020]", error);
         }
         const dbNotFoundUsers = dbNotFiltred
             .filter((data) => !client.guilds.cache.get(guildId)?.members.cache.has(data.discord_id))
             .map((val, ind) => {
-            return ind < 5 ? `${val.displayname}/${val.discord_id} not found on server, [Error code: 1021]` : null;
+            return ind < 5 ? `[Error code: 1021] ${val.displayname}/${val.discord_id} not found on server` : null;
         });
         dbNotFoundUsers.length > 0 ? console.error(dbNotFoundUsers.filter((val, ind) => ind < 5)) : [];
         const db_plain = dbNotFiltred.filter((data) => client.guilds.cache.get(guildId).members.cache.has(data.discord_id));
@@ -589,10 +589,15 @@ export default (client) => {
             const db_row = db_plain[i];
             if (throttleSet.has(db_row.discord_id))
                 return throttleSet.delete(db_row.discord_id);
+            if (longOffline.has(db_row.discord_id)) {
+                if (Math.random() > 0.82)
+                    longOffline.delete(db_row.discord_id);
+                return;
+            }
             const member = client.guilds.cache.get(guildId)?.members.cache.get(db_row.discord_id);
             if (!member) {
                 await client.guilds.cache.get(guildId)?.members.fetch();
-                return console.error("[Error code: 1023] roleManager, member not found", db_row.toJSON());
+                return console.error("[Error code: 1023] destinyUserStatsChecker, member not found", db_row.displayname);
             }
             if (member.roles.cache.has(statusRoles.clanmember) ||
                 (db_row.discord_activity &&
@@ -600,17 +605,16 @@ export default (client) => {
                         db_row.discord_activity.messages > 0 ||
                         db_row.discord_activity.raids > 0 ||
                         db_row.discord_activity.dungeons > 0))) {
-                !longOffline.has(member.id) ? role_manager(db_row, member, role_db) : Math.random() < 0.6 ? longOffline.delete(member.id) : "";
-                db_row.roles_cat & 1 && kd === 8 && !longOffline.has(member.id) ? kdChecker(db_row, member) : [];
-                raids === 5 && member.roles.cache.hasAny(statusRoles.clanmember, statusRoles.member) && !longOffline.has(member.id)
-                    ? activityStatsChecker(db_row, member, 4)
+                destinyUserStatsChecker(db_row, member, role_db);
+                kd === 8 && db_row.roles_cat & 1 ? destinyUserKDChecker(db_row, member) : [];
+                raids === 5 && member.roles.cache.hasAny(statusRoles.clanmember, statusRoles.member)
+                    ? destinyActivityStatsChecker(db_row, member, 4)
                     : [];
-                db_row.roles_cat & 2 &&
-                    trialsCD === 7 &&
-                    !longOffline.has(member.id) &&
+                trialsCD === 7 &&
+                    db_row.roles_cat & 2 &&
                     !member.roles.cache.has(rTrials.wintrader) &&
                     member.roles.cache.has(rTrials.category)
-                    ? activityStatsChecker(db_row, member, 84)
+                    ? destinyActivityStatsChecker(db_row, member, 84)
                     : [];
                 await timer(700);
             }
@@ -618,31 +622,22 @@ export default (client) => {
         clan(db_plain);
     }, 1000 * 60 * 2);
     setInterval(async () => {
-        const data = await auth_data.findAll({
+        const dbData = await auth_data.findAll({
             attributes: ["discord_id", "displayname", "tz"],
         });
-        client.guilds.cache
-            .get(guildId)
-            .members.cache.filter((member) => member.roles.cache.has(statusRoles.verified))
-            .forEach((member) => {
-            const db_data_ind = data.find((d) => d.discord_id === member.id);
-            if (!db_data_ind) {
+        const verifiedGuildMembers = client.guilds.cache.get(guildId).members.cache.filter((member) => member.roles.cache.has(statusRoles.verified));
+        verifiedGuildMembers.forEach((member) => {
+            const userDbData = dbData.find((d) => d.discord_id === member.id);
+            if (!userDbData)
                 return;
-            }
-            const db_name = db_data_ind.displayname;
-            if (member.displayName !== db_name &&
-                !data.find((d) => d.discord_id === member.id)?.displayname.startsWith("⁣") &&
-                member.displayName.slice(5) !== db_name &&
-                member.displayName.slice(6) !== db_name) {
-                if (!member.permissions.has("Administrator")) {
+            const { displayname: userDbName, tz } = userDbData;
+            if (member.displayName !== userDbName &&
+                !userDbData.displayname.startsWith("⁣") &&
+                member.displayName.replace(/\[[+](?:\d|\d\d)]/, "") !== userDbName) {
+                if (!member.permissions.has("Administrator"))
                     member
-                        .setNickname(data.find((d) => d.discord_id === member.id)?.tz
-                        ? `[+${data.find((d) => d.discord_id === member.id).tz}] ${db_name}`
-                        : db_name)
-                        .catch((e) => {
-                        console.error("[Checker] [Error code: 1030] Name autochange error", e);
-                    });
-                }
+                        .setNickname(userDbData.tz ? `[+${tz}] ${userDbName}` : userDbName)
+                        .catch((e) => console.error("[Error code: 1030] Name autochange error", e));
             }
         });
     }, 1000 * 70 * 5);
