@@ -58,6 +58,7 @@ export default (client) => {
     }
     setInterval(async () => {
         const dbNotFiltred = await auth_data.findAll({
+            attributes: ["discord_id", "bungie_id", "platform", "access_token"],
             where: {
                 [Op.and]: {
                     discord_id: {
@@ -74,8 +75,8 @@ export default (client) => {
         });
         dbNotFoundUsers.length > 0 ? console.error("[Error code: 1005]", dbNotFoundUsers) : [];
         const db_plain = dbNotFiltred.filter((data) => client.guilds.cache.get(guildId).members.cache.has(data.discord_id));
-        if (!db_plain || db_plain.length === 0)
-            return console.error(`[Error code: 1006] DB is ${db_plain ? `${db_plain.length} size` : db_plain}`);
+        if (!db_plain)
+            return console.error(`[Error code: 1006] DB is not avaliable`, db_plain);
         for (let i = 0; i < db_plain.length; i++) {
             const db_row = db_plain[i];
             const member = client.guilds.cache.get(guildId).members.cache.get(db_row.discord_id);
@@ -85,7 +86,7 @@ export default (client) => {
             }
             activityChecker(db_row, member, 4);
             activityChecker(db_row, member, 82);
-            await timer(200);
+            await timer(250);
         }
     }, 1000 * 70);
 };

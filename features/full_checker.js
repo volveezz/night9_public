@@ -565,6 +565,7 @@ export default (client) => {
             transaction: t,
         });
         const dbNotFiltred = await auth_data.findAll({
+            attributes: ["discord_id", "bungie_id", "platform", "displayname", "access_token", "roles_cat"],
             transaction: t,
             include: discord_activities,
         });
@@ -583,7 +584,7 @@ export default (client) => {
         const db_plain = dbNotFiltred.filter((data) => client.guilds.cache.get(guildId).members.cache.has(data.discord_id));
         if (!db_plain || db_plain.length === 0) {
             await client.guilds.cache.get(guildId).members.fetch();
-            return console.error(`[Checker] [Error code: 1022] DB is ${db_plain?.length === 0 ? "empty" : `${db_plain?.length} length`} or missing data`);
+            return console.error(`[Checker] [Error code: 1022] DB is ${db_plain ? `${db_plain} size` : `not avaliable`}`);
         }
         for (let i = 0; i < db_plain.length; i++) {
             const db_row = db_plain[i];
@@ -630,10 +631,9 @@ export default (client) => {
             const userDbData = dbData.find((d) => d.discord_id === member.id);
             if (!userDbData)
                 return;
-            const { displayname: userDbName, tz } = userDbData;
-            if (member.displayName !== userDbName &&
-                !userDbData.displayname.startsWith("⁣") &&
-                member.displayName.replace(/\[[+](?:\d|\d\d)]/, "") !== userDbName) {
+            const { tz, displayname: userDbName } = userDbData;
+            if (member.displayName.replace(/\[[+](?:\d|\d\d)]/, "") !== userDbName && !userDbData.displayname.startsWith("⁣")) {
+                console.debug(`DEBUG VALUE: ${member.displayName} is updating (${member.displayName.replace(/\[[+](?:\d|\d\d)]/, "")}/${userDbData.displayname})`);
                 if (!member.permissions.has("Administrator"))
                     member
                         .setNickname(userDbData.tz ? `[+${tz}] ${userDbName}` : userDbName)
