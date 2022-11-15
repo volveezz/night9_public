@@ -632,13 +632,11 @@ export default (client) => {
             if (!userDbData)
                 return;
             const { tz, displayname: userDbName } = userDbData;
-            if (member.displayName.replace(/\[[+](?:\d|\d\d)]/, "") !== userDbName && !userDbData.displayname.startsWith("⁣")) {
-                console.debug(`DEBUG VALUE: ${member.displayName} is updating (${member.displayName.replace(/\[[+](?:\d|\d\d)]/, "")}/${userDbData.displayname})`);
+            if (member.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "") !== userDbName && !userDbData.displayname.startsWith("⁣"))
                 if (!member.permissions.has("Administrator"))
                     member
                         .setNickname(userDbData.tz ? `[+${tz}] ${userDbName}` : userDbName)
                         .catch((e) => console.error("[Error code: 1030] Name autochange error", e));
-            }
         });
     }, 1000 * 70 * 5);
 };

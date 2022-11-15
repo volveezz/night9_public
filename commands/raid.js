@@ -113,8 +113,8 @@ export async function raidDataInChnMsg(raidData) {
         raidUserData.gos > 0 ? raidClears.push(`${raidUserData.gos} СС`) : "";
         raidUserData.lw > 0 ? raidClears.push(`${raidUserData.lw} ПЖ`) : "";
         return `${raidClears.length > 0
-            ? `${member?.displayName.replace(/\[[+](?:\d|\d\d)]/, "")} завершил: ${raidClears.join(", ")}`
-            : `${member?.displayName.replace(/\[[+](?:\d|\d\d)]/, "")} не проходил ранее рейды`}`;
+            ? `${member?.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} завершил: ${raidClears.join(", ")}`
+            : `${member?.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} не проходил ранее рейды`}`;
     }
     const joined = raidData.joined.map((userId) => raidUserDataManager(userId));
     const hotJoined = raidData.hotJoined.map((userId) => raidUserDataManager(userId));
@@ -204,7 +204,7 @@ async function raidAnnounce(oldRaidData) {
     })
         .map((member, i) => {
         const userRaidClears = completedRaidsData.get(member.id);
-        return `${i + 1 + ". **" + member.displayName.replace(/\[[+](?:\d|\d\d)]/, "")}**${userRaidClears
+        return `${i + 1 + ". **" + member.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")}**${userRaidClears
             ? ` — ${userRaidClears[raidData.raid]}${raidInfo && raidInfo.maxDifficulty >= 2 && userRaidClears[raidData.raid + "Master"] > 0
                 ? `(${userRaidClears[raidData.raid + "Master"]})`
                 : ""} закрытий рейда`
@@ -215,7 +215,7 @@ async function raidAnnounce(oldRaidData) {
         .setTitle("Уведомление о скором рейде")
         .setThumbnail(raidInfo?.raidBanner || null)
         .setTimestamp(raidData.time * 1000)
-        .setDescription(`Рейд [${raidData.id}-${raidData.raid}](https://discord.com/channels/${guildId}/${ids.raidChnId}/${raidData.msgId}) начнется в течение ${Math.trunc((new Date().getTime() / 1000 - raidData.time) / 60)} минут!`)
+        .setDescription(`Рейд [${raidData.id}-${raidData.raid}](https://discord.com/channels/${guildId}/${ids.raidChnId}/${raidData.msgId}) начнется в течение ${(raidData.time - Math.trunc(new Date().getTime() / 1000)) / 60} минут!`)
         .addFields([
         {
             name: "Состав группы",
@@ -341,7 +341,7 @@ async function getRaid(raidId, interaction) {
                     name: "Недостаточно прав",
                     message: `Управление рейдом ${raidId} доступно лишь ${interaction
                         .guild.members.cache.get(raidData[0].creator)
-                        .displayName.replace(/\[[+](?:\d|\d\d)]/, "")}`,
+                        .displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")}`,
                 };
             }
             else {
@@ -362,7 +362,7 @@ async function getRaid(raidId, interaction) {
                     name: "Недостаточно прав",
                     message: `Управление рейдом ${raidId} доступно лишь ${interaction
                         .guild.members.cache.get(raidData.creator)
-                        .displayName.replace(/\[[+](?:\d|\d\d)]/, "")}`,
+                        .displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")}`,
                 };
             }
             else {
@@ -377,7 +377,7 @@ export async function raidMsgUpdate(raidData, interaction) {
         return console.error(`[Error code: 1037] Error during raidMsgUpdate`, msg.id, msg.embeds);
     }
     const embed = EmbedBuilder.from(msg.embeds[0]);
-    const gMembers = (id) => interaction.guild.members.cache.get(id)?.displayName.replace(/\[[+](?:\d|\d\d)]/, "");
+    const gMembers = (id) => interaction.guild.members.cache.get(id)?.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "");
     const joined = raidData.joined && raidData.joined.length >= 1 ? raidData.joined.map((data) => gMembers(data)).join(", ") : "Никого";
     const hotJoined = raidData.hotJoined && raidData.hotJoined.length >= 1 ? raidData.hotJoined.map((data) => gMembers(data)).join(", ") : "Никого";
     const alt = raidData.alt && raidData.alt.length >= 1 ? raidData.alt.map((data) => gMembers(data)).join(", ") : "Никого";
@@ -731,7 +731,7 @@ export default {
                 .setTitle(`Рейд: ${raidData.raidName}${reqClears >= 1 ? ` от ${reqClears} закрытий` : ""}`)
                 .setColor(raidData.raidColor)
                 .setFooter({
-                text: `Создатель рейда: ${member.displayName.replace(/\[[+](?:\d|\d\d)]/, "")}`,
+                text: `Создатель рейда: ${member.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")}`,
                 iconURL: "https://www.bungie.net/common/destiny2_content/icons/8b1bfd1c1ce1cab51d23c78235a6e067.png",
             })
                 .setThumbnail(raidData.raidBanner)
@@ -742,7 +742,7 @@ export default {
                     value: `<t:${parsedTime}>`,
                     inline: true,
                 },
-                { name: "Участники: 1/6", value: member.displayName.replace(/\[[+](?:\d|\d\d)]/, "") },
+                { name: "Участники: 1/6", value: member.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "") },
             ]);
             if (raidDescription !== null && raidDescription.length < 1024) {
                 embed.spliceFields(2, 0, {
@@ -782,7 +782,7 @@ export default {
                         id: member.id,
                     },
                 ],
-                reason: `New raid by ${member.displayName.replace(/\[[+](?:\d|\d\d)]/, "")}`,
+                reason: `New raid by ${member.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")}`,
             })
                 .then(async (chn) => {
                 raidAnnounceSystem(raidDb);
@@ -974,12 +974,12 @@ export default {
                         value: raidData.creator === interaction.user.id
                             ? `${interaction
                                 .guild.members.cache.get(interaction.user.id)
-                                .displayName.replace(/\[[+](?:\d|\d\d)]/, "")} передал права создателя рейда ${interaction
+                                .displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} передал права создателя рейда ${interaction
                                 .guild.members.cache.get(newRaidLeader.id)
-                                .displayName.replace(/\[[+](?:\d|\d\d)]/, "")}`
+                                .displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")}`
                             : `Права создателя были переданы ${interaction
                                 .guild.members.cache.get(newRaidLeader.id)
-                                .displayName.replace(/\[[+](?:\d|\d\d)]/, "")}`,
+                                .displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")}`,
                     });
                     changes.push(`Создатель рейда был изменен`);
                     await raids.update({
@@ -1023,7 +1023,7 @@ export default {
                     raidEmbed.setFooter({
                         text: `Создатель рейда: ${interaction
                             .guild.members.cache.get(change.raidLeader.id)
-                            .displayName.replace(/\[[+](?:\d|\d\d)]/, "")}`,
+                            .displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")}`,
                         iconURL: raidEmbed.data.footer?.icon_url,
                     });
                 }
@@ -1086,7 +1086,7 @@ export default {
                 try {
                     await guild.channels.cache
                         .get(raidData.chnId)
-                        ?.delete(`${interaction.guild.members.cache.get(interaction.user.id).displayName.replace(/\[[+](?:\d|\d\d)]/, "")} удалил рейд`);
+                        ?.delete(`${interaction.guild.members.cache.get(interaction.user.id).displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} удалил рейд`);
                 }
                 catch (e) {
                     console.error(`[Error code: 1069] Channel during raid manual delete for raidId ${raidData.id} wasn't found`);
@@ -1131,7 +1131,7 @@ export default {
                     embedReply.setAuthor({
                         name: `${interaction
                             .guild.members.cache.get(addedUser.id)
-                            .displayName.replace(/\[[+](?:\d|\d\d)]/, "")} был записан на рейд как возможный участник`,
+                            .displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} был записан на рейд как возможный участник`,
                         iconURL: addedUser.displayAvatarURL(),
                     });
                     chnFetcher(raidData.chnId).permissionOverwrites.create(addedUser.id, { ViewChannel: true });
@@ -1148,7 +1148,7 @@ export default {
                         .setColor("Green")
                         .setTitle(`${interaction
                         .guild.members.cache.get(addedUser.id)
-                        .displayName.replace(/\[[+](?:\d|\d\d)]/, "")} был записан как возможный участник на ${raidData.id}-${raidData.raid}`);
+                        .displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} был записан как возможный участник на ${raidData.id}-${raidData.raid}`);
                     await deferredReply;
                     interaction.editReply({ embeds: [embed] });
                     raidDataInChnMsg(raidData);
@@ -1168,7 +1168,7 @@ export default {
                                 name: "Ошибка",
                                 message: `Набор ${raidData.id}-${raidData.raid} полон, а ${interaction
                                     .guild.members.cache.get(addedUser.id)
-                                    .displayName.replace(/\[[+](?:\d|\d\d)]/, "")} уже добавлен в запас`,
+                                    .displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} уже добавлен в запас`,
                                 deferredReply,
                             };
                         }
@@ -1176,7 +1176,7 @@ export default {
                         embedReply.setAuthor({
                             name: `${interaction
                                 .guild.members.cache.get(addedUser.id)
-                                .displayName.replace(/\[[+](?:\d|\d\d)]/, "")} был записан на рейд как запасной участник`,
+                                .displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} был записан на рейд как запасной участник`,
                             iconURL: addedUser.displayAvatarURL(),
                         });
                     }
@@ -1184,7 +1184,7 @@ export default {
                         embedReply.setAuthor({
                             name: `${interaction
                                 .guild.members.cache.get(addedUser.id)
-                                .displayName.replace(/\[[+](?:\d|\d\d)]/, "")} был записан на рейд как участник`,
+                                .displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} был записан на рейд как участник`,
                             iconURL: addedUser.displayAvatarURL(),
                         });
                         raidData.joined.push(addedUser.id);
@@ -1208,7 +1208,7 @@ export default {
                     await raidMsgUpdate(raidData, interaction);
                     const embed = new EmbedBuilder()
                         .setColor("Green")
-                        .setTitle(`${interaction.guild.members.cache.get(addedUser.id).displayName.replace(/\[[+](?:\d|\d\d)]/, "")} был записан на ${raidData.id}-${raidData.raid}`);
+                        .setTitle(`${interaction.guild.members.cache.get(addedUser.id).displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} был записан на ${raidData.id}-${raidData.raid}`);
                     await deferredReply;
                     interaction.editReply({ embeds: [embed] });
                     raidDataInChnMsg(raidData);
@@ -1247,19 +1247,19 @@ export default {
                 raidData.joined.splice(raidData.joined.indexOf(kickableUser.id), 1);
                 inChnEmbed.setDescription(`${interaction
                     .guild.members.cache.get(kickableUser.id)
-                    .displayName.replace(/\[[+](?:\d|\d\d)]/, "")} исключен будучи участником рейда`);
+                    .displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} исключен будучи участником рейда`);
             }
             if (raidData.alt.includes(kickableUser.id)) {
                 raidData.alt.splice(raidData.alt.indexOf(kickableUser.id), 1);
                 inChnEmbed.setDescription(`${interaction
                     .guild.members.cache.get(kickableUser.id)
-                    .displayName.replace(/\[[+](?:\d|\d\d)]/, "")} исключен будучи возможным участником рейда`);
+                    .displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} исключен будучи возможным участником рейда`);
             }
             if (raidData.hotJoined.includes(kickableUser.id)) {
                 raidData.hotJoined.splice(raidData.hotJoined.indexOf(kickableUser.id), 1);
                 inChnEmbed.setDescription(`${interaction
                     .guild.members.cache.get(kickableUser.id)
-                    .displayName.replace(/\[[+](?:\d|\d\d)]/, "")} исключен будучи заменой участников рейда`);
+                    .displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} исключен будучи заменой участников рейда`);
             }
             if (isBlacklist)
                 inChnEmbed.data.description += " и добавлен в ЧС рейда";
@@ -1274,7 +1274,7 @@ export default {
             const raidChn = chnFetcher(raidData.chnId);
             raidChn.send({ embeds: [inChnEmbed] });
             raidChn.permissionOverwrites.delete(kickableUser.id);
-            embed.setDescription(`${interaction.guild.members.cache.get(kickableUser.id).displayName.replace(/\[[+](?:\d|\d\d)]/, "")} был исключен с рейда ${raidData.id}-${raidData.raid}`);
+            embed.setDescription(`${interaction.guild.members.cache.get(kickableUser.id).displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} был исключен с рейда ${raidData.id}-${raidData.raid}`);
             await deferredReply;
             interaction.editReply({ embeds: [embed] });
             raidDataInChnMsg(raidData);

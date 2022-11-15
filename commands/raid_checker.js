@@ -107,7 +107,7 @@ export default {
             .setFooter({ text: "Удаленные персонажи не проверяются" });
         interaction instanceof UserContextMenuCommandInteraction
             ? embed.setAuthor({
-                name: interaction.guild?.members.cache.get(interaction.targetId)?.displayName.replace(/\[[+](?:\d|\d\d)]/, "") ||
+                name: interaction.guild?.members.cache.get(interaction.targetId)?.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "") ||
                     interaction.targetUser.username,
                 iconURL: interaction.targetUser.displayAvatarURL(),
             })

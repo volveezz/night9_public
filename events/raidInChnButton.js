@@ -110,12 +110,12 @@ export default {
                                                         },
                                                     ],
                                                 })
-                                                    .then((d) => sendedTo.push(`${user.displayName.replace(/\[[+](?:\d|\d\d)]/, "")} получил оповещение`))
+                                                    .then((d) => sendedTo.push(`${user.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} получил оповещение`))
                                                     .catch(async (e) => {
                                                     if (e.code === 50007) {
                                                         await interaction
                                                             .channel.send(`<@${user.id}>, ${embedForLeader.data.description}`)
-                                                            .then((d) => sendedTo.push(`${user.displayName.replace(/\[[+](?:\d|\d\d)]/, "")} получил текстовое оповещение`));
+                                                            .then((d) => sendedTo.push(`${user.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} получил текстовое оповещение`));
                                                     }
                                                     else {
                                                         console.error(`raid user notify err`, e);
@@ -148,12 +148,12 @@ export default {
                                         embeds: [embedForLeader],
                                         components: linkComponent.length > 0 ? compCont : undefined,
                                     })
-                                        .then((d) => sendedTo.push(`${member.displayName.replace(/\[[+](?:\d|\d\d)]/, "")} получил оповещение`))
+                                        .then((d) => sendedTo.push(`${member.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} получил оповещение`))
                                         .catch(async (e) => {
                                         if (e.code === 50007) {
                                             await interaction
                                                 .channel.send(`<@${member.id}>, ${embedForLeader.data.description}`)
-                                                .then((d) => sendedTo.push(`${member.displayName.replace(/\[[+](?:\d|\d\d)]/, "")} получил текстовое оповещение`));
+                                                .then((d) => sendedTo.push(`${member.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} получил текстовое оповещение`));
                                         }
                                         else {
                                             console.error(`raid member notify err`, e.requestBody.json.components);
@@ -220,10 +220,10 @@ export default {
                                 return console.error(`raidChntransfer err, chn is broken`, freeRaidVC);
                             if (!freeRaidVC.members.has(member.id)) {
                                 await member.voice.setChannel(freeRaidVC, `${interaction.user.username} переместил участников в рейдовый голосовой`);
-                                movedUsers.push(`${member.displayName.replace(/\[[+](?:\d|\d\d)]/, "")} был перемещен`);
+                                movedUsers.push(`${member.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} был перемещен`);
                             }
                             else {
-                                alreadyMovedUsers.push(`${member.displayName.replace(/\[[+](?:\d|\d\d)]/, "")} уже в канале`);
+                                alreadyMovedUsers.push(`${member.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} уже в канале`);
                             }
                         }
                     }));

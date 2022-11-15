@@ -17,7 +17,7 @@ export default {
                     const embed = new EmbedBuilder()
                         .setColor(colors.default)
                         .setTitle("Введите текст сообщения для ответа")
-                        .setAuthor({ name: replyMember.displayName.replace(/\[[+](?:\d|\d\d)]/, ""), iconURL: replyMember.displayAvatarURL() });
+                        .setAuthor({ name: replyMember.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, ""), iconURL: replyMember.displayAvatarURL() });
                     interaction.reply({ embeds: [embed], ephemeral: true });
                     const collector = interaction.channel.createMessageCollector({
                         filter: (m) => m.author.id === member.id,

@@ -14,7 +14,7 @@ export default {
         const member = BotClient.guilds.cache.get(guildId).members.cache.get(interaction.user.id);
         if (member) {
             const nickName = member.displayName;
-            !member.permissions.has("Administrator") ? member.setNickname(`[+${tz}] ${nickName.replace(/\[[+](?:\d|\d\d)]/, "").trim()}`) : [];
+            !member.permissions.has("Administrator") ? member.setNickname(`[+${tz}] ${nickName.replace(/\[[+](?:\d|\d\d)]\s?/, "").trim()}`) : [];
         }
         await deferredInteraction;
         interaction.editReply({ embeds: [embed], components: [] });
