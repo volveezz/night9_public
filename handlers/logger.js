@@ -267,7 +267,6 @@ export default (client) => {
             .setAuthor({
             name: "Присоединился новый участник",
         })
-            .setTimestamp()
             .setFooter({ text: String(`Id: ` + member.id) })
             .setDescription(`<@${member.id}> ${member.user.username}#${member.user.discriminator}`)
             .addFields({
@@ -332,7 +331,6 @@ export default (client) => {
         const embed = new EmbedBuilder()
             .setAuthor({ name: "Участник покинул сервер", iconURL: member.displayAvatarURL() })
             .setColor("Red")
-            .setTimestamp()
             .addFields([
             { name: `Пользователь`, value: `${member.displayName}/${member}`, inline: true },
             {
@@ -409,25 +407,25 @@ export default (client) => {
         });
     });
     client.on("guildMemberUpdate", async (oldMember, newMember) => {
-        if (oldMember.joinedTimestamp === null || (oldMember.nickname === null && oldMember.roles.cache.size === 0))
+        if (!oldMember.joinedTimestamp || (!oldMember.nickname && oldMember.roles.cache.size === 0))
             return;
         const embed = new EmbedBuilder()
             .setAuthor({ name: "guildMemberUpdate" })
             .setColor(colors.default)
-            .setFooter({ text: `Id: ${oldMember.id}` })
-            .setTimestamp();
-        if (oldMember.roles !== newMember.roles) {
-            const removedRoles = [], gotRoles = [];
-            oldMember?.roles.cache.forEach((role) => {
-                !newMember.roles.cache.has(role.id) ? removedRoles.push(`<@&${role.id}>`) : [];
-            });
-            newMember?.roles.cache.forEach((role) => {
-                !oldMember.roles.cache.has(role.id) ? gotRoles.push(`<@&${role.id}>`) : [];
-            });
-            if (removedRoles.length > 0) {
+            .setFooter({ text: `Id: ${oldMember.id}` });
+        if (oldMember.roles.cache.size !== newMember.roles.cache.size) {
+            const roleDifferenceStatus = oldMember.roles.cache.size > newMember.roles.cache.size ? false : true;
+            const roleDifference = oldMember.roles.cache.difference(newMember.roles.cache).map((role) => `<@&${role.id}>`);
+            if (roleDifference.length > 0) {
                 embed
                     .setAuthor({
-                    name: `У ${newMember.displayName} ${removedRoles.length === 1 ? "была удалена роль" : "были удалены роли"}`,
+                    name: `У ${newMember.displayName} ${roleDifferenceStatus
+                        ? roleDifference.length === 1
+                            ? "была выдана роль"
+                            : "были выданы роли"
+                        : roleDifference.length === 1
+                            ? "была удалена роль"
+                            : "были удалены роли"}`,
                     iconURL: newMember.displayAvatarURL(),
                 })
                     .addFields([
@@ -437,30 +435,15 @@ export default (client) => {
                         inline: true,
                     },
                     {
-                        name: removedRoles.length === 1 ? "Роль" : "Роли",
-                        value: removedRoles.toString().length > 1023 ? "Слишком много ролей" : removedRoles.toString(),
+                        name: roleDifference.length === 1 ? "Роль" : "Роли",
+                        value: roleDifference.join(", ").length > 1023 ? "*Слишком много ролей*" : roleDifference.join(", "),
                         inline: true,
                     },
                 ]);
+                guildMemberChannel.send({ embeds: [embed] });
             }
-            else if (gotRoles.length > 0) {
-                embed
-                    .setAuthor({
-                    name: `${newMember.displayName} ${gotRoles.length === 1 ? "была выдана роль" : "были выданы роли"}`,
-                    iconURL: newMember.displayAvatarURL(),
-                })
-                    .addFields([
-                    {
-                        name: "Пользователь",
-                        value: `<@${newMember.id}>`,
-                        inline: true,
-                    },
-                    {
-                        name: gotRoles.length === 1 ? "Роль" : "Роли",
-                        value: gotRoles.toString() || "error",
-                        inline: true,
-                    },
-                ]);
+            else {
+                console.debug(`DEBUG EWGGR51W: ${roleDifference}, ${roleDifferenceStatus}`, oldMember.roles.cache, newMember.roles.cache);
             }
         }
         if (oldMember.displayName !== newMember.displayName) {
@@ -471,12 +454,13 @@ export default (client) => {
             })
                 .addFields([
                 { name: "Пользователь", value: `<@${newMember.id}>`, inline: true },
-                { name: "До изменения", value: `\`` + oldMember.displayName + `\``, inline: true },
-                { name: "После", value: `\`` + newMember.displayName + `\``, inline: true },
+                { name: "До изменения", value: `\`${oldMember.displayName}\``, inline: true },
+                { name: "После", value: `\`${newMember.displayName}\``, inline: true },
             ]);
+            guildMemberChannel.send({ embeds: [embed] });
         }
         if (oldMember.communicationDisabledUntilTimestamp !== newMember.communicationDisabledUntilTimestamp) {
-            if (oldMember.communicationDisabledUntilTimestamp === null) {
+            if (!oldMember.communicationDisabledUntilTimestamp) {
                 embed
                     .setAuthor({
                     name: `${newMember.displayName} был выдан тайм-аут`,
@@ -499,8 +483,6 @@ export default (client) => {
                 })
                     .setColor(colors.default);
             }
-        }
-        if (embed.data.author?.name !== "guildMemberUpdate") {
             guildMemberChannel.send({ embeds: [embed] });
         }
     });
@@ -513,7 +495,6 @@ export default (client) => {
         })
             .setColor("Red")
             .setFooter({ text: `Id: ${member.user.id}` })
-            .setTimestamp()
             .addFields([
             {
                 name: "Дата присоединения к серверу",
@@ -521,7 +502,7 @@ export default (client) => {
             },
         ]);
         await member.fetch();
-        if (member.reason !== null) {
+        if (member.reason) {
             embed.addFields([
                 {
                     name: "Причина бана",
@@ -538,7 +519,6 @@ export default (client) => {
             name: `${member.user.username} разбанен`,
             iconURL: member.user.displayAvatarURL(),
         })
-            .setTimestamp()
             .setFooter({ text: `Id: ${member.user.id}` });
         if (member.reason) {
             embed.addFields([
@@ -551,66 +531,49 @@ export default (client) => {
         guildMemberChannel.send({ embeds: [embed] });
     });
     client.on("guildUpdate", async (oldGuild, newGuild) => {
-        const embed = new EmbedBuilder()
-            .setColor(colors.default)
-            .setAuthor({
+        const embed = new EmbedBuilder().setColor(colors.default).setAuthor({
             name: "Сервер обновлен",
-        })
-            .setTimestamp();
-        if (oldGuild.name !== newGuild.name) {
+        });
+        if (oldGuild.name !== newGuild.name)
             embed.addFields([
                 {
                     name: "Название сервера обновлено",
                     value: `\`${oldGuild.name}\` -> \`${newGuild.name}\``,
                 },
             ]);
-        }
-        if (oldGuild.icon !== newGuild.icon) {
+        if (oldGuild.icon !== newGuild.icon)
             embed.addFields([
                 {
                     name: "Иконка обновлена",
                     value: String(`[До изменения](${oldGuild.iconURL() || "https://natribu.org/"}) -> [После](${newGuild.iconURL() || "https://natribu.org/"})`),
                 },
             ]);
-        }
-        if (oldGuild.premiumTier !== newGuild.premiumTier) {
+        if (oldGuild.premiumTier !== newGuild.premiumTier)
             embed.addFields([
                 {
                     name: "Статус буста сервера обновлен",
                     value: `\`${oldGuild.premiumTier}\` -> \`${newGuild.premiumTier}\``,
                 },
             ]);
-        }
-        if (oldGuild.ownerId !== newGuild.ownerId) {
+        if (oldGuild.ownerId !== newGuild.ownerId)
             embed.addFields([
                 {
                     name: "Владелец сервера обновлен",
                     value: String(await newGuild.fetchOwner().then((own) => `\`` + own.displayName + `\``)),
                 },
             ]);
-        }
-        if (embed.data.fields?.length > 0)
-            guildChannel.send({ embeds: [embed] });
+        guildChannel.send({ embeds: [embed] });
     });
     client.on("channelCreate", (createdChannel) => {
         const embed = new EmbedBuilder()
             .setColor("Green")
             .setAuthor({ name: `Канал ${createdChannel.name} создан` })
-            .setTimestamp()
             .setFooter({ text: `ChnId: ${createdChannel.id}` })
-            .addFields([
-            { name: `Канал`, value: `<#${createdChannel.id}>`, inline: true },
-            {
-                name: "Позиция",
-                value: `${createdChannel.position}/raw ${createdChannel.rawPosition}`,
-                inline: true,
-            },
-        ]);
-        if (embed.data.fields?.length > 0)
-            guildChannel.send({ embeds: [embed] });
+            .addFields([{ name: `Канал`, value: `<#${createdChannel.id}>`, inline: true }]);
+        guildChannel.send({ embeds: [embed] });
     });
     client.on("channelDelete", (deletedChannel) => {
-        const embed = new EmbedBuilder().setColor("Red").setAuthor({ name: `Канал удален` }).setTimestamp();
+        const embed = new EmbedBuilder().setColor("Red").setAuthor({ name: `Канал удален` });
         if (!deletedChannel.isDMBased()) {
             embed.setFooter({ text: `ChnId: ${deletedChannel.id}` }).addFields([
                 {
@@ -627,8 +590,7 @@ export default (client) => {
         }
         else
             console.log(`Deleted channel found as DM`, deletedChannel);
-        if (embed.data.fields?.length > 0)
-            guildChannel.send({ embeds: [embed] });
+        guildChannel.send({ embeds: [embed] });
     });
     client.on("inviteCreate", (invite) => {
         if (invite.inviterId === client.user?.id)
@@ -639,7 +601,6 @@ export default (client) => {
             name: `${member?.displayName || invite.inviter?.username} создал приглашение`,
             iconURL: member?.displayAvatarURL() || invite.inviter?.displayAvatarURL(),
         })
-            .setTimestamp()
             .setFooter({ text: `Id: ${invite.inviterId}` })
             .addFields([
             { name: `Ссылка`, value: `https://discord.gg/${invite.code}` },
@@ -666,7 +627,6 @@ export default (client) => {
         const embed = new EmbedBuilder()
             .setAuthor({ name: `Приглашение ${invite.code} удалено` })
             .setColor("Red")
-            .setTimestamp()
             .addFields([
             {
                 name: "Приглашение в",
@@ -680,69 +640,59 @@ export default (client) => {
         if (message.system ||
             message.author?.id === client.user?.id ||
             (message.content?.length === 0 && message.attachments.size === 0 && message.stickers.size === 0) ||
-            message.author === null)
+            !message.author ||
+            message.channelId === ids.messagesChnId)
             return;
         const embed = new EmbedBuilder()
             .setColor("DarkRed")
             .setAuthor({ name: "Сообщение удалено" })
             .setFooter({ text: `MsgId: ${message.id}` })
-            .setTimestamp();
-        if (message.author !== null) {
-            embed.addFields([
-                {
-                    name: "Автор",
-                    value: `<@${message.author.id}> (${message.author.id})`,
-                    inline: true,
-                },
-                {
-                    name: "Удалено в",
-                    value: `<#${message.channelId}>`,
-                    inline: true,
-                },
-            ]);
-        }
-        else {
-            embed.setAuthor({ name: "Неизвестное сообщение удалено" }).addFields([{ name: "Удалено в", value: `<#${message.channelId}>` }]);
-        }
-        if (message.content?.length > 0) {
+            .setTimestamp()
+            .addFields([
+            {
+                name: "Автор",
+                value: `<@${message.author.id}> (${message.author.id})`,
+                inline: true,
+            },
+            {
+                name: "Удалено в",
+                value: `<#${message.channelId}>`,
+                inline: true,
+            },
+        ]);
+        if (message.content?.length > 0)
             embed.addFields([
                 {
                     name: "Текст",
                     value: `\`${message.content?.length > 1000 ? "слишком длинное сообщение" : message.content}\``,
                 },
             ]);
-        }
-        if (message.embeds.length > 0) {
+        if (message.embeds.length > 0)
             embed.addFields([{ name: "Embed-вложения", value: `\`${message.embeds.length}\`` }]);
-        }
         if (message.attachments.size !== 0) {
             const arrayAttachment = [];
-            message.attachments.forEach((msgAttachment) => {
-                arrayAttachment.push(msgAttachment.url);
-            });
+            message.attachments.forEach((msgAttachment) => arrayAttachment.push(msgAttachment.url));
             embed.addFields([
                 {
                     name: message.attachments.size === 1 ? "Вложение" : "Вложения",
-                    value: arrayAttachment.join(`\n`).toString() || "blank",
+                    value: arrayAttachment.join(`\n`).toString() ?? "blank",
                 },
             ]);
         }
         if (message.stickers.size !== 0) {
             const stickerArr = [];
-            message.stickers.forEach((sticker) => {
-                stickerArr.push(sticker.name);
-            });
+            message.stickers.forEach((sticker) => stickerArr.push(sticker.name));
             embed.addFields([
                 {
                     name: stickerArr.length === 1 ? "Стикер" : "Стикеры",
-                    value: stickerArr.join(`\n`).toString() || "blank",
+                    value: stickerArr.join(`\n`).toString() ?? "blank",
                 },
             ]);
         }
         messageChannel.send({ embeds: [embed] });
     });
     client.on("messageDeleteBulk", (message) => {
-        const embed = new EmbedBuilder().setColor("DarkRed").setAuthor({ name: "Группа сообщений удалена" }).setTimestamp();
+        const embed = new EmbedBuilder().setColor("DarkRed").setAuthor({ name: "Группа сообщений удалена" });
         for (let i = 0; i < message.size && i < 24; i++) {
             const m = message.at(i);
             embed.addFields([
@@ -750,7 +700,7 @@ export default (client) => {
                     name: `Сообщение ${m?.member?.displayName} (${m?.id})`,
                     value: `${m?.content?.length > 0
                         ? `\`${m?.content?.length > 1000 ? "*в сообщении слишком много текста*" : m?.content}\``
-                        : "в сообщении нет текста"}`,
+                        : m?.embeds[0]?.title ?? "*в сообщении нет текста*"}`,
                 },
             ]);
         }
@@ -758,20 +708,19 @@ export default (client) => {
         messageChannel.send({ embeds: [embed] });
     });
     client.on("messageUpdate", (oldMessage, newMessage) => {
-        if (oldMessage.content?.length <= 0 || oldMessage.content === newMessage.content)
+        if (!oldMessage.content?.length || oldMessage.content === newMessage.content)
             return;
         const embed = new EmbedBuilder()
             .setColor(colors.default)
-            .setTimestamp()
             .setAuthor({ name: "Сообщение изменено" })
             .setDescription(`<@${newMessage.author.id}> изменил сообщение в <#${newMessage.channelId}>. [Перейти к сообщению](https://discord.com/channels/${newMessage.guildId}/${newMessage.channelId}/${newMessage.id})`);
-        oldMessage.content && oldMessage.content.length <= 1000 && newMessage.content && newMessage.content.length <= 1000
+        oldMessage.content.length <= 1000 && newMessage.content && newMessage.content.length <= 1000
             ? embed.addFields([
                 {
                     name: "До изменения",
-                    value: oldMessage.content === null || oldMessage.content?.length <= 0 ? "сообщение не было в кеше" : "`" + oldMessage.content + "`",
+                    value: oldMessage.content.length <= 0 ? "сообщение не было в кеше" : `\`${oldMessage.content}\``,
                 },
-                { name: "После", value: "`" + newMessage.content + "`" },
+                { name: "После", value: `\`${newMessage.content}\`` },
             ])
             : embed.addFields({ name: "⁣", value: "Текст сообщения слишком длинный" });
         messageChannel.send({ embeds: [embed] });
@@ -781,7 +730,6 @@ export default (client) => {
             .setColor(colors.default)
             .setAuthor({ name: "Роль была создана" })
             .setFooter({ text: `RoleId: ${role.id}` })
-            .setTimestamp()
             .addFields([
             { name: "Роль", value: `<@&${role.id}>`, inline: true },
             { name: "Название", value: role.name, inline: true },
@@ -792,13 +740,12 @@ export default (client) => {
     client.on("roleDelete", (role) => {
         const embed = new EmbedBuilder()
             .setColor(colors.kicked)
-            .setTimestamp()
             .setAuthor({ name: "Роль удалена" })
             .setDescription(`Удаленная роль \`${role.name}\` (${role.id})`)
             .addFields([
             {
                 name: "Дата создания",
-                value: String("<t:" + Math.round(role.createdAt.getTime() / 1000) + ">"),
+                value: `<t:${Math.round(role.createdAt.getTime() / 1000)}>`,
             },
         ]);
         guildChannel.send({ embeds: [embed] });
@@ -817,7 +764,10 @@ export default (client) => {
                 .setFooter({
                 text: `UId: ${newState.member?.id} | ChnId: ${newState.channelId}`,
             })
-                .addFields([{ name: "Канал", value: `<#${newState.channelId}>` }]);
+                .addFields([
+                { name: "Пользователь", value: `<@${newState.member.id}>`, inline: true },
+                { name: "Канал", value: `<#${newState.channelId}>` },
+            ]);
         }
         if (!newState.channelId) {
             const getTimestamp = voiceUsers.get(oldState.member?.id)?.joinTimestamp;
@@ -831,7 +781,7 @@ export default (client) => {
             })
                 .setColor("DarkRed")
                 .addFields([
-                { name: "Пользователь", value: `<@${oldState.member?.id}`, inline: true },
+                { name: "Пользователь", value: `<@${oldState.member.id}>`, inline: true },
                 {
                     name: "Канал",
                     value: `<#${oldState.channelId}>`,
@@ -839,14 +789,14 @@ export default (client) => {
                 },
             ]);
             if (getTimestamp) {
-                const difference = Math.round((new Date().getTime() - getTimestamp) / 1000);
-                const hours = Math.trunc(difference / 3600);
-                const mins = Math.trunc(difference > 3600 ? (difference - (difference % 3600)) / 60 : difference / 60);
-                const secs = difference - Math.trunc(difference / 60) * 60;
+                const difference = Math.trunc((new Date().getTime() - getTimestamp) / 1000);
+                const calculatedTime = [Math.trunc(difference / 3600), Math.trunc((difference % 3600) / 60), Math.trunc(difference % 60)]
+                    .filter((v) => v)
+                    .join(":");
                 embed.addFields([
                     {
                         name: "Времени в голосовых",
-                        value: `${hours ? `${hours}ч` : ""}${(hours && mins) || (hours && secs) ? ":" : ""}${mins ? `${mins}м` : ""}${secs && mins ? ":" : ""}${secs ? `${secs}с` : ""}`,
+                        value: calculatedTime,
                         inline: true,
                     },
                 ]);
@@ -866,6 +816,7 @@ export default (client) => {
                 text: `UId: ${newState.member?.id} | ChnId: ${newState.channelId}`,
             })
                 .addFields([
+                { name: "Пользователь", value: `<@${oldState.member.id}>`, inline: true },
                 { name: "До", value: `<#${oldState.channelId}>`, inline: true },
                 {
                     name: "После",
