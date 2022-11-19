@@ -443,7 +443,7 @@ export default (client) => {
                 guildMemberChannel.send({ embeds: [embed] });
             }
             else {
-                console.debug(`DEBUG EWGGR51W: ${roleDifference}, ${roleDifferenceStatus}`, oldMember.roles.cache, newMember.roles.cache);
+                console.debug(`DEBUG EWGGR51W: ${roleDifference}, ${roleDifferenceStatus}`, oldMember, newMember);
             }
         }
         if (oldMember.displayName !== newMember.displayName) {

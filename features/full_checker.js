@@ -593,12 +593,13 @@ export default (client) => {
             if (longOffline.has(db_row.discord_id)) {
                 if (Math.random() > 0.82)
                     longOffline.delete(db_row.discord_id);
-                return;
+                continue;
             }
             const member = client.guilds.cache.get(guildId)?.members.cache.get(db_row.discord_id);
             if (!member) {
                 await client.guilds.cache.get(guildId)?.members.fetch();
-                return console.error("[Error code: 1023] destinyUserStatsChecker, member not found", db_row.displayname);
+                console.error("[Error code: 1023] destinyUserStatsChecker, member not found", db_row.displayname);
+                continue;
             }
             if (member.roles.cache.has(statusRoles.clanmember) ||
                 (db_row.discord_activity &&
