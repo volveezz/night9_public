@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, EmbedBuilder, GuildMember, InteractionType, } from "discord.js";
+import { ApplicationCommandType, ChatInputCommandInteraction, EmbedBuilder, GuildMember, InteractionType, PermissionsBitField, } from "discord.js";
 import { guildId } from "../base/ids.js";
 import { getFiles } from "./file-reader.js";
 const commands = {};
@@ -52,6 +52,20 @@ export default async (client, commandDir, eventsDir) => {
     for (const command of files) {
         const { default: commandFile } = await import(`../commands/${command}`);
         const { name: commandName, description: commandDescription, global, options, defaultMemberPermissions, type, nameLocalizations } = commandFile;
+        setTimeout(() => {
+            if (!type || type[0] === true) {
+                if (commandName === "wasibanned") {
+                    client.guilds.cache.get(guildId)?.commands.create({
+                        name: commandName,
+                        nameLocalizations: nameLocalizations || undefined,
+                        description: commandDescription || commandName,
+                        type: ApplicationCommandType.ChatInput,
+                        defaultMemberPermissions: defaultMemberPermissions === undefined ? null : new PermissionsBitField(defaultMemberPermissions).bitfield,
+                        options: options,
+                    });
+                }
+            }
+        }, 2000);
         commands[commandName.toLowerCase()] = commandFile;
     }
     for (const event of eventsFiles) {
