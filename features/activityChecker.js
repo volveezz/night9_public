@@ -12,6 +12,8 @@ export default (client) => {
         if (!character_data.get(member.id)) {
             fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Stats/?groups=1`, data)
                 .then((chars) => {
+                if (!chars["characters"])
+                    return console.error(`[Error code: 1104]`, chars, member.displayName, data.bungie_id);
                 const charIdArray = [];
                 chars["characters"].forEach((ch) => charIdArray.push(ch.characterId));
                 character_data.set(data.discord_id, charIdArray);
@@ -36,7 +38,9 @@ export default (client) => {
                             ? console.error(`[Error code: 1101] ${member.displayName}`)
                             : e.code === "ECONNRESET"
                                 ? console.error(`[Error code: 1100] ${member.displayName} ${e.code}`)
-                                : console.error("[Error code: 1040]", e);
+                                : e.code === "ETIMEDOUT"
+                                    ? console.error(`[Error code: 1103] ${member.displayName} ${e.code}`)
+                                    : console.error("[Error code: 1040]", e);
                     });
                     return response.then((fetchedResponse) => fetchedResponse);
                 }

@@ -26,6 +26,8 @@ process.on("unhandledRejection", (error) => {
         return console.error(`[Error code: 1060] ${error.code} ${error.name}`);
     if (error.code === "EPROTO")
         return console.error(`[Error code: 1061] ${error.code} ${error.name}`);
+    if (error.code === "ETIMEDOUT")
+        return console.error(`[Error code: 1102] ${error.code} ${error.name}`);
     if (error instanceof DiscordAPIError) {
         if (error.code === 50035) {
             console.error("[Error code: 1026] Discord embed error", error, error.message, error.requestBody.json);
