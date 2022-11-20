@@ -312,7 +312,7 @@ export default (client) => {
             console.error("[Error code: 1098] [Checker error] Name change error", error);
         }
     }
-    async function clan(bungie_array) {
+    async function destinyClanManagmentSystem(bungie_array) {
         const clanList = await fetchRequest("Platform/GroupV2/4123712/Members/?memberType=None").catch((e) => console.error(`[Error code: 1088] Clan checker error | 1`, e.statusCode));
         if (!clanList) {
             console.log("[Error code: 1013] [Clan checker]", clanList);
@@ -364,6 +364,7 @@ export default (client) => {
                     name_change(clan_member.discord_id, result.destinyUserInfo.bungieGlobalDisplayName);
                 }
                 if (clan_member.clan === false) {
+                    console.debug(`DEBUG: Member joined clan`, clan_member.displayname, clan_member.clan);
                     await auth_data.update({ clan: true }, {
                         where: {
                             bungie_id: result.destinyUserInfo.membershipId,
@@ -621,7 +622,7 @@ export default (client) => {
                 await timer(700);
             }
         }
-        clan(db_plain);
+        destinyClanManagmentSystem(db_plain);
     }, 1000 * 60 * 2);
     setInterval(async () => {
         const dbData = await auth_data.findAll({
