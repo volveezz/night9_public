@@ -329,8 +329,9 @@ export default (client) => {
         const t = await db.transaction();
         await Promise.all(clanList.results.map(async (result) => {
             if (bungie_array.some((e) => e.bungie_id === result.destinyUserInfo.membershipId)) {
-                console.debug(`DEBUG: Run clan system checker for ${result.bungieNetUserInfo.bungieGlobalDisplayName ?? result.bungieNetUserInfo.displayName}`);
                 const [clan_member] = bungie_array.splice(bungie_array.findIndex((e) => e.bungie_id === result.destinyUserInfo.membershipId), 1);
+                if (clan_member.discord_id === "277412652773539840")
+                    return console.debug(`DEBUG: Checking ${clan_member.displayname}`);
                 if (!clanJoinDateCheck.has(result.destinyUserInfo.membershipId)) {
                     await timer(1000);
                     if (!(clan_member.roles_cat & 8))
@@ -354,6 +355,7 @@ export default (client) => {
                     }
                 }
                 if (clan_member.displayname !== result.destinyUserInfo.bungieGlobalDisplayName && !clan_member.displayname.startsWith("⁣")) {
+                    console.debug(`DEBUG: Member's name updated for ${clan_member.displayname}`);
                     await auth_data.update({
                         displayname: result.destinyUserInfo.bungieGlobalDisplayName,
                     }, {
