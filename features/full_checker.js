@@ -330,8 +330,6 @@ export default (client) => {
         await Promise.all(clanList.results.map(async (result) => {
             if (bungie_array.some((e) => e.bungie_id === result.destinyUserInfo.membershipId)) {
                 const [clan_member] = bungie_array.splice(bungie_array.findIndex((e) => e.bungie_id === result.destinyUserInfo.membershipId), 1);
-                if (clan_member.discord_id === "277412652773539840")
-                    console.debug(`DEBUG: Checking ${clan_member.displayname} ${clan_member.clan} ${clan_member.roles_cat & 8}, ${!(clan_member.roles_cat & 8)}`);
                 if (!clanJoinDateCheck.has(result.destinyUserInfo.membershipId)) {
                     await timer(1000);
                     if (!(clan_member.roles_cat & 8))
@@ -355,7 +353,6 @@ export default (client) => {
                     }
                 }
                 if (clan_member.displayname !== result.destinyUserInfo.bungieGlobalDisplayName && !clan_member.displayname.startsWith("⁣")) {
-                    console.debug(`DEBUG: Member's name updated for ${clan_member.displayname}`);
                     await auth_data.update({
                         displayname: result.destinyUserInfo.bungieGlobalDisplayName,
                     }, {
@@ -366,10 +363,7 @@ export default (client) => {
                     });
                     name_change(clan_member.discord_id, result.destinyUserInfo.bungieGlobalDisplayName);
                 }
-                if (clan_member.discord_id === "277412652773539840")
-                    console.debug(`SECOND DEBUG: Checking ${clan_member.displayname} ${clan_member.clan} ${clan_member.roles_cat & 8}, ${!(clan_member.roles_cat & 8)}`);
                 if (clan_member.clan === false) {
-                    console.debug(`DEBUG: Member joined clan`, clan_member.displayname, clan_member.clan);
                     await auth_data.update({ clan: true }, {
                         where: {
                             bungie_id: result.destinyUserInfo.membershipId,
@@ -573,7 +567,7 @@ export default (client) => {
             transaction: t,
         });
         const dbNotFiltred = await auth_data.findAll({
-            attributes: ["discord_id", "bungie_id", "platform", "displayname", "access_token", "roles_cat"],
+            attributes: ["discord_id", "bungie_id", "platform", "clan", "displayname", "access_token", "roles_cat"],
             transaction: t,
             include: discord_activities,
         });
