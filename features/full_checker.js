@@ -327,10 +327,9 @@ export default (client) => {
             ? client.user.setActivity(`${clanList.results.length} участников в клане`, { type: 3 })
             : client.user.setActivity(`${onlineCounter} онлайн из ${clanList.results.length}`, { type: 3 });
         const t = await db.transaction();
-        console.debug(`DEBUG: Run clan system checker for ${clanList.totalResults} users`);
         await Promise.all(clanList.results.map(async (result) => {
             if (bungie_array.some((e) => e.bungie_id === result.destinyUserInfo.membershipId)) {
-                console.debug(`DEBUG: Run clan system checker for ${result.bungieNetUserInfo.bungieGlobalDisplayName}`);
+                console.debug(`DEBUG: Run clan system checker for ${result.bungieNetUserInfo.bungieGlobalDisplayName ?? result.bungieNetUserInfo.displayName}`);
                 const [clan_member] = bungie_array.splice(bungie_array.findIndex((e) => e.bungie_id === result.destinyUserInfo.membershipId), 1);
                 if (!clanJoinDateCheck.has(result.destinyUserInfo.membershipId)) {
                     await timer(1000);
@@ -552,7 +551,7 @@ export default (client) => {
             }
         }
     }
-    let kd = 2, raids = 4, trialsCD = 4;
+    let kd = 2, raids = 3, trialsCD = 4;
     setInterval(async () => {
         kd >= 9 ? (kd = 0) : kd++;
         raids >= 6 ? (raids = 0) : raids++;
@@ -623,7 +622,7 @@ export default (client) => {
                     member.roles.cache.has(rTrials.category)
                     ? destinyActivityStatsChecker(db_row, member, 84)
                     : [];
-                await timer(700);
+                await timer(750);
             }
         }
         destinyClanManagmentSystem(db_plain);
