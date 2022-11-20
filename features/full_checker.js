@@ -331,7 +331,7 @@ export default (client) => {
             if (bungie_array.some((e) => e.bungie_id === result.destinyUserInfo.membershipId)) {
                 const [clan_member] = bungie_array.splice(bungie_array.findIndex((e) => e.bungie_id === result.destinyUserInfo.membershipId), 1);
                 if (clan_member.discord_id === "277412652773539840")
-                    return console.debug(`DEBUG: Checking ${clan_member.displayname}`);
+                    console.debug(`DEBUG: Checking ${clan_member.displayname} ${clan_member.clan} ${clan_member.roles_cat & 8}, ${!(clan_member.roles_cat & 8)}`);
                 if (!clanJoinDateCheck.has(result.destinyUserInfo.membershipId)) {
                     await timer(1000);
                     if (!(clan_member.roles_cat & 8))
@@ -366,6 +366,8 @@ export default (client) => {
                     });
                     name_change(clan_member.discord_id, result.destinyUserInfo.bungieGlobalDisplayName);
                 }
+                if (clan_member.discord_id === "277412652773539840")
+                    console.debug(`SECOND DEBUG: Checking ${clan_member.displayname} ${clan_member.clan} ${clan_member.roles_cat & 8}, ${!(clan_member.roles_cat & 8)}`);
                 if (clan_member.clan === false) {
                     console.debug(`DEBUG: Member joined clan`, clan_member.displayname, clan_member.clan);
                     await auth_data.update({ clan: true }, {
