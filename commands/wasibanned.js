@@ -13,6 +13,6 @@ export default {
             : { text: "Вы не в бане :)" };
         embed.setTitle(banned.text);
         banned.message ? embed.setDescription(banned.message).setColor("Red") : embed.setColor("Green");
-        interaction.reply({ embeds: [embed] });
+        interaction.reply({ embeds: [embed], ephemeral: true });
     },
 };

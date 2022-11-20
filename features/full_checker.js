@@ -224,9 +224,9 @@ export default (client) => {
                 if (metrics >= 1) {
                     for (const step of rTrials.roles) {
                         if (step.totalFlawless <= metrics) {
+                            if (!member.roles.cache.has(rTrials.category))
+                                give_roles.push(rTrials.category);
                             if (!member.roles.cache.has(step.roleId)) {
-                                if (!member.roles.cache.has(rTrials.category))
-                                    give_roles.push(rTrials.category);
                                 give_roles.push(step.roleId);
                                 remove_roles.push(rTrials.allRoles.filter((r) => r != step.roleId).toString());
                             }
