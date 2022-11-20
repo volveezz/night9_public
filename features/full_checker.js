@@ -327,8 +327,10 @@ export default (client) => {
             ? client.user.setActivity(`${clanList.results.length} участников в клане`, { type: 3 })
             : client.user.setActivity(`${onlineCounter} онлайн из ${clanList.results.length}`, { type: 3 });
         const t = await db.transaction();
+        console.debug(`DEBUG: Run clan system checker for ${clanList.totalResults} users`);
         await Promise.all(clanList.results.map(async (result) => {
             if (bungie_array.some((e) => e.bungie_id === result.destinyUserInfo.membershipId)) {
+                console.debug(`DEBUG: Run clan system checker for ${result.bungieNetUserInfo.bungieGlobalDisplayName}`);
                 const [clan_member] = bungie_array.splice(bungie_array.findIndex((e) => e.bungie_id === result.destinyUserInfo.membershipId), 1);
                 if (!clanJoinDateCheck.has(result.destinyUserInfo.membershipId)) {
                     await timer(1000);
@@ -413,6 +415,8 @@ export default (client) => {
         if (!character_data.get(member.id)) {
             fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Stats/?groups=1`, data)
                 .then((chars) => {
+                if (!chars["characters"])
+                    return console.error(`[Error code: 1105]`, chars, member.displayName, data.bungie_id);
                 const charIdArray = [];
                 chars["characters"].forEach((ch) => charIdArray.push(ch.characterId));
                 character_data.set(data.discord_id, charIdArray);
