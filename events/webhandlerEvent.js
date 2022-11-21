@@ -14,6 +14,11 @@ export default {
                 [Op.or]: [{ discord_id: interaction.user.id }, { discord_id: ownerId }],
             },
         });
+        if (authData.length !== 2)
+            throw {
+                name: "Ошибка. Вы не зарегистрированы",
+                message: `Для использования этого функционала вы должны быть зарегистрированы\n\nВведите \`/init\` и перейдите по ссылке в сообщении`,
+            };
         if (authData[0].discord_id === ownerId) {
             var { clan: invitee_clan, bungie_id: invitee_bungie_id, platform: invitee_platform } = authData[1];
             var { access_token: inviter_access_token } = authData[0];
@@ -23,44 +28,26 @@ export default {
             var { access_token: inviter_access_token } = authData[1];
         }
         if (authData.length === 2) {
-            if (invitee_clan === true && interaction.channel?.isDMBased()) {
-                interaction.channel?.messages.fetch(interaction.message.id).then(async (msg) => {
-                    const reEmbed = EmbedBuilder.from(msg.embeds[0]).setDescription(null);
-                    msg.edit({ components: [] });
-                    await deferredReply;
-                    interaction.editReply({ embeds: [reEmbed] });
-                });
+            if (invitee_clan === true) {
+                interaction.channel?.isDMBased()
+                    ? interaction.channel?.messages.fetch(interaction.message.id).then(async (msg) => {
+                        msg.edit({ components: [] });
+                    })
+                    : "";
+                await deferredReply;
+                interaction.editReply("Вы уже являетесь участником нашего клана :)");
                 return;
             }
-            try {
-                var debugValue = await fetch(`https://www.bungie.net/platform/GroupV2/4123712/Members/IndividualInvite/${invitee_platform}/${invitee_bungie_id}/`, {
-                    method: "POST",
-                    headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${inviter_access_token}` },
-                    body: JSON.stringify({ message: "IndividualInvite" }),
-                });
-            }
-            catch (err) {
-                if (err.error?.ErrorCode === 676) {
-                    const embed = new EmbedBuilder().setColor("DarkGreen").setTitle("Вы уже участник нашего клана :)");
-                    await deferredReply;
-                    interaction.editReply({ embeds: [embed] });
-                    interaction.channel?.messages.fetch(interaction.message.id).then((msg) => {
-                        const reEmbed = EmbedBuilder.from(msg.embeds[0]).setDescription(null);
-                        msg.edit({ components: [], embeds: [reEmbed] });
-                    });
-                    return;
-                }
-                else {
-                    console.error(`[Error code: 1106]`, err.error);
-                    return;
-                }
-            }
-            console.debug(`DebugVal:`, debugValue);
-            if (true) {
+            const clanInviteRequest = await (await fetch(`https://www.bungie.net/platform/GroupV2/4123712/Members/IndividualInvite/${invitee_platform}/${invitee_bungie_id}/`, {
+                method: "POST",
+                headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${inviter_access_token}` },
+                body: JSON.stringify({ message: "Автоматическое приглашение в клан Night 9" }),
+            })).json();
+            if (clanInviteRequest.ErrorCode === 1) {
                 const embed = new EmbedBuilder()
                     .setColor("Green")
                     .setTitle("Приглашение было отправлено")
-                    .setDescription(`Принять приглашение можно в игре или на сайте Bungie`);
+                    .setDescription(`Принять приглашение можно в игре или на [сайте Bungie](https://www.bungie.net/ru/ClanV2?groupId=4123712)`);
                 await deferredReply;
                 interaction.editReply({ embeds: [embed] });
                 if (!interaction.channel?.isDMBased())
@@ -73,12 +60,28 @@ export default {
                 })
                     .catch((err) => {
                     if (err.code !== 10008)
-                        console.error(err);
+                        console.error(`[Error code: 1107]`, err);
                 });
+            }
+            else if (clanInviteRequest.ErrorCode === 676) {
+                const embed = new EmbedBuilder().setColor("DarkGreen").setTitle("Вы уже участник нашего клана :)");
+                await deferredReply;
+                interaction.editReply({ embeds: [embed] });
+                if (!interaction.channel?.isDMBased())
+                    return;
+                interaction.channel?.messages.fetch(interaction.message.id).then((msg) => {
+                    const reEmbed = EmbedBuilder.from(msg.embeds[0]).setDescription(null);
+                    msg.edit({ components: [], embeds: [reEmbed] });
+                });
+                return;
+            }
+            else {
+                console.error(clanInviteRequest);
+                throw { name: "Неожиданная ошибка" };
             }
         }
         else {
-            throw { name: "Произошла неизвестная ошибка" };
+            throw { name: "Произошла неизвестная ошибка", message: "Возможно, вы уже участник нашего клана" };
         }
     },
 };
