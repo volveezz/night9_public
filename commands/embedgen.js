@@ -238,7 +238,7 @@ export default {
                         .setDescription("Для вступления в клан достаточно выполнить пункты ниже. Если вы нам подходите, то будете автоматически приняты в ближайшее время")
                         .addFields({
                         name: "1",
-                        value: "Зарегистрируйтесь у кланового бота - перейдите по ссылке по кнопке ниже или введите `/init` (для русской локализации - `/регистрация`)",
+                        value: "Зарегистрируйтесь у кланового бота. Для этого нажмите на кнопку ниже и перейдите по ссылке в сообщении (вас перенаправит на официальный сайт Bungie - мы никак не можем узнать приватную информацию) или введите `/init`",
                     }, {
                         name: "2",
                         value: "Заполните форму по кнопке ниже",
@@ -321,6 +321,26 @@ export default {
                         },
                     ];
                     const embed = new EmbedBuilder().setColor("DarkGold").setTitle("Выберите любой из цветов ника");
+                    interaction.channel.send({ embeds: [embed], components: components });
+                    return;
+                }
+                case "leavedclanmsg": {
+                    const components = [
+                        {
+                            type: ComponentType.ActionRow,
+                            components: [
+                                new ButtonBuilder().setCustomId(`initEvent_register`).setLabel("Регистрация").setStyle(ButtonStyle.Success),
+                                new ButtonBuilder()
+                                    .setCustomId("webhandlerEvent_clan_request")
+                                    .setLabel("Отправить приглашение в клан")
+                                    .setStyle(ButtonStyle.Success),
+                            ],
+                        },
+                    ];
+                    const embed = new EmbedBuilder()
+                        .setColor(colors.default)
+                        .setTitle("Возвращение в клан")
+                        .setDescription(`В этом канале вы можете вернуться в клан за пару кликов.\n\nНажмите на кнопку ниже для получения приглашения в клан в игре.\n> Его можно принять на [bungie.net](https://bungie.net/) или в игре\n> Доступно только для зарегистрированных пользователей`);
                     interaction.channel.send({ embeds: [embed], components: components });
                     return;
                 }

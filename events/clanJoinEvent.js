@@ -68,12 +68,12 @@ export default {
             interaction.reply({ ephemeral: true, embeds: [replyEmbed], components: components });
             const loggedEmbed = new EmbedBuilder()
                 .setColor(colors.default)
-                .setAuthor({ name: member.displayName + " заполнил форму на вступление в клан", iconURL: member.displayAvatarURL() })
+                .setAuthor({ name: `${member.displayName} заполнил форму на вступление в клан`, iconURL: member.displayAvatarURL() })
                 .setTimestamp();
             interaction.fields.fields.forEach((c) => {
                 if (!c.value)
                     return;
-                loggedEmbed.addFields({ name: c.customId.split("_").pop() || "Заголовок не найден", value: c.value || "ничего не указано" });
+                loggedEmbed.addFields({ name: c.customId.split("_").pop() ?? "Заголовок не найден", value: c.value ?? "ничего не указано" });
             });
             chnFetcher(ids.clanChnId).send({ embeds: [loggedEmbed] });
         }

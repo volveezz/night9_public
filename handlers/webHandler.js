@@ -1,5 +1,5 @@
 import { auth_data, discord_activities, init_data } from "./sequelize.js";
-import { ButtonBuilder, EmbedBuilder, ComponentType } from "discord.js";
+import { ButtonBuilder, EmbedBuilder, ComponentType, ButtonStyle } from "discord.js";
 import { chnFetcher } from "../base/channels.js";
 import { guildId, ids } from "../base/ids.js";
 import { statusRoles } from "../base/roles.js";
@@ -160,7 +160,10 @@ export default async (code, state, res) => {
                 !member?.roles.cache.has(statusRoles.member) && !member?.roles.cache.has(statusRoles.clanmember)
                     ? member?.roles.add([statusRoles.member]).then((m) => m.roles.remove([statusRoles.newbie]))
                     : [];
-                const component = new ButtonBuilder().setCustomId("webhandlerEvent_clan_request").setLabel("Отправить приглашение").setStyle(3);
+                const component = new ButtonBuilder()
+                    .setCustomId("webhandlerEvent_clan_request")
+                    .setLabel("Отправить приглашение")
+                    .setStyle(ButtonStyle.Success);
                 embed.setDescription(embed.data.description
                     ? embed.data.description + `\n\nНажмите кнопку для получения приглашения в клан`
                     : `Нажмите кнопку для получения приглашения в клан`);
