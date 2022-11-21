@@ -22,7 +22,7 @@ export async function initCommand_register(interaction) {
         .setTitle("Нажмите для перехода к авторизации")
         .setURL(`https://www.bungie.net/ru/OAuth/Authorize?client_id=34432&response_type=code&state=${request.state}`)
         .setColor(colors.default)
-        .setDescription(`${emoji}По нажатию на ссылку вы будете перенаправлены на сайт Bungie (bungie.net)\n${emoji}На сайте достаточно авторизоваться через любой удобный для вас способ\n${emoji}К 1 аккаунту Discord можно привязать лишь 1 аккаунт Bungie`);
+        .setDescription(`${emoji}По нажатию на ссылку вы будете перенаправлены на сайт Bungie (bungie.net)\n${emoji}На сайте достаточно авторизоваться через любой удобный для вас способ\n${emoji}К 1 аккаунту Discord можно привязать лишь 1 аккаунт Bungie\n${emoji}По нажатию на ссылку вас перенаправит на официальный сайт Bungie - это исключает риск кражи паролей и другой информации`);
     init_register(request.state, interaction.user, created);
     return embed;
 }

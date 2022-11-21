@@ -340,7 +340,7 @@ export default {
                     const embed = new EmbedBuilder()
                         .setColor(colors.default)
                         .setTitle("Возвращение в клан")
-                        .setDescription(`В этом канале вы можете вернуться в клан за пару кликов.\n\nНажмите на кнопку ниже для получения приглашения в клан в игре.\n> Его можно принять на [bungie.net](https://bungie.net/) или в игре\n> Доступно только для зарегистрированных пользователей`);
+                        .setDescription(`В этом канале вы можете вернуться в клан за пару кликов.\n\nНажмите на кнопку ниже для получения приглашения в клан в игре или перейдите на [страницу клана](https://www.bungie.net/ru/ClanV2/Chat?groupId=4123712) и вступите там.\n> Его можно принять на [bungie.net](https://bungie.net/) или в игре\n> Доступно только для зарегистрированных пользователей`);
                     interaction.channel.send({ embeds: [embed], components: components });
                     return;
                 }
