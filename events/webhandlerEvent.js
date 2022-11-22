@@ -77,7 +77,7 @@ export default {
             }
             else {
                 console.error(clanInviteRequest);
-                throw { name: "Неожиданная ошибка" };
+                throw { name: "Неожиданная ошибка", message: "Возможно, вы уже участник нашего клана" };
             }
         }
         else {

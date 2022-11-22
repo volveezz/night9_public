@@ -47,7 +47,7 @@ export default (client) => {
                 async function checker() {
                     const response = await activities();
                     if (!response)
-                        return console.error("[activityChecker] [Error code: 1000]", data.displayname);
+                        return console.error("[activityChecker] [Error code: 1000]", data.discord_id);
                     if (response.activities?.length > 0) {
                         response.activities.forEach((activity) => {
                             if (activity.values.completed.basic.value &&

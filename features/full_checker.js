@@ -96,7 +96,7 @@ export default (client) => {
                         return;
                     const checkArray = [];
                     if (role.guilded_hash) {
-                        if (Response.profileRecords.data.records[Number(role.guilded_hash)] !== undefined) {
+                        if (Response.profileRecords.data.records[Number(role.guilded_hash)]) {
                             const triumphRecord = Response.profileRecords.data.records[Number(role.guilded_hash)];
                             if (triumphRecord && triumphRecord.completedCount && triumphRecord.completedCount > 0) {
                                 const index = triumphRecord.completedCount;
@@ -188,29 +188,31 @@ export default (client) => {
                         }
                     }
                     else {
-                        role.hash.forEach((hashArray) => {
-                            if (Response.profileRecords.data.records[Number(hashArray)]) {
-                                const triumphRecord = Response.profileRecords.data.records[Number(hashArray)];
+                        for (let i = 0; i < role.hash.length; i++) {
+                            const hashArray = role.hash[i];
+                            const triumphRecord = Response.profileRecords.data.records[Number(hashArray)];
+                            if (triumphRecord) {
                                 if (triumphRecord.objectives
                                     ? triumphRecord.objectives?.pop()?.complete === true
                                     : triumphRecord.intervalObjectives?.pop()?.complete === true) {
                                     checkArray.push(true);
                                 }
                                 else {
-                                    return checkArray.push(false);
+                                    checkArray.push(false);
+                                    break;
                                 }
                             }
-                        });
+                        }
                         if (checkArray.includes(false) || checkArray.length !== role.hash.length) {
                             if (c.has(role.role_id))
                                 remove_roles.push(role.role_id);
                         }
                         else {
-                            if (role.category & 4 && !c.has(rTitles.category))
+                            if (role.category === 3 && !c.has(rTitles.category))
                                 give_roles.push(rTitles.category);
-                            if (role.category & 8 && !c.has(rTriumphs.category))
+                            if (role.category === 4 && !c.has(rTriumphs.category))
                                 give_roles.push(rTriumphs.category);
-                            if (role.category & 16 && !c.has(rActivity.category))
+                            if (role.category === 5 && !c.has(rActivity.category))
                                 give_roles.push(rActivity.category);
                             if (!c.has(role.role_id))
                                 give_roles.push(role.role_id);

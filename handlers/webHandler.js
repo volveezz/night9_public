@@ -25,20 +25,26 @@ export async function fetchRequest(url, authorizationData) {
     const jsonResponse = await (await response).json().catch(async (e) => {
         if ((await response).status === 502)
             return console.error(`[Error code: 1099] Web error`);
+        if ((await response).status === 409)
+            return console.error(`[Error code: 1108] Confilt error`);
         console.error(`[Error code: 1064]\n`, response, "\n", e.stack);
         return undefined;
     });
-    if (!jsonResponse || (await jsonResponse?.status) >= 500) {
-        if (jsonResponse == undefined)
+    if (!jsonResponse || (await jsonResponse?.status) >= 400) {
+        if (!jsonResponse)
             return;
         console.error(`[Error code: 1083] ${jsonResponse?.status}`);
         return;
     }
-    if (jsonResponse?.code === "ERPROTO") {
+    if (jsonResponse.code === "ERPROTO") {
         console.error(`[Error code: 1082] ERPROTO${" " + authorizationData?.displayName || ""}`);
         return;
     }
-    return jsonResponse?.Response ? jsonResponse?.Response : jsonResponse;
+    if (jsonResponse.code === "ECONNRESET") {
+        console.error(`[Error code: 1109] ECONNRESET${" " + authorizationData?.displayName || ""}`);
+        return;
+    }
+    return jsonResponse.Response ? jsonResponse.Response : jsonResponse;
 }
 export default async (code, state, res) => {
     const json = await init_data.findOne({ where: { state: state } });
