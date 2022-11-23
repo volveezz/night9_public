@@ -15,7 +15,7 @@ export default {
         },
     ],
     callback: async (_client, interaction, member, _guild, _channel) => {
-        const defferedReply = interaction.deferReply({ ephemeral: true });
+        const defferedReply = interaction.deferReply();
         const scriptId = interaction.options.getString("script", true).toLowerCase();
         switch (scriptId) {
             case "rolesweeper": {
