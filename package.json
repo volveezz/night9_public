@@ -2,7 +2,7 @@
 	"name": "nightfuture",
 	"version": "1.5.5.9",
 	"engines": {
-		"node": "19.0.1"
+		"node": "19.1.0"
 	},
 	"type": "module",
 	"description": "Discord bot for Destiny 2 clans Night 9 & Sunlight",
@@ -22,7 +22,7 @@
 		"node-fetch": "^3.3.0",
 		"pg": "^8.8.0",
 		"pg-hstore": "^2.3.4",
-		"sequelize": "^6.25.7"
+		"sequelize": "^6.25.8"
 	},
 	"devDependencies": {
 		"bungie-api-ts": "^4.19.0",

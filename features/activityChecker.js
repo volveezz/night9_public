@@ -77,7 +77,9 @@ export default (client) => {
             .map((d) => {
             return `[Error code: 1008] ${d.displayname}/${d.discord_id} not found on server`;
         });
-        dbNotFoundUsers.length > 0 ? console.error("[Error code: 1005]", dbNotFoundUsers) : [];
+        dbNotFoundUsers.length > 0
+            ? (await client.guilds.cache.get(guildId).members.fetch(), console.error("[Error code: 1005]", dbNotFoundUsers))
+            : [];
         const db_plain = dbNotFiltred.filter((data) => client.guilds.cache.get(guildId).members.cache.has(data.discord_id));
         if (!db_plain)
             return console.error(`[Error code: 1006] DB is not avaliable`, db_plain);

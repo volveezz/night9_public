@@ -19,7 +19,7 @@ export default (client) => {
             .then(async (Response) => {
             if (!Response || !Response.metrics || !Response.profileRecords.data?.activeScore || !Response.profile || !Response.profile.data) {
                 const ErrorResponse = Response;
-                if (ErrorResponse?.ErrorCode === 1688 || ErrorResponse?.ErrorCode === 1672) {
+                if (ErrorResponse?.ErrorCode === 1688 || ErrorResponse?.ErrorCode === 1672 || ErrorResponse?.ErrorCode === 1618) {
                     console.error(`[Error code: 1081] ${ErrorResponse.ErrorStatus} for ${data.displayname}`);
                     throttleSet.add(member.id);
                     return;
@@ -588,7 +588,7 @@ export default (client) => {
         const db_plain = dbNotFiltred.filter((data) => client.guilds.cache.get(guildId).members.cache.has(data.discord_id));
         if (!db_plain || db_plain.length === 0) {
             await client.guilds.cache.get(guildId).members.fetch();
-            return console.error(`[Checker] [Error code: 1022] DB is ${db_plain ? `${db_plain} size` : `not avaliable`}`);
+            return console.error(`[Checker] [Error code: 1022] DB is ${db_plain ? `${db_plain}${db_plain?.length} size` : `not avaliable`}`);
         }
         for (let i = 0; i < db_plain.length; i++) {
             const db_row = db_plain[i];
