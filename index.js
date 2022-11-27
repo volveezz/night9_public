@@ -38,7 +38,7 @@ process.on("unhandledRejection", (error) => {
     else
         console.error(`[Error code: 1056] Promise rejection`, error);
 });
-process.on("uncaughtException", (error) => console.error("[Error code: 1055] Unhandled exception:", error));
+process.on("uncaughtException", (error) => console.error("[Error code: 1055] Unhandled exception:", error.stack));
 client.on("ready", async (client) => {
     console.log(`${client.user?.username} is ready since ${new Date().toLocaleTimeString()}`);
     client.user.setActivity(`Restarting...`, { type: ActivityType.Competing });

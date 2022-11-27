@@ -32,7 +32,7 @@ export default {
             throw { name: "Эта команда доступна после регистрации" };
         }
         const characters_list = await fetchRequest(`Platform/Destiny2/${db_data.platform}/Profile/${db_data.bungie_id}/?components=200`, db_data);
-        if (!characters_list)
+        if (!characters_list || characters_list.ErrorCode !== 1)
             throw { name: "Произошла ошибка со стороны Bungie" };
         const manifest = interaction instanceof ChatInputCommandInteraction && interaction.options.getBoolean("nonraidchecker") === true
             ? CachedDestinyActivityDefinition

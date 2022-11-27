@@ -1,4 +1,4 @@
-import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, } from "discord.js";
 import { colors } from "../base/colors.js";
 import { ids, guildId } from "../base/ids.js";
 import { db, discord_activities, lost_data, raids, auth_data } from "./sequelize.js";
@@ -11,8 +11,8 @@ import { Op } from "sequelize";
 import { fetchRequest } from "./webHandler.js";
 const pgcrIds = new Set();
 const guildMemberChannel = chnFetcher(ids.guildMemberChnId), guildChannel = chnFetcher(ids.guildChnId), messageChannel = chnFetcher(ids.messagesChnId), voiceChannel = chnFetcher(ids.voiceChnId), destinyClanChannel = chnFetcher(ids.clanChnId), discordBotChannel = chnFetcher(ids.botChnId), activityChannel = chnFetcher(ids.activityChnId);
-export function dmChnSentMsgsLogger(member, text, id) {
-    const dmChn = chnFetcher(ids.dmMsgsChnId);
+export async function dmChnSentMsgsLogger(member, text, id, interaction) {
+    const dmChn = interaction ? null : chnFetcher(ids.dmMsgsChnId);
     const embed = new EmbedBuilder()
         .setColor(colors.default)
         .setTitle("Отправлено сообщение")
@@ -23,7 +23,7 @@ export function dmChnSentMsgsLogger(member, text, id) {
         .setTimestamp()
         .setDescription(text)
         .setFooter({ text: `UId: ${member.id} | MId: ${id}` });
-    dmChn.send({
+    const payload = {
         embeds: [embed],
         components: [
             {
@@ -34,7 +34,8 @@ export function dmChnSentMsgsLogger(member, text, id) {
                 ],
             },
         ],
-    });
+    };
+    interaction ? (await interaction).editReply(payload) : dmChn.send(payload);
 }
 export async function activityReporter(pgcrId) {
     if (!pgcrIds.has(pgcrId)) {
@@ -790,7 +791,11 @@ export default (client) => {
             ]);
             if (getTimestamp) {
                 const difference = Math.trunc((new Date().getTime() - getTimestamp) / 1000);
-                const calculatedTime = [Math.trunc(difference / 3600), Math.trunc((difference % 3600) / 60), Math.trunc(difference % 60)]
+                const calculatedTime = [
+                    Math.trunc(difference / 3600) + "ч",
+                    Math.trunc((difference % 3600) / 60) + "м",
+                    Math.trunc(difference % 60) + "с",
+                ]
                     .filter((v) => v)
                     .join(":");
                 embed.addFields([

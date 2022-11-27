@@ -7,3 +7,7 @@ node_modules/
 .vscode/
 .git/
 tsconfig.json
+base/channels.js
+base/gameRaidChallenges.js
+base/ids.js
+base/roles.js
