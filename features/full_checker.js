@@ -26,11 +26,8 @@ export default (client) => {
                 !ErrorResponse?.MessageData ? delete ErrorResponse?.MessageData : [];
                 return console.error("[Error code: 1039]", data.displayname, ErrorResponse);
             }
-            if (!character_data.get(data.discord_id)) {
-                character_data.set(data.discord_id, Response["profile"]["data"]["characterIds"]);
-                bungieNames.set(data.discord_id, (Response.profile.data.userInfo.bungieGlobalDisplayName ?? Response.profile.data.userInfo.displayName) +
-                    "#" +
-                    Response.profile.data.userInfo.bungieGlobalDisplayNameCode);
+            if (!bungieNames.get(data.discord_id)) {
+                bungieNames.set(data.discord_id, `${Response.profile.data.userInfo.bungieGlobalDisplayName ?? Response.profile.data.userInfo.displayName}#${Response.profile.data.userInfo.bungieGlobalDisplayNameCode}`);
             }
             if (new Date().getTime() - new Date(Response.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60)
                 longOffline.add(member.id);

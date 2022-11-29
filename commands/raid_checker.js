@@ -32,7 +32,7 @@ export default {
             throw { name: "Эта команда доступна после регистрации" };
         }
         const characters_list = await fetchRequest(`Platform/Destiny2/${db_data.platform}/Profile/${db_data.bungie_id}/?components=200`, db_data);
-        if (!characters_list || characters_list.ErrorCode !== 1)
+        if (!characters_list || !characters_list?.characters?.data)
             throw { name: "Произошла ошибка со стороны Bungie" };
         const manifest = interaction instanceof ChatInputCommandInteraction && interaction.options.getBoolean("nonraidchecker") === true
             ? CachedDestinyActivityDefinition
@@ -79,6 +79,8 @@ export default {
         ];
         await Promise.all(characters.map(async (character, index) => {
             const { activities: activity_fresh } = await fetchRequest(`Platform/Destiny2/${db_data.platform}/Account/${db_data.bungie_id}/Character/${character}/Stats/AggregateActivityStats/`, db_data);
+            if (!activity_fresh)
+                throw { name: "Произошла ошибка со стороны Bungie" };
             arr.forEach(async (activity_data) => {
                 const clears = activity_fresh.filter((d) => d.activityHash === Number(activity_data.activity))[0]?.values.activityCompletions.basic
                     .value;

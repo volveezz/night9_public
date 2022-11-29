@@ -24,13 +24,18 @@ export async function msgFetcher(unresChn, msgId) {
 export function chnFetcher(chn) {
     if (typeof chn === "string") {
         if (!BotClient)
-            console.error(`chnFetcher bot client error`);
+            console.error(`[Error code: 1116] chnFetcher bot client error`);
         const basedChannel = BotClient.guilds.cache.get(guildId)?.channels.cache.get(chn);
         if (basedChannel && basedChannel.isTextBased() && basedChannel.type === ChannelType.GuildText) {
             return basedChannel;
         }
         else {
-            throw { name: "Произошла ошибка. Попробуйте снова", chn: `${chn}, ${basedChannel}, ${BotClient.user?.username}`, code: 1 };
+            throw {
+                name: "Произошла ошибка. Попробуйте снова",
+                basedChannel,
+                chn,
+                customErrorCode: `[Error code: 1115] ${BotClient.user?.username}`,
+            };
         }
     }
     else {

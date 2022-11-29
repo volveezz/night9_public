@@ -123,9 +123,7 @@ export default async (client, commandDir, eventsDir) => {
                 : client.guilds.cache.get(guildId)?.members.cache.get(interaction.user.id);
             console.log(`${member.displayName} used ${customId}${interaction.channel && !interaction.channel.isDMBased() ? ` at ${interaction.channel.name}` : ""}`);
             events[commandName].callback(client, interaction, member, interaction.guild, interaction.channel).catch(async (e) => {
-                const loggedError = e.deferredReply ? e : undefined;
-                loggedError ? delete loggedError.deferredReply : "";
-                console.error(`[Error code: 1028] CommandName: ${commandName}`, e.stack || loggedError);
+                console.error(`[Error code: 1028] CommandName: ${commandName}`, e);
                 const embed = new EmbedBuilder().setColor("Red");
                 embed.setTitle(e?.name);
                 e && e.message && typeof e.message === "string" && e.message.length > 5 ? embed.setDescription(e.message) : [];
