@@ -9,7 +9,7 @@ export default {
         const dbInfo = await auth_data.findOne({ where: { discord_id: interaction.user.id } });
         if (!dbInfo)
             throw { name: "Команда доступна только после регистрации" };
-        var nameStatus = dbInfo.displayname.startsWith("⁣") ? true : false;
+        const nameStatus = dbInfo.displayname.startsWith("⁣") ? true : false;
         const embed = new EmbedBuilder()
             .setColor(colors.default)
             .setTitle(!nameStatus ? "Отключите автоматическую смену ника" : "Включите автоматическую смену ника")

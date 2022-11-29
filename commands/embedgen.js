@@ -353,15 +353,11 @@ export default {
         const embed = EmbedBuilder.from(embedCode);
         if (editedEmbedMessageId) {
             (await msgFetcher(channel, editedEmbedMessageId)).edit({ embeds: [embed] });
-            interaction.deferred
-                ? interaction.editReply("Сообщение было изменено")
-                : interaction.reply({ ephemeral: true, content: "Сообщение было изменено" });
+            return interaction.reply({ ephemeral: true, content: "Сообщение было изменено" });
         }
         else {
             channel.send({ embeds: [embed] });
-            interaction.deferred
-                ? interaction.editReply("Сообщение было отправлено")
-                : interaction.reply({ ephemeral: true, content: "Сообщение было изменено" });
+            return interaction.reply({ ephemeral: true, content: "Сообщение было отправлено" });
         }
     },
 };

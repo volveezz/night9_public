@@ -1,10 +1,7 @@
-import { guildId } from "../base/ids.js";
 import fetch from "node-fetch";
 import { db, auth_data, lost_data } from "../handlers/sequelize.js";
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 export default () => {
-    if (guildId === "1007814171267707001")
-        return;
     async function generator(table) {
         const data = table === 1
             ? await auth_data.findAll({ attributes: ["bungie_id", "refresh_token"] })

@@ -1,11 +1,11 @@
 {
 	"name": "nightfuture",
-	"version": "1.5.5.9",
+	"version": "1.6.0",
 	"engines": {
 		"node": "19.1.0"
 	},
 	"type": "module",
-	"description": "Discord bot for Destiny 2 clans Night 9 & Sunlight",
+	"description": "Discord bot for Destiny 2 clan Night 9",
 	"main": "index.js",
 	"scripts": {
 		"start": "node --es-module-specifier-resolution=node index.js",
@@ -15,7 +15,7 @@
 	"author": "Volve",
 	"license": "ISC",
 	"dependencies": {
-		"discord.js": "^14.6.0",
+		"discord.js": "^14.7.0",
 		"dotenv": "^16.0.3",
 		"express": "^4.18.2",
 		"form-data": "^4.0.0",

@@ -5,61 +5,59 @@ import { Op } from "sequelize";
 import { character_data, longOffline } from "./full_checker.js";
 import { fetchRequest } from "../handlers/webHandler.js";
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
-export default (client) => {
-    if (guildId === "1007814171267707001")
-        return;
-    async function activityChecker(data, member, mode) {
-        if (!character_data.get(member.id)) {
-            fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Stats/?groups=1`, data)
-                .then((chars) => {
-                if (!chars["characters"])
-                    return console.error(`[Error code: 1104]`, chars, member.displayName, data.bungie_id);
-                const charIdArray = [];
-                chars["characters"].forEach((ch) => charIdArray.push(ch.characterId));
-                character_data.set(data.discord_id, charIdArray);
-                activityChecker(data, member, mode);
-            })
-                .catch((e) => {
-                e.statusCode === 401 || e.statusCode === 503 || e.statusCode === 500
-                    ? console.error(`[activityChecker web ${e.statusCode} error] [Error code: 1003]`, data.displayname)
-                    : console.error("[activityChecker] [Error code: 1002]", e.error || e, data.displayname, e.statusCode || "");
-                throw { name: "Критическая ошибка" };
-            });
-        }
-        else {
-            for (const character of character_data.get(member.id)) {
-                await checker();
-                async function activities() {
-                    const response = fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Character/${character}/Stats/Activities/?count=2&mode=${mode}&page=0`, data);
-                    if (!response)
-                        return;
-                    response.catch((e) => {
-                        return e.code === "EPROTO"
-                            ? console.error(`[Error code: 1101] ${member.displayName}`)
-                            : e.code === "ECONNRESET"
-                                ? console.error(`[Error code: 1100] ${member.displayName} ${e.code}`)
-                                : e.code === "ETIMEDOUT"
-                                    ? console.error(`[Error code: 1103] ${member.displayName} ${e.code}`)
-                                    : console.error("[Error code: 1040]", e);
+async function activityChecker(data, member, mode) {
+    if (!character_data.get(member.id)) {
+        fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Stats/?groups=1`, data)
+            .then((chars) => {
+            if (!chars["characters"])
+                return console.error(`[Error code: 1104]`, chars, member.displayName, data.bungie_id);
+            const charIdArray = [];
+            chars["characters"].forEach((ch) => charIdArray.push(ch.characterId));
+            character_data.set(data.discord_id, charIdArray);
+            activityChecker(data, member, mode);
+        })
+            .catch((e) => {
+            e.statusCode === 401 || e.statusCode === 503 || e.statusCode === 500
+                ? console.error(`[activityChecker web ${e.statusCode} error] [Error code: 1003]`, data.displayname)
+                : console.error("[activityChecker] [Error code: 1002]", e.error || e, data.displayname, e.statusCode || "");
+            throw { name: "Критическая ошибка" };
+        });
+    }
+    else {
+        for (const character of character_data.get(member.id)) {
+            await checker();
+            async function activities() {
+                const response = fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Character/${character}/Stats/Activities/?count=2&mode=${mode}&page=0`, data);
+                if (!response)
+                    return;
+                response.catch((e) => {
+                    return e.code === "EPROTO"
+                        ? console.error(`[Error code: 1101] ${member.displayName}`)
+                        : e.code === "ECONNRESET"
+                            ? console.error(`[Error code: 1100] ${member.displayName} ${e.code}`)
+                            : e.code === "ETIMEDOUT"
+                                ? console.error(`[Error code: 1103] ${member.displayName} ${e.code}`)
+                                : console.error("[Error code: 1040]", e);
+                });
+                return response.then((fetchedResponse) => fetchedResponse);
+            }
+            async function checker() {
+                const response = await activities();
+                if (!response)
+                    return console.error("[activityChecker] [Error code: 1000]", data.discord_id);
+                if (response.activities?.length > 0) {
+                    response.activities.forEach((activity) => {
+                        if (activity.values.completed.basic.value &&
+                            new Date(activity.period).getTime() + activity.values.activityDurationSeconds.basic.value * 1000 >
+                                new Date().getTime() - 1000 * 60 * 7)
+                            activityReporter(activity.activityDetails.instanceId);
                     });
-                    return response.then((fetchedResponse) => fetchedResponse);
-                }
-                async function checker() {
-                    const response = await activities();
-                    if (!response)
-                        return console.error("[activityChecker] [Error code: 1000]", data.discord_id);
-                    if (response.activities?.length > 0) {
-                        response.activities.forEach((activity) => {
-                            if (activity.values.completed.basic.value &&
-                                new Date(activity.period).getTime() + activity.values.activityDurationSeconds.basic.value * 1000 >
-                                    new Date().getTime() - 1000 * 60 * 7)
-                                activityReporter(activity.activityDetails.instanceId);
-                        });
-                    }
                 }
             }
         }
     }
+}
+export default (client) => {
     setInterval(async () => {
         const dbNotFiltred = await auth_data.findAll({
             attributes: ["discord_id", "bungie_id", "platform", "access_token"],

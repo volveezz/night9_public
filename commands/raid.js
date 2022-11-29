@@ -771,7 +771,7 @@ export default {
                 .create({
                 name: `├💪${raidDb.id}-${raidData.channelName}`,
                 parent: ids.raidChnCategoryId,
-                position: raidChannel.rawPosition + 1,
+                position: raidChannel.rawPosition,
                 permissionOverwrites: [
                     {
                         deny: "ViewChannel",

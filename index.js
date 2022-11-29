@@ -46,9 +46,14 @@ client.on("ready", async (client) => {
     setTimeout(() => init(client, join(__dirname, "commands"), join(__dirname, "features"), join(__dirname, "events")), 2000);
     setInterval(() => {
         const time = Math.trunc(client.uptime / 1000);
-        const hours = Math.trunc(time / 60 / 60);
-        const mins = Math.trunc(hours > 0 ? (time - hours * 60 * 60) / 60 : time / 60);
-        console.log(`Client uptime: ${hours}:${mins}`);
+        const calculatedTime = [
+            time / 86400 >= 1 ? Math.trunc(time / 86400) + "d" : null,
+            (time % 86400) / 3600 >= 1 ? Math.trunc((time % 86400) / 3600) + "h" : null,
+            (time % 3600) / 60 >= 1 ? Math.trunc((time % 3600) / 60) + "m" : null,
+        ]
+            .filter((v) => v)
+            .join(":");
+        console.log(`Client uptime: ${calculatedTime}`);
     }, 1000 * 60 * 30);
     const date = new Date();
     date.setHours(23, 0, 0, 0);

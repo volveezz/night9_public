@@ -8,6 +8,6 @@ export default async (client) => {
             const channels = guild.channels.fetch();
             console.log(`Working at ${guild.name} with ${(await members).size} members, ${(await bans).size} bans and ${(await channels).size} channels`);
         })
-            .catch((e) => console.error(`Encountered error while fetching guild ${preCachedGuild.name}/${preCachedGuild.id}`, e));
+            .catch((e) => console.error(`[Error code: 1114] Encountered error while fetching guild ${preCachedGuild.name}/${preCachedGuild.id}`, e));
     });
 };

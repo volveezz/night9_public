@@ -27,7 +27,7 @@ export async function fetchRequest(url, authorizationData) {
             return console.error(`[Error code: 1099] Web error`);
         if ((await response).status === 409)
             return console.error(`[Error code: 1108] Confilt error`);
-        console.error(`[Error code: 1064]\n`, response, "\n", e.stack);
+        console.error(`[Error code: 1064] ${(await response)?.status} statusCode\n`, (await response)?.body, "\n", e.stack);
         return undefined;
     });
     if (!jsonResponse || (await jsonResponse?.status) >= 400) {

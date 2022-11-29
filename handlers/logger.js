@@ -1,4 +1,4 @@
-import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, } from "discord.js";
+import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
 import { colors } from "../base/colors.js";
 import { ids, guildId } from "../base/ids.js";
 import { db, discord_activities, lost_data, raids, auth_data } from "./sequelize.js";
@@ -9,6 +9,7 @@ import { BotClient, BotClient as client } from "../index.js";
 import { CachedDestinyActivityDefinition } from "./manifestHandler.js";
 import { Op } from "sequelize";
 import { fetchRequest } from "./webHandler.js";
+import { createdChannelsMap, pvePartyVoiceChatHandler } from "./pvePartyHandler.js";
 const pgcrIds = new Set();
 const guildMemberChannel = chnFetcher(ids.guildMemberChnId), guildChannel = chnFetcher(ids.guildChnId), messageChannel = chnFetcher(ids.messagesChnId), voiceChannel = chnFetcher(ids.voiceChnId), destinyClanChannel = chnFetcher(ids.clanChnId), discordBotChannel = chnFetcher(ids.botChnId), activityChannel = chnFetcher(ids.activityChnId);
 export async function dmChnSentMsgsLogger(member, text, id, interaction) {
@@ -701,7 +702,9 @@ export default (client) => {
                     name: `Сообщение ${m?.member?.displayName} (${m?.id})`,
                     value: `${m?.content?.length > 0
                         ? `\`${m?.content?.length > 1000 ? "*в сообщении слишком много текста*" : m?.content}\``
-                        : m?.embeds[0]?.title ?? "*в сообщении нет текста*"}`,
+                        : m?.embeds[0]?.title
+                            ? `\`${m?.embeds[0]?.title}\``
+                            : "*в сообщении нет текста*"}`,
                 },
             ]);
         }
@@ -753,6 +756,12 @@ export default (client) => {
     });
     client.on("voiceStateUpdate", (oldState, newState) => {
         const embed = new EmbedBuilder().setColor("Green").setTimestamp();
+        if (oldState.channelId && createdChannelsMap.has(oldState.channelId)) {
+            pvePartyVoiceChatHandler(oldState.channelId, oldState.member, "leave");
+        }
+        if (newState.channelId && createdChannelsMap.has(newState.channelId)) {
+            pvePartyVoiceChatHandler(newState.channelId, newState.member, "join");
+        }
         if (!oldState.channelId) {
             voiceUsers.set(newState.member?.id, {
                 joinTimestamp: new Date().getTime(),
@@ -792,16 +801,16 @@ export default (client) => {
             if (getTimestamp) {
                 const difference = Math.trunc((new Date().getTime() - getTimestamp) / 1000);
                 const calculatedTime = [
-                    Math.trunc(difference / 3600) + "ч",
-                    Math.trunc((difference % 3600) / 60) + "м",
-                    Math.trunc(difference % 60) + "с",
+                    difference / 3600 >= 1 ? Math.trunc(difference / 3600) + "ч" : 0,
+                    (difference % 3600) / 60 >= 1 ? Math.trunc((difference % 3600) / 60) + "м" : null,
+                    difference % 60 >= 1 ? Math.trunc(difference % 60) + "с" : null,
                 ]
                     .filter((v) => v)
                     .join(":");
                 embed.addFields([
                     {
                         name: "Времени в голосовых",
-                        value: calculatedTime,
+                        value: calculatedTime || "менее 1 секунды",
                         inline: true,
                     },
                 ]);

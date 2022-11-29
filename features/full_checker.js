@@ -8,11 +8,10 @@ const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 export const completedRaidsData = new Map();
 export const character_data = new Map();
 export const longOffline = new Set();
+export const bungieNames = new Map();
 const clanJoinDateCheck = new Set();
 const throttleSet = new Set();
 export default (client) => {
-    if (guildId === "1007814171267707001")
-        return;
     function destinyUserStatsChecker(data, member, role_db) {
         const give_roles = [], remove_roles = [], c = member.roles.cache;
         fetchRequest(`Platform/Destiny2/${data.platform}/Profile/${data.bungie_id}/?components=100,900,1100`, data)
@@ -24,11 +23,15 @@ export default (client) => {
                     throttleSet.add(member.id);
                     return;
                 }
-                !ErrorResponse.MessageData ? delete ErrorResponse.MessageData : [];
+                !ErrorResponse?.MessageData ? delete ErrorResponse?.MessageData : [];
                 return console.error("[Error code: 1039]", data.displayname, ErrorResponse);
             }
-            if (!character_data.get(data.discord_id))
+            if (!character_data.get(data.discord_id)) {
                 character_data.set(data.discord_id, Response["profile"]["data"]["characterIds"]);
+                bungieNames.set(data.discord_id, (Response.profile.data.userInfo.bungieGlobalDisplayName ?? Response.profile.data.userInfo.displayName) +
+                    "#" +
+                    Response.profile.data.userInfo.bungieGlobalDisplayNameCode);
+            }
             if (new Date().getTime() - new Date(Response.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60)
                 longOffline.add(member.id);
             if (!c.has(statusRoles.verified))
