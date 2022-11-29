@@ -19,6 +19,8 @@ export default (client) => {
             if (!Response || !Response.metrics || !Response.profileRecords.data?.activeScore || !Response.profile || !Response.profile.data) {
                 const ErrorResponse = Response;
                 if (ErrorResponse?.ErrorCode === 1688 || ErrorResponse?.ErrorCode === 1672 || ErrorResponse?.ErrorCode === 1618) {
+                    if (ErrorResponse?.ErrorCode === 1618)
+                        longOffline.add(member.id);
                     console.error(`[Error code: 1081] ${ErrorResponse.ErrorStatus} for ${data.displayname}`);
                     throttleSet.add(member.id);
                     return;
