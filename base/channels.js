@@ -26,7 +26,9 @@ export function chnFetcher(chn) {
         if (!BotClient)
             console.error(`[Error code: 1116] chnFetcher bot client error`);
         const basedChannel = BotClient.guilds.cache.get(guildId)?.channels.cache.get(chn);
-        if (basedChannel && basedChannel.isTextBased() && basedChannel.type === ChannelType.GuildText) {
+        if (basedChannel &&
+            basedChannel.isTextBased() &&
+            (basedChannel.type === ChannelType.GuildText || basedChannel.type === ChannelType.GuildAnnouncement)) {
             return basedChannel;
         }
         else {
