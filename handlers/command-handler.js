@@ -113,7 +113,7 @@ export default async (client, commandDir, eventsDir) => {
                 console.error("[Error code: 1038] Command error:", error);
             }
         }
-        else if (interaction.isButton() || interaction.isSelectMenu() || interaction.isModalSubmit()) {
+        else if (interaction.isButton() || interaction.isStringSelectMenu() || interaction.isModalSubmit()) {
             const { customId } = interaction;
             const commandName = customId.split("_").shift()?.toLowerCase() || "blank";
             if (!events[commandName])

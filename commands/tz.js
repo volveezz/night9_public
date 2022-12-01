@@ -1,4 +1,4 @@
-import { ComponentType, EmbedBuilder, SelectMenuBuilder } from "discord.js";
+import { ComponentType, EmbedBuilder, StringSelectMenuBuilder } from "discord.js";
 import { colors } from "../base/colors.js";
 export default {
     name: "tz",
@@ -9,7 +9,7 @@ export default {
             .setColor(colors.default)
             .setTitle(`Выберите свой часовой пояс`)
             .setDescription(`Если не знаете свой - в описании каждого часового пояса есть текущее время по нему`);
-        const tzBlank = new SelectMenuBuilder()
+        const tzBlank = new StringSelectMenuBuilder()
             .setCustomId("tzEvent_selectmenu")
             .setPlaceholder("Часовой пояс не выбран")
             .addOptions([

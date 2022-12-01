@@ -23,11 +23,14 @@ export async function fetchRequest(url, authorizationData) {
         headers: { "X-API-KEY": process.env.XAPI, Authorization: auth },
     });
     const jsonResponse = await (await response).json().catch(async (e) => {
-        if ((await response).status === 502)
+        const status = (await response)?.status;
+        if (status === 502)
             return console.error(`[Error code: 1099] Web error`);
-        if ((await response).status === 409)
+        if (status === 409)
             return console.error(`[Error code: 1108] Confilt error`);
-        console.error(`[Error code: 1064] ${(await response)?.status} statusCode\n`, (await response)?.body, "\n", e.stack);
+        if (status === 522)
+            return console.error(`[Error code: 1117] Timed out error`);
+        console.error(`[Error code: 1064] ${status} statusCode\n`, (await response)?.body, "\n", e.stack);
         return undefined;
     });
     if (!jsonResponse || (await jsonResponse?.status) >= 400) {
@@ -36,12 +39,8 @@ export async function fetchRequest(url, authorizationData) {
         console.error(`[Error code: 1083] ${jsonResponse?.status}`);
         return;
     }
-    if (jsonResponse.code === "ERPROTO") {
-        console.error(`[Error code: 1082] ERPROTO${" " + authorizationData?.displayName || ""}`);
-        return;
-    }
-    if (jsonResponse.code === "ECONNRESET") {
-        console.error(`[Error code: 1109] ECONNRESET${" " + authorizationData?.displayName || ""}`);
+    if (jsonResponse.code === "EHOSTUNREACH" || jsonResponse.code === "ECONNRESET" || jsonResponse.code === "ERPROTO") {
+        console.error(`[Error code: 1109] ${jsonResponse.code}${" " + authorizationData?.displayName || ""}`);
         return;
     }
     return jsonResponse.Response ? jsonResponse.Response : jsonResponse;
