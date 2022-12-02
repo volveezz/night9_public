@@ -2,7 +2,7 @@ import { auth_data } from "../handlers/sequelize.js";
 import { activityReporter } from "../handlers/logger.js";
 import { guildId } from "../base/ids.js";
 import { Op } from "sequelize";
-import { character_data, longOffline } from "./full_checker.js";
+import { character_data, destinyApiStatus, longOffline } from "./full_checker.js";
 import { fetchRequest } from "../handlers/webHandler.js";
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 async function activityChecker(data, member, mode) {
@@ -59,6 +59,9 @@ async function activityChecker(data, member, mode) {
 }
 export default (client) => {
     setInterval(async () => {
+        if (destinyApiStatus === 1) {
+            return;
+        }
         const dbNotFiltred = await auth_data.findAll({
             attributes: ["discord_id", "bungie_id", "platform", "access_token"],
             where: {
