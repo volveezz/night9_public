@@ -11,7 +11,7 @@ export const longOffline = new Set();
 export const bungieNames = new Map();
 const clanJoinDateCheck = new Set();
 const throttleSet = new Set();
-export let destinyApiStatus = 0;
+export const destinyApiStatus = { status: 1 };
 export default (client) => {
     function destinyUserStatsChecker(data, member, role_db) {
         const give_roles = [], remove_roles = [], c = member.roles.cache;
@@ -20,7 +20,7 @@ export default (client) => {
             if (!Response || !Response.metrics || !Response.profileRecords.data?.activeScore || !Response.profile || !Response.profile.data) {
                 const ErrorResponse = Response;
                 if (ErrorResponse?.ErrorCode === 5) {
-                    return (destinyApiStatus = 1);
+                    return (destinyApiStatus.status = ErrorResponse?.ErrorStatus);
                 }
                 if (ErrorResponse?.ErrorCode === 1688 || ErrorResponse?.ErrorCode === 1672 || ErrorResponse?.ErrorCode === 1618) {
                     if (ErrorResponse?.ErrorCode === 1618)
@@ -326,7 +326,11 @@ export default (client) => {
             console.log("[Error code: 1013] [Clan checker]", clanList);
             return;
         }
-        if (clanList.results.length < 5) {
+        if (!clanList.results || !clanList.results.length) {
+            console.error(`[Error code: 1118] ${destinyActivityStatsChecker.name}`);
+            return;
+        }
+        if (clanList.results?.length < 5) {
             console.error("[Error code: 1015] [Clan checker]", clanList?.results?.length);
             return;
         }
@@ -418,7 +422,7 @@ export default (client) => {
     }
     async function destinyActivityStatsChecker(data, member, mode) {
         if (!character_data.get(member.id)) {
-            if (destinyApiStatus === 1)
+            if (destinyApiStatus.status !== 1)
                 return;
             fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Stats/?groups=1`, data)
                 .then((chars) => {
@@ -436,7 +440,7 @@ export default (client) => {
             });
         }
         else {
-            if (destinyApiStatus === 1)
+            if (destinyApiStatus.status !== 1)
                 return;
             let completedActivities = [], kills = 0, deaths = 0, wtmatches = 0;
             for (const character of character_data.get(member.id)) {
@@ -600,7 +604,7 @@ export default (client) => {
             await client.guilds.cache.get(guildId).members.fetch();
             return console.error(`[Checker] [Error code: 1022] DB is ${db_plain ? `${db_plain}${db_plain?.length} size` : `not avaliable`}`);
         }
-        for (let i = 0; i < db_plain.length && destinyApiStatus === 1; i++) {
+        for (let i = 0; i < db_plain.length && destinyApiStatus.status === 1; i++) {
             const db_row = db_plain[i];
             if (throttleSet.has(db_row.discord_id))
                 return throttleSet.delete(db_row.discord_id);
@@ -638,7 +642,7 @@ export default (client) => {
         destinyClanManagmentSystem(db_plain);
     }, 1000 * 60 * 2);
     setInterval(async () => {
-        if (destinyApiStatus === 1)
+        if (destinyApiStatus.status !== 1)
             return;
         const dbData = await auth_data.findAll({
             attributes: ["discord_id", "displayname", "tz"],

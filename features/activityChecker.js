@@ -9,6 +9,8 @@ async function activityChecker(data, member, mode) {
     if (!character_data.get(member.id)) {
         fetchRequest(`Platform/Destiny2/${data.platform}/Account/${data.bungie_id}/Stats/?groups=1`, data)
             .then((chars) => {
+            if (chars?.ErrorCode && chars.ErrorCode !== 1)
+                return (destinyApiStatus.status = chars.ErrorCode);
             if (!chars["characters"])
                 return console.error(`[Error code: 1104]`, chars, member.displayName, data.bungie_id);
             const charIdArray = [];
@@ -59,9 +61,8 @@ async function activityChecker(data, member, mode) {
 }
 export default (client) => {
     setInterval(async () => {
-        if (destinyApiStatus === 1) {
+        if (destinyApiStatus.status !== 1)
             return;
-        }
         const dbNotFiltred = await auth_data.findAll({
             attributes: ["discord_id", "bungie_id", "platform", "access_token"],
             where: {
