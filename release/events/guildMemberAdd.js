@@ -1,0 +1,73 @@
+import { EmbedBuilder } from "discord.js";
+import colors from "../configs/colors.js";
+import { ids } from "../configs/ids.js";
+import welcomeMessage from "../functions/welcomeMessage.js";
+import { LeavedUsersData, database, AuthData } from "../handlers/sequelize.js";
+import { client } from "../index.js";
+import { Event } from "../structures/event.js";
+const guildMemberChannel = client.channels.cache.get(ids.guildMemberChnId);
+export default new Event("guildMemberAdd", (member) => {
+    welcomeMessage(member);
+    const embed = new EmbedBuilder()
+        .setColor(colors.default)
+        .setAuthor({
+        name: "Присоединился новый участник",
+    })
+        .setFooter({ text: String(`Id: ` + member.id) })
+        .setDescription(`<@${member.id}> ${member.user.username}#${member.user.discriminator}`)
+        .addFields({
+        name: "Дата создания аккаунта",
+        value: String("<t:" + Math.round(member.user.createdTimestamp / 1000) + ">"),
+    })
+        .setThumbnail(String(member.displayAvatarURL()));
+    if (member.communicationDisabledUntil !== null) {
+        embed.addFields([
+            {
+                name: "Тайм-аут до",
+                value: String(`<t:${Math.round(member.communicationDisabledUntilTimestamp / 1000)}>`),
+            },
+        ]);
+    }
+    guildMemberChannel.send({ embeds: [embed] }).then(async (m) => {
+        const data = await LeavedUsersData.findOne({
+            where: { discordId: member.id },
+        });
+        if (!data)
+            return;
+        const transaction = await database.transaction();
+        const embed = m.embeds[0];
+        try {
+            await AuthData.create({
+                discordId: data.discordId,
+                bungieId: data.bungieId,
+                displayName: data.displayName,
+                platform: data.platform ?? 3,
+                accessToken: data.accessToken,
+                refreshToken: data.refreshToken,
+                membershipId: data.membershipId,
+                timezone: data.timezone ?? 3,
+            }, {
+                transaction: transaction,
+            });
+            await LeavedUsersData.destroy({
+                where: { discordId: data.discordId },
+                transaction: transaction,
+            });
+            embed.fields.push({
+                name: "Данные аккаунта восстановлены",
+                value: `${data.displayName} (${data.platform}/${data.bungieId})`,
+            });
+            await transaction.commit();
+            m.edit({ embeds: [embed] });
+        }
+        catch (error) {
+            await transaction.rollback();
+            embed.fields.push({
+                name: "Ошибка",
+                value: "Во время восстановления данных произошла ошибка",
+            });
+            console.error(`[Error code: 1131]`, error, data, transaction);
+            m.edit({ embeds: [embed] });
+        }
+    });
+});

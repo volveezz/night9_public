@@ -1,9 +1,5 @@
 node_modules/
 .env
-*.ts
-**.ts
-**/**.ts
-*/*.ts
 .vscode/
 .git/
 tsconfig.json

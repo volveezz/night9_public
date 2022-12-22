@@ -1,0 +1,48 @@
+import "dotenv/config";
+export const ownerId = "298353895258980362";
+const releaseIds = {
+    adminChnId: "679191036849029167",
+    adminVoiceChnId: "698545142319153194",
+    guildMemberChnId: "694120346923827251",
+    guildChnId: "780515663398567966",
+    messagesChnId: "780515348864434197",
+    voiceChnId: "780514966930718773",
+    clanChnId: "1006745445613174814",
+    botChnId: "804642826330570753",
+    raidChnId: "677551388514844682",
+    raidChnCategoryId: "677551288967233550",
+    dmMsgsChnId: "972852961636155392",
+    activityChnId: "677551332105781249",
+    manifestChnId: "932930330241949716",
+    patchGeneratorChnId: "1046265932722487346",
+    godChnId: "1039091402874835004",
+    newsChnId: "690969928353710148",
+    pvePartyChnId: "699613575198670849",
+    pvePartyCategoryId: "719156281306513409",
+};
+const devIds = {
+    adminChnId: "1007814172425330710",
+    adminVoiceChnId: "1007814172773449770",
+    guildMemberChnId: "1007814172773449768",
+    guildChnId: "1007814172425330712",
+    messagesChnId: "1007814172425330716",
+    voiceChnId: "1007814172425330717",
+    clanChnId: "1007814172425330713",
+    botChnId: "1007814172425330714",
+    raidChnId: "1007814173373247577",
+    raidChnCategoryId: "1007814173373247575",
+    dmMsgsChnId: "1007814172425330715",
+    activityChnId: "1007814173075443780",
+    manifestChnId: "1007814172773449769",
+    patchGeneratorChnId: "1046266488606163035",
+    godChnId: "1007814172773449773",
+    newsChnId: "1007814173075443779",
+    pvePartyChnId: "1007814173612310563",
+    pvePartyCategoryId: "1007814173612310561",
+};
+export const forbiddenRaidIds = [
+    548750096, 960175301, 3213556450, 757116822, 2693136601, 417231112, 809170886, 3333172150, 119944200, 3446541099, 2693136602, 3879860661,
+    2693136604, 2693136603, 2812525063, 2693136605, 2693136600, 3089205900, 2449714930, 1685065161, 2164432138, 287649202, 2164432138, 287649202,
+];
+export const ids = process.env.DEV_BUILD !== "dev" ? releaseIds : devIds;
+export const guildId = process.env.DEV_BUILD !== "dev" ? "604967226243809302" : "1007814171267707001";

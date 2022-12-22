@@ -1,0 +1,14 @@
+var UserErrors;
+(function (UserErrors) {
+    UserErrors["DB_USER_NOT_FOUND"] = "DB_USER_NOT_FOUND";
+    UserErrors["RAID_NOT_FOUND"] = "RAID_NOT_FOUND";
+    UserErrors["RAID_MISSING_PERMISSIONS"] = "RAID_MISSING_PERMISSIONS";
+    UserErrors["RAID_MISSING_DATA_FOR_CLEARS"] = "RAID_MISSING_DATA_FOR_CLEARS";
+    UserErrors["RAID_NOT_ENOUGH_CLEARS"] = "RAID_NOT_ENOUGH_CLEARS";
+    UserErrors["RAID_ALREADY_JOINED"] = "RAID_ALREADY_JOINED";
+    UserErrors["RAID_BLACKLISTED"] = "RAID_BLACKLISTED";
+    UserErrors["MEMBER_NOT_FOUND"] = "MEMBER_NOT_FOUND";
+    UserErrors["WRONG_ID"] = "WRONG_ID";
+    UserErrors["WRONG_HEX"] = "WRONG_HEX";
+})(UserErrors || (UserErrors = {}));
+export default UserErrors;
