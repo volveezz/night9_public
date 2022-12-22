@@ -13,6 +13,7 @@ export const completedRaidsData = new Map();
 export const character_data = new Map();
 export const longOffline = new Set();
 export const bungieNames = new Map();
+export const userTimezones = new Map();
 const clanJoinDateCheck = new Set();
 const throttleSet = new Set();
 async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId, accessToken, displayName, roleCategoriesBits, UserActivityData: userActivity }, member, role_db) {
@@ -448,7 +449,20 @@ async function destinyUserKDChecker({ platform, bungieId: bungieId, accessToken:
 }
 export default new Feature({
     execute: async ({ client }) => {
-        setTimeout(async () => {
+        setTimeout(() => {
+            const firstRun = AuthData.findAll({ attributes: ["discordId", "bungieId", "platform", "timezone", "accessToken"] });
+            firstRun.then((authData) => {
+                authData.forEach((data) => {
+                    const member = client.getCachedMembers().get(data.discordId);
+                    if (!member)
+                        return;
+                    if (data.timezone)
+                        userTimezones.set(data.discordId, data.timezone);
+                    destinyActivityChecker(data, member, 4);
+                });
+            });
+        }, 3000);
+        setInterval(async () => {
             const t = await database.transaction();
             const autoRoleData = await AutoRoleData.findAll({
                 where: {
@@ -477,7 +491,7 @@ export default new Feature({
                 .map((val, ind) => {
                 return ind < 5 ? `[Error code: 1021] ${val.displayName}/${val.discordId} not found on server` : null;
             });
-            dbNotFoundUsers.length > 0 ? console.error(dbNotFoundUsers.filter((val, ind) => ind < 5)) : [];
+            dbNotFoundUsers.length > 0 && process.env.DEV_BUILD !== "dev" ? console.error(dbNotFoundUsers.filter((val, ind) => ind < 5)) : [];
             const db_plain = dbNotFiltred.filter((data) => client.getCachedMembers().has(data.discordId));
             if (!db_plain || (db_plain.length === 0 && !process.env.DEV_BUILD)) {
                 return console.error(`[Checker] [Error code: 1022] DB is ${db_plain ? `${db_plain}${db_plain?.length} size` : `not avaliable`}`);

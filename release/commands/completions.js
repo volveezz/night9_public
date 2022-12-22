@@ -226,11 +226,15 @@ export default new Command({
             if (activityCount.total > 0) {
                 result.push(`Завершено ${activityCount.completed} из ${activityCount.total}｜У: ${activityTotal.kills} С: ${activityTotal.deaths}｜${activityText.inActivity} ${timerConverter(activityTotal.timeSpent)}`);
             }
-            if (activityDate.firstClearInstanceId !== "0" || activityDate.lastClearInstanceId !== "0") {
+            if (activityDate.firstClearInstanceId !== "0" ||
+                activityDate.lastClearInstanceId !== "0" ||
+                activityDate.firstCompletedClearInstanceId !== "0") {
                 const { firstCompletedClear, firstClear, firstCompletedClearInstanceId, firstClearInstanceId, lastClearInstanceId, lastClear } = activityDate;
                 result.push(`${firstClearInstanceId !== "0" && firstCompletedClear.getTime() > firstClear.getTime()
                     ? `Впервые [<t:${Math.trunc(firstClear.getTime() / 1000)}>](${activityText.link}${firstClearInstanceId})｜`
-                    : ""}1 закрытие [<t:${Math.trunc(firstCompletedClear.getTime() / 1000)}>](${activityText.link}${firstCompletedClearInstanceId})${lastClearInstanceId !== firstCompletedClearInstanceId
+                    : ""}${firstCompletedClearInstanceId !== "0"
+                    ? `1 закрытие [<t:${Math.trunc(firstCompletedClear.getTime() / 1000)}>](${activityText.link}${firstCompletedClearInstanceId})`
+                    : ""}${lastClearInstanceId !== firstCompletedClearInstanceId && lastClearInstanceId !== "0"
                     ? `｜Последнее закрытие [<t:${Math.trunc(lastClear.getTime() / 1000)}>](${activityText.link}${lastClearInstanceId})`
                     : ""}`);
             }
@@ -246,9 +250,7 @@ export default new Command({
                     joiningText.push(`${activityText.fastestCompleted} [${timerConverter(fastestCompleted)}](${activityText.link}${fastestCompletedInstanceId})`);
                 if (slowestInstanceId !== "0" && slowestInstanceId !== slowestCompletedInstanceId && fastestInstanceId !== slowestInstanceId)
                     joiningText.push(`${fastestInstanceId !== "0" && fastestInstanceId !== fastestCompletedInstanceId && fastest < fastestCompleted ? "\n" : ""}${activityText.slowest} [${timerConverter(slowest)}](${activityText.link}${slowestInstanceId})`);
-                if (slowestCompletedInstanceId !== "0" &&
-                    slowestInstanceId !== slowestCompletedInstanceId &&
-                    fastestCompletedInstanceId !== slowestCompletedInstanceId)
+                if (slowestCompletedInstanceId !== "0" && fastestCompletedInstanceId !== slowestCompletedInstanceId)
                     joiningText.push(`${activityText.slowestCompleted} [${timerConverter(slowestCompleted)}](${activityText.link}${slowestCompletedInstanceId})`);
                 result.push(joiningText.join("｜"));
             }

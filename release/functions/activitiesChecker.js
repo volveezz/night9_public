@@ -5,13 +5,15 @@ import { apiStatus } from "../structures/apiStatus.js";
 import { activityReporter } from "./logger.js";
 import { setUserCharacters } from "./setUserCharacters.js";
 import { fetchRequest } from "./fetchRequest.js";
-export async function destinyActivityChecker(AuthData, member, mode, count = 250) {
+export async function destinyActivityChecker(authData, member, mode, count = 250) {
     if (apiStatus.status !== 1)
         return;
-    const { platform, bungieId, accessToken } = AuthData;
+    const { platform, bungieId, accessToken } = authData;
     const userCharactersArray = character_data.get(member.id);
     if (!userCharactersArray) {
-        return setUserCharacters(AuthData, member);
+        character_data.set(member.id, []);
+        await setUserCharacters(authData, member);
+        destinyActivityChecker(authData, member, mode);
     }
     else {
         let completedActivities = [];

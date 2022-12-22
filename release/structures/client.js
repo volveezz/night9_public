@@ -53,10 +53,10 @@ export class ExtendedClient extends Client {
         global.clearInterval(this.intervalId);
     }
     getCachedGuild() {
-        return this.guild || this.guilds.cache.get(guildId);
+        return (this.guild || this.guilds.cache.get(guildId));
     }
     getCachedMembers() {
-        return this.guild.members.cache;
+        return (this.guild || this.guilds.cache.get(guildId)).members.cache;
     }
     async importFile(filePath) {
         return (await import(filePath))?.default;

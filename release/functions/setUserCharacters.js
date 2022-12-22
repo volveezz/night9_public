@@ -1,7 +1,7 @@
 import { character_data } from "../features/memberStatisticsHandler.js";
 import { fetchRequest } from "./fetchRequest.js";
-export async function setUserCharacters(AuthData, member) {
-    const { discordId, platform, bungieId, accessToken } = AuthData;
+export async function setUserCharacters(authData, member) {
+    const { discordId, platform, bungieId, accessToken } = authData;
     try {
         const destinyCharacterRequest = await fetchRequest(`Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
         if (!destinyCharacterRequest.characters)

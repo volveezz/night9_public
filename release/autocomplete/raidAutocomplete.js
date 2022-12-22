@@ -1,4 +1,5 @@
-import { timerConverter } from "../functions/raidFunctions.js";
+import { userTimezones } from "../features/memberStatisticsHandler.js";
+import { timeConverter } from "../functions/raidFunctions.js";
 import { RaidEvent } from "../handlers/sequelize.js";
 export default {
     name: "рейд",
@@ -23,7 +24,7 @@ export default {
             });
         }
         else if (option.name === "новое_время" || option.name === "время") {
-            const pasrsedTime = await timerConverter(option.value);
+            const pasrsedTime = await timeConverter({ time: option.value, userId: interaction.user.id });
             interaction.respond([
                 {
                     name: `${new Date(pasrsedTime * 1000).toLocaleString("ru-RU", {
@@ -34,7 +35,7 @@ export default {
                         hour: "2-digit",
                         minute: "2-digit",
                     })}`,
-                    value: pasrsedTime.toString(),
+                    value: (pasrsedTime - (userTimezones.get(interaction.user.id) ?? 0) * 60 * 60).toString(),
                 },
             ]);
         }

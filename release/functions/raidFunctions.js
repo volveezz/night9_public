@@ -5,14 +5,14 @@ import destinyRaidsChallenges from "../configs/destinyRaidsChallenges.js";
 import { guildId, ids } from "../configs/ids.js";
 import { dlcRoles, statusRoles } from "../configs/roles.js";
 import UserErrors from "../enums/UserErrors.js";
-import { completedRaidsData } from "../features/memberStatisticsHandler.js";
+import { completedRaidsData, userTimezones } from "../features/memberStatisticsHandler.js";
 import { RaidEvent } from "../handlers/sequelize.js";
 import { CachedDestinyActivityModifierDefinition } from "./manifestHandler.js";
 import { fetchRequest } from "./fetchRequest.js";
 import { raidAnnounceSet } from "../commands/raid.js";
 import { RaidNames } from "../enums/Raids.js";
 import nameCleaner from "./nameClearer.js";
-export function getRaidData(raid, difficulty) {
+export function getRaidData(raid, difficulty = 1) {
     switch (raid) {
         case "kf":
             return {
@@ -251,7 +251,7 @@ export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) 
     const embed = EmbedBuilder.from(inChnMsg.embeds[0]);
     embed.data.fields[0].name =
         raidChallengesArray.length > 0
-            ? `**Испытани${raidChallengesArray.length === 1 ? "е" : "я"} ${new Date(raidMilestone.endDate).getTime() > startTime * 1000 ? "этой" : "следующей"} недели:**`
+            ? `**Испытани${raidChallengesArray.length === 1 ? "е" : "я"} ${new Date(raidMilestone.endDate).getTime() > startTime * 1000 ? "этой" : "следующей"} недели**`
             : raidModifiersArray.length > 0
                 ? `**Модификатор${raidModifiersArray.length === 1 ? `` : `ы`} рейда:**`
                 : "Объявление";
@@ -316,7 +316,7 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
     embed.setTimestamp();
     inChnMsg.edit({ embeds: [embed] });
 }
-export async function timerConverter(time, data) {
+export async function timeConverter({ time, authData, userId }) {
     if (parseInt(time) > 10000000)
         return parseInt(time);
     const args = time.replace(/\s+/g, " ").trim().split(" ");
@@ -339,8 +339,8 @@ export async function timerConverter(time, data) {
     const daymonth = ddmm?.split("/");
     const hoursmins = hhmm?.split(":");
     if (!daymonth || !hoursmins) {
-        if (!data)
-            return Math.floor(new Date().getTime() / 1000);
+        if (!authData)
+            return Math.floor(new Date().getTime() / 1000 + (userId ? userTimezones.get(userId) ?? 0 : 3) * 60 * 60);
         throw {
             name: "Ошибка времени",
             description: 'Время должно быть указано в формате (без ""): "ДЕНЬ/МЕСЯЦ ЧАС:МИНУТА"\nПробел обязателен если указывается и дата, и время. Знак / и : также обязательны.',
@@ -350,11 +350,11 @@ export async function timerConverter(time, data) {
     date.setMonth(Math.round(parseInt(daymonth[1]) - 1), parseInt(daymonth[0]));
     date.setHours(parseInt(hoursmins[0]), parseInt(hoursmins[1]) ?? 0, 0, 0);
     if (date.getTimezoneOffset() !== -540)
-        date.setTime(Math.trunc(date.getTime() - (data ? (await data)?.timezone ?? 3 : 3) * 60 * 60 * 1000));
-    const returnTime = Math.trunc(date.getTime() / 1000);
+        date.setTime(Math.trunc(date.getTime() - (authData ? (await authData)?.timezone ?? 3 : 3) * 60 * 60 * 1000));
+    const returnTime = Math.floor(date.getTime() / 1000);
     if (isNaN(returnTime)) {
-        if (!data)
-            return Math.floor(new Date().getTime() / 1000);
+        if (!authData)
+            return Math.floor(new Date().getTime() / 1000 + (userId ? userTimezones.get(userId) ?? 0 : 3) * 60 * 60);
         throw {
             name: "Ошибка времени",
             description: `Проверьте правильность введенного времени, дата: ${daymonth.toString()}, время: ${hoursmins.toString()}`,

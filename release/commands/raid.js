@@ -7,7 +7,7 @@ import { Op } from "sequelize";
 import colors from "../configs/colors.js";
 import UserErrors from "../enums/UserErrors.js";
 import { RaidButtons } from "../enums/Buttons.js";
-import { getRaidData, getRaidDatabaseInfo, raidAnnounceSystem, raidChallenges, timerConverter, updatePrivateRaidMessage, updateRaidMessage, } from "../functions/raidFunctions.js";
+import { getRaidData, getRaidDatabaseInfo, raidAnnounceSystem, raidChallenges, timeConverter, updatePrivateRaidMessage, updateRaidMessage, } from "../functions/raidFunctions.js";
 import nameCleaner from "../functions/nameClearer.js";
 export const raidAnnounceSet = new Set();
 RaidEvent.findAll({
@@ -332,7 +332,7 @@ export default new Command({
                 })
                 : null;
             const raidData = getRaidData(raid, difficulty);
-            const parsedTime = await timerConverter(time, data);
+            const parsedTime = await timeConverter({ time, authData: data });
             if (parsedTime < Math.trunc(new Date().getTime() / 1000)) {
                 throw {
                     name: "Ошибка. Указанное время в прошлом",
@@ -400,7 +400,7 @@ export default new Command({
                 .create({
                 name: `🔥｜${raidDb.id}-${raidData.channelName}`,
                 parent: ids.raidChnCategoryId,
-                position: raidChannel.rawPosition,
+                position: raidChannel.rawPosition + 2,
                 permissionOverwrites: [
                     {
                         deny: "ViewChannel",
@@ -591,7 +591,7 @@ export default new Command({
                         attributes: ["timezone"],
                     })
                     : null;
-                const changedTime = await timerConverter(newTime, data);
+                const changedTime = await timeConverter({ time: newTime, authData: data });
                 if (changedTime === time) {
                     changes.push(`Время старта осталось без изменений`);
                 }

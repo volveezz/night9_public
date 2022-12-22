@@ -1,10 +1,12 @@
 import { ButtonBuilder, ButtonStyle, ChannelType, ComponentType, EmbedBuilder, } from "discord.js";
 import { Op } from "sequelize";
 import colors from "../configs/colors.js";
-import { ids } from "../configs/ids.js";
+import { ids, ownerId } from "../configs/ids.js";
 import UserErrors from "../enums/UserErrors.js";
-import { RaidEvent } from "../handlers/sequelize.js";
+import { AuthData, RaidEvent } from "../handlers/sequelize.js";
 import { RaidAdditionalFunctional, RaidButtons } from "../enums/Buttons.js";
+import { activityCompletionChecker, activityCompletionCheckerCancel } from "../functions/activityCompletionChecker.js";
+import { character_data } from "../features/memberStatisticsHandler.js";
 export default {
     name: "raidInChnButton",
     run: async ({ client, interaction }) => {
@@ -364,15 +366,26 @@ export default {
                 });
             }
             case RaidButtons.startActivityChecker: {
-                deferredReply.then((r) => interaction.followUp({ content: "Under development", ephemeral: true }));
+                if (interaction.user.id !== ownerId)
+                    (await deferredReply) && interaction.followUp({ content: "Under development", ephemeral: true });
+                const authData = await AuthData.findByPk(interaction.user.id, { attributes: ["bungieId", "platform", "accessToken"] });
+                if (!authData)
+                    throw { errorType: UserErrors.DB_USER_NOT_FOUND };
+                const character = character_data.get(interaction.user.id) ?? "2305843009489394188";
+                await activityCompletionChecker(authData, raidData, character[0]);
+                (await deferredReply) && interaction.followUp({ content: `Started for char ${character[0]}`, ephemeral: true });
                 return;
             }
             case RaidButtons.endActivityChecker: {
-                deferredReply.then((r) => interaction.followUp({ content: "Under development", ephemeral: true }));
+                if (interaction.user.id !== ownerId)
+                    (await deferredReply) && interaction.followUp({ content: "Under development", ephemeral: true });
+                const content = await activityCompletionCheckerCancel(raidData);
+                (await deferredReply) && interaction.followUp({ content, ephemeral: true });
                 return;
             }
             case RaidButtons.invite: {
-                deferredReply.then((r) => interaction.followUp({ content: "Under development", ephemeral: true }));
+                if (interaction.user.id !== ownerId)
+                    (await deferredReply) && interaction.followUp({ content: "Under development", ephemeral: true });
                 return;
             }
             default:

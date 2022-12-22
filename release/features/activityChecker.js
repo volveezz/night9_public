@@ -26,7 +26,9 @@ export default new Feature({
                 .map((d) => {
                 return `[Error code: 1008] ${d.displayName}/${d.discordId} not found on server`;
             });
-            dbNotFoundUsers.length > 0 ? (await client.getCachedGuild().fetch(), console.error("[Error code: 1005]", dbNotFoundUsers)) : [];
+            dbNotFoundUsers.length > 0 && process.env.DEV_BUILD !== "dev"
+                ? (await client.getCachedGuild().fetch(), console.error("[Error code: 1005]", dbNotFoundUsers))
+                : [];
             const db_plain = dbNotFiltred.filter((data) => client.getCachedMembers().has(data.discordId));
             if (!db_plain)
                 return console.error(`[Error code: 1006] DB is not avaliable`, db_plain);
