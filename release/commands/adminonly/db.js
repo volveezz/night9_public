@@ -148,7 +148,7 @@ export default new Command({
                     .setFooter({
                     text: `Query took: ${after - middle}ms`,
                 })
-                    .setDescription(`> <@${request.discordId}>, ${raidClears}`)
+                    .setDescription(`> <@${request.discordId}>${raidClears ? ` - ${Object.values(raidClears)}` : ""}`)
                     .addFields([
                     {
                         name: "bungieId",

@@ -1,5 +1,5 @@
 import { forbiddenRaidIds, ownerId } from "../configs/ids.js";
-import { raidRoles, trialsRoles } from "../configs/roles.js";
+import { activityRoles, raidRoles, statusRoles, trialsRoles } from "../configs/roles.js";
 import { character_data, completedRaidsData } from "../features/memberStatisticsHandler.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { activityReporter } from "./logger.js";
@@ -102,30 +102,35 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                 ...raidCounts,
                 totalRaidCount: completedRaidCount,
             });
-            const { kf, kfMaster, votd, votdMaster, dsc, gos, vog, vogMaster, lw, totalRaidCount } = completedRaidsData.get(member.id);
-            const kfClears = kf + kfMaster;
-            const votdClears = votd + votdMaster;
-            const vogClears = vog + vogMaster;
-            const totalClears = totalRaidCount;
-            for await (const step of raidRoles.roles) {
-                if (kfClears >= step.individualClears &&
-                    votdClears >= step.individualClears &&
-                    vogClears >= step.individualClears &&
-                    dsc >= step.individualClears &&
-                    gos >= step.individualClears &&
-                    lw >= step.individualClears) {
-                    if (!member.roles.cache.has(step.roleId)) {
-                        member.roles.add(step.roleId);
-                        setTimeout(() => member.roles.remove(raidRoles.allRoles.filter((r) => r !== step.roleId)), 5000);
+            if (member.roles.cache.has(statusRoles.clanmember) ||
+                (member.roles.cache.has(statusRoles.member) &&
+                    member.roles.cache.hasAny(...activityRoles.allMessages, ...activityRoles.allVoice, activityRoles.category)) ||
+                authData.UserActivityData !== undefined) {
+                const { kf, kfMaster, votd, votdMaster, dsc, gos, vog, vogMaster, lw, totalRaidCount } = completedRaidsData.get(member.id);
+                const kfClears = kf + kfMaster;
+                const votdClears = votd + votdMaster;
+                const vogClears = vog + vogMaster;
+                const totalClears = totalRaidCount;
+                for await (const step of raidRoles.roles) {
+                    if (kfClears >= step.individualClears &&
+                        votdClears >= step.individualClears &&
+                        vogClears >= step.individualClears &&
+                        dsc >= step.individualClears &&
+                        gos >= step.individualClears &&
+                        lw >= step.individualClears) {
+                        if (!member.roles.cache.has(step.roleId)) {
+                            member.roles.add(step.roleId);
+                            setTimeout(() => member.roles.remove(raidRoles.allRoles.filter((r) => r !== step.roleId)), 5000);
+                        }
+                        break;
                     }
-                    break;
-                }
-                else if (totalClears >= step.totalClears) {
-                    if (!member.roles.cache.has(step.roleId)) {
-                        member.roles.add(step.roleId);
-                        setTimeout(() => member.roles.remove(raidRoles.allRoles.filter((r) => r !== step.roleId)), 5000);
+                    else if (totalClears >= step.totalClears) {
+                        if (!member.roles.cache.has(step.roleId)) {
+                            member.roles.add(step.roleId);
+                            setTimeout(() => member.roles.remove(raidRoles.allRoles.filter((r) => r !== step.roleId)), 5000);
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }

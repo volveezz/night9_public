@@ -349,8 +349,10 @@ export async function timeConverter({ time, authData, userId }) {
     }
     date.setMonth(Math.round(parseInt(daymonth[1]) - 1), parseInt(daymonth[0]));
     date.setHours(parseInt(hoursmins[0]), parseInt(hoursmins[1]) ?? 0, 0, 0);
-    if (date.getTimezoneOffset() !== -540)
-        date.setTime(Math.trunc(date.getTime() - (authData ? (await authData)?.timezone ?? 3 : 3) * 60 * 60 * 1000));
+    if (date.getTimezoneOffset() !== -540) {
+        const timezoneOffset = authData ? (await authData)?.timezone ?? 3 : userId ? userTimezones.get(userId) ?? 3 : 3;
+        date.setTime(Math.trunc(date.getTime() - timezoneOffset * 60 * 60 * 1000));
+    }
     const returnTime = Math.floor(date.getTime() / 1000);
     if (isNaN(returnTime)) {
         if (!authData)
