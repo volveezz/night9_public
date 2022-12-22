@@ -8,6 +8,7 @@ import { client } from "../index.js";
 import { Feature } from "../structures/feature.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { destinyActivityChecker } from "../functions/activitiesChecker.js";
+import nameCleaner from "../functions/nameClearer.js";
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 export const completedRaidsData = new Map();
 export const character_data = new Map();
@@ -46,7 +47,7 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                 bungieCode = "0" + bungieCode;
             bungieNames.set(discordId, `${destinyProfileResponse.profile.data.userInfo.bungieGlobalDisplayName ?? destinyProfileResponse.profile.data.userInfo.displayName}#${bungieCode}`);
         }
-        if (new Date().getTime() - new Date(destinyProfileResponse.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60)
+        if (new Date().getTime() - new Date(destinyProfileResponse.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60 * 2)
             longOffline.add(member.id);
         if (!memberRoles.has(statusRoles.verified))
             give_roles.push(statusRoles.verified);
@@ -112,8 +113,8 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                 if (role.category === NightRoleCategory.Triumphs && !(roleCategoriesBits & NightRoleCategory.Triumphs))
                     return;
                 if (role.gildedTriumphRequirement) {
-                    if (destinyProfileResponse.profileRecords.data.records[Number(role.gildedTriumphRequirement)]) {
-                        const triumphRecord = destinyProfileResponse.profileRecords.data.records[Number(role.gildedTriumphRequirement)];
+                    if (destinyProfileResponse.profileRecords.data.records[role.gildedTriumphRequirement]) {
+                        const triumphRecord = destinyProfileResponse.profileRecords.data.records[role.gildedTriumphRequirement];
                         if (triumphRecord && triumphRecord.completedCount && triumphRecord.completedCount > 0) {
                             const index = triumphRecord.completedCount;
                             if (role.gildedRoles && role.gildedRoles.at(index - 1) && role.gildedRoles.at(index - 1).toLowerCase() !== "null") {
@@ -188,8 +189,8 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                                 }
                             }
                         }
-                        else if (destinyProfileResponse.profileRecords.data.records[Number(role.triumphRequirement)]) {
-                            const notGuidedTriumphRecord = destinyProfileResponse.profileRecords.data.records[Number(role.triumphRequirement)];
+                        else if (destinyProfileResponse.profileRecords.data.records[role.triumphRequirement]) {
+                            const notGuidedTriumphRecord = destinyProfileResponse.profileRecords.data.records[role.triumphRequirement];
                             if (notGuidedTriumphRecord.objectives
                                 ? notGuidedTriumphRecord.objectives?.pop()?.complete === true
                                 : notGuidedTriumphRecord.intervalObjectives?.pop()?.complete === true) {
@@ -284,6 +285,8 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                 }
             }
         }
+        console.debug(`Adding ${give_roles} to ${nameCleaner(member.displayName)}`);
+        console.debug(`Removing ${remove_roles} from ${nameCleaner(member.displayName)}`);
         if (give_roles.length > 0) {
             setTimeout(() => {
                 const rolesForGiving = give_roles
@@ -341,8 +344,10 @@ async function destinyClanManagmentSystem(bungie_array) {
             return;
         }
         const onlineCounter = clanList.results.filter((f) => f.isOnline === true).length;
-        if (client.user.presence.activities[0].name.startsWith("🔁"))
+        if (client.user.presence.activities[0].name.startsWith("🔁")) {
             client.stopUpdatingPresence();
+            client.user.setStatus("online");
+        }
         if (onlineCounter === 0) {
             client.user.setActivity(`${clanList.results.length} участников в клане`, { type: 3 });
         }
@@ -451,15 +456,16 @@ export default new Feature({
     execute: async ({ client }) => {
         setTimeout(() => {
             const firstRun = AuthData.findAll({ attributes: ["discordId", "bungieId", "platform", "timezone", "accessToken"] });
-            firstRun.then((authData) => {
-                authData.forEach((data) => {
+            firstRun.then(async (authData) => {
+                for (const data of authData) {
                     const member = client.getCachedMembers().get(data.discordId);
                     if (!member)
-                        return;
+                        continue;
                     if (data.timezone)
                         userTimezones.set(data.discordId, data.timezone);
                     destinyActivityChecker(data, member, 4);
-                });
+                    await timer(500);
+                }
             });
         }, 3000);
         setInterval(async () => {
