@@ -8,7 +8,6 @@ import { client } from "../index.js";
 import { Feature } from "../structures/feature.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { destinyActivityChecker } from "../functions/activitiesChecker.js";
-import nameCleaner from "../functions/nameClearer.js";
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 export const completedRaidsData = new Map();
 export const character_data = new Map();
@@ -285,8 +284,6 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                 }
             }
         }
-        console.debug(`Adding ${give_roles} to ${nameCleaner(member.displayName)}`);
-        console.debug(`Removing ${remove_roles} from ${nameCleaner(member.displayName)}`);
         if (give_roles.length > 0) {
             setTimeout(() => {
                 const rolesForGiving = give_roles
