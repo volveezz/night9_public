@@ -435,12 +435,14 @@ async function destinyUserKDChecker({ platform, bungieId: bungieId, accessToken:
         const request = await fetchRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
         for (const step of statisticsRoles.kd) {
             if (step.kd <= request.mergedAllCharacters.results.allPvP.allTime.killsDeathsRatio.basic.value) {
-                if (!member.roles.cache.has(step.roleId)) {
-                    member.roles.remove(statisticsRoles.allKd.filter((r) => r !== step.roleId));
-                    setTimeout(() => member.roles.add(step.roleId), 6000);
-                }
+                const addedRoles = [];
                 if (!member.roles.cache.has(statisticsRoles.category))
-                    member.roles.add(statisticsRoles.category);
+                    addedRoles.push(statisticsRoles.category);
+                if (!member.roles.cache.has(step.roleId)) {
+                    member.roles.remove(statisticsRoles.allKd.filter((r) => r !== step.roleId)).then((success) => {
+                        setTimeout(() => member.roles.add([step.roleId, ...addedRoles]), 6000);
+                    });
+                }
                 break;
             }
         }
@@ -463,8 +465,7 @@ export default new Feature({
                         continue;
                     if (data.timezone)
                         userTimezones.set(data.discordId, data.timezone);
-                    destinyActivityChecker(data, member, 4);
-                    await timer(500);
+                    await timer(1000).then((r) => destinyActivityChecker(data, member, 4));
                 }
             });
         }, 3000);

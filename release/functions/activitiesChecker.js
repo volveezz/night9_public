@@ -120,14 +120,14 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                         lw >= step.individualClears) {
                         if (!member.roles.cache.has(step.roleId)) {
                             member.roles.add(step.roleId);
-                            setTimeout(() => member.roles.remove(raidRoles.allRoles.filter((r) => r !== step.roleId)), 5000);
+                            setTimeout(() => member.roles.remove(raidRoles.allRoles.filter((r) => r !== step.roleId)), 5555);
                         }
                         break;
                     }
                     else if (totalClears >= step.totalClears) {
                         if (!member.roles.cache.has(step.roleId)) {
                             member.roles.add(step.roleId);
-                            setTimeout(() => member.roles.remove(raidRoles.allRoles.filter((r) => r !== step.roleId)), 5000);
+                            setTimeout(() => member.roles.remove(raidRoles.allRoles.filter((r) => r !== step.roleId)), 5555);
                         }
                         break;
                     }

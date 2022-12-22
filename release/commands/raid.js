@@ -437,15 +437,9 @@ export default new Command({
                     {
                         type: ComponentType.ActionRow,
                         components: [
-                            new ButtonBuilder()
-                                .setCustomId(RaidButtons.startActivityChecker)
-                                .setLabel("[ALPHA] AlphaButton1")
-                                .setStyle(ButtonStyle.Primary),
-                            new ButtonBuilder()
-                                .setCustomId(RaidButtons.endActivityChecker)
-                                .setLabel("[ALPHA] AlphaButton2")
-                                .setStyle(ButtonStyle.Primary),
-                            new ButtonBuilder().setCustomId(RaidButtons.invite).setLabel("[ALPHA] AlphaButton3").setStyle(ButtonStyle.Primary),
+                            new ButtonBuilder().setCustomId(RaidButtons.startActivityChecker).setLabel("[PH] AlphaButton1").setStyle(ButtonStyle.Primary),
+                            new ButtonBuilder().setCustomId(RaidButtons.endActivityChecker).setLabel("[PH] AlphaButton2").setStyle(ButtonStyle.Primary),
+                            new ButtonBuilder().setCustomId(RaidButtons.invite).setLabel("[PH] InviteSystem").setStyle(ButtonStyle.Primary),
                         ],
                     },
                 ];
