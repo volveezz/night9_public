@@ -338,9 +338,10 @@ export async function timeConverter({ time, authData, userId }) {
     const { hhmm, ddmm } = timeSpliter(args);
     const daymonth = ddmm?.split("/");
     const hoursmins = hhmm?.split(":");
+    const timezoneOffset = authData ? (await authData)?.timezone ?? 3 : userId ? userTimezones.get(userId) ?? 3 : 3;
     if (!daymonth || !hoursmins) {
         if (!authData)
-            return Math.floor(new Date().getTime() / 1000 + (userId ? userTimezones.get(userId) ?? 0 : 3) * 60 * 60);
+            return Math.floor(date.getTime() - timezoneOffset * 60 * 60 * 1000);
         throw {
             name: "Ошибка времени",
             description: 'Время должно быть указано в формате (без ""): "ДЕНЬ/МЕСЯЦ ЧАС:МИНУТА"\nПробел обязателен если указывается и дата, и время. Знак / и : также обязательны.',
@@ -350,13 +351,13 @@ export async function timeConverter({ time, authData, userId }) {
     date.setMonth(Math.round(parseInt(daymonth[1]) - 1), parseInt(daymonth[0]));
     date.setHours(parseInt(hoursmins[0]), parseInt(hoursmins[1]) ?? 0, 0, 0);
     if (date.getTimezoneOffset() !== -540) {
-        const timezoneOffset = authData ? (await authData)?.timezone ?? 3 : userId ? userTimezones.get(userId) ?? 3 : 3;
-        date.setTime(Math.trunc(date.getTime() - timezoneOffset * 60 * 60 * 1000));
+        console.debug(`User ${userId} timezone is ${timezoneOffset}`);
+        date.setTime(Math.floor(date.getTime() - timezoneOffset * 60 * 60 * 1000));
     }
     const returnTime = Math.floor(date.getTime() / 1000);
     if (isNaN(returnTime)) {
         if (!authData)
-            return Math.floor(new Date().getTime() / 1000 + (userId ? userTimezones.get(userId) ?? 0 : 3) * 60 * 60);
+            return Math.floor(date.getTime() - timezoneOffset * 60 * 60 * 1000);
         throw {
             name: "Ошибка времени",
             description: `Проверьте правильность введенного времени, дата: ${daymonth.toString()}, время: ${hoursmins.toString()}`,

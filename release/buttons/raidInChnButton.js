@@ -36,10 +36,7 @@ export default {
         if (!raidData) {
             if (interaction.channel?.isDMBased())
                 interaction.message.edit({ components: [] });
-            throw {
-                name: "Критическая ошибка",
-                description: "Рейд не найден. Повторите спустя несколько секунд\nПожалуйста, не нажимайте кнопку более 2х раз - за каждую такую ошибку администрация получает оповещение",
-            };
+            throw { errorType: UserErrors.RAID_NOT_FOUND };
         }
         if (raidData.creator !== interaction.user.id && !interaction.memberPermissions?.has("Administrator"))
             throw { errorType: UserErrors.RAID_MISSING_PERMISSIONS };
@@ -49,10 +46,10 @@ export default {
                 const raidLeaderEmbed = new EmbedBuilder()
                     .setColor(colors.default)
                     .setTitle("Введите текст оповещения для участников или оставьте шаблон")
-                    .setDescription(`Рейдер, тебя оповестил ${raidData.creator === interaction.user.id ? "создатель рейда" : "администратор"} об скором старте!\n\nЗаходи в голосовой канал как можно скорее!`);
+                    .setDescription(`Рейдер, тебя оповестил ${raidData.creator === interaction.user.id ? "создатель рейда" : "администратор"} об скором старте.\n\nЗаходи в голосовой канал как можно скорее!`);
                 const invite = await member.voice.channel?.createInvite({ reason: "Raid invite", maxAge: 60 * 120 });
                 const raidVoiceChannels = member.guild.channels.cache
-                    .filter((chn) => chn.parentId === ids.raidChnCategoryId && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid Room"))
+                    .filter((chn) => chn.parentId === ids.raidChnCategoryId && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"))
                     .reverse();
                 const raidChnInvite = [];
                 for await (const [i, chn] of raidVoiceChannels) {
@@ -371,7 +368,7 @@ export default {
                 const authData = await AuthData.findByPk(interaction.user.id, { attributes: ["bungieId", "platform", "accessToken"] });
                 if (!authData)
                     throw { errorType: UserErrors.DB_USER_NOT_FOUND };
-                const character = character_data.get(interaction.user.id) ?? "2305843009489394188";
+                const character = character_data.get(interaction.user.id) ?? ["2305843009489394188"];
                 await activityCompletionChecker(authData, raidData, character[0]);
                 (await deferredReply) && interaction.followUp({ content: `Started for char ${character[0]}`, ephemeral: true });
                 return;

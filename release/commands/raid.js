@@ -14,7 +14,7 @@ RaidEvent.findAll({
     where: {
         [Op.and]: [
             { time: { [Op.gt]: Math.trunc(new Date().getTime() / 1000) } },
-            { time: { [Op.lt]: Math.trunc(new Date().getTime() / 1000 + 24 * 60 * 60) } },
+            { time: { [Op.lt]: Math.trunc(Math.trunc(new Date().getTime() / 1000) + 24 * 60 * 60 * 2) } },
         ],
     },
 }).then((RaidEvent) => RaidEvent.forEach((raidData) => raidAnnounceSystem(raidData)));

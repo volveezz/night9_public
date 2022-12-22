@@ -7,9 +7,6 @@ await client.start();
 client.rest.on("rateLimited", (rateLimit) => {
     console.error(`Ratelimited for ${rateLimit.timeToReset} ms, route: ${rateLimit.route}${rateLimit.majorParameter ? `, parameter: ${rateLimit.majorParameter}` : ""}`);
 });
-process.on("SIGTERM", () => {
-    console.error(`Process is shutdowning`);
-});
 process.on("uncaughtException", (error, origin) => {
     console.error(`uncaughtException at top level`, { origin });
 });

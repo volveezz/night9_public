@@ -7,6 +7,7 @@ export async function setUserCharacters(authData, member) {
         if (!destinyCharacterRequest.characters)
             return console.error(`[Error code: 1105] For ${member.displayName}`);
         const charIdArray = [];
+        destinyCharacterRequest.characters.sort((a, b) => (a.deleted === false ? 1 : 0));
         destinyCharacterRequest.characters.forEach((ch) => charIdArray.push(ch.characterId));
         character_data.set(discordId, charIdArray);
     }

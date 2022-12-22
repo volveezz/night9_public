@@ -50,22 +50,6 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
             longOffline.add(member.id);
         if (!memberRoles.has(statusRoles.verified))
             give_roles.push(statusRoles.verified);
-        async function seasonalRolesChecker() {
-            if (destinyProfileResponse.profile.data.seasonHashes.includes(destinyProfileResponse.profile.data.currentSeasonHash)) {
-                if (!memberRoles.has(seasonalRoles.curSeasonRole))
-                    give_roles.push(seasonalRoles.curSeasonRole);
-                if (memberRoles.has(seasonalRoles.nonCurSeasonRole))
-                    remove_roles.push(seasonalRoles.nonCurSeasonRole);
-                return [true];
-            }
-            else {
-                if (!memberRoles.has(seasonalRoles.nonCurSeasonRole))
-                    give_roles.push(seasonalRoles.nonCurSeasonRole);
-                if (memberRoles.has(seasonalRoles.curSeasonRole))
-                    remove_roles.push(seasonalRoles.curSeasonRole);
-                return [true];
-            }
-        }
         async function dlc_rolesChecker(version) {
             if (!version)
                 return;
@@ -230,9 +214,20 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                 }
             });
         }
-        seasonalRolesChecker().catch((e) => console.error(`[Error code: 1091] seasonalRolesChecker`, e, member.displayName));
-        dlc_rolesChecker(destinyProfileResponse.profile.data.versionsOwned).catch((e) => console.error(`[Error code: 1092] dlc_rolesChecker`, e, member.displayName));
-        triumphsChecker().catch((e) => console.error(`[Error code: 1093] triumphsChecker`, e, member.displayName));
+        if (destinyProfileResponse.profile.data.seasonHashes.includes(destinyProfileResponse.profile.data.currentSeasonHash)) {
+            if (!memberRoles.has(seasonalRoles.curSeasonRole))
+                give_roles.push(seasonalRoles.curSeasonRole);
+            if (memberRoles.has(seasonalRoles.nonCurSeasonRole))
+                remove_roles.push(seasonalRoles.nonCurSeasonRole);
+        }
+        else {
+            if (!memberRoles.has(seasonalRoles.nonCurSeasonRole))
+                give_roles.push(seasonalRoles.nonCurSeasonRole);
+            if (memberRoles.has(seasonalRoles.curSeasonRole))
+                remove_roles.push(seasonalRoles.curSeasonRole);
+        }
+        dlc_rolesChecker(destinyProfileResponse.profile.data.versionsOwned).catch((e) => console.error(`[Error code: 1092] dlc_rolesChecker`, { e }, member.displayName));
+        triumphsChecker().catch((e) => console.error(`[Error code: 1093] triumphsChecker`, { e }, member.displayName));
         if (roleCategoriesBits & NightRoleCategory.Trials) {
             const metrics = destinyProfileResponse.metrics.data.metrics["1765255052"]?.objectiveProgress.progress;
             if (metrics === null || metrics === undefined || isNaN(metrics))
@@ -246,7 +241,7 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                             give_roles.push(step.roleId);
                             remove_roles.push(trialsRoles.allRoles.filter((r) => r != step.roleId).toString());
                         }
-                        return;
+                        break;
                     }
                 }
             }
@@ -259,28 +254,29 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                     remove_roles.push(activityRoles.allMessages.toString());
                 if (memberRoles.has(activityRoles.category))
                     remove_roles.push(activityRoles.category);
-                return;
             }
-            for (const step of activityRoles.voice) {
-                if (step.voiceMinutes <= userActivity.voice) {
-                    if (!member.roles.cache.has(step.roleId)) {
-                        if (!member.roles.cache.has(activityRoles.category))
-                            give_roles.push(activityRoles.category);
-                        give_roles.push(step.roleId);
-                        remove_roles.push(activityRoles.allVoice.filter((r) => r != step.roleId).toString());
+            else {
+                for (const step of activityRoles.voice) {
+                    if (step.voiceMinutes <= userActivity.voice) {
+                        if (!member.roles.cache.has(step.roleId)) {
+                            if (!member.roles.cache.has(activityRoles.category))
+                                give_roles.push(activityRoles.category);
+                            give_roles.push(step.roleId);
+                            remove_roles.push(activityRoles.allVoice.filter((r) => r != step.roleId).toString());
+                        }
+                        break;
                     }
-                    break;
                 }
-            }
-            for (const step of activityRoles.messages) {
-                if (step.messageCount <= userActivity.messages) {
-                    if (!member.roles.cache.has(step.roleId)) {
-                        if (!member.roles.cache.has(activityRoles.category))
-                            give_roles.push(activityRoles.category);
-                        give_roles.push(step.roleId);
-                        remove_roles.push(activityRoles.allMessages.filter((r) => r != step.roleId).toString());
+                for (const step of activityRoles.messages) {
+                    if (step.messageCount <= userActivity.messages) {
+                        if (!member.roles.cache.has(step.roleId)) {
+                            if (!member.roles.cache.has(activityRoles.category))
+                                give_roles.push(activityRoles.category);
+                            give_roles.push(step.roleId);
+                            remove_roles.push(activityRoles.allMessages.filter((r) => r != step.roleId).toString());
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
