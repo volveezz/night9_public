@@ -363,7 +363,7 @@ export default {
                 });
             }
             case RaidButtons.startActivityChecker: {
-                if (interaction.user.id !== ownerId)
+                if (interaction.user.id !== raidData.creator || !interaction.member?.permissions.has("Administrator"))
                     (await deferredReply) && interaction.followUp({ content: "Under development", ephemeral: true });
                 const authData = await AuthData.findByPk(interaction.user.id, { attributes: ["bungieId", "platform", "accessToken"] });
                 if (!authData)
@@ -374,7 +374,7 @@ export default {
                 return;
             }
             case RaidButtons.endActivityChecker: {
-                if (interaction.user.id !== ownerId)
+                if (interaction.user.id !== raidData.creator || !interaction.member?.permissions.has("Administrator"))
                     (await deferredReply) && interaction.followUp({ content: "Under development", ephemeral: true });
                 const content = await activityCompletionCheckerCancel(raidData);
                 (await deferredReply) && interaction.followUp({ content, ephemeral: true });

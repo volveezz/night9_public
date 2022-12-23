@@ -319,7 +319,6 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
 export async function timeConverter({ time, authData, userId }) {
     const timezoneOffset = userId && userTimezones.get(userId) ? userTimezones.get(userId) : (await authData)?.timezone ?? 3;
     if (parseInt(time) > Math.trunc(new Date().getTime() / 1000)) {
-        console.debug(`${userId} ${timezoneOffset}`);
         return parseInt(time);
     }
     const args = time.replace(/\s+/g, " ").trim().split(" ");
