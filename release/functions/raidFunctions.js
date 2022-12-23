@@ -346,7 +346,7 @@ export async function timeConverter({ time, authData, userId }) {
             : 3;
     if (!daymonth || !hoursmins) {
         if (!authData)
-            return Math.floor((date.getTime() - timezoneOffset * 60 * 60 * 1000) / 1000);
+            return Math.floor((date.getTime() + timezoneOffset * 60 * 60 * 1000) / 1000);
         throw {
             name: "Ошибка времени",
             description: 'Время должно быть указано в формате (без ""): "ДЕНЬ/МЕСЯЦ ЧАС:МИНУТА"\nПробел обязателен если указывается и дата, и время. Знак / и : также обязательны.',
@@ -362,7 +362,7 @@ export async function timeConverter({ time, authData, userId }) {
     const returnTime = Math.floor(date.getTime() / 1000);
     if (isNaN(returnTime)) {
         if (!authData)
-            return Math.floor((date.getTime() - timezoneOffset * 60 * 60 * 1000) / 1000);
+            return Math.floor((date.getTime() + timezoneOffset * 60 * 60 * 1000) / 1000);
         throw {
             name: "Ошибка времени",
             description: `Проверьте правильность введенного времени, дата: ${daymonth.toString()}, время: ${hoursmins.toString()}`,
