@@ -356,8 +356,8 @@ export async function timeConverter({ time, authData, userId }) {
     date.setHours(parseInt(hoursmins[0]), parseInt(hoursmins[1]) ?? 0, 0, 0);
     if (date.getTimezoneOffset() !== -540) {
         const timezoneDifference = !authData
-            ? date.getTime() - (timezoneOffset ?? 3) * 60 * 60 * 1000
-            : date.getTime() + (timezoneOffset ?? 3) * 60 * 60 * 1000;
+            ? date.getTime() + (timezoneOffset ?? 3) * 60 * 60 * 1000
+            : date.getTime() - (timezoneOffset ?? 3) * 60 * 60 * 1000;
         date.setTime(Math.floor(timezoneDifference));
     }
     const returnTime = Math.floor(date.getTime() / 1000);
