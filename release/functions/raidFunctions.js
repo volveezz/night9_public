@@ -317,14 +317,10 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
     inChnMsg.edit({ embeds: [embed] });
 }
 export async function timeConverter({ time, authData, userId }) {
-    const timezoneOffset = (authData && (await authData)?.timezone && (await authData)?.timezone !== undefined && (await authData)?.timezone !== null
-        ? (await authData).timezone
-        : userId && userTimezones.get(userId)
-            ? userTimezones.get(userId) ?? 3
-            : 3);
+    const timezoneOffset = userId && userTimezones.get(userId) ? userTimezones.get(userId) : (await authData)?.timezone ?? 3;
     if (parseInt(time) > Math.trunc(new Date().getTime() / 1000)) {
         console.debug(`${userId} ${timezoneOffset}`);
-        return parseInt(time) - timezoneOffset * 60 * 60;
+        return parseInt(time);
     }
     const args = time.replace(/\s+/g, " ").trim().split(" ");
     const date = new Date();
