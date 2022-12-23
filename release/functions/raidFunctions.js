@@ -322,8 +322,10 @@ export async function timeConverter({ time, authData, userId }) {
         : userId && userTimezones.get(userId)
             ? userTimezones.get(userId) ?? 3
             : 3);
-    if (parseInt(time) > 10000000)
+    if (parseInt(time) > Math.trunc(new Date().getTime() / 1000)) {
+        console.debug(`${userId} ${timezoneOffset}`);
         return parseInt(time) - timezoneOffset * 60 * 60;
+    }
     const args = time.replace(/\s+/g, " ").trim().split(" ");
     const date = new Date();
     function timeSpliter(args) {

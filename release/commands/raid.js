@@ -675,7 +675,8 @@ export default new Command({
                     text: `Изменение ${raidData.creator === interaction.user.id ? "создателем рейда" : "администратором"}`,
                 });
                 changesForChannel.forEach((chng) => editedEmbedReplyInChn.addFields(chng));
-                isSilent && client.getCachedGuild().channels.cache.get(raidData.channelId).send({ embeds: [editedEmbedReplyInChn] });
+                isSilent === true &&
+                    client.getCachedGuild().channels.cache.get(raidData.channelId).send({ embeds: [editedEmbedReplyInChn] });
             }
             else {
                 await t.rollback();
