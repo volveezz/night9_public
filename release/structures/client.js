@@ -50,6 +50,7 @@ export class ExtendedClient extends Client {
         });
     }
     stopUpdatingPresence() {
+        this.user.setPresence({ status: "online" });
         global.clearInterval(this.intervalId);
     }
     getCachedGuild() {

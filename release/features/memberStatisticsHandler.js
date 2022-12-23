@@ -339,7 +339,6 @@ async function destinyClanManagmentSystem(bungie_array) {
         const onlineCounter = clanList.results.filter((f) => f.isOnline === true).length;
         if (client.user.presence.activities[0].name.startsWith("🔁")) {
             client.stopUpdatingPresence();
-            client.user.setStatus("online");
         }
         if (onlineCounter === 0) {
             client.user.setActivity(`${clanList.results.length} участников в клане`, { type: 3 });

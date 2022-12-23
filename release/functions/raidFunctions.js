@@ -338,10 +338,15 @@ export async function timeConverter({ time, authData, userId }) {
     const { hhmm, ddmm } = timeSpliter(args);
     const daymonth = ddmm?.split("/");
     const hoursmins = hhmm?.split(":");
-    const timezoneOffset = authData ? (await authData)?.timezone ?? 3 : userId ? userTimezones.get(userId) ?? 3 : 3;
+    const dbData = await authData;
+    const timezoneOffset = dbData && dbData?.timezone && dbData?.timezone !== undefined && dbData?.timezone !== null
+        ? dbData.timezone
+        : userId && userTimezones.get(userId)
+            ? userTimezones.get(userId) ?? 3
+            : 3;
     if (!daymonth || !hoursmins) {
         if (!authData)
-            return Math.floor(date.getTime() - timezoneOffset * 60 * 60 * 1000);
+            return Math.floor((date.getTime() - timezoneOffset * 60 * 60 * 1000) / 1000);
         throw {
             name: "Ошибка времени",
             description: 'Время должно быть указано в формате (без ""): "ДЕНЬ/МЕСЯЦ ЧАС:МИНУТА"\nПробел обязателен если указывается и дата, и время. Знак / и : также обязательны.',
@@ -357,7 +362,7 @@ export async function timeConverter({ time, authData, userId }) {
     const returnTime = Math.floor(date.getTime() / 1000);
     if (isNaN(returnTime)) {
         if (!authData)
-            return Math.floor(date.getTime() - timezoneOffset * 60 * 60 * 1000);
+            return Math.floor((date.getTime() - timezoneOffset * 60 * 60 * 1000) / 1000);
         throw {
             name: "Ошибка времени",
             description: `Проверьте правильность введенного времени, дата: ${daymonth.toString()}, время: ${hoursmins.toString()}`,
@@ -379,7 +384,7 @@ async function raidAnnounce(oldRaidData) {
     if (!raidData || (raidData && raidData.time !== oldRaidData.time))
         return;
     const raidInfo = getRaidData(raidData.raid, raidData.difficulty);
-    const guild = client.guilds.cache.get(guildId);
+    const guild = (client.getCachedGuild() || client.guilds.cache.get(guildId));
     const raidMembers = raidData.joined.map(async (userId) => {
         return guild.members.cache.get(userId) ?? (await guild.members.fetch(userId));
     });

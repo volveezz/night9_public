@@ -476,7 +476,7 @@ export default new Command({
             const newReqClears = args.getInteger("новое_требование_закрытий");
             const isSilent = args.getBoolean("silent") || false;
             var raidData = await getRaidDatabaseInfo(raidId, interaction);
-            if (raidData === null || (raidData instanceof Array && raidData.length === 0)) {
+            if (raidData === null || (Array.isArray(raidData) && raidData.length === 0)) {
                 throw { errorType: UserErrors.RAID_NOT_FOUND };
             }
             const raidInfo = getRaidData((newRaid ?? raidData.raid), newDifficulty ?? raidData.difficulty);
