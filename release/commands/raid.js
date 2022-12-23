@@ -337,7 +337,7 @@ export default new Command({
                 })
                 : null;
             const raidData = getRaidData(raid, difficulty);
-            const parsedTime = await timeConverter({ time, authData: data });
+            const parsedTime = await timeConverter({ time, authData: data, userId: interaction.user.id });
             if (parsedTime < Math.trunc(new Date().getTime() / 1000)) {
                 throw {
                     name: "Ошибка. Указанное время в прошлом",
@@ -591,7 +591,7 @@ export default new Command({
                         attributes: ["timezone"],
                     })
                     : null;
-                const changedTime = await timeConverter({ time: newTime, authData: data });
+                const changedTime = await timeConverter({ time: newTime, authData: data, userId: interaction.user.id });
                 if (changedTime === time) {
                     changes.push(`Время старта осталось без изменений`);
                 }
@@ -675,8 +675,7 @@ export default new Command({
                     text: `Изменение ${raidData.creator === interaction.user.id ? "создателем рейда" : "администратором"}`,
                 });
                 changesForChannel.forEach((chng) => editedEmbedReplyInChn.addFields(chng));
-                isSilent === true &&
-                    client.getCachedGuild().channels.cache.get(raidData.channelId).send({ embeds: [editedEmbedReplyInChn] });
+                !isSilent && client.getCachedGuild().channels.cache.get(raidData.channelId).send({ embeds: [editedEmbedReplyInChn] });
             }
             else {
                 await t.rollback();
