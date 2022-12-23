@@ -230,6 +230,11 @@ export default new Command({
                     descriptionLocalizations: { "en-US": "Specify raid clears requirement of this raid for joining LFG" },
                     nameLocalizations: { "en-US": "new_clears_requirement" },
                 },
+                {
+                    type: ApplicationCommandOptionType.Boolean,
+                    name: "silent",
+                    description: "Silent execution",
+                },
             ],
         },
         {
@@ -469,6 +474,7 @@ export default new Command({
             const newDescription = args.getString("новое_описание");
             const newDifficulty = args.getInteger("новая_сложность");
             const newReqClears = args.getInteger("новое_требование_закрытий");
+            const isSilent = args.getBoolean("silent") || false;
             var raidData = await getRaidDatabaseInfo(raidId, interaction);
             if (raidData === null || (raidData instanceof Array && raidData.length === 0)) {
                 throw { errorType: UserErrors.RAID_NOT_FOUND };
@@ -669,7 +675,7 @@ export default new Command({
                     text: `Изменение ${raidData.creator === interaction.user.id ? "создателем рейда" : "администратором"}`,
                 });
                 changesForChannel.forEach((chng) => editedEmbedReplyInChn.addFields(chng));
-                client.getCachedGuild().channels.cache.get(raidData.channelId).send({ embeds: [editedEmbedReplyInChn] });
+                isSilent && client.getCachedGuild().channels.cache.get(raidData.channelId).send({ embeds: [editedEmbedReplyInChn] });
             }
             else {
                 await t.rollback();
