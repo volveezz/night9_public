@@ -317,8 +317,13 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
     inChnMsg.edit({ embeds: [embed] });
 }
 export async function timeConverter({ time, authData, userId }) {
+    const timezoneOffset = (authData && (await authData)?.timezone && (await authData)?.timezone !== undefined && (await authData)?.timezone !== null
+        ? (await authData).timezone
+        : userId && userTimezones.get(userId)
+            ? userTimezones.get(userId) ?? 3
+            : 3);
     if (parseInt(time) > 10000000)
-        return parseInt(time);
+        return parseInt(time) - timezoneOffset * 60 * 60 * 1000;
     const args = time.replace(/\s+/g, " ").trim().split(" ");
     const date = new Date();
     function timeSpliter(args) {
@@ -338,15 +343,9 @@ export async function timeConverter({ time, authData, userId }) {
     const { hhmm, ddmm } = timeSpliter(args);
     const daymonth = ddmm?.split("/");
     const hoursmins = hhmm?.split(":");
-    const dbData = await authData;
-    const timezoneOffset = dbData && dbData?.timezone && dbData?.timezone !== undefined && dbData?.timezone !== null
-        ? dbData.timezone
-        : userId && userTimezones.get(userId)
-            ? userTimezones.get(userId) ?? 3
-            : 3;
     if (!daymonth || !hoursmins) {
         if (!authData)
-            return Math.floor((date.getTime() + timezoneOffset * 60 * 60 * 1000) / 1000);
+            return Math.floor((date.getTime() + (timezoneOffset ?? 3) * 60 * 60 * 1000) / 1000);
         throw {
             name: "Ошибка времени",
             description: 'Время должно быть указано в формате (без ""): "ДЕНЬ/МЕСЯЦ ЧАС:МИНУТА"\nПробел обязателен если указывается и дата, и время. Знак / и : также обязательны.',
@@ -356,12 +355,15 @@ export async function timeConverter({ time, authData, userId }) {
     date.setMonth(Math.round(parseInt(daymonth[1]) - 1), parseInt(daymonth[0]));
     date.setHours(parseInt(hoursmins[0]), parseInt(hoursmins[1]) ?? 0, 0, 0);
     if (date.getTimezoneOffset() !== -540) {
-        date.setTime(Math.floor(date.getTime() + timezoneOffset * 60 * 60 * 1000));
+        const timezoneDifference = !authData
+            ? date.getTime() - (timezoneOffset ?? 3) * 60 * 60 * 1000
+            : date.getTime() + (timezoneOffset ?? 3) * 60 * 60 * 1000;
+        date.setTime(Math.floor(timezoneDifference));
     }
     const returnTime = Math.floor(date.getTime() / 1000);
     if (isNaN(returnTime)) {
         if (!authData)
-            return Math.floor((date.getTime() + timezoneOffset * 60 * 60 * 1000) / 1000);
+            return Math.floor((date.getTime() + (timezoneOffset ?? 3) * 60 * 60 * 1000) / 1000);
         throw {
             name: "Ошибка времени",
             description: `Проверьте правильность введенного времени, дата: ${daymonth.toString()}, время: ${hoursmins.toString()}`,
