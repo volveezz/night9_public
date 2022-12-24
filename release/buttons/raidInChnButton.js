@@ -204,7 +204,7 @@ export default {
                         chns.members.forEach((memb) => membersCollection.push(memb));
                     }
                 });
-                const raidChns = guild.channels.cache.filter((chn) => chn.parentId === ids.raidChnCategoryId && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid Room"));
+                const raidChns = guild.channels.cache.filter((chn) => chn.parentId === ids.raidChnCategoryId && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"));
                 const freeRaidVC = raidChns.find((chn) => chn.type === ChannelType.GuildVoice && chn.members.has(raidData.creator)) ||
                     raidChns.find((chn) => chn.type === ChannelType.GuildVoice && chn.userLimit > chn.members.size);
                 const movedUsers = [];

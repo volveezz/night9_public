@@ -397,7 +397,7 @@ async function raidAnnounce(oldRaidData) {
         .setTitle("Уведомление о скором рейде")
         .setThumbnail(raidInfo?.raidBanner ?? null)
         .setTimestamp(raidData.time * 1000)
-        .setDescription(`Рейд [${raidData.id}-${raidData.raid}](https://discord.com/channels/${guildId}/${ids.raidChnId}/${raidData.messageId}) начнется в течение ${Math.round((raidData.time - Math.trunc(new Date().getTime() / 1000)) / 60)} минут!`)
+        .setDescription(`Рейд [${raidData.id}-${raidData.raid}](https://discord.com/channels/${guildId}/${ids.raidChnId}/${raidData.messageId}) начнется в течение ${Math.trunc((raidData.time - Math.trunc(new Date().getTime() / 1000)) / 60)} минут!`)
         .addFields([
         {
             name: "Состав группы:",
@@ -405,7 +405,7 @@ async function raidAnnounce(oldRaidData) {
         },
     ]);
     const raidVoiceChannels = guild.channels.cache
-        .filter((chn) => chn.parentId === ids.raidChnCategoryId && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid Room"))
+        .filter((chn) => chn.parentId === ids.raidChnCategoryId && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"))
         .reverse();
     const components = [];
     for await (const [i, chn] of raidVoiceChannels) {
