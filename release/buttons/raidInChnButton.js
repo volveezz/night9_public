@@ -368,7 +368,7 @@ export default {
                 const authData = await AuthData.findByPk(interaction.user.id, { attributes: ["bungieId", "platform", "accessToken"] });
                 if (!authData)
                     throw { errorType: UserErrors.DB_USER_NOT_FOUND };
-                const character = character_data.get(interaction.user.id) ?? ["2305843009489394188"];
+                const character = character_data.get(interaction.user.id) ?? ["2305843009654734862"];
                 await activityCompletionChecker(authData, raidData, character[0]);
                 (await deferredReply) && interaction.followUp({ content: `Started for char ${character[0]}`, ephemeral: true });
                 return;
