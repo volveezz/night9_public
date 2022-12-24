@@ -29,11 +29,11 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                     return console.error(`[Error code: 1018] Response error for ${bungieId} during checking ${mode} mode`);
                 if (response.activities?.length > 0) {
                     await Promise.all(response.activities.map((activity) => {
-                        if (mode === 4 && activity.values.completed.basic.value) {
+                        if ((mode === 82 || mode === 4) && activity.values.completed.basic.value) {
                             if (new Date(activity.period).getTime() + activity.values.activityDurationSeconds.basic.value * 1000 >
                                 new Date().getTime() - 1000 * 60 * 15)
                                 activityReporter(activity.activityDetails.instanceId);
-                            if (!forbiddenRaidIds.includes(activity.activityDetails.referenceId))
+                            if (mode === 4 && !forbiddenRaidIds.includes(activity.activityDetails.referenceId))
                                 completedActivities.push(activity.activityDetails.referenceId);
                         }
                         else if (mode === 84) {
