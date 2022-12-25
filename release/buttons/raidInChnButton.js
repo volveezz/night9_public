@@ -378,6 +378,8 @@ export default {
                     for await (const characterId of characterIds) {
                         if (response.characterActivities.data[characterId].currentActivityModeType === 4)
                             return { characterId, isFound: true };
+                        if (response.characterActivities.data[characterId].currentActivityModeHash === 2166136261)
+                            return { characterId, isFound: true };
                     }
                     return { characterId: characterIds[0], isFound: false };
                 }
