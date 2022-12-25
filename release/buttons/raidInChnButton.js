@@ -6,7 +6,7 @@ import UserErrors from "../enums/UserErrors.js";
 import { AuthData, RaidEvent } from "../handlers/sequelize.js";
 import { RaidAdditionalFunctional, RaidButtons } from "../enums/Buttons.js";
 import { activityCompletionChecker, activityCompletionCheckerCancel } from "../functions/activityCompletionChecker.js";
-import { character_data } from "../features/memberStatisticsHandler.js";
+import { fetchRequest } from "../functions/fetchRequest.js";
 export default {
     name: "raidInChnButton",
     run: async ({ client, interaction }) => {
@@ -290,13 +290,13 @@ export default {
                         },
                     ],
                 });
-                const resEmbed = new EmbedBuilder().setColor("Green").setTitle(`Вы ${status} набор`);
+                const resEmbed = new EmbedBuilder().setColor(colors.success).setTitle(`Вы ${status} набор`);
                 await deferredReply;
                 interaction.followUp({ embeds: [resEmbed], ephemeral: true });
                 break;
             }
             case RaidButtons.delete: {
-                const embed = new EmbedBuilder().setColor("Yellow").setTitle(`Подтвердите удаление рейда ${raidData.id}-${raidData.raid}`);
+                const embed = new EmbedBuilder().setColor(colors.warning).setTitle(`Подтвердите удаление рейда ${raidData.id}-${raidData.raid}`);
                 const components = [
                     {
                         type: ComponentType.ActionRow,
@@ -332,7 +332,10 @@ export default {
                                     console.error(`Message during raid manual delete for raidId ${raidData.id} wasn't found`);
                                     e.code !== 10008 ? console.error(e) : console.error("raidDeleteBtn unknown msg err");
                                 }
-                                const sucEmbed = new EmbedBuilder().setColor("Green").setTitle(`Рейд ${raidData.id}-${raidData.raid} удален`).setTimestamp();
+                                const sucEmbed = new EmbedBuilder()
+                                    .setColor(colors.success)
+                                    .setTitle(`Рейд ${raidData.id}-${raidData.raid} удален`)
+                                    .setTimestamp();
                                 col.update({ components: [], embeds: [sucEmbed] });
                             }
                             else {
@@ -368,9 +371,23 @@ export default {
                 const authData = await AuthData.findByPk(interaction.user.id, { attributes: ["bungieId", "platform", "accessToken"] });
                 if (!authData)
                     throw { errorType: UserErrors.DB_USER_NOT_FOUND };
-                const character = character_data.get(interaction.user.id) ?? ["2305843009654734862"];
-                await activityCompletionChecker(authData, raidData, character[0]);
-                (await deferredReply) && interaction.followUp({ content: `Started for char ${character[0]}`, ephemeral: true });
+                async function getActiveCharacter(response) {
+                    if (!response.characterActivities.data)
+                        throw { name: "Персонажи не найдены" };
+                    const characterIds = Object.keys(response.characterActivities.data);
+                    for await (const characterId of characterIds) {
+                        if (response.characterActivities.data[characterId].currentActivityModeType === 4)
+                            return { characterId, isFound: true };
+                    }
+                    return { characterId: characterIds[0], isFound: false };
+                }
+                const { characterId: character, isFound } = await getActiveCharacter((await fetchRequest(`/Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=204`, authData.accessToken)));
+                await activityCompletionChecker(authData, raidData, character);
+                (await deferredReply) &&
+                    interaction.followUp({
+                        content: `Started for char ${character}${isFound ? `\nCharacter found in raid activity` : `Character **not found** in raid activity`}`,
+                        ephemeral: true,
+                    });
                 return;
             }
             case RaidButtons.endActivityChecker: {

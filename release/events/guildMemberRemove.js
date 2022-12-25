@@ -3,6 +3,7 @@ import { ids } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
+import { AuthData, LeavedUsersData, database } from "../handlers/sequelize.js";
 const guildMemberChannel = client.channels.cache.get(ids.guildMemberChnId);
 export default new Event("guildMemberRemove", (member) => {
     if (member.guild.bans.cache.has(member.id))
@@ -33,5 +34,53 @@ export default new Event("guildMemberRemove", (member) => {
                             : "Роли не найдены"}`,
         });
     }
-    guildMemberChannel.send({ embeds: [embed] });
+    guildMemberChannel.send({ embeds: [embed] }).then(async (m) => {
+        const data = await AuthData.findByPk(member.id);
+        if (!data)
+            return;
+        const transaction = await database.transaction();
+        const embed = m.embeds[0];
+        try {
+            await AuthData.destroy({
+                where: { discordId: data.discordId },
+                transaction: transaction,
+            });
+            await LeavedUsersData.create({
+                discordId: data.discordId,
+                bungieId: data.bungieId,
+                displayName: data.displayName,
+                platform: data.platform,
+                accessToken: data.accessToken,
+                refreshToken: data.refreshToken,
+                membershipId: data.membershipId,
+                timezone: data.timezone,
+            }, {
+                transaction: transaction,
+            });
+            await transaction.commit();
+            embed.fields.push({
+                name: "BungieId",
+                value: `${data.platform}/${data.bungieId}`,
+                inline: true,
+            }, {
+                name: "Ник в игре",
+                value: data.displayName,
+                inline: true,
+            }, {
+                name: "MembershipId",
+                value: String(data.membershipId),
+                inline: true,
+            });
+            m.edit({ embeds: [embed] });
+        }
+        catch (error) {
+            await transaction.rollback();
+            embed.fields.push({
+                name: "Ошибка",
+                value: "Произошла ошибка во время удаления данных в БД",
+            });
+            console.error(`[Error code: 1209]`, error, data, transaction);
+            m.edit({ embeds: [embed] });
+        }
+    });
 });
