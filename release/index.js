@@ -2,6 +2,7 @@ import express from "express";
 import { ExtendedClient } from "./structures/client.js";
 import { resolve, join } from "path";
 import "dotenv/config";
+import fetch from "node-fetch";
 export const client = new ExtendedClient();
 await client.start();
 client.rest.on("rateLimited", (rateLimit) => {
@@ -28,6 +29,21 @@ process.on("unhandledRejection", (error) => {
 const app = express();
 const port = process.env.PORT || 3000;
 const __dirname = resolve();
+const date = new Date();
+date.setHours(23, 0, 0, 0);
+if (date.getTime() - new Date().getTime() < 0)
+    date.setDate(date.getDate() + 1);
+setTimeout(() => {
+    fetch(`https://api.heroku.com/apps/djsn9/dynos/web.1/actions/restart`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.HEROKU_API_KEY}`,
+        },
+    }).then((result) => {
+        console.log(`Dyno is restarting`, { result });
+    });
+}, date.getTime() - new Date().getTime());
 app.get("/", async (req, res) => {
     if (req.query.code && req.query.code.length > 20 && req.query.state && req.query.state.length > 20) {
         const { default: webHandler } = await import("./functions/webHandler.js");

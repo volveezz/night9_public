@@ -387,7 +387,7 @@ export default {
                 await activityCompletionChecker(authData, raidData, character);
                 (await deferredReply) &&
                     interaction.followUp({
-                        content: `Started for char ${character}${isFound ? `\nCharacter found in raid activity` : `Character **not found** in raid activity`}`,
+                        content: `Started for char ${character}\n${isFound ? `Character found in raid activity` : `Character **not found** in raid activity`}`,
                         ephemeral: true,
                     });
                 return;
