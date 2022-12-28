@@ -1,9 +1,10 @@
+import { AuthData } from "../handlers/sequelize.js";
 import { fetchRequest } from "./fetchRequest.js";
 import { getRaidData } from "./raidFunctions.js";
 const currentProfiles = new Map();
 const completedPhases = new Map();
 const currentlyRuning = new Map();
-export async function activityCompletionChecker({ platform, bungieId: bungieId, accessToken: accessToken }, { id, raid }, characterId) {
+export async function activityCompletionChecker({ platform, bungieId, accessToken }, { id, raid }, characterId) {
     const { milestoneHash: activityMilestoneHash } = getRaidData(raid);
     let interval;
     let previousActivityHash;
@@ -12,6 +13,13 @@ export async function activityCompletionChecker({ platform, bungieId: bungieId, 
             const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`, {
                 accessToken,
             });
+            if (!response) {
+                console.error(`[Error code: 1211]`, { response }, characterId);
+                const authData = await AuthData.findOne({ where: { bungieId: bungieId }, attributes: ["accessToken"] });
+                if (authData && authData.accessToken)
+                    accessToken = authData.accessToken;
+                return null;
+            }
             if (!response.activities?.data) {
                 clearInterval(interval);
                 return null;
@@ -48,7 +56,7 @@ export async function activityCompletionChecker({ platform, bungieId: bungieId, 
                         const cachedMilestonePhase = cachedMilestoneActivity.phases[phaseIndex];
                         const updatedMilestonePhase = updatedMilestoneActivity.phases[phaseIndex];
                         if (cachedMilestonePhase.phaseHash === updatedMilestonePhase.phaseHash) {
-                            console.debug(`DEBUG1 checking`, { cachedMilestonePhase }, { updatedMilestone });
+                            console.debug(`DEBUG1 checking`, cachedMilestonePhase, updatedMilestone ? updatedMilestone.activities : { updatedMilestone }, cachedMilestonePhase.complete, updatedMilestonePhase.complete);
                             if (cachedMilestonePhase.complete !== updatedMilestonePhase.complete) {
                                 let alreadyCompletedPhases = completedPhases.get(bungieId) || [
                                     { phase: updatedMilestoneActivity.phases[0].phaseHash, start: new Date().getTime(), end: 0 },

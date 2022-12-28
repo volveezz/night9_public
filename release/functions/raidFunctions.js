@@ -283,20 +283,29 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
             if (member?.roles.cache.has(statusRoles.verified)) {
                 return `⁣　<@${userId}> не закеширован`;
             }
+            else if (!member) {
+                return `⁣　<@${userId}> не найден на сервере`;
+            }
             else {
                 return `⁣　<@${userId}> не зарегистрирован`;
             }
         }
         const raidClears = [];
-        raidUserData.kf > 0 ? raidClears.push(`${raidUserData.kf}${raidUserData.kfMaster > 0 ? `(${raidUserData.kfMaster})` : ""} ГК`) : "";
-        raidUserData.votd > 0 ? raidClears.push(`${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП`) : "";
-        raidUserData.vog > 0 ? raidClears.push(`${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ`) : "";
-        raidUserData.dsc > 0 ? raidClears.push(`${raidUserData.dsc} СГК`) : "";
-        raidUserData.gos > 0 ? raidClears.push(`${raidUserData.gos} СС`) : "";
-        raidUserData.lw > 0 ? raidClears.push(`${raidUserData.lw} ПЖ`) : "";
+        if (raidUserData.kf > 0)
+            raidClears.push(`${raidUserData.kf}${raidUserData.kfMaster > 0 ? `(${raidUserData.kfMaster})` : ""} ГК`);
+        if (raidUserData.votd > 0)
+            raidClears.push(`${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП`);
+        if (raidUserData.vog > 0)
+            raidClears.push(`${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ`);
+        if (raidUserData.dsc > 0)
+            raidClears.push(`${raidUserData.dsc} СГК`);
+        if (raidUserData.gos > 0)
+            raidClears.push(`${raidUserData.gos} СС`);
+        if (raidUserData.lw > 0)
+            raidClears.push(`${raidUserData.lw} ПЖ`);
         return `⁣　${raidClears.length > 0
-            ? `${member?.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} завершил: ${raidClears.join(", ")}`
-            : `${member?.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} не проходил ранее рейды`}`;
+            ? `**${nameCleaner(member?.displayName || member?.user.username || "неизвестный пользователь")}** завершил: ${raidClears.join(", ")}`
+            : `**${nameCleaner(member?.displayName || member?.user.username || "неизвестный пользователь")}** не проходил ранее рейды`}`;
     }
     const joined = raidEvent.joined.map(async (userId) => raidUserDataManager(userId));
     const hotJoined = raidEvent.hotJoined.map(async (userId) => raidUserDataManager(userId));

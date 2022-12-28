@@ -34,8 +34,12 @@ export default async (code, state, res) => {
             return console.error(`[Error code: 1034] State: ${state} / Code: ${code}`, body, request);
         }
         const fetchedData = request.destinyMemberships.find((membership) => {
-            membership.crossSaveOverride === membership.membershipType;
-        }) || request.destinyMemberships.length === 1
+            membership.membershipId === request.primaryMembershipId;
+        }) ||
+            request.destinyMemberships.find((membership) => {
+                membership.crossSaveOverride === membership.membershipType;
+            }) ||
+            request.destinyMemberships.length === 1
             ? request.destinyMemberships[0]
             : request.destinyMemberships.find((v) => v.membershipType === 3) || request.destinyMemberships[0];
         if (!fetchedData) {
@@ -135,7 +139,12 @@ export default async (code, state, res) => {
         }
     }
     catch (error) {
-        res.send(`<script>location.replace('error.html')</script>`);
+        try {
+            res.send(`<script>location.replace('error.html')</script>`);
+        }
+        catch (e) {
+            console.error(`[Error code: 1210]`, { e });
+        }
         return console.error(`[Error code: 1234] State: ${state} / Code:${code}`, { body }, { error });
     }
 };

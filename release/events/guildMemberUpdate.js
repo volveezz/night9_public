@@ -7,10 +7,7 @@ const guildMemberChannel = client.channels.cache.get(ids.guildMemberChnId);
 export default new Event("guildMemberUpdate", (oldMember, newMember) => {
     if (!oldMember.joinedTimestamp || (!oldMember.nickname && oldMember.roles.cache.size === 0))
         return;
-    const embed = new EmbedBuilder()
-        .setAuthor({ name: "guildMemberUpdate" })
-        .setColor(colors.default)
-        .setFooter({ text: `Id: ${oldMember.id}` });
+    const embed = new EmbedBuilder().setColor(colors.default).setFooter({ text: `Id: ${oldMember.id}` });
     if (oldMember.roles.cache.size !== newMember.roles.cache.size) {
         const roleDifferenceStatus = oldMember.roles.cache.size > newMember.roles.cache.size ? false : true;
         const roleDifference = oldMember.roles.cache.difference(newMember.roles.cache).map((role) => `<@&${role.id}>`);
@@ -41,7 +38,7 @@ export default new Event("guildMemberUpdate", (oldMember, newMember) => {
             guildMemberChannel.send({ embeds: [embed] });
         }
         else {
-            console.debug(`DEBUG EWGGR51W: ${roleDifference}, ${roleDifferenceStatus}`, oldMember, newMember);
+            console.debug(`[Error code: 1213] DEBUG: ${roleDifference}, ${roleDifferenceStatus}`, oldMember, newMember);
         }
     }
     if (oldMember.displayName !== newMember.displayName) {
