@@ -63,13 +63,9 @@ export default async (code, state, res) => {
         });
         res.send(`<script>location.replace('index.html')</script>`).end();
         const clanResponse = await fetchRequest(`Platform/GroupV2/User/${platform}/${bungieId}/0/1/`, body.access_token);
-        if (!clanResponse) {
-        }
-        const userClan = clanResponse?.results[0]?.group;
         const member = client.getCachedMembers().get(json.discordId);
         if (!member) {
-            console.error("[Error code: 1012]", `Member error during webHandling of`, json);
-            return res.send(`<script>location.replace('error.html')</script>`);
+            return console.error(`[Error code: 1012] Member error during webHandling of`, json);
         }
         const embed = new EmbedBuilder()
             .setTitle("Вы зарегистрировались")
@@ -97,9 +93,9 @@ export default async (code, state, res) => {
             value: displayName,
             inline: true,
         });
-        if (userClan) {
-            embed.addFields([{ name: "Текущий клан", value: `${userClan.name}`, inline: true }]);
-            loggedEmbed.addFields([{ name: "Текущий клан", value: `${userClan.name}`, inline: true }]);
+        if (clanResponse && clanResponse.results && clanResponse.results.length >= 1) {
+            embed.addFields([{ name: "Текущий клан", value: `${clanResponse.results[0].group.name}`, inline: true }]);
+            loggedEmbed.addFields([{ name: "Текущий клан", value: `${clanResponse.results[0].group.name}`, inline: true }]);
         }
         try {
             client.getCachedGuild().channels.cache.get(ids.botChnId).send({ embeds: [loggedEmbed] });
@@ -113,7 +109,25 @@ export default async (code, state, res) => {
                 discordId: member.id,
             },
         });
-        if (userClan.groupId !== "4123712") {
+        if (!clanResponse || !clanResponse.results) {
+            if (!member.roles.cache.hasAll(statusRoles.member, statusRoles.clanmember))
+                member.roles.add(statusRoles.member).then((m) => m.roles.remove(statusRoles.newbie));
+            const component = new ButtonBuilder().setCustomId(ClanButtons.invite).setLabel("Отправить приглашение").setStyle(ButtonStyle.Success);
+            embed.setDescription(embed.data.description
+                ? embed.data.description +
+                    `\n\nПроизошла ошибка во время обработки вашего клана. Скорее всего это связано с недоступностью API игры\n\nКнопка ниже служит для отправки приглашения в клан - она заработает как только сервера игры станут доступны`
+                : `\n\nПроизошла ошибка во время обработки вашего клана. Скорее всего это связано с недоступностью API игры\n\nКнопка ниже служит для отправки приглашения в клан - она заработает как только сервера игры станут доступны`);
+            member.send({
+                embeds: [embed],
+                components: [
+                    {
+                        type: ComponentType.ActionRow,
+                        components: [component],
+                    },
+                ],
+            });
+        }
+        else if (clanResponse && clanResponse.results && clanResponse.results.length >= 1 && clanResponse.results[0].group.groupId !== "4123712") {
             if (!member.roles.cache.hasAll(statusRoles.member, statusRoles.clanmember))
                 member.roles.add(statusRoles.member).then((m) => m.roles.remove(statusRoles.newbie));
             const component = new ButtonBuilder().setCustomId(ClanButtons.invite).setLabel("Отправить приглашение").setStyle(ButtonStyle.Success);
