@@ -1,3 +1,4 @@
+import { ActivityType } from "discord.js";
 import { AuthData, database, UserActivityData, AutoRoleData } from "../handlers/sequelize.js";
 import { Op } from "sequelize";
 import { statusRoles, seasonalRoles, dlcRoles, statisticsRoles, titleCategory, triumphsCategory, activityRoles, trialsRoles, clanJoinDateRoles, } from "../configs/roles.js";
@@ -328,8 +329,19 @@ async function destinyClanManagmentSystem(bungie_array) {
         if (clanList?.ErrorCode && clanList.ErrorCode !== apiStatus.status) {
             apiStatus.status = clanList.ErrorCode;
         }
+        if (client.user.presence.activities[0].name.startsWith("🔁")) {
+            client.stopUpdatingPresence();
+        }
         if (!clanList.results || !clanList.results?.length) {
             console.error(`[Error code: 1118]`, clanList);
+            if (clanList?.ErrorCode === 5)
+                client.user.setPresence({
+                    activities: [
+                        { name: `BungieAPI отключено`, type: ActivityType.Listening },
+                        { name: "Destiny API не отвечает", type: ActivityType.Listening },
+                    ],
+                    status: "online",
+                });
             return;
         }
         if (clanList.results?.length < 5) {
@@ -337,9 +349,6 @@ async function destinyClanManagmentSystem(bungie_array) {
             return;
         }
         const onlineCounter = clanList.results.filter((f) => f.isOnline === true).length;
-        if (client.user.presence.activities[0].name.startsWith("🔁")) {
-            client.stopUpdatingPresence();
-        }
         if (onlineCounter === 0) {
             client.user.setActivity(`${clanList.results.length} участников в клане`, { type: 3 });
         }

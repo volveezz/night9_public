@@ -76,8 +76,8 @@ export default {
                 return;
             }
             else {
-                console.error(clanInviteRequest);
-                throw { name: "Неожиданная ошибка", description: "Возможно, вы уже участник нашего клана" };
+                console.error(`[Error code: 1214]`, clanInviteRequest);
+                throw { name: "Критическая ошибка", description: "API игры, скорее всего, недоступно в данный момент" };
             }
         }
         else {
