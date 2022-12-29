@@ -333,8 +333,8 @@ async function destinyClanManagmentSystem(bungie_array) {
             client.stopUpdatingPresence();
         }
         if (!clanList.results || !clanList.results?.length) {
-            console.error(`[Error code: 1118]`, clanList);
-            if (clanList?.ErrorCode === 5)
+            console.error(`[Error code: 1118]`, clanList.ErrorStatus, clanList.Message);
+            if (clanList.ErrorCode === 5)
                 client.user.setPresence({
                     activities: [
                         { name: `BungieAPI отключено`, type: ActivityType.Listening },
