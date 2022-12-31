@@ -197,7 +197,6 @@ export function logRegistrationLinkRequest(state, user, rowCreated) {
         name: `${user.username} начал регистрацию`,
         iconURL: user.displayAvatarURL(),
     })
-        .setFooter({ text: `Id: ${user.id}` })
         .addFields([
         { name: "Пользователь", value: `<@${user.id}>`, inline: true },
         { name: "State", value: state, inline: true },
