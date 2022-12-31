@@ -62,6 +62,8 @@ async function refreshTokens(table) {
 }
 export default new Feature({
     execute: async ({}) => {
+        if (process.env.DEV_BUILD === "dev")
+            return;
         refreshTokens(1);
         refreshTokens(2);
         setInterval(() => refreshTokens(1), 1000 * 60 * 50);

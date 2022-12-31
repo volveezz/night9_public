@@ -10,5 +10,6 @@ var UserErrors;
     UserErrors["MEMBER_NOT_FOUND"] = "MEMBER_NOT_FOUND";
     UserErrors["WRONG_ID"] = "WRONG_ID";
     UserErrors["WRONG_HEX"] = "WRONG_HEX";
+    UserErrors["MISSING_PERMISSIONS"] = "MISSING_PERMISSIONS";
 })(UserErrors || (UserErrors = {}));
 export default UserErrors;

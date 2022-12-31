@@ -154,7 +154,7 @@ export default new Command({
                     components: [],
                 });
             }
-            fieldUrls.push(`[Guardian](https://guardian.gg/2/profile/${parsedData.bungieId}/${data.userInfo.bungieGlobalDisplayName})`, `[DestinyKD](https://www.destinykd.com/d2/pc/${data.userInfo.bungieGlobalDisplayName}*${data.userInfo.bungieGlobalDisplayNameCode})`);
+            fieldUrls.push(`[Guardian](https://guardian.gg/2/profile/${parsedData.bungieId}/${data.userInfo.bungieGlobalDisplayName.replace(/\s/g, `%20`)})`, `[DestinyKD](https://www.destinykd.com/d2/pc/${data.userInfo.bungieGlobalDisplayName.replace(/\s/g, `%20`)}*${data.userInfo.bungieGlobalDisplayNameCode})`);
             for (const characterId in response.characters.data) {
                 const character = response.characters.data[characterId];
                 const classEmoji = character.classHash === 671679327

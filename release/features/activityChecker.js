@@ -7,6 +7,8 @@ import { destinyActivityChecker } from "../functions/activitiesChecker.js";
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 export default new Feature({
     execute: async ({ client }) => {
+        if (process.env.DEV_BUILD === "dev")
+            return;
         setInterval(async () => {
             if (apiStatus.status !== 1)
                 return;

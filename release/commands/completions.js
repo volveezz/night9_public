@@ -248,7 +248,10 @@ export default new Command({
                     joiningText.push(`${activityText.fastest} [${timerConverter(fastest)}](${activityText.link}${fastestInstanceId})`);
                 if (fastestCompletedInstanceId !== "0")
                     joiningText.push(`${activityText.fastestCompleted} [${timerConverter(fastestCompleted)}](${activityText.link}${fastestCompletedInstanceId})`);
-                if (slowestInstanceId !== "0" && slowestInstanceId !== slowestCompletedInstanceId && fastestInstanceId !== slowestInstanceId)
+                if (slowestInstanceId !== "0" &&
+                    slowestInstanceId !== slowestCompletedInstanceId &&
+                    fastestInstanceId !== slowestInstanceId &&
+                    slowest > slowestCompleted)
                     joiningText.push(`${fastestInstanceId !== "0" && fastestInstanceId !== fastestCompletedInstanceId && fastest < fastestCompleted ? "\n" : ""}${activityText.slowest} [${timerConverter(slowest)}](${activityText.link}${slowestInstanceId})`);
                 if (slowestCompletedInstanceId !== "0" && fastestCompletedInstanceId !== slowestCompletedInstanceId)
                     joiningText.push(`${activityText.slowestCompleted} [${timerConverter(slowestCompleted)}](${activityText.link}${slowestCompletedInstanceId})`);

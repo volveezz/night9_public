@@ -5,23 +5,24 @@ import { RegisterButtons } from "../enums/Buttons.js";
 function errorMessages(errorType, ...rest) {
     switch (errorType) {
         case UserErrors.DB_USER_NOT_FOUND:
-            const isSelf = rest[0]?.isSelf || true;
+            const isSelf = rest[0]?.isSelf;
             return {
-                embeds: isSelf
+                embeds: isSelf === false
                     ? [
-                        new EmbedBuilder()
-                            .setTitle("Ошибка. Доступно после регистрации")
-                            .setDescription("Для регистрации нажмите на кнопку ниже или введите `/init`")
-                            .setColor(colors.error),
-                    ]
-                    : [
                         new EmbedBuilder()
                             .setColor(colors.error)
                             .setTitle(`Ошибка. Пользователь не зарегистрирован`)
                             .setDescription(`Функционал станет доступен сразу после его регистрации`),
+                    ]
+                    : [
+                        new EmbedBuilder()
+                            .setTitle("Ошибка. Доступно после регистрации")
+                            .setDescription("Для регистрации нажмите на кнопку ниже или введите `/init`")
+                            .setColor(colors.error),
                     ],
-                components: isSelf
-                    ? [
+                components: isSelf === false
+                    ? []
+                    : [
                         {
                             type: ComponentType.ActionRow,
                             components: [
@@ -32,8 +33,7 @@ function errorMessages(errorType, ...rest) {
                                     .setStyle(ButtonStyle.Secondary),
                             ],
                         },
-                    ]
-                    : [],
+                    ],
             };
         case UserErrors.RAID_NOT_FOUND:
             return {
@@ -101,6 +101,8 @@ function errorMessages(errorType, ...rest) {
                         .setDescription(`Для записи на этот рейд необходимо ${raidRequirement} закрытий этого рейда, но у вас ${userClears}`),
                 ],
             };
+        case UserErrors.MISSING_PERMISSIONS:
+            return { embeds: [new EmbedBuilder().setColor(colors.warning).setTitle(`Ошибка. Недостаточно прав`)] };
         default:
             return {
                 embeds: [new EmbedBuilder().setColor(colors.warning).setTitle(`Произошла критическая ошибка. Сообщите администрации`)],

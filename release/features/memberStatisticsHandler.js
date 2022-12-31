@@ -326,8 +326,12 @@ async function destinyClanManagmentSystem(bungie_array) {
             console.log("[Error code: 1013] [Clan checker]", clanList);
             return;
         }
-        if (clanList?.ErrorCode && clanList.ErrorCode !== apiStatus.status) {
+        if (clanList?.ErrorCode !== undefined && clanList.ErrorCode !== apiStatus.status) {
             apiStatus.status = clanList.ErrorCode;
+        }
+        else {
+            if (apiStatus.status !== 1 && clanList?.results && clanList.results.length >= 1)
+                apiStatus.status = 1;
         }
         if (client.user.presence.activities[0].name.startsWith("🔁")) {
             client.stopUpdatingPresence();
@@ -429,9 +433,7 @@ async function destinyClanManagmentSystem(bungie_array) {
             console.error("[Error code: 1222]", e.error?.stack || e.error || e, e.statusCode);
     }
 }
-async function destinyUserKDChecker({ platform, bungieId: bungieId, accessToken: accessToken }, member) {
-    if (apiStatus.status !== 1)
-        return;
+async function destinyUserKDChecker({ platform, bungieId, accessToken }, member) {
     try {
         const request = await fetchRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
         for (const step of statisticsRoles.kd) {
@@ -457,6 +459,8 @@ async function destinyUserKDChecker({ platform, bungieId: bungieId, accessToken:
 }
 export default new Feature({
     execute: async ({ client }) => {
+        if (process.env.DEV_BUILD === "dev")
+            return;
         setTimeout(() => {
             const firstRun = AuthData.findAll({ attributes: ["discordId", "bungieId", "platform", "timezone", "accessToken"] });
             firstRun.then(async (authData) => {
@@ -504,41 +508,43 @@ export default new Feature({
             if (!db_plain || (db_plain.length === 0 && !process.env.DEV_BUILD)) {
                 return console.error(`[Checker] [Error code: 1022] DB is ${db_plain ? `${db_plain}${db_plain?.length} size` : `not avaliable`}`);
             }
-            for (let i = 0; i < db_plain.length && apiStatus.status === 1; i++) {
-                const db_row = db_plain[i];
-                const randomValue = Math.floor(Math.random() * 100);
-                if (throttleSet.has(db_row.discordId))
-                    return throttleSet.delete(db_row.discordId);
-                if (longOffline.has(db_row.discordId)) {
-                    if (randomValue >= 85)
-                        longOffline.delete(db_row.discordId);
-                    continue;
-                }
-                const member = client.getCachedMembers().get(db_row.discordId);
-                if (!member) {
-                    await client.getCachedGuild().members.fetch();
-                    console.error("[Error code: 1023] destinyUsestatisticsRolesChecker, member not found", db_row.displayName);
-                    continue;
-                }
-                if (member.roles.cache.has(statusRoles.clanmember) ||
-                    (db_row.UserActivityData &&
-                        (db_row.UserActivityData.voice > 0 ||
-                            db_row.UserActivityData.messages > 0 ||
-                            db_row.UserActivityData.raids > 0 ||
-                            db_row.UserActivityData.dungeons > 0))) {
-                    if (randomValue >= 50)
-                        destinyUserStatisticsRolesChecker(db_row, member, autoRoleData);
-                    if ((randomValue < 10 || randomValue > 90) && db_row.roleCategoriesBits & NightRoleCategory.Stats)
-                        destinyUserKDChecker(db_row, member);
-                    if (randomValue <= 30 && member.roles.cache.hasAny(statusRoles.clanmember, statusRoles.member))
-                        destinyActivityChecker(db_row, member, 4);
-                    if (randomValue > 40 &&
-                        randomValue < 60 &&
-                        db_row.roleCategoriesBits & NightRoleCategory.Trials &&
-                        !member.roles.cache.has(trialsRoles.wintrader) &&
-                        member.roles.cache.has(trialsRoles.category))
-                        destinyActivityChecker(db_row, member, 84);
-                    await timer(750);
+            if (apiStatus.status === 1) {
+                for (let i = 0; i < db_plain.length; i++) {
+                    const db_row = db_plain[i];
+                    const randomValue = Math.floor(Math.random() * 100);
+                    if (throttleSet.has(db_row.discordId))
+                        return throttleSet.delete(db_row.discordId);
+                    if (longOffline.has(db_row.discordId)) {
+                        if (randomValue >= 85)
+                            longOffline.delete(db_row.discordId);
+                        continue;
+                    }
+                    const member = client.getCachedMembers().get(db_row.discordId);
+                    if (!member) {
+                        await client.getCachedGuild().members.fetch();
+                        console.error("[Error code: 1023] destinyUsestatisticsRolesChecker, member not found", db_row.displayName);
+                        continue;
+                    }
+                    if (member.roles.cache.has(statusRoles.clanmember) ||
+                        (db_row.UserActivityData &&
+                            (db_row.UserActivityData.voice > 0 ||
+                                db_row.UserActivityData.messages > 0 ||
+                                db_row.UserActivityData.raids > 0 ||
+                                db_row.UserActivityData.dungeons > 0))) {
+                        if (randomValue >= 50)
+                            destinyUserStatisticsRolesChecker(db_row, member, autoRoleData);
+                        if ((randomValue < 10 || randomValue > 90) && db_row.roleCategoriesBits & NightRoleCategory.Stats)
+                            destinyUserKDChecker(db_row, member);
+                        if (randomValue <= 30 && member.roles.cache.hasAny(statusRoles.clanmember, statusRoles.member))
+                            destinyActivityChecker(db_row, member, 4);
+                        if (randomValue > 40 &&
+                            randomValue < 60 &&
+                            db_row.roleCategoriesBits & NightRoleCategory.Trials &&
+                            !member.roles.cache.has(trialsRoles.wintrader) &&
+                            member.roles.cache.has(trialsRoles.category))
+                            destinyActivityChecker(db_row, member, 84);
+                        await timer(750);
+                    }
                 }
             }
             destinyClanManagmentSystem(db_plain);
