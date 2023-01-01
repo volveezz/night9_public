@@ -17,6 +17,11 @@ export default new Command({
             .setPlaceholder("Часовой пояс не выбран")
             .addOptions([
             {
+                label: "+1 — Европа",
+                description: "-2 относительно Московского времени",
+                value: "1",
+            },
+            {
                 label: "+2 — Калининград",
                 description: "-1 относительно Московского времени",
                 value: "2",
@@ -73,7 +78,7 @@ export default new Command({
             },
         ]);
         const tzTime = new Date();
-        tzTime.setHours(tzTime.getHours() + 2);
+        tzTime.setHours(tzTime.getHours() + 1);
         tzBlank.options.forEach((option, i) => {
             option.setDescription(`${tzTime.getHours()}:${tzTime.getMinutes()}:${tzTime.getSeconds()} - время сейчас по +${i + 2} часовому поясу`);
             tzTime.setHours(tzTime.getHours() + 1);

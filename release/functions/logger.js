@@ -63,10 +63,10 @@ export async function activityReporter(pgcrId) {
         response.entries.forEach((entry) => {
             const userData = completedUsers.get(entry.player.destinyUserInfo.membershipId);
             const miscArray = userData?.misc || [];
-            entry.extended.weapons?.some((a) => a.referenceId === 4103414242) && !miscArray.some((a) => a.endsWith("**Божественность**"))
+            entry.extended?.weapons?.some((a) => a.referenceId === 4103414242) && !miscArray.some((a) => a.endsWith("**Божественность**"))
                 ? miscArray.push("<a:catbowtie:1034701666580189256>**Божественность**")
                 : false;
-            entry.extended.weapons?.some((a) => a.referenceId === 3580904581) && !miscArray.some((a) => a.endsWith("**Буксировщик**"))
+            entry.extended?.weapons?.some((a) => a.referenceId === 3580904581) && !miscArray.some((a) => a.endsWith("**Буксировщик**"))
                 ? miscArray.push("<:moyaichad:1018345835962044559>**Буксировщик**")
                 : false;
             completedUsers.set(entry.player.destinyUserInfo.membershipId, {
@@ -100,11 +100,10 @@ export async function activityReporter(pgcrId) {
                     ? Math.trunc(value.timeInActivity / 60) - Math.trunc(value.timeInActivity / 60 / 60) * 60
                     : Math.trunc(value.timeInActivity / 60)) + "м"
                 : "");
-            value.timeInActivity < 3600
-                ? arr.push(value.timeInActivity - Math.trunc(value.timeInActivity / 60) * 60 !== 0
+            if (value.timeInActivity < 3600)
+                arr.push(value.timeInActivity - Math.trunc(value.timeInActivity / 60) * 60 !== 0
                     ? value.timeInActivity - Math.trunc(value.timeInActivity / 60) * 60 + "с"
-                    : "")
-                : [];
+                    : "");
             if (!value.completed) {
                 return;
             }
@@ -130,11 +129,10 @@ export async function activityReporter(pgcrId) {
                     ? Math.trunc(value.timeInActivity / 60) - Math.trunc(value.timeInActivity / 60 / 60) * 60
                     : Math.trunc(value.timeInActivity / 60)) + "м"
                 : "");
-            value.timeInActivity < 3600
-                ? arr.push(value.timeInActivity - Math.trunc(value.timeInActivity / 60) * 60 !== 0
+            if (value.timeInActivity < 3600)
+                arr.push(value.timeInActivity - Math.trunc(value.timeInActivity / 60) * 60 !== 0
                     ? value.timeInActivity - Math.trunc(value.timeInActivity / 60) * 60 + "с"
-                    : "")
-                : [];
+                    : "");
             embed.addFields({
                 name: "❌" + value.bungieName,
                 value: `${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
