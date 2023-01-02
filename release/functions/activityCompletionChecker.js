@@ -6,6 +6,7 @@ const completedPhases = new Map();
 const currentlyRuning = new Map();
 export async function activityCompletionChecker({ platform, bungieId, accessToken }, { id, raid }, characterId) {
     const { milestoneHash: activityMilestoneHash } = getRaidData(raid);
+    let startTime = new Date().getTime();
     let interval;
     let previousActivityHash;
     async function checkActivityHash() {
