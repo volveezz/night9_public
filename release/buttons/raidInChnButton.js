@@ -366,8 +366,8 @@ export default {
                 });
             }
             case RaidButtons.startActivityChecker: {
-                if (interaction.user.id !== raidData.creator || !interaction.member?.permissions.has("Administrator"))
-                    (await deferredReply) && interaction.followUp({ content: "Under development", ephemeral: true });
+                if (interaction.user.id !== raidData.creator && !interaction.member?.permissions.has("Administrator"))
+                    return (await deferredReply) && interaction.followUp({ content: "Under development", ephemeral: true });
                 const authData = await AuthData.findByPk(raidData.creator, { attributes: ["bungieId", "platform", "accessToken"] });
                 if (!authData)
                     throw { errorType: UserErrors.DB_USER_NOT_FOUND };
