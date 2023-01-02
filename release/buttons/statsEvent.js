@@ -68,7 +68,7 @@ export default {
                 chars.length === 0 ? (chars = ["персонажи отсутствуют"]) : [];
                 const embed = new EmbedBuilder()
                     .setTitle("Выберите персонажа")
-                    .setDescription(chars.join("\n").toString())
+                    .setDescription(chars.join("\n").toString() || "nothing")
                     .setTimestamp()
                     .setColor("DarkGreen");
                 await deferredReply;

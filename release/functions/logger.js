@@ -19,7 +19,7 @@ export async function logClientDmMessages(member, text, id, interaction) {
         iconURL: member.displayAvatarURL(),
     })
         .setTimestamp()
-        .setDescription(text)
+        .setDescription(text || "nothing")
         .setFooter({ text: `UId: ${member.id} | MId: ${id}` });
     const payload = {
         embeds: [embed],

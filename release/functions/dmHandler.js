@@ -1,6 +1,7 @@
 import { ButtonBuilder, ButtonStyle, ChannelType, ComponentType, EmbedBuilder } from "discord.js";
 import { guildId, ids } from "../configs/ids.js";
 import { client } from "../index.js";
+import colors from "../configs/colors.js";
 const dmChn = client.guilds.cache.get(guildId)?.channels.cache.get(ids.dmMsgsChnId);
 export async function dmHandler(message) {
     if (message.channel.type !== ChannelType.DM)
@@ -16,7 +17,7 @@ export async function dmHandler(message) {
     }
     const member = client.guilds.cache.get(guildId)?.members.cache.get(message.author.id);
     const embed = new EmbedBuilder()
-        .setColor("Green")
+        .setColor(colors.success)
         .setTitle("Получено новое сообщение")
         .setAuthor({
         name: `Отправитель: ${member.displayName}${member.user.username !== member.displayName ? ` (${member.user.username})` : ""}`,
@@ -25,7 +26,7 @@ export async function dmHandler(message) {
         .setFooter({ text: `UId: ${message.author.id} | MId: ${message.id}` })
         .setTimestamp();
     if (message.cleanContent.length > 0) {
-        embed.setDescription(message.cleanContent);
+        embed.setDescription(message.cleanContent || "nothing");
     }
     if (message.attachments && message.attachments.size && message.attachments.size > 0) {
         embed.addFields([

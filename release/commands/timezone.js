@@ -80,7 +80,7 @@ export default new Command({
         const tzTime = new Date();
         tzTime.setHours(tzTime.getHours() + 1);
         tzBlank.options.forEach((option, i) => {
-            option.setDescription(`${tzTime.getHours()}:${tzTime.getMinutes()}:${tzTime.getSeconds()} - время сейчас по +${i + 2} часовому поясу`);
+            option.setDescription(`${tzTime.getHours()}:${tzTime.getMinutes()}:${tzTime.getSeconds()} - время сейчас по +${i + 1} часовому поясу`);
             tzTime.setHours(tzTime.getHours() + 1);
         });
         interaction.reply({ ephemeral: true, embeds: [embed], components: [{ type: ComponentType.ActionRow, components: [tzBlank] }] });

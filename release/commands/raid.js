@@ -666,7 +666,7 @@ export default new Command({
                 const replyEmbed = new EmbedBuilder()
                     .setColor(colors.success)
                     .setTitle(`Рейд ${raidData.id} был изменен`)
-                    .setDescription(changes.join(`\n`));
+                    .setDescription(changes.join(`\n`) || "nothing");
                 (await deferredReply) && interaction.editReply({ embeds: [replyEmbed] });
                 const editedEmbedReplyInChn = new EmbedBuilder()
                     .setColor(colors.default)

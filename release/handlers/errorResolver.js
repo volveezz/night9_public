@@ -1,6 +1,7 @@
 import { EmbedBuilder } from "discord.js";
 import { errorMessages } from "../utils/errorMessages.js";
 import UserErrors from "../enums/UserErrors.js";
+import colors from "../configs/colors.js";
 function errorResolver({ name, description, errorType, errorData }) {
     const type = errorType;
     if (errorType && UserErrors[type] !== undefined) {
@@ -11,14 +12,14 @@ function errorResolver({ name, description, errorType, errorData }) {
         return {
             embeds: [
                 new EmbedBuilder()
-                    .setColor("Red")
+                    .setColor(colors.error)
                     .setTitle(name || null)
                     .setDescription(description || null),
             ],
         };
     }
     else {
-        return { embeds: [new EmbedBuilder().setTitle("Произошла ошибка. Попробуйте позже").setColor("Red")] };
+        return { embeds: [new EmbedBuilder().setTitle("Произошла ошибка. Попробуйте позже").setColor(colors.error)] };
     }
 }
 export default errorResolver;

@@ -24,7 +24,7 @@ export async function adminDmChnManager(message) {
         if (member !== undefined) {
             const sendedMsg = await (isEmbed
                 ? member.send({
-                    embeds: [new EmbedBuilder().setColor(colors.default).setDescription(msgContent)],
+                    embeds: [new EmbedBuilder().setColor(colors.default).setDescription(msgContent || "nothing")],
                 })
                 : member.send(msgContent));
             message.delete();

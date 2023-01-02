@@ -159,7 +159,7 @@ export default {
                             const finishEmbed = new EmbedBuilder()
                                 .setColor("Green")
                                 .setTitle(`Оповещение было доставлено ${sendedTo.length} участникам из ${raidMembersLength} записавшихся`);
-                            sendedTo.length === 0 ? [] : finishEmbed.setDescription(sendedTo.join("\n"));
+                            sendedTo.length === 0 ? [] : finishEmbed.setDescription(sendedTo.join("\n") || "nothing");
                             m.edit({ components: [], embeds: [finishEmbed] }).catch((e) => `raidAddF ${e.code}`);
                             break;
                         }
@@ -168,7 +168,7 @@ export default {
                             m.channel
                                 .createMessageCollector({ time: 60 * 1000, max: 1, filter: (msg) => msg.author.id === member.id })
                                 .on("collect", (collMsg) => {
-                                raidLeaderEmbed.setDescription(collMsg.content);
+                                raidLeaderEmbed.setDescription(collMsg.content || "nothing");
                                 m.edit({ embeds: [raidLeaderEmbed] });
                             });
                             break;
@@ -368,7 +368,7 @@ export default {
             case RaidButtons.startActivityChecker: {
                 if (interaction.user.id !== raidData.creator || !interaction.member?.permissions.has("Administrator"))
                     (await deferredReply) && interaction.followUp({ content: "Under development", ephemeral: true });
-                const authData = await AuthData.findByPk(interaction.user.id, { attributes: ["bungieId", "platform", "accessToken"] });
+                const authData = await AuthData.findByPk(raidData.creator, { attributes: ["bungieId", "platform", "accessToken"] });
                 if (!authData)
                     throw { errorType: UserErrors.DB_USER_NOT_FOUND };
                 async function getActiveCharacter(response) {

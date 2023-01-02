@@ -78,7 +78,7 @@ export default async (code, state, res) => {
             inline: true,
         }, {
             name: "BungieName",
-            value: displayName,
+            value: displayName || "[Error code: 1216]",
             inline: true,
         });
         const loggedEmbed = new EmbedBuilder()
@@ -90,7 +90,7 @@ export default async (code, state, res) => {
             inline: true,
         }, {
             name: "BungieName",
-            value: displayName,
+            value: displayName || `[Error code: 1217]`,
             inline: true,
         });
         if (clanResponse && clanResponse.results && clanResponse.results.length >= 1) {

@@ -11,7 +11,7 @@ export async function patchnoteGenerator(message) {
     let embed;
     if (patchnoteMessage.endsWith("embed")) {
         patchnoteMessage = patchnoteMessage.slice(0, -5).trim();
-        embed = new EmbedBuilder().setColor(colors.default).setDescription(patchnoteMessage);
+        embed = new EmbedBuilder().setColor(colors.default).setDescription(patchnoteMessage || "nothing");
     }
     const components = [
         {

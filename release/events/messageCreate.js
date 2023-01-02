@@ -31,7 +31,7 @@ export default new Event("messageCreate", async (message) => {
         const embed = new EmbedBuilder()
             .setColor("Red")
             .setTitle(error.name ?? "Произошла ошибка")
-            .setDescription(error.description ?? error.message ?? null);
+            .setDescription((error.description ?? error.message) || null);
         console.error(`[Error code: 1217] Got message error`, error, message.author.username);
         return message.reply({ embeds: [embed] }).then((m) => setTimeout(() => m.delete(), 5000));
     }
