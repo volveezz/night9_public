@@ -60,7 +60,7 @@ export async function activityCompletionChecker({ platform, bungieId, accessToke
                             console.debug(`DEBUG1 checking`, cachedMilestonePhase, updatedMilestone ? updatedMilestone.activities[0].phases : { updatedMilestone }, cachedMilestonePhase.complete, updatedMilestonePhase.complete, phaseIndex);
                             if (cachedMilestonePhase.complete !== updatedMilestonePhase.complete) {
                                 let alreadyCompletedPhases = completedPhases.get(bungieId) || [
-                                    { phase: updatedMilestoneActivity.phases[0].phaseHash, start: startTime, end: new Date().getTime() },
+                                    { phase: updatedMilestoneActivity.phases[phaseIndex].phaseHash, start: startTime, end: -1 },
                                 ];
                                 console.debug(`DEBUG2 checking`, alreadyCompletedPhases);
                                 if (alreadyCompletedPhases.some((ph) => ph.phase === phaseIndex)) {
@@ -81,6 +81,7 @@ export async function activityCompletionChecker({ platform, bungieId, accessToke
             }
         }
         currentProfiles.set(bungieId, updatedMilestone);
+        console.log(currentProfiles.get(bungieId));
     }
 }
 export async function activityCompletionCheckerCancel({ id }) {
