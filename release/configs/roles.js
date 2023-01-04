@@ -89,6 +89,7 @@ const releaseStatisticsRoles = {
         "744835441563533435",
         "804632530451824640",
         "1006749274652024872",
+        "1060107270618349629",
     ],
     kd: [
         { roleId: "1006747462645588079", kd: 1.5 },
@@ -102,6 +103,7 @@ const releaseStatisticsRoles = {
         { roleId: "744835441563533435", kd: 0.7 },
         { roleId: "804632530451824640", kd: 0.6 },
         { roleId: "1006749274652024872", kd: 0.5 },
+        { roleId: "1060107270618349629", kd: 0 },
     ],
 };
 const releaseActivityRoles = {

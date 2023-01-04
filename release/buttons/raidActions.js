@@ -137,18 +137,13 @@ export default {
                 if (raidEvent.requiredClears > raidClears)
                     throw { errorType: UserErrors.RAID_NOT_ENOUGH_CLEARS, errorData: [raidClears, raidEvent.requiredClears] };
             }
-            if (raidEvent.joined.length >= 6) {
-                if (userAlreadyInHotJoined)
-                    throw { errorType: UserErrors.RAID_ALREADY_JOINED };
-            }
-            else {
-                if (userAlreadyJoined)
-                    throw { errorType: UserErrors.RAID_ALREADY_JOINED };
-            }
-        }
-        else {
-            if (userAlreadyAlt)
+            if (userAlreadyJoined)
                 throw { errorType: UserErrors.RAID_ALREADY_JOINED };
+            if (raidEvent.joined.length >= 6 && userAlreadyInHotJoined)
+                throw { errorType: UserErrors.RAID_ALREADY_JOINED };
+        }
+        else if (userAlreadyAlt) {
+            throw { errorType: UserErrors.RAID_ALREADY_JOINED };
         }
         update[userTarget] = Sequelize.fn("array_append", Sequelize.col(userTarget), interaction.user.id);
         [, [raidEvent]] = await RaidEvent.update(update, {

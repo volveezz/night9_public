@@ -37,6 +37,7 @@ export async function logClientDmMessages(member, text, id, interaction) {
 }
 export async function activityReporter(pgcrId) {
     if (!pgcrIds.has(pgcrId)) {
+        console.debug(`Starting activity Reporter for ${pgcrId} PGCRId`);
         pgcrIds.add(pgcrId);
         const response = await fetchRequest(`Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`).catch((e) => console.log(`[Error code: 1072] activityReporter error`, pgcrId, e, e.statusCode));
         if (!response.activityDetails)

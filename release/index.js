@@ -22,7 +22,7 @@ process.on("unhandledRejection", (error, a) => {
     if (error.code >= 400 && error.code <= 599)
         return console.error(`[Error code: 1215] ${error.code}`);
     if (error.code === 50035)
-        return console.error(`[Error code: 1243]`, error.requestBody?.json, error.rawError?.errors?.embeds ? error.rawError?.errors?.embeds[0] : error.rawError?.errors, error.rawError.errors.embeds[0].description);
+        return console.error(`[Error code: 1243]`, error);
     console.error(`unhandledRejection at top level`, { error });
 });
 const app = express();
