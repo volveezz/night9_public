@@ -393,7 +393,7 @@ export default {
                 return;
             }
             case RaidButtons.endActivityChecker: {
-                if (interaction.user.id !== raidData.creator || !interaction.member?.permissions.has("Administrator"))
+                if (interaction.user.id !== raidData.creator && !interaction.member?.permissions.has("Administrator"))
                     (await deferredReply) && interaction.followUp({ content: "Under development", ephemeral: true });
                 const content = await activityCompletionCheckerCancel(raidData);
                 (await deferredReply) && interaction.followUp({ content, ephemeral: true });

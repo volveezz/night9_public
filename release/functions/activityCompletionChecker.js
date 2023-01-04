@@ -56,7 +56,7 @@ export async function activityCompletionChecker({ platform, bungieId, accessToke
                         const phaseIndex = parseInt(phaseIndexString);
                         const cachedMilestonePhase = cachedMilestoneActivity.phases[phaseIndex];
                         const updatedMilestonePhase = updatedMilestoneActivity.phases[phaseIndex];
-                        if (cachedMilestonePhase.phaseHash === updatedMilestonePhase.phaseHash) {
+                        if (cachedMilestonePhase?.phaseHash === updatedMilestonePhase?.phaseHash) {
                             console.debug(`DEBUG1 checking`, cachedMilestonePhase, updatedMilestone ? updatedMilestone.activities[0].phases : { updatedMilestone }, cachedMilestonePhase.complete, updatedMilestonePhase.complete, phaseIndex);
                             if (cachedMilestonePhase.complete !== updatedMilestonePhase.complete) {
                                 let alreadyCompletedPhases = completedPhases.get(bungieId) || [
@@ -75,6 +75,9 @@ export async function activityCompletionChecker({ platform, bungieId, accessToke
                                     break;
                                 }
                             }
+                        }
+                        else if (!cachedMilestone || !updatedMilestone) {
+                            console.error(`[Error code: 1218]`, cachedMilestone, updatedMilestone);
                         }
                     }
                 }
