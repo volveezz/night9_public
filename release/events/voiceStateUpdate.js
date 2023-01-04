@@ -4,10 +4,11 @@ import { activityReceiver } from "../handlers/discordActivity.js";
 import { createdChannelsMap, pvePartyVoiceChatHandler } from "../handlers/pvePartyHandler.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
+import colors from "../configs/colors.js";
 const voiceChannel = client.channels.cache.get(ids.voiceChnId);
 const voiceUsers = new Map();
 export default new Event("voiceStateUpdate", (oldState, newState) => {
-    const embed = new EmbedBuilder().setColor("Green").setTimestamp();
+    const embed = new EmbedBuilder().setColor(colors.success).setTimestamp();
     if (!oldState.channelId && newState.channelId) {
         if (createdChannelsMap.has(newState.channelId))
             pvePartyVoiceChatHandler(newState.channelId, newState.member, "join");
@@ -26,6 +27,7 @@ export default new Event("voiceStateUpdate", (oldState, newState) => {
             { name: "Пользователь", value: `<@${newState.member.id}>`, inline: true },
             { name: "Канал", value: `<#${newState.channelId}>`, inline: true },
         ]);
+        return voiceChannel.send({ embeds: [embed] });
     }
     if (!newState.channelId) {
         if (oldState.channelId && createdChannelsMap.has(oldState.channelId))
@@ -68,6 +70,7 @@ export default new Event("voiceStateUpdate", (oldState, newState) => {
                 activityReceiver({ userId: oldState.id, voiceTime: difference });
         }
         voiceUsers.delete(oldState.member.id);
+        return voiceChannel.send({ embeds: [embed] });
     }
     if (oldState.channelId && newState.channelId && oldState.channelId !== newState.channelId) {
         if (createdChannelsMap.has(oldState.channelId))
@@ -91,6 +94,6 @@ export default new Event("voiceStateUpdate", (oldState, newState) => {
                 inline: true,
             },
         ]);
+        return voiceChannel.send({ embeds: [embed] });
     }
-    voiceChannel.send({ embeds: [embed] });
 });

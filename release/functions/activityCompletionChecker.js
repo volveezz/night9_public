@@ -81,7 +81,6 @@ export async function activityCompletionChecker({ platform, bungieId, accessToke
             }
         }
         currentProfiles.set(bungieId, updatedMilestone);
-        console.log(currentProfiles.get(bungieId));
     }
 }
 export async function activityCompletionCheckerCancel({ id }) {
