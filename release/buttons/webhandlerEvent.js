@@ -34,8 +34,7 @@ export default {
                         msg.edit({ components: [] });
                     })
                     : "";
-                await deferredReply;
-                interaction.editReply("Вы уже являетесь участником нашего клана :)");
+                (await deferredReply) && interaction.editReply("Вы уже являетесь участником нашего клана :)");
                 return;
             }
             const clanInviteRequest = await (await fetch(`https://www.bungie.net/platform/GroupV2/4123712/Members/IndividualInvite/${invitee_platform}/${invitee_bungieId}/`, {
@@ -48,8 +47,7 @@ export default {
                     .setColor(colors.success)
                     .setTitle("Приглашение было отправлено")
                     .setDescription(`Принять приглашение можно в игре или на [сайте Bungie](https://www.bungie.net/ru/ClanV2?groupId=4123712)`);
-                await deferredReply;
-                interaction.editReply({ embeds: [embed] });
+                (await deferredReply) && interaction.editReply({ embeds: [embed] });
                 if (!interaction.channel?.isDMBased())
                     return;
                 interaction.channel?.messages

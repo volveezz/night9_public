@@ -222,8 +222,7 @@ export async function updateClanRolesWithLogging(result, join) {
                 .setColor(colors.success);
         }
         else {
-            member.roles.set([statusRoles.kicked, member.roles.cache.has(statusRoles.verified) ? statusRoles.verified : ""], "Member left clan");
-            member.roles.add(statusRoles.kicked).then((m) => m.roles.remove([statusRoles.clanmember, statusRoles.newbie, statusRoles.member]));
+            member.roles.set(member.roles.cache.has(statusRoles.verified) ? [statusRoles.kicked, statusRoles.verified] : [statusRoles.kicked], "Member left clan");
             embed
                 .setAuthor({
                 name: `${member.displayName} покинул клан`,

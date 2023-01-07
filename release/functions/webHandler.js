@@ -1,7 +1,6 @@
 import { ButtonBuilder, EmbedBuilder, ComponentType, ButtonStyle } from "discord.js";
 import { ids } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
-import { updateClanRolesWithLogging } from "./logger.js";
 import fetch from "node-fetch";
 import { AuthData, InitData, UserActivityData } from "../handlers/sequelize.js";
 import { client } from "../index.js";
@@ -145,11 +144,9 @@ export default async (code, state, res) => {
             });
         }
         else {
-            updateClanRolesWithLogging(authData, true);
             member.send({
                 embeds: [embed],
             });
-            AuthData.update({ clan: true }, { where: { bungieId: bungieId } });
         }
     }
     catch (error) {
