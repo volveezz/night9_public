@@ -1,3 +1,4 @@
+import fetch from "node-fetch";
 export async function fetchRequest(url, authorizationData) {
     const cleanUrl = url.startsWith("https://bungie.net/") || url.startsWith("https://www.bungie.net/")
         ? console.error("[Error code: 1025]", "Wrong url", url)

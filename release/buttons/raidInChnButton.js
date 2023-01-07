@@ -375,13 +375,17 @@ export default {
                     if (!response.characterActivities.data)
                         throw { name: "Персонажи не найдены" };
                     const characterIds = Object.keys(response.characterActivities.data);
+                    const returnee = [];
                     for await (const characterId of characterIds) {
-                        if (response.characterActivities.data[characterId].currentActivityModeType === 4)
-                            return { characterId, isFound: true };
-                        if (response.characterActivities.data[characterId].currentActivityModeHash === 2166136261)
-                            return { characterId, isFound: true };
+                        if (response.characterActivities.data[characterId].currentActivityModeType === 4 ||
+                            response.characterActivities.data[characterId].currentActivityModeHash === 2166136261) {
+                            returnee.push({ characterId, isFound: true, lastPlayed: response.characterActivities.data[characterId].dateActivityStarted });
+                        }
                     }
-                    return { characterId: characterIds[0], isFound: false };
+                    return returnee.reduce(function (acc, val, valIndex) {
+                        if (new Date(val.lastPlayed).getTime() > acc.lastPlayed)
+                            return { characterId: characterIds[valIndex], isFound: true, lastPlayed: new Date(val.lastPlayed).getTime() };
+                    }, { characterId: characterIds[0], isFound: false });
                 }
                 const { characterId: character, isFound } = await getActiveCharacter((await fetchRequest(`/Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=204`, authData.accessToken)));
                 await activityCompletionChecker(authData, raidData, character);

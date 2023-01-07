@@ -33,15 +33,15 @@ export default async (code, state, res) => {
             res.send(`<script>location.replace('error.html')</script>`);
             return console.error(`[Error code: 1034] State: ${state} / Code: ${code}`, body, request);
         }
-        const fetchedData = request.destinyMemberships.find((membership) => {
+        const fetchedData = (request.destinyMemberships.find((membership) => {
             membership.membershipId === request.primaryMembershipId;
-        }) ||
+        }) ??
             request.destinyMemberships.find((membership) => {
                 membership.crossSaveOverride === membership.membershipType;
-            }) ||
+            }) ??
             request.destinyMemberships.length === 1
             ? request.destinyMemberships[0]
-            : request.destinyMemberships.find((v) => v.membershipType === 3) || request.destinyMemberships[0];
+            : request.destinyMemberships.find((v) => v.membershipType === 3)) ?? request.destinyMemberships[0];
         if (!fetchedData) {
             res.send(`<script>location.replace('error.html')</script>`);
             return console.error("[Error code: 1011]", `State: ${state} / Code:${code}`, body);
