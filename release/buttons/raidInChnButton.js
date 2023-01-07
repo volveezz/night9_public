@@ -373,19 +373,28 @@ export default {
                     throw { errorType: UserErrors.DB_USER_NOT_FOUND };
                 async function getActiveCharacter(response) {
                     if (!response.characterActivities.data)
-                        throw { name: "Персонажи не найдены" };
+                        throw { name: "Characters not found" };
                     const characterIds = Object.keys(response.characterActivities.data);
-                    const returnee = [];
-                    for await (const characterId of characterIds) {
-                        if (response.characterActivities.data[characterId].currentActivityModeType === 4 ||
-                            response.characterActivities.data[characterId].currentActivityModeHash === 2166136261) {
-                            returnee.push({ characterId, isFound: true, lastPlayed: response.characterActivities.data[characterId].dateActivityStarted });
+                    let activeCharacter = {
+                        characterId: characterIds[0],
+                        isFound: false,
+                        dateActivityStarted: "",
+                    };
+                    for (const characterId of characterIds) {
+                        const characterActivity = response.characterActivities.data[characterId];
+                        if (characterActivity.currentActivityModeType === 4 ||
+                            characterActivity.currentActivityModeHash === 2166136261) {
+                            if (!activeCharacter.isFound) {
+                                activeCharacter = { characterId, isFound: true, dateActivityStarted: characterActivity.dateActivityStarted };
+                            }
+                            else {
+                                if (new Date(characterActivity.dateActivityStarted).getTime() > new Date(activeCharacter.dateActivityStarted).getTime()) {
+                                    activeCharacter = { characterId, isFound: true, dateActivityStarted: characterActivity.dateActivityStarted };
+                                }
+                            }
                         }
                     }
-                    return returnee.reduce(function (acc, val, valIndex) {
-                        if (new Date(val.lastPlayed).getTime() > acc.lastPlayed)
-                            return { characterId: characterIds[valIndex], isFound: true, lastPlayed: new Date(val.lastPlayed).getTime() };
-                    }, { characterId: characterIds[0], isFound: false });
+                    return activeCharacter;
                 }
                 const { characterId: character, isFound } = await getActiveCharacter((await fetchRequest(`/Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=204`, authData.accessToken)));
                 await activityCompletionChecker(authData, raidData, character);
