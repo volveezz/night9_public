@@ -28,11 +28,6 @@ process.on("unhandledRejection", (error, a) => {
 const app = express();
 const port = process.env.PORT || 3000;
 const __dirname = resolve();
-const date = new Date();
-date.setHours(23, 0, 0, 0);
-if (date.getTime() - new Date().getTime() < 0)
-    date.setDate(date.getDate() + 1);
-setTimeout(() => process.exit(0), date.getTime() - new Date().getTime());
 app.get("/", async (req, res) => {
     if (req.query.code && req.query.code.length > 20 && req.query.state && req.query.state.length > 20) {
         const { default: webHandler } = await import("./functions/webHandler.js");
