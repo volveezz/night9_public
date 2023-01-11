@@ -5,7 +5,7 @@ import { Command } from "../../structures/command.js";
 import colors from "../../configs/colors.js";
 import { CachedDestinyRecordDefinition } from "../../functions/manifestHandler.js";
 import { activityRoles, raidRoles, statisticsRoles, titleCategory, triumphsCategory } from "../../configs/roles.js";
-import { completedRaidsData, longOffline } from "../../features/memberStatisticsHandler.js";
+import { completedRaidsData, longOffline, userTimezones } from "../../features/memberStatisticsHandler.js";
 import convertSeconds from "../../functions/convertSeconds.js";
 export default new Command({
     name: "db",
@@ -100,7 +100,13 @@ export default new Command({
                                 },
                             ],
                         },
-                        { type: ApplicationCommandOptionType.Integer, name: "unique", description: "unique limit", minValue: -99, maxValue: 1000 },
+                        {
+                            type: ApplicationCommandOptionType.Integer,
+                            name: "unique",
+                            description: "unique limit",
+                            minValue: -99,
+                            maxValue: 1000,
+                        },
                     ],
                 },
                 {
@@ -135,7 +141,7 @@ export default new Command({
             case "select": {
                 const middle = client.uptime;
                 const request = await AuthData.findOne({
-                    attributes: ["discordId", "bungieId", "platform", "clan", "displayName", "refreshToken", "membershipId"],
+                    attributes: ["discordId", "bungieId", "platform", "clan", "displayName", "refreshToken", "membershipId", "timezone"],
                     where: { [Op.or]: [{ discordId: id }, { bungieId: id }] },
                     include: UserActivityData,
                 });
@@ -146,9 +152,9 @@ export default new Command({
                 const embed = new EmbedBuilder()
                     .setColor(colors.default)
                     .setFooter({
-                    text: `Query took: ${after - middle}ms`,
+                    text: `Query took ${after - middle}ms`,
                 })
-                    .setDescription(`> <@${request.discordId}>${raidClears ? ` - ${Object.values(raidClears)}` : ""}`)
+                    .setDescription(`> ${(userTimezones.get(request.discordId) ?? "no cached TZ").toString()}/${request.timezone} <@${request.discordId}>${raidClears ? ` - ${Object.values(raidClears)}` : ""}`)
                     .addFields([
                     {
                         name: "bungieId",
@@ -192,11 +198,11 @@ export default new Command({
                         },
                     ]);
                 }
-                if (longOffline.has(request.discordId)) {
+                if (longOffline.has(request.discordId))
                     embed.addFields([{ name: "longOffline", value: "included", inline: true }]);
-                }
-                await deferredReply;
-                interaction.editReply({ embeds: [embed] });
+                (await deferredReply) && interaction.editReply({ embeds: [embed] });
+                if (userTimezones.get(request.discordId) === undefined && request.timezone !== undefined && request.timezone !== null)
+                    userTimezones.set(request.discordId, request.timezone);
                 return;
             }
             case "delete": {
@@ -206,8 +212,7 @@ export default new Command({
                 const embed = new EmbedBuilder().setColor(colors.default).setAuthor({
                     name: `${request === 1 ? `Успех. Удалено ${request} строк` : `Удалено ${request} строк`}`,
                 });
-                await deferredReply;
-                interaction.editReply({ embeds: [embed] });
+                (await deferredReply) && interaction.editReply({ embeds: [embed] });
                 return;
             }
             case "name_change": {
@@ -216,7 +221,7 @@ export default new Command({
                     attributes: ["displayName"],
                 });
                 if (!data) {
-                    const embed = new EmbedBuilder().setColor("Red").setTitle(`${id} not found in DB`);
+                    const embed = new EmbedBuilder().setColor(colors.error).setTitle(`${id} not found in DB`);
                     await deferredReply;
                     return interaction.editReply({ embeds: [embed] });
                 }
@@ -226,7 +231,7 @@ export default new Command({
                     }, {
                         where: { displayName: data.displayName },
                     });
-                    const embed = new EmbedBuilder().setColor("Green").setTitle(`Autonickname disabled for ${data.displayName}`);
+                    const embed = new EmbedBuilder().setColor(colors.success).setTitle(`Autonickname disabled for ${data.displayName}`);
                     await deferredReply;
                     return interaction.editReply({ embeds: [embed] });
                 }
@@ -234,7 +239,7 @@ export default new Command({
                     await AuthData.update({
                         displayName: `⁣${data.displayName}`,
                     }, { where: { displayName: data.displayName } });
-                    const embed = new EmbedBuilder().setColor("Green").setTitle(`Autonickname enabled for ${data.displayName}`);
+                    const embed = new EmbedBuilder().setColor(colors.success).setTitle(`Autonickname enabled for ${data.displayName}`);
                     await deferredReply;
                     return interaction.editReply({ embeds: [embed] });
                 }
@@ -374,17 +379,21 @@ export default new Command({
                                 }
                             }
                             catch (e) {
-                                const errorEmbed = new EmbedBuilder().setColor("Red").setTitle(`Ошибка ${e.parent.name}`).setDescription(e.parent.detail);
+                                const errorEmbed = new EmbedBuilder()
+                                    .setColor("Red")
+                                    .setTitle(`Ошибка ${e.parent.name}`)
+                                    .setDescription(e.parent.detail);
                                 await deferredReply;
                                 interaction.editReply({ embeds: [errorEmbed], components: [] });
                                 collector.stop("error");
                                 role.delete("Got error during creation");
                                 return;
                             }
-                            embed = new EmbedBuilder()
-                                .setColor("Green")
-                                .addFields([
-                                { name: "Роль была создана", value: `<@&${role.id}>${gildedRoles.length > 0 ? `, <@&${gildedRoles[0]}>` : ""}` },
+                            embed = new EmbedBuilder().setColor("Green").addFields([
+                                {
+                                    name: "Роль была создана",
+                                    value: `<@&${role.id}>${gildedRoles.length > 0 ? `, <@&${gildedRoles[0]}>` : ""}`,
+                                },
                             ]);
                         }
                         else {

@@ -51,7 +51,7 @@ export default new Command({
         const characterIdList = (await fetchRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken)).characters.map((characterData) => characterData.characterId);
         const embed = new EmbedBuilder().setColor(colors.serious).setAuthor({
             name: `Идет обработка ${characterIdList.length} персонажей...`,
-            iconURL: "https://cdn.discordapp.com/attachments/1007814172425330710/1054658580239876156/239_1.gif",
+            iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1061566114787754004/volve_luchsii_lider.gif",
         });
         (await deferredInteraction) && interaction.editReply({ embeds: [embed] });
         async function getCompletedActivties() {

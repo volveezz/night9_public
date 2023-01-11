@@ -35,7 +35,7 @@ export default {
                         hour: "2-digit",
                         minute: "2-digit",
                     })}`,
-                    value: (pasrsedTime - (userTimezones.get(interaction.user.id) ?? 0) * 60 * 60).toString(),
+                    value: (pasrsedTime - (userTimezones.get(interaction.user.id) ?? 3) * 60 * 60).toString(),
                 },
             ]);
         }

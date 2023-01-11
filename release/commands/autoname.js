@@ -11,7 +11,7 @@ export default new Command({
     run: async ({ interaction }) => {
         const embed = new EmbedBuilder().setColor(colors.serious).setAuthor({
             name: "Идет обработка...",
-            iconURL: "https://cdn.discordapp.com/attachments/1007814172425330710/1054658580239876156/239_1.gif",
+            iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1061566114787754004/volve_luchsii_lider.gif",
         });
         const reply = interaction.reply({ embeds: [embed], ephemeral: true });
         const dbInfo = await AuthData.findByPk(interaction.user.id);
