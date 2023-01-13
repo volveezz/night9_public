@@ -1,7 +1,7 @@
-import { EmbedBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType } from "discord.js";
+import { EmbedBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, } from "discord.js";
 import { Command } from "../structures/command.js";
 import { database, AuthData, RaidEvent } from "../handlers/sequelize.js";
-import { completedRaidsData } from "../features/memberStatisticsHandler.js";
+import { completedRaidsData, userTimezones } from "../features/memberStatisticsHandler.js";
 import { ids, guildId } from "../configs/ids.js";
 import { Op } from "sequelize";
 import colors from "../configs/colors.js";
@@ -198,7 +198,9 @@ export default new Command({
                     name: "новое_описание",
                     nameLocalizations: { "en-US": "new_description" },
                     description: "Укажите измененное описание. Вы можете указать здесь что угодно. Знаки для разметки: \\n \\*",
-                    descriptionLocalizations: { "en-US": "Specify new LFG description. You can write anything here. Formatting symbols: \\n \\*" },
+                    descriptionLocalizations: {
+                        "en-US": "Specify new LFG description. You can write anything here. Formatting symbols: \\n \\*",
+                    },
                 },
                 {
                     type: ApplicationCommandOptionType.Integer,
@@ -337,7 +339,7 @@ export default new Command({
                 })
                 : null;
             const raidData = getRaidData(raid, difficulty);
-            const parsedTime = await timeConverter({ time, authData: data, userId: interaction.user.id });
+            const parsedTime = timeConverter(time, userTimezones.get(interaction.user.id));
             if (parsedTime < Math.trunc(new Date().getTime() / 1000)) {
                 throw {
                     name: "Ошибка. Указанное время в прошлом",
@@ -429,7 +431,10 @@ export default new Command({
                     {
                         type: ComponentType.ActionRow,
                         components: [
-                            new ButtonBuilder().setCustomId(RaidButtons.notify).setLabel("Оповестить участников").setStyle(ButtonStyle.Secondary),
+                            new ButtonBuilder()
+                                .setCustomId(RaidButtons.notify)
+                                .setLabel("Оповестить участников")
+                                .setStyle(ButtonStyle.Secondary),
                             new ButtonBuilder()
                                 .setCustomId(RaidButtons.transfer)
                                 .setLabel("Переместить участников в рейд-войс")
@@ -442,8 +447,14 @@ export default new Command({
                     {
                         type: ComponentType.ActionRow,
                         components: [
-                            new ButtonBuilder().setCustomId(RaidButtons.startActivityChecker).setLabel("[PH] AlphaButton1").setStyle(ButtonStyle.Primary),
-                            new ButtonBuilder().setCustomId(RaidButtons.endActivityChecker).setLabel("[PH] AlphaButton2").setStyle(ButtonStyle.Primary),
+                            new ButtonBuilder()
+                                .setCustomId(RaidButtons.startActivityChecker)
+                                .setLabel("[PH] AlphaButton1")
+                                .setStyle(ButtonStyle.Primary),
+                            new ButtonBuilder()
+                                .setCustomId(RaidButtons.endActivityChecker)
+                                .setLabel("[PH] AlphaButton2")
+                                .setStyle(ButtonStyle.Primary),
                             new ButtonBuilder().setCustomId(RaidButtons.invite).setLabel("[PH] InviteSystem").setStyle(ButtonStyle.Primary),
                         ],
                     },
@@ -475,10 +486,9 @@ export default new Command({
             const newDifficulty = args.getInteger("новая_сложность");
             const newReqClears = args.getInteger("новое_требование_закрытий");
             const isSilent = args.getBoolean("silent") || false;
-            var raidData = await getRaidDatabaseInfo(raidId, interaction);
-            if (raidData === null || (Array.isArray(raidData) && raidData.length === 0)) {
+            let raidData = await getRaidDatabaseInfo(raidId, interaction);
+            if (raidData === null || (Array.isArray(raidData) && raidData.length === 0))
                 throw { errorType: UserErrors.RAID_NOT_FOUND };
-            }
             const raidInfo = getRaidData((newRaid ?? raidData.raid), newDifficulty ?? raidData.difficulty);
             const time = raidData.time;
             const reqClears = raidData.requiredClears;
@@ -555,7 +565,7 @@ export default new Command({
                     name: `Описание`,
                     value: newDescription.replace(/\\n/g, "\n"),
                 };
-                var checker = false;
+                let checker = false;
                 raidEmbed.data.fields?.forEach((value, index) => {
                     if (value.name === "Описание") {
                         if (newDescription !== " " && newDescription !== "-") {
@@ -585,17 +595,11 @@ export default new Command({
                 changes.push(`Описание было изменено`);
             }
             if (newTime !== null) {
-                const data = parseInt(newTime) < 1000000
-                    ? AuthData.findOne({
-                        where: { discordId: member.id },
-                        attributes: ["timezone"],
-                    })
-                    : null;
-                const changedTime = await timeConverter({ time: newTime, authData: data, userId: interaction.user.id });
+                const changedTime = timeConverter(newTime, userTimezones.get(interaction.user.id));
                 if (changedTime === time) {
-                    changes.push(`Время старта осталось без изменений`);
+                    changes.push(`Время старта осталось без изменений т.к. оно соответствует предыдущему`);
                 }
-                else if (changedTime > Math.trunc(new Date().getTime() / 1000)) {
+                else if (changedTime > Math.round(new Date().getTime() / 1000)) {
                     raidEmbed.data.fields?.map((k, v) => {
                         if (k.name.startsWith("Начало"))
                             raidEmbed.spliceFields(v, 1, {
@@ -605,17 +609,18 @@ export default new Command({
                             });
                     });
                     changesForChannel.push({
-                        name: "Время",
-                        value: `Старт рейда перенесен на <t:${changedTime}>, <t:${changedTime}:R>`,
+                        name: "Старт рейда перенесен",
+                        value: `Прежнее время старта: <t:${raidData.time}>, <t:${raidData.time}:R>\nНовое время: <t:${changedTime}>, <t:${changedTime}:R>`,
                     });
                     changes.push(`Время старта было изменено`);
                     const [i, updatedRaiddata] = await RaidEvent.update({
                         time: changedTime,
                     }, { where: { id: raidData.id }, transaction: t, returning: ["id", "time"] });
+                    raidAnnounceSet.delete(updatedRaiddata[0].id);
                     raidAnnounceSystem(updatedRaiddata[0]);
                 }
                 else {
-                    changes.push(`Время старта осталось без изменений - указано время <t:${changedTime}>, <t:${changedTime}:R>, но оно в прошлом`);
+                    changes.push(`Время старта осталось без изменений\nУказаное время <t:${changedTime}>, <t:${changedTime}:R> находится в прошлом`);
                 }
             }
             if (newRaidLeader !== null) {
@@ -644,7 +649,7 @@ export default new Command({
                     }, { where: { id: raidData.id }, transaction: t });
                 }
                 else {
-                    changes.push(`Создатель рейда не был изменен - нельзя назначить бота создателем`);
+                    changes.push(`Создатель рейда не был изменен поскольку нельзя назначить бота создателем`);
                 }
             }
             if (changes.length > 0 && changesForChannel.length > 0) {
@@ -675,7 +680,8 @@ export default new Command({
                     text: `Изменение ${raidData.creator === interaction.user.id ? "создателем рейда" : "администратором"}`,
                 });
                 changesForChannel.forEach((chng) => editedEmbedReplyInChn.addFields(chng));
-                !isSilent && client.getCachedGuild().channels.cache.get(raidData.channelId).send({ embeds: [editedEmbedReplyInChn] });
+                !isSilent &&
+                    client.getCachedGuild().channels.cache.get(raidData.channelId).send({ embeds: [editedEmbedReplyInChn] });
             }
             else {
                 await t.rollback();
@@ -700,7 +706,9 @@ export default new Command({
                     e.code !== 10008 ? console.error(e) : "";
                 }
                 try {
-                    client.getCachedGuild().channels.cache.get(ids.raidChnId).messages.cache.get(raidData.messageId).delete();
+                    client.getCachedGuild().channels.cache.get(ids.raidChnId).messages.cache
+                        .get(raidData.messageId)
+                        .delete();
                 }
                 catch (e) {
                     console.error(`[Error code: 1070] Message during raid manual delete for raidId ${raidData.id} wasn't found`);

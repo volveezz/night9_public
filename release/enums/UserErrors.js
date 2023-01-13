@@ -11,5 +11,6 @@ var UserErrors;
     UserErrors["WRONG_ID"] = "WRONG_ID";
     UserErrors["WRONG_HEX"] = "WRONG_HEX";
     UserErrors["MISSING_PERMISSIONS"] = "MISSING_PERMISSIONS";
+    UserErrors["RAID_TIME_ERROR"] = "RAID_TIME_ERROR";
 })(UserErrors || (UserErrors = {}));
 export default UserErrors;

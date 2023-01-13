@@ -55,7 +55,7 @@ export async function activityCompletionChecker({ platform, bungieId, accessToke
                 for (const milestineIndex in updatedMilestone.activities) {
                     const cachedMilestoneActivity = cachedMilestone.activities[milestineIndex];
                     const updatedMilestoneActivity = updatedMilestone.activities[milestineIndex];
-                    console.debug(`DEBUG1 checking`, { cachedMilestoneActivity }, { updatedMilestoneActivity }, milestineIndex);
+                    console.debug(`DEBUG1 checking`, cachedMilestoneActivity.phases, updatedMilestoneActivity.phases);
                     for (const phaseIndexString in updatedMilestoneActivity.phases) {
                         const phaseIndex = parseInt(phaseIndexString);
                         const cachedMilestonePhase = cachedMilestoneActivity.phases[phaseIndex];

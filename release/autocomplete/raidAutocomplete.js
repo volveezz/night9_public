@@ -24,18 +24,21 @@ export default {
             });
         }
         else if (option.name === "новое_время" || option.name === "время") {
-            const pasrsedTime = await timeConverter({ time: option.value, userId: interaction.user.id });
+            const pasrsedTime = timeConverter(option.value, userTimezones.get(interaction.user.id));
+            const name = pasrsedTime === 0
+                ? "Проверьте корректность времени. Формат даты: ЧЧ:ММ ДД/мм"
+                : new Date(pasrsedTime * 1000 + (userTimezones.get(interaction.user.id) ?? 3) * 60 * 60 * 1000).toLocaleString("ru-RU", {
+                    weekday: "long",
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                });
             interaction.respond([
                 {
-                    name: `${new Date(pasrsedTime * 1000).toLocaleString("ru-RU", {
-                        weekday: "long",
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    })}`,
-                    value: (pasrsedTime - (userTimezones.get(interaction.user.id) ?? 3) * 60 * 60).toString(),
+                    name,
+                    value: pasrsedTime.toString(),
                 },
             ]);
         }

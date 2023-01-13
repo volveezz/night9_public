@@ -26,7 +26,10 @@ function errorMessages(errorType, ...rest) {
                         {
                             type: ComponentType.ActionRow,
                             components: [
-                                new ButtonBuilder().setCustomId(RegisterButtons.register).setLabel("Начать регистрацию").setStyle(ButtonStyle.Success),
+                                new ButtonBuilder()
+                                    .setCustomId(RegisterButtons.register)
+                                    .setLabel("Начать регистрацию")
+                                    .setStyle(ButtonStyle.Success),
                                 new ButtonBuilder()
                                     .setCustomId(RegisterButtons.why)
                                     .setLabel("Для чего нужна регистрация")
@@ -103,6 +106,8 @@ function errorMessages(errorType, ...rest) {
             };
         case UserErrors.MISSING_PERMISSIONS:
             return { embeds: [new EmbedBuilder().setColor(colors.warning).setTitle(`Ошибка. Недостаточно прав`)] };
+        case UserErrors.RAID_TIME_ERROR:
+            return { embeds: [new EmbedBuilder().setColor(colors.warning).setTitle("Ошибка. Проверьте корректность времени")] };
         default:
             return {
                 embeds: [new EmbedBuilder().setColor(colors.warning).setTitle(`Произошла критическая ошибка. Сообщите администрации`)],

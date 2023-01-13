@@ -5,7 +5,7 @@ import destinyRaidsChallenges from "../configs/destinyRaidsChallenges.js";
 import { guildId, ids } from "../configs/ids.js";
 import { dlcRoles, statusRoles } from "../configs/roles.js";
 import UserErrors from "../enums/UserErrors.js";
-import { completedRaidsData, userTimezones } from "../features/memberStatisticsHandler.js";
+import { completedRaidsData } from "../features/memberStatisticsHandler.js";
 import { RaidEvent } from "../handlers/sequelize.js";
 import { CachedDestinyActivityModifierDefinition } from "./manifestHandler.js";
 import { fetchRequest } from "./fetchRequest.js";
@@ -98,7 +98,7 @@ export async function getRaidDatabaseInfo(raidId, interaction) {
             where: { creator: interaction.user.id },
         });
         if (!raidData || !raidData[0] || !raidData[0]?.creator) {
-            throw { name: `У вас нет ни одного рейда, создателем которого вы являетесь` };
+            throw { name: `У вас нет прав для изменения какого-либо рейда` };
         }
         else if (raidData[1] !== undefined) {
             throw {
@@ -110,9 +110,8 @@ export async function getRaidDatabaseInfo(raidId, interaction) {
             if (raidData[0].creator !== interaction.user.id && !interaction.memberPermissions?.has("Administrator")) {
                 throw {
                     name: "Недостаточно прав",
-                    description: `Управление рейдом ${raidId} доступно лишь ${interaction
-                        .guild.members.cache.get(raidData[0].creator)
-                        .displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")}`,
+                    description: `Управление рейдом ${raidId} доступно лишь ${nameCleaner((interaction.guild.members.cache.get(raidData[0].creator)?.displayName ||
+                        client.users.cache.get(raidData[0].creator)?.username))}`,
                 };
             }
             else {
@@ -121,9 +120,7 @@ export async function getRaidDatabaseInfo(raidId, interaction) {
         }
     }
     else {
-        const raidData = await RaidEvent.findOne({
-            where: { id: raidId },
-        });
+        const raidData = await RaidEvent.findByPk(raidId);
         if (raidData === null || !raidData?.creator) {
             throw { errorType: UserErrors.RAID_NOT_FOUND };
         }
@@ -154,7 +151,9 @@ export async function updateRaidMessage(raidDbData, interaction) {
         })
             .join("\n")
         : "Никого";
-    const hotJoined = raidDbData.hotJoined && raidDbData.hotJoined.length >= 1 ? raidDbData.hotJoined.map((data) => clearMemberName(data)).join(", ") : "Никого";
+    const hotJoined = raidDbData.hotJoined && raidDbData.hotJoined.length >= 1
+        ? raidDbData.hotJoined.map((data) => clearMemberName(data)).join(", ")
+        : "Никого";
     const alt = raidDbData.alt && raidDbData.alt.length >= 1 ? raidDbData.alt.map((data) => clearMemberName(data)).join(", ") : "Никого";
     if (raidDbData.joined.length && raidDbData.joined.length === 6) {
         embed.setColor(null);
@@ -188,7 +187,10 @@ export async function updateRaidMessage(raidDbData, interaction) {
         embed?.spliceFields(findK("Участник"), findK("Участник") !== -1 ? 1 : 0);
     }
     if (raidDbData.hotJoined.length && raidDbData.hotJoined.length >= 1) {
-        embed?.spliceFields(findK("Замена"), findK("Замена") !== -1 ? 1 : 0, { name: `Замена: ${raidDbData.hotJoined.length}`, value: hotJoined });
+        embed?.spliceFields(findK("Замена"), findK("Замена") !== -1 ? 1 : 0, {
+            name: `Замена: ${raidDbData.hotJoined.length}`,
+            value: hotJoined,
+        });
     }
     else {
         embed?.spliceFields(findK("Замена"), findK("Замена") !== -1 ? 1 : 0);
@@ -234,7 +236,9 @@ export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) 
                 : raidDataChallanges.find((a) => a.hash === modifier)?.encounter === raidDataChallanges.length
                     ? raidDataChallanges.find((a) => a.encounter === 1)
                     : raidDataChallanges.find((a) => a.encounter === raidDataChallanges.find((a) => a.hash === modifier).encounter + 1);
-            raidChallengesArray.push("⁣　⁣**" + manifest[challenge?.hash].displayProperties.name + `**, ${challenge.encounter} этап: ${challenge.description.toLowerCase()}`);
+            raidChallengesArray.push("⁣　⁣**" +
+                manifest[challenge?.hash].displayProperties.name +
+                `**, ${challenge.encounter} этап: ${challenge.description.toLowerCase()}`);
         }
         else if (new Date(raidMilestone.endDate).getTime() > startTime * 1000) {
             if (modifier === 4038464106)
@@ -245,7 +249,10 @@ export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) 
                 return raidModifiersArray.push("⁣　⁣**Противники-воители:** вы встретитесь с барьерными и перегруженными воителями.");
             if (modifier === 40182179)
                 return raidModifiersArray.push("⁣　⁣**Противники-воители:** вы встретитесь с перегруженными и неудержимыми воителями.");
-            raidModifiersArray.push("⁣　⁣**" + manifest[modifier].displayProperties.name + ":** " + String(manifest[modifier].displayProperties.description).toLowerCase());
+            raidModifiersArray.push("⁣　⁣**" +
+                manifest[modifier].displayProperties.name +
+                ":** " +
+                String(manifest[modifier].displayProperties.description).toLowerCase());
         }
     });
     const embed = EmbedBuilder.from(inChnMsg.embeds[0]);
@@ -325,56 +332,61 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
     embed.setTimestamp();
     inChnMsg.edit({ embeds: [embed] });
 }
-export async function timeConverter({ time, authData, userId }) {
-    const timezoneOffset = userId && userTimezones.get(userId) ? userTimezones.get(userId) : (await authData)?.timezone ?? 3;
-    if (parseInt(time) > Math.trunc(new Date().getTime() / 1000)) {
-        return parseInt(time);
+export function timeConverter(str, timezoneOffset = 3) {
+    if (!str || str.length === 0)
+        return 0;
+    if (!isNaN(+str) && str.length === 10)
+        return +str;
+    if (str.length > 20) {
+        const parts = str.split(/[ ,г.]/);
+        if (parts.length <= 1)
+            throw { errorType: UserErrors.RAID_TIME_ERROR };
+        const day = parseInt(parts[2]);
+        const month = new Date().getMonth();
+        const time = parts.pop().split(":");
+        const hours = parseInt(time[0]);
+        const minutes = parseInt(time[1]) || 0;
+        const date = new Date();
+        date.setDate(day);
+        date.setMonth(month);
+        date.setHours(hours);
+        date.setMinutes(minutes);
+        date.setSeconds(0);
+        date.setMilliseconds(0);
+        date.setTime(date.getTime() - timezoneOffset * 60 * 60 * 1000);
+        if (date < new Date())
+            date.setDate(date.getDate() + 1);
+        return Math.round(date.getTime() / 1000);
     }
-    const args = time.replace(/\s+/g, " ").trim().split(" ");
     const date = new Date();
-    function timeSpliter(args) {
-        if (args[0]?.split(":").length === 2 && args[1]?.split("/").length === 2) {
-            return { hhmm: args[0], ddmm: args[1] };
+    const parts = str.split(" ");
+    for (let part of parts) {
+        const datePart = part.match(/\d+[\.\/]\d+/);
+        const timePart = part.match(/\d+:\d+/);
+        if (datePart) {
+            const [day, month] = datePart[0].split(/[\.\/]/);
+            date.setMonth(parseInt(month) - 1);
+            date.setDate(parseInt(day));
         }
-        else if (args[1]?.split(":").length === 2 && args[0]?.split("/").length === 2) {
-            return { hhmm: args[1], ddmm: args[0] };
-        }
-        else if (args.length === 1 && args[0]?.split(":").length === 2) {
-            return { hhmm: args[0], ddmm: `${date.getDate() + `/` + (date.getMonth() + 1)}` };
+        else if (timePart) {
+            const [hours, minutes] = timePart[0].split(":");
+            date.setHours(parseInt(hours));
+            date.setMinutes(parseInt(minutes) || 0);
         }
         else {
-            return {};
+            const hour = parseInt(part);
+            if (hour) {
+                date.setHours(hour);
+                date.setMinutes(0);
+            }
         }
     }
-    const { hhmm, ddmm } = timeSpliter(args);
-    const daymonth = ddmm?.split("/");
-    const hoursmins = hhmm?.split(":");
-    if (!daymonth || !hoursmins) {
-        if (!authData)
-            return Math.floor((date.getTime() + (timezoneOffset ?? 3) * 60 * 60 * 1000) / 1000);
-        throw {
-            name: "Ошибка времени",
-            description: 'Время должно быть указано в формате (без ""): "ДЕНЬ/МЕСЯЦ ЧАС:МИНУТА"\nПробел обязателен если указывается и дата, и время. Знак / и : также обязательны.',
-            customErrorCode: "[Error code: 1067]",
-        };
-    }
-    date.setMonth(Math.round(parseInt(daymonth[1]) - 1), parseInt(daymonth[0]));
-    date.setHours(parseInt(hoursmins[0]), parseInt(hoursmins[1]) ?? 0, 0, 0);
-    if (date.getTimezoneOffset() !== -540) {
-        const timezoneDifference = !authData ? date.getTime() : date.getTime() - (timezoneOffset ?? 3) * 60 * 60 * 1000;
-        date.setTime(Math.floor(timezoneDifference));
-    }
-    const returnTime = Math.floor(date.getTime() / 1000);
-    if (isNaN(returnTime)) {
-        if (!authData)
-            return Math.floor((date.getTime() + (timezoneOffset ?? 3) * 60 * 60 * 1000) / 1000);
-        throw {
-            name: "Ошибка времени",
-            description: `Проверьте правильность введенного времени, дата: ${daymonth.toString()}, время: ${hoursmins.toString()}`,
-            customErrorCode: "[Error code: 1068]",
-        };
-    }
-    return returnTime;
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+    date.setTime(date.getTime() - timezoneOffset * 60 * 60 * 1000);
+    if (date < new Date())
+        date.setDate(date.getDate() + 1);
+    return Math.round(date.getTime() / 1000);
 }
 export async function raidAnnounceSystem(raidData) {
     if (!raidAnnounceSet.has(raidData.id)) {
@@ -385,7 +397,7 @@ export async function raidAnnounceSystem(raidData) {
     }
 }
 async function raidAnnounce(oldRaidData) {
-    const raidData = await RaidEvent.findOne({ where: { id: oldRaidData.id } });
+    const raidData = await RaidEvent.findByPk(oldRaidData.id);
     if (!raidData || (raidData && raidData.time !== oldRaidData.time))
         return;
     const raidInfo = getRaidData(raidData.raid, raidData.difficulty);
@@ -418,7 +430,8 @@ async function raidAnnounce(oldRaidData) {
         .reverse();
     const components = [];
     for await (const [i, chn] of raidVoiceChannels) {
-        if (chn.type === ChannelType.GuildVoice && (chn.userLimit === 0 || chn.userLimit - 6 > chn.members.size || chn.members.has(raidData.creator))) {
+        if (chn.type === ChannelType.GuildVoice &&
+            (chn.userLimit === 0 || chn.userLimit - 6 > chn.members.size || chn.members.has(raidData.creator))) {
             const invite = await chn.createInvite({ reason: "Raid automatic invite", maxAge: 60 * 120 });
             invite
                 ? components.push(new ButtonBuilder({
