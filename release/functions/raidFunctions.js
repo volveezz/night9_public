@@ -135,18 +135,25 @@ export async function getRaidDatabaseInfo(raidId, interaction) {
     }
 }
 export async function updateRaidMessage(raidDbData, interaction) {
-    const msg = client.getCachedGuild().channels.cache.get(ids.raidChnId).messages.cache.get(raidDbData.messageId);
+    let msg = client.getCachedGuild().channels.cache.get(ids.raidChnId).messages.cache.get(raidDbData.messageId);
     if (!msg || !msg.embeds || !msg.embeds[0]) {
-        return console.error(`[Error code: 1037] Error during updateRaidMessage`, { msg });
+        try {
+            msg = await (await interaction.guild?.channels.fetch(ids.raidChnId)).messages.fetch(raidDbData.messageId);
+        }
+        catch (error) {
+            return console.error(`[Error code: 1037] Error during updateRaidMessage`, { msg });
+        }
+        if (!msg)
+            return console.error(`[Error code: 1219] Error during updateRaidMessage`, { msg });
     }
     const embed = EmbedBuilder.from(msg.embeds[0]);
-    const clearMemberName = (id) => nameCleaner(client.getCachedMembers().get(id)?.displayName ?? "неизвестный пользователь");
+    const clearMemberName = (id) => nameCleaner(client.getCachedMembers().get(id)?.displayName || "неизвестный пользователь");
     const joined = raidDbData.joined && raidDbData.joined.length >= 1
         ? raidDbData.joined
             .map((data, index) => {
             const raidClears = completedRaidsData.get(data);
             return `⁣　${index + 1}. **${clearMemberName(data)}**${raidClears
-                ? ` — ${raidClears[raidDbData.raid]} закрытий${raidClears[raidDbData.raid + "Master"] ? ` (+${raidClears[raidDbData.raid + "Master"]} на мастере)` : ""}`
+                ? ` — ${raidClears[raidDbData.raid]} закрыт${raidClears[raidDbData.raid] === 1 ? "ие" : "ий"}${raidClears[raidDbData.raid + "Master"] ? ` (+${raidClears[raidDbData.raid + "Master"]} на мастере)` : ""}`
                 : ""}`;
         })
             .join("\n")

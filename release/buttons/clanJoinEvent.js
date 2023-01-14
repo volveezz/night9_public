@@ -65,7 +65,9 @@ export default {
                 components = [
                     {
                         type: ComponentType.ActionRow,
-                        components: [new ButtonBuilder().setCustomId(RegisterButtons.register).setLabel("Регистрация").setStyle(ButtonStyle.Success)],
+                        components: [
+                            new ButtonBuilder().setCustomId(RegisterButtons.register).setLabel("Регистрация").setStyle(ButtonStyle.Success),
+                        ],
                     },
                 ];
             }

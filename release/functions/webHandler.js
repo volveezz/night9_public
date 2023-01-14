@@ -111,7 +111,10 @@ export default async (code, state, res) => {
         if (!clanResponse || !clanResponse.results) {
             if (!member.roles.cache.hasAll(statusRoles.member, statusRoles.clanmember))
                 member.roles.add(statusRoles.member).then((m) => m.roles.remove(statusRoles.newbie));
-            const component = new ButtonBuilder().setCustomId(ClanButtons.invite).setLabel("Отправить приглашение").setStyle(ButtonStyle.Success);
+            const component = new ButtonBuilder()
+                .setCustomId(ClanButtons.invite)
+                .setLabel("Отправить приглашение")
+                .setStyle(ButtonStyle.Success);
             embed.setDescription(embed.data.description
                 ? embed.data.description +
                     `\n\nПроизошла ошибка во время обработки вашего клана. Скорее всего это связано с недоступностью API игры\n\nКнопка ниже служит для отправки приглашения в клан - она заработает как только сервера игры станут доступны`
@@ -126,10 +129,16 @@ export default async (code, state, res) => {
                 ],
             });
         }
-        else if (clanResponse && clanResponse.results && clanResponse.results.length >= 1 && clanResponse.results[0].group.groupId !== "4123712") {
+        else if (clanResponse &&
+            clanResponse.results &&
+            clanResponse.results.length >= 1 &&
+            clanResponse.results[0].group.groupId !== "4123712") {
             if (!member.roles.cache.hasAll(statusRoles.member, statusRoles.clanmember))
                 member.roles.add(statusRoles.member).then((m) => m.roles.remove(statusRoles.newbie));
-            const component = new ButtonBuilder().setCustomId(ClanButtons.invite).setLabel("Отправить приглашение").setStyle(ButtonStyle.Success);
+            const component = new ButtonBuilder()
+                .setCustomId(ClanButtons.invite)
+                .setLabel("Отправить приглашение")
+                .setStyle(ButtonStyle.Success);
             embed.setDescription(embed.data.description
                 ? embed.data.description + `\n\nНажмите кнопку для получения приглашения в клан`
                 : `Нажмите кнопку для получения приглашения в клан`);

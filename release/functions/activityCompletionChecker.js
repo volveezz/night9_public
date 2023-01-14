@@ -4,6 +4,22 @@ import { getRaidData } from "./raidFunctions.js";
 const currentProfiles = new Map();
 const completedPhases = new Map();
 const currentlyRuning = new Map();
+function compareObjects(obj1, obj2) {
+    let changes = [];
+    for (let i = 0; i < obj1.length; i++) {
+        for (let key in obj1[i]) {
+            if (obj1[i][key] !== obj2[i][key]) {
+                changes.push(`${key} on index ${i} was changed`, obj1, obj2);
+            }
+        }
+    }
+    if (changes.length === 0) {
+        console.log("DEBUG1 RaidCompletionChecker: Nothing is changed");
+    }
+    else {
+        console.log(`DEBUG1 RaidCompletionChecker:`, changes);
+    }
+}
 export async function activityCompletionChecker({ platform, bungieId, accessToken }, { id, raid }, characterId) {
     const { milestoneHash: activityMilestoneHash } = getRaidData(raid);
     let startTime = new Date().getTime();
@@ -55,7 +71,7 @@ export async function activityCompletionChecker({ platform, bungieId, accessToke
                 for (const milestineIndex in updatedMilestone.activities) {
                     const cachedMilestoneActivity = cachedMilestone.activities[milestineIndex];
                     const updatedMilestoneActivity = updatedMilestone.activities[milestineIndex];
-                    console.debug(`DEBUG1 checking`, cachedMilestoneActivity.phases, updatedMilestoneActivity.phases);
+                    compareObjects(cachedMilestoneActivity.phases, updatedMilestoneActivity.phases);
                     for (const phaseIndexString in updatedMilestoneActivity.phases) {
                         const phaseIndex = parseInt(phaseIndexString);
                         const cachedMilestonePhase = cachedMilestoneActivity.phases[phaseIndex];

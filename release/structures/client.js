@@ -14,7 +14,11 @@ export class ExtendedClient extends Client {
         { name: "🔁 Fighting the Darkness", type: ActivityType.Playing, url: undefined },
         { name: "🔁 Protecting the Last City", type: ActivityType.Competing, url: undefined },
         { name: "🔁 Fighting the Vex", type: ActivityType.Watching, url: undefined },
-        { name: "🔁 Singing along to the Traveler's melodies", type: ActivityType.Streaming, url: "https://www.youtube.com/watch?v=pLBhEAo2wXc" },
+        {
+            name: "🔁 Singing along to the Traveler's melodies",
+            type: ActivityType.Streaming,
+            url: "https://www.youtube.com/watch?v=pLBhEAo2wXc",
+        },
     ];
     constructor() {
         super({
@@ -110,6 +114,7 @@ export class ExtendedClient extends Client {
                         if (guildFetched.id === guildId)
                             this.guild = guildFetched;
                         await guildFetched.members.fetch();
+                        guildFetched.channels.fetch();
                     });
                 });
             });

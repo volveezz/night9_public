@@ -47,7 +47,9 @@ async function actionMessageHandler({ interaction, raidEvent, target }) {
                 });
                 break;
             default:
-                embed.setColor("NotQuiteBlack").setAuthor({ name: `${displayName} проник на рейд\n<@${ownerId}>`, iconURL: member.displayAvatarURL() });
+                embed
+                    .setColor("NotQuiteBlack")
+                    .setAuthor({ name: `${displayName} проник на рейд\n<@${ownerId}>`, iconURL: member.displayAvatarURL() });
         }
     }
     client.getCachedGuild().channels.cache.get(raidEvent.channelId).send({ embeds: [embed] });
@@ -115,19 +117,34 @@ export default {
             where: {
                 messageId: interaction.message.id,
             },
-            attributes: ["id", "channelId", "inChannelMessageId", "joined", "hotJoined", "alt", "messageId", "raid", "difficulty", "requiredClears"],
+            attributes: [
+                "id",
+                "channelId",
+                "inChannelMessageId",
+                "joined",
+                "hotJoined",
+                "alt",
+                "messageId",
+                "raid",
+                "difficulty",
+                "requiredClears",
+            ],
         });
         if (!raidEvent)
             throw { errorType: UserErrors.RAID_NOT_FOUND };
-        const userTarget = interaction.customId === RaidButtons.join ? (raidEvent.joined.length >= 6 ? "hotJoined" : "joined") : "alt";
+        const userAlreadyInHotJoined = raidEvent.hotJoined.some((user) => user === interaction.user.id);
+        const userAlreadyJoined = raidEvent.joined.some((user) => user === interaction.user.id);
+        const userAlreadyAlt = raidEvent.alt.some((user) => user === interaction.user.id);
+        const userTarget = interaction.customId === RaidButtons.join
+            ? raidEvent.joined.length >= 6 && !userAlreadyInHotJoined
+                ? "hotJoined"
+                : "joined"
+            : "alt";
         let update = {
             joined: Sequelize.fn("array_remove", Sequelize.col("joined"), interaction.user.id),
             hotJoined: Sequelize.fn("array_remove", Sequelize.col("hotJoined"), interaction.user.id),
             alt: Sequelize.fn("array_remove", Sequelize.col("alt"), interaction.user.id),
         };
-        const userAlreadyInHotJoined = raidEvent.hotJoined.some((user) => user === interaction.user.id);
-        const userAlreadyJoined = raidEvent.joined.some((user) => user === interaction.user.id);
-        const userAlreadyAlt = raidEvent.alt.some((user) => user === interaction.user.id);
         if (interaction.customId === RaidButtons.join) {
             if (raidEvent.requiredClears) {
                 const raidsCompletedByUser = completedRaidsData.get(interaction.user.id);
