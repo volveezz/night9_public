@@ -6,6 +6,7 @@ import { CachedDestinyRaceDefinition } from "../functions/manifestHandler.js";
 import { fetchRequest } from "../functions/fetchRequest.js";
 import { StatsButton } from "../enums/Buttons.js";
 import UserErrors from "../enums/UserErrors.js";
+import colors from "../configs/colors.js";
 export default new Command({
     name: "информация",
     nameLocalizations: {
@@ -13,7 +14,11 @@ export default new Command({
     },
     description: "Подробная информация и статистика аккаунта",
     descriptionLocalizations: { "en-US": "Detailed information and statistic about the account" },
-    userContextMenu: { name: "Информация", type: ApplicationCommandType.User, nameLocalizations: { "en-US": "Information", "en-GB": "Information" } },
+    userContextMenu: {
+        name: "Информация",
+        type: ApplicationCommandType.User,
+        nameLocalizations: { "en-US": "Information", "en-GB": "Information" },
+    },
     messageContextMenu: {
         name: "Информация",
         type: ApplicationCommandType.Message,
@@ -26,7 +31,7 @@ export default new Command({
             description: "Введите BungieName игрока для поиска",
         },
     ],
-    run: async ({ interaction: commandInteraction, userMenuInteraction: userInteraction, messageMenuInteraction: messageMenuInteraction }) => {
+    run: async ({ interaction: commandInteraction, userMenuInteraction: userInteraction, messageMenuInteraction: messageMenuInteraction, }) => {
         const interaction = messageMenuInteraction || userInteraction || commandInteraction;
         await interaction.deferReply({ ephemeral: true });
         const optionId = interaction instanceof ChatInputCommandInteraction ? interaction.options.getString("bungiename") : null;
@@ -40,7 +45,6 @@ export default new Command({
         if (optionId) {
             const bName = optionId.split("#");
             if (bName.length === 2) {
-                let bungieId, platform, displayName;
                 const response = await fetch("http://bungie.net/Platform/User/Search/GlobalName/0/", {
                     method: "POST",
                     headers: {
@@ -48,32 +52,26 @@ export default new Command({
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({ displayNamePrefix: bName[0] }),
-                }).then((d) => {
-                    return d.json().Response;
+                }).then(async (d) => {
+                    return (await d.json()).Response;
                 });
-                response.searchResults.forEach(async (result) => {
-                    if (result.bungieGlobalDisplayName === bName[0] && result.bungieGlobalDisplayNameCode === Number(bName[1])) {
-                        return result.destinyMemberships.forEach(async (membership) => {
-                            if (membership.membershipType === 3) {
-                                bungieId = membership.membershipId;
-                                platform = membership.membershipType;
-                                displayName = membership.bungieGlobalDisplayName || membership.displayName;
-                                return;
-                            }
-                        });
-                    }
-                });
-                if (!displayName && !bungieId)
+                const lookingUser = response.searchResults
+                    .find((result) => result.bungieGlobalDisplayName.startsWith(bName[0]) && result.bungieGlobalDisplayNameCode === parseInt(bName[1]))
+                    ?.destinyMemberships.find((membership) => membership.crossSaveOverride === membership.membershipType || membership.membershipType === 3);
+                if (!lookingUser)
+                    throw { name: "Пользователь не найден", decsription: `Пользователь \`${bName[0] + `#` + bName[1]}\` не был найден` };
+                const { membershipId: bungieId, membershipType: platform, bungieGlobalDisplayName: displayName } = lookingUser;
+                if (!displayName || !bungieId)
                     throw { name: `${optionId} не найден` };
                 const embed = new EmbedBuilder()
                     .setAuthor({
                     name: `Статистика ${displayName}`,
                 })
-                    .setColor("Green")
+                    .setColor(colors.success)
                     .setTimestamp()
                     .setFooter({ text: `BId: ${bungieId}` });
                 const reportPlatform = platform === 3 ? "pc" : platform === 2 ? "ps" : platform === 1 ? "xb" : "stadia";
-                embed.setColor("Green").addFields([
+                embed.setColor(colors.success).addFields([
                     {
                         name: "Ссылки",
                         value: `[Trials.Report](https://trials.report/report/${platform}/${bungieId}), [Raid.Report](https://raid.report/${reportPlatform}/${bungieId}), [Crucible.Report](https://crucible.report/report/${platform}/${bungieId}), [Strike.Report](https://strike.report/${reportPlatform}/${bungieId}), [DestinyTracker](https://destinytracker.com/destiny-2/profile/${platform === 3 ? "steam" : platform === 2 ? "psn" : platform === 1 ? "xbl" : "stadia"}/${bungieId}/overview), [WastedonDestiny](https://wastedondestiny.com/${bungieId})`,
@@ -107,7 +105,7 @@ export default new Command({
         const reportPlatform = platform === 3 ? "pc" : platform === 2 ? "ps" : platform === 1 ? "xb" : "stadia";
         const fieldUrls = [];
         fieldUrls.push(`[Trials.Report](https://trials.report/report/${platform}/${bungieId})`, `[Raid.Report](https://raid.report/${reportPlatform}/${bungieId})`, `[Crucible.Report](https://crucible.report/report/${platform}/${bungieId})`, `[Strike.Report](https://strike.report/${reportPlatform}/${bungieId})`, `[DestinyTracker](https://destinytracker.com/destiny-2/profile/${platform === 3 ? "steam" : platform === 2 ? "psn" : platform === 1 ? "xbl" : "stadia"}/${bungieId}/overview)`, `[WastedonDestiny](https://wastedondestiny.com/${bungieId})`);
-        embed.setColor("Green").addFields([
+        embed.setColor(colors.success).addFields([
             {
                 name: "Ссылки",
                 value: fieldUrls.join(", "),
