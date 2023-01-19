@@ -86,8 +86,8 @@ export async function activityCompletionChecker({ platform, bungieId, accessToke
                                     },
                                 ];
                                 console.debug(`DEBUG2 checking`, alreadyCompletedPhases);
-                                if (alreadyCompletedPhases.some((ph) => ph.phase === updatedMilestoneActivity.phases[phaseIndex].phaseHash)) {
-                                    let phase = alreadyCompletedPhases.find((ph) => ph.phase === phaseIndex);
+                                let phase = alreadyCompletedPhases.find((ph) => ph.phase === updatedMilestoneActivity.phases[phaseIndex].phaseHash);
+                                if (phase) {
                                     console.debug(`DEBUG7 Checking ${phase}`);
                                     phase.end = new Date().getTime();
                                     alreadyCompletedPhases.splice(alreadyCompletedPhases.findIndex((ph) => ph.phase === updatedMilestoneActivity.phases[phaseIndex].phaseHash), 1, { ...phase });
