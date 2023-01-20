@@ -8,6 +8,7 @@ import colors from "../configs/colors.js";
 import UserErrors from "../enums/UserErrors.js";
 import { RaidButtons } from "../enums/Buttons.js";
 import { getRaidData, getRaidDatabaseInfo, raidAnnounceSystem, raidChallenges, timeConverter, updatePrivateRaidMessage, updateRaidMessage, } from "../functions/raidFunctions.js";
+import { RaidNames } from "../enums/Raids.js";
 import nameCleaner from "../functions/nameClearer.js";
 export const raidAnnounceSet = new Set();
 RaidEvent.findAll({
@@ -41,6 +42,11 @@ export default new Command({
                     descriptionLocalizations: { "en-US": "Specify the raid" },
                     required: true,
                     choices: [
+                        {
+                            name: "[PH] Рейд Конца Света",
+                            nameLocalizations: { "en-US": "[PH] Lightfall raid" },
+                            value: "nebula",
+                        },
                         {
                             name: "Гибель короля",
                             nameLocalizations: { "en-US": "King's Fall" },
@@ -146,6 +152,11 @@ export default new Command({
                     description: "Если вы хотите изменить рейд набора - укажите новый",
                     descriptionLocalizations: { "en-US": "Specify new raid if you want to change it" },
                     choices: [
+                        {
+                            name: "[PH] Рейд Конца Света",
+                            nameLocalizations: { "en-US": "[PH] Lightfall raid" },
+                            value: "nebula",
+                        },
                         {
                             name: "Гибель короля",
                             nameLocalizations: { "en-US": "King's Fall" },
@@ -473,7 +484,8 @@ export default new Command({
                     });
                 await updatePrivateRaidMessage({ raidEvent: insertedRaidData[1][0] });
                 const privateChannelMessage = (await inChnMsg) || (await chn.messages.fetch((await inChnMsg).id));
-                raidChallenges(raidData, privateChannelMessage, parsedTime, difficulty);
+                if (raidData.raid !== RaidNames.nebula)
+                    raidChallenges(raidData, privateChannelMessage, parsedTime, difficulty);
             });
         }
         else if (subCommand === "изменить") {
@@ -517,8 +529,9 @@ export default new Command({
                         where: { id: raidData.id },
                         transaction: t,
                     });
-                    raidChallenges(raidInfo, client.getCachedGuild().channels.cache.get(raidData.channelId).messages.cache.get(raidData.inChannelMessageId) ??
-                        (await client.getCachedGuild().channels.cache.get(raidData.channelId).messages.fetch(raidData.inChannelMessageId)), raidData.time, newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : raidData.difficulty);
+                    if (raidInfo.raid !== RaidNames.nebula)
+                        raidChallenges(raidInfo, client.getCachedGuild().channels.cache.get(raidData.channelId).messages.cache.get(raidData.inChannelMessageId) ??
+                            (await client.getCachedGuild().channels.cache.get(raidData.channelId).messages.fetch(raidData.inChannelMessageId)), raidData.time, newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : raidData.difficulty);
                     client
                         .getCachedGuild()
                         .channels.cache.get(raidData.channelId)

@@ -1,5 +1,6 @@
 export var RaidNames;
 (function (RaidNames) {
+    RaidNames["nebula"] = "nebula";
     RaidNames["kf"] = "kf";
     RaidNames["votd"] = "votd";
     RaidNames["vog"] = "vog";

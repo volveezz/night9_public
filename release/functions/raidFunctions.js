@@ -14,6 +14,17 @@ import { RaidNames } from "../enums/Raids.js";
 import nameCleaner from "./nameClearer.js";
 export function getRaidData(raid, difficulty = 1) {
     switch (raid) {
+        case "nebula":
+            return {
+                raid,
+                raidName: difficulty === 2 ? "[PH] Рейд Конца Света: Мастер" : "[PH] Рейд Конца Света",
+                maxDifficulty: 2,
+                raidBanner: "https://cdn.discordapp.com/attachments/1039091402874835004/1049124063332806656/jesse-van-dijk-destiny-2020-jessevandijk-020.png",
+                raidColor: (difficulty === 2 ? "#FF063A" : "#C500FF"),
+                channelName: "-конец-света",
+                requiredRole: dlcRoles.lf,
+                milestoneHash: 292102995,
+            };
         case "kf":
             return {
                 raid: raid,
@@ -227,7 +238,6 @@ export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) 
     const raidChallengesArray = [];
     const raidModifiersArray = [];
     const raidDataChallanges = destinyRaidsChallenges[raidData.raid];
-    raidDataChallanges.find((a) => a.hash === 5)?.description;
     raidMilestone?.activities[raidMilestone?.activities.length > 1 ? (difficulty === 1 ? 0 : 1) : 0].modifierHashes.forEach((modifier) => {
         if (modifier === 1123720291 ||
             modifier === 1783825372 ||
