@@ -58,6 +58,9 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
             }
             const raidCounts = completedActivities.reduce((counts, activity) => {
                 switch (activity) {
+                    case 9999999:
+                        counts.nebula += 1;
+                        break;
                     case 1374392663:
                     case 1063970578:
                         counts.kf += 1;
@@ -97,7 +100,7 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                         break;
                 }
                 return counts;
-            }, { kf: 0, kfMaster: 0, votd: 0, votdMaster: 0, dsc: 0, gos: 0, vog: 0, vogMaster: 0, lw: 0 });
+            }, { nebula: 0, kf: 0, kfMaster: 0, votd: 0, votdMaster: 0, dsc: 0, gos: 0, vog: 0, vogMaster: 0, lw: 0 });
             completedRaidsData.set(member.id, {
                 ...raidCounts,
                 totalRaidCount: completedRaidCount,
@@ -106,7 +109,7 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                 (member.roles.cache.has(statusRoles.member) &&
                     member.roles.cache.hasAny(...activityRoles.allMessages, ...activityRoles.allVoice, activityRoles.category)) ||
                 authData.UserActivityData !== undefined) {
-                const { kf, kfMaster, votd, votdMaster, dsc, gos, vog, vogMaster, lw, totalRaidCount } = completedRaidsData.get(member.id);
+                const { nebula, kf, kfMaster, votd, votdMaster, dsc, gos, vog, vogMaster, lw, totalRaidCount } = completedRaidsData.get(member.id);
                 const kfClears = kf + kfMaster;
                 const votdClears = votd + votdMaster;
                 const vogClears = vog + vogMaster;
