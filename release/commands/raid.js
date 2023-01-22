@@ -393,7 +393,7 @@ export default new Command({
             if (raidDescription !== null && raidDescription.length < 1024) {
                 embed.spliceFields(2, 0, {
                     name: "Описание",
-                    value: raidDescription.replace(/\\n/g, "\n"),
+                    value: raidDescription.replace(/\\n/g, "\n").replace(/\\*/g, "\n - "),
                 });
             }
             const mainComponents = [
@@ -574,7 +574,7 @@ export default new Command({
                 const descriptionFieldIndex = raidEmbed.data.fields?.findIndex((field) => field.name === "Описание");
                 const field = {
                     name: `Описание`,
-                    value: newDescription.replace(/\\n/g, "\n"),
+                    value: newDescription.replace(/\\n/g, "\n").replace(/\\*/g, "\n - "),
                 };
                 if (descriptionFieldIndex !== undefined && descriptionFieldIndex !== -1) {
                     if (newDescription !== " " && newDescription !== "-") {
