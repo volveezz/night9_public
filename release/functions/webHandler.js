@@ -108,17 +108,17 @@ export default async (code, state, res) => {
                 discordId: member.id,
             },
         });
+        const givenRoles = [];
+        if (!member.roles.cache.hasAny(statusRoles.member, statusRoles.clanmember))
+            givenRoles.push(statusRoles.member);
+        if (!member.roles.cache.has(statusRoles.verified))
+            givenRoles.push(statusRoles.verified);
+        if (givenRoles.length > 0)
+            member.roles.add(givenRoles, "User registration").then((member) => {
+                if (member.roles.cache.has(statusRoles.newbie))
+                    member.roles.remove(statusRoles.newbie, "User registration");
+            });
         if (!clanResponse || !clanResponse.results) {
-            const givenRoles = [];
-            if (!member.roles.cache.hasAny(statusRoles.member, statusRoles.clanmember))
-                givenRoles.push(statusRoles.member);
-            if (!member.roles.cache.has(statusRoles.verified))
-                givenRoles.push(statusRoles.verified);
-            if (givenRoles.length > 0)
-                member.roles.add(givenRoles, "User registration").then((member) => {
-                    if (member.roles.cache.has(statusRoles.newbie))
-                        member.roles.remove(statusRoles.newbie, "User registration");
-                });
             const component = new ButtonBuilder()
                 .setCustomId(ClanButtons.invite)
                 .setLabel("Отправить приглашение")
@@ -141,8 +141,6 @@ export default async (code, state, res) => {
             clanResponse.results &&
             clanResponse.results.length >= 1 &&
             clanResponse.results[0].group.groupId !== "4123712") {
-            if (!member.roles.cache.hasAll(statusRoles.member, statusRoles.clanmember))
-                member.roles.add(statusRoles.member).then((m) => m.roles.remove(statusRoles.newbie));
             const component = new ButtonBuilder()
                 .setCustomId(ClanButtons.invite)
                 .setLabel("Отправить приглашение")
