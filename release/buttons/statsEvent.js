@@ -2,6 +2,8 @@ import { ButtonBuilder, EmbedBuilder, ButtonStyle, ComponentType } from "discord
 import { AuthData } from "../handlers/sequelize.js";
 import { fetchRequest } from "../functions/fetchRequest.js";
 import { CachedDestinyMilestoneDefinition, CachedDestinyProgressionDefinition } from "../functions/manifestHandler.js";
+import UserErrors from "../enums/UserErrors.js";
+import colors from "../configs/colors.js";
 export default {
     name: "statsEvent",
     run: async ({ interaction }) => {
@@ -12,7 +14,10 @@ export default {
             attributes: ["bungieId", "platform", "accessToken"],
         });
         if (!userData)
-            throw { name: "Вы не зарегистрированы" };
+            throw {
+                errorType: UserErrors.DB_USER_NOT_FOUND,
+                errorData: { isSelf: id === interaction.user.id ? true : id === undefined ? true : false },
+            };
         const { platform, bungieId: bungieId } = userData;
         switch (interaction.customId) {
             case "statsEvent_old_events": {
@@ -24,7 +29,7 @@ export default {
                     dataFact.push({ factionHash, progressionHash, currentProgress, level, levelCap });
                 });
                 const embed = new EmbedBuilder()
-                    .setColor("Green")
+                    .setColor(colors.success)
                     .setTimestamp()
                     .setFooter({ text: `Id: ${interaction.user.id}` });
                 dataFact.forEach((d) => {
@@ -59,7 +64,11 @@ export default {
                 charKeys.forEach((charKey, i) => {
                     const char = data.characters.data[charKey];
                     components[i] = new ButtonBuilder({
-                        style: char.classHash === 671679327 ? ButtonStyle.Primary : char.classHash === 2271682572 ? ButtonStyle.Secondary : ButtonStyle.Danger,
+                        style: char.classHash === 671679327
+                            ? ButtonStyle.Primary
+                            : char.classHash === 2271682572
+                                ? ButtonStyle.Secondary
+                                : ButtonStyle.Danger,
                         label: char.classHash === 671679327 ? "Охотник" : char.classHash === 2271682572 ? "Варлок" : "Титан",
                         customId: `statsEvent_pinnacle_char_${i}`,
                     });
@@ -80,7 +89,8 @@ export default {
                     filter: ({ user }) => user.id == interaction.user.id,
                 });
                 collector.on("collect", async (collected) => {
-                    const obj = data.characterProgressions.data[Object.keys(data.characterProgressions.data)[Number(collected.customId.slice(-1))]].milestones;
+                    const obj = data.characterProgressions.data[Object.keys(data.characterProgressions.data)[Number(collected.customId.slice(-1))]]
+                        .milestones;
                     const dataMile = [];
                     Object.entries(obj).forEach(([k, milestone]) => {
                         if (!milestone.rewards || milestone.rewards[0].rewardCategoryHash !== 326786556)

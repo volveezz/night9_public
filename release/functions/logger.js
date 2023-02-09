@@ -8,6 +8,7 @@ import colors from "../configs/colors.js";
 import { client } from "../index.js";
 import { AuthData, UserActivityData, RaidEvent } from "../handlers/sequelize.js";
 import { RaidButtons } from "../enums/Buttons.js";
+import { completedPhases } from "./activityCompletionChecker.js";
 const pgcrIds = new Set();
 export async function logClientDmMessages(member, text, id, interaction) {
     const dmLogChannel = interaction ? null : client.getCachedGuild().channels.cache.get(ids.dmMsgsChnId);
@@ -165,6 +166,27 @@ export async function activityReporter(pgcrId) {
                             return row;
                     }
                 });
+                if (completedPhases.has(dbMemberData.bungieId)) {
+                    const testEmbed = EmbedBuilder.from(embed);
+                    const encountersData = completedPhases.get(dbMemberData.bungieId);
+                    testEmbed.addFields([
+                        {
+                            name: "Затраченное время на этапы",
+                            value: `${encountersData
+                                ?.map((encounter) => {
+                                return `⁣　⁣${encounter.phaseIndex}. <t:${encounter.start}:t> - <t:${encounter.end}:t>`;
+                            })
+                                .join("\n")}`,
+                        },
+                    ]);
+                    try {
+                        (client.getCachedGuild().channels.cache.get(ids.adminChnId) ||
+                            (await client.getCachedGuild().channels.fetch(ids.adminChnId))).send({ embeds: [testEmbed] });
+                    }
+                    catch (error) {
+                        console.error(`[Error code: 1422]`, { error });
+                    }
+                }
                 if (dbRaidData && dbRaidData.time < Math.trunc(new Date().getTime() / 1000)) {
                     const embed = new EmbedBuilder()
                         .setColor(colors.serious)
@@ -178,7 +200,9 @@ export async function activityReporter(pgcrId) {
                         components: [
                             {
                                 type: ComponentType.ActionRow,
-                                components: [new ButtonBuilder().setCustomId(RaidButtons.delete).setLabel("Удалить набор").setStyle(ButtonStyle.Danger)],
+                                components: [
+                                    new ButtonBuilder().setCustomId(RaidButtons.delete).setLabel("Удалить набор").setStyle(ButtonStyle.Danger),
+                                ],
                             },
                         ],
                     })

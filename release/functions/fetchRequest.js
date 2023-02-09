@@ -19,7 +19,7 @@ export async function fetchRequest(url, authorizationData) {
             return console.error(`[Error code: 1108] Confilt error`);
         if (status === 522)
             return console.error(`[Error code: 1117] Timed out error`);
-        if (status >= 400 || status <= 599)
+        if (status >= 400 && status <= 599)
             return console.error(`[Error code: 1228] ${status} web error code`);
         console.error(`[Error code: 1064] ${status} statusCode\n`, response?.body, "\n", e.stack);
         return undefined;

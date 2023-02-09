@@ -149,6 +149,7 @@ export class ExtendedClient extends Client {
                 this.registerCommands({ global: true, commands: globalCommands });
                 this.registerCommands({ global: false, commands: guildCommands });
             });
+            import("../handlers/mongodb.js");
             setInterval(() => {
                 const time = Math.trunc(this.uptime / 1000);
                 const calculatedTime = [];

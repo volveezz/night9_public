@@ -62,3 +62,9 @@ export var TimezoneButtons;
 (function (TimezoneButtons) {
     TimezoneButtons["selectMenu"] = "tzEvent_selectmenu";
 })(TimezoneButtons || (TimezoneButtons = {}));
+export var SurveyButtons;
+(function (SurveyButtons) {
+    SurveyButtons["start"] = "startSurvey_start";
+    SurveyButtons["cancel"] = "startSurvey_cancel";
+    SurveyButtons["alreadyVoted"] = "surveyEvent_alreadyVoted";
+})(SurveyButtons || (SurveyButtons = {}));

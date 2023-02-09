@@ -1,4 +1,4 @@
-import { EmbedBuilder, ApplicationCommandOptionType } from "discord.js";
+import { EmbedBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, } from "discord.js";
 import colors from "../../configs/colors.js";
 import { statusRoles } from "../../configs/roles.js";
 import { AuthData, UserActivityData } from "../../handlers/sequelize.js";
@@ -21,7 +21,8 @@ export default new Command({
         switch (scriptId) {
             case "rolesweeper": {
                 const members = interaction.guild.members.cache.filter((m) => {
-                    return (m.roles.cache.has(statusRoles.member) || m.roles.cache.has(statusRoles.kicked)) && m.roles.cache.has(statusRoles.verified);
+                    return ((m.roles.cache.has(statusRoles.member) || m.roles.cache.has(statusRoles.kicked)) &&
+                        m.roles.cache.has(statusRoles.verified));
                 });
                 const updatedMembers = members.map(async (member) => {
                     await member.roles
@@ -36,7 +37,9 @@ export default new Command({
                         .catch((e) => defferedReply.then((v) => interaction.followUp(`Возникла ошибка во время обновления ${member.displayName}`)));
                     await new Promise((res) => setTimeout(res, 500));
                 });
-                const embed = new EmbedBuilder().setColor("Green").setTitle(`${updatedMembers.length} пользователей было обновлено из ${members.size}`);
+                const embed = new EmbedBuilder()
+                    .setColor("Green")
+                    .setTitle(`${updatedMembers.length} пользователей было обновлено из ${members.size}`);
                 interaction.editReply({ embeds: [embed] });
                 return;
             }
@@ -70,6 +73,19 @@ export default new Command({
                     .join("\n")
                     .slice(0, 2048)}`);
                 return defferedReply.then((m) => interaction.editReply({ embeds: [msgEmbed, voiceEmbed] }));
+            }
+            case "surveyrestart": {
+                const embed = new EmbedBuilder().setColor(colors.default).setTitle("Начать опрос?");
+                const components = [
+                    {
+                        type: ComponentType.ActionRow,
+                        components: [
+                            new ButtonBuilder().setCustomId("startSurvey_from_godChannel").setStyle(ButtonStyle.Success).setLabel("Начать"),
+                        ],
+                    },
+                ];
+                (await defferedReply) && interaction.editReply({ embeds: [embed], components });
+                return;
             }
             default:
                 await defferedReply;

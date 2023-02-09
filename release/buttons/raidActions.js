@@ -59,14 +59,18 @@ async function joinedFromHotJoined(raidData) {
     const member = client.getCachedMembers().get(newRaidJoined);
     if (!member)
         throw { errorType: UserErrors.MEMBER_NOT_FOUND };
-    raidData.save();
+    raidData.update({
+        joined: Sequelize.fn("array_append", Sequelize.col("joined"), `${newRaidJoined}`),
+        hotJoined: Sequelize.fn("array_remove", Sequelize.col("hotJoined"), `${newRaidJoined}`),
+        alt: Sequelize.fn("array_remove", Sequelize.col("alt"), `${newRaidJoined}`),
+    }, { where: { id: raidData.id } });
     const embed = new EmbedBuilder().setColor("Orange").setAuthor({
-        name: `${member.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} был автоматически записан ранее состоя в запасе`,
+        name: `${nameCleaner(member.displayName)} был автоматически записан ранее состоя в запасе`,
         iconURL: member.displayAvatarURL(),
     });
     client.getCachedGuild().channels.cache.get(raidData.channelId).send({ embeds: [embed] });
     const privateMessageEmbed = new EmbedBuilder()
-        .setColor("Orange")
+        .setColor(colors.serious)
         .setTitle(`Вы были автоматически записаны на рейд ${raidData.id}-${raidData.raid}`)
         .addFields({
         name: `Число записанных участников`,
@@ -76,6 +80,11 @@ async function joinedFromHotJoined(raidData) {
         value: `[Перейти к набору](https://discord.com/channels/${guildId}/${ids.raidChnId}/${raidData.messageId})\n[Перейти в канал рейда](https://discord.com/channels/${guildId}/${raidData.channelId})`,
     });
     member.send({ embeds: [privateMessageEmbed] });
+    const updatedRaidData = await RaidEvent.findOne({ where: { id: raidData.id } });
+    if (!updatedRaidData)
+        return;
+    updatePrivateRaidMessage({ raidEvent: updatedRaidData });
+    updateRaidMessage(updatedRaidData);
 }
 export default {
     name: "raidButton",
@@ -105,12 +114,12 @@ export default {
                     return;
                 if (!raidEvent)
                     throw { errorType: UserErrors.RAID_NOT_FOUND };
-                if (raidEvent.joined.length === 5 && raidEvent.hotJoined.length > 0)
-                    joinedFromHotJoined(raidEvent);
                 updatePrivateRaidMessage({ raidEvent });
                 updateRaidMessage(raidEvent, interaction);
                 actionMessageHandler({ interaction, raidEvent, target: "leave" });
                 client.getCachedGuild().channels.cache.get(raidEvent.channelId).permissionOverwrites.delete(interaction.user.id);
+                if (raidEvent.joined.length === 5 && raidEvent.hotJoined.length > 0)
+                    joinedFromHotJoined(raidEvent);
             });
         }
         let raidEvent = await RaidEvent.findOne({

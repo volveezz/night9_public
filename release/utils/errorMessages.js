@@ -108,6 +108,12 @@ function errorMessages(errorType, ...rest) {
             return { embeds: [new EmbedBuilder().setColor(colors.warning).setTitle(`Ошибка. Недостаточно прав`)] };
         case UserErrors.RAID_TIME_ERROR:
             return { embeds: [new EmbedBuilder().setColor(colors.warning).setTitle("Ошибка. Проверьте корректность времени")] };
+        case UserErrors.SURVEY_ALREADY_VOTED:
+            return { embeds: [new EmbedBuilder().setColor(colors.serious).setTitle("Вы уже выбрали ответ в этом вопросе")] };
+        case UserErrors.SURVEY_UNKNOWN_ERROR:
+            return {
+                embeds: [new EmbedBuilder().setColor(colors.error).setTitle(`Произошла ошибка при ответе на вопрос. Администрация оповещена`)],
+            };
         default:
             return {
                 embeds: [new EmbedBuilder().setColor(colors.warning).setTitle(`Произошла критическая ошибка. Сообщите администрации`)],

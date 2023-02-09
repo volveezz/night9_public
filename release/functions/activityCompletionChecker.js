@@ -2,7 +2,7 @@ import { AuthData } from "../handlers/sequelize.js";
 import { fetchRequest } from "./fetchRequest.js";
 import { getRaidData } from "./raidFunctions.js";
 const currentProfiles = new Map();
-const completedPhases = new Map();
+export const completedPhases = new Map();
 const currentlyRuning = new Map();
 function compareObjects(obj1, obj2) {
     let changes = [];
@@ -13,11 +13,11 @@ function compareObjects(obj1, obj2) {
             }
         }
     }
-    if (changes.length === 0) {
-        console.log("DEBUG1 RaidCompletionChecker: Nothing is changed");
+    if (changes.length !== 0) {
+        console.log(`DEBUG1 RaidCompletionChecker:`, changes);
     }
     else {
-        console.log(`DEBUG1 RaidCompletionChecker:`, changes);
+        console.debug(`RaidCompletionChecker: Still same data`);
     }
 }
 export async function activityCompletionChecker({ platform, bungieId, accessToken }, { id, raid }, characterId) {
@@ -81,24 +81,24 @@ export async function activityCompletionChecker({ platform, bungieId, accessToke
                                 let alreadyCompletedPhases = completedPhases.get(bungieId) || [
                                     {
                                         phase: updatedMilestoneActivity.phases[phaseIndex].phaseHash,
+                                        phaseIndex,
                                         start: startTime,
                                         end: -1,
                                     },
                                 ];
-                                console.debug(`DEBUG2 checking`, alreadyCompletedPhases);
                                 let phase = alreadyCompletedPhases.find((ph) => ph.phase === updatedMilestoneActivity.phases[phaseIndex].phaseHash);
                                 if (phase) {
-                                    console.debug(`DEBUG7 Checking ${phase}`);
                                     phase.end = new Date().getTime();
                                     alreadyCompletedPhases.splice(alreadyCompletedPhases.findIndex((ph) => ph.phase === updatedMilestoneActivity.phases[phaseIndex].phaseHash), 1, { ...phase });
                                     if (updatedMilestoneActivity.phases[phaseIndex + 1] !== undefined &&
                                         updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash !== undefined)
                                         alreadyCompletedPhases.push({
                                             phase: updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash,
+                                            phaseIndex: phaseIndex + 1,
                                             start: phase.end,
                                             end: -1,
                                         });
-                                    console.debug(`DEBUG3 Completed phasesUpdated`, {
+                                    console.debug(`DEBUG3`, {
                                         alreadyCompletedPhases,
                                     });
                                     completedPhases.set(bungieId, alreadyCompletedPhases);

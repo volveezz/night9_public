@@ -5,7 +5,7 @@ import UserErrors from "../enums/UserErrors.js";
 import { fetchRequest } from "../functions/fetchRequest.js";
 import colors from "../configs/colors.js";
 import { CachedDestinyActivityDefinition } from "../functions/manifestHandler.js";
-import timerConverter from "../functions/convertSeconds.js";
+import timerConverter from "../functions/utilities.js";
 import { client } from "../index.js";
 import nameCleaner from "../functions/nameClearer.js";
 export default new Command({

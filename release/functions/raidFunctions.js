@@ -146,10 +146,11 @@ export async function getRaidDatabaseInfo(raidId, interaction) {
     }
 }
 export async function updateRaidMessage(raidDbData, interaction) {
-    let msg = client.getCachedGuild().channels.cache.get(ids.raidChnId).messages.cache.get(raidDbData.messageId);
+    let msg = client.getCachedGuild().channels.cache.get(ids.raidChnId).messages.cache.get(raidDbData.messageId) ||
+        (await client.getCachedGuild().channels.cache.get(ids.raidChnId).messages.fetch(raidDbData.messageId));
     if (!msg || !msg.embeds || !msg.embeds[0]) {
         try {
-            msg = await (await interaction.guild?.channels.fetch(ids.raidChnId)).messages.fetch(raidDbData.messageId);
+            msg = await (await (interaction?.guild || client.getCachedGuild()).channels.fetch(ids.raidChnId)).messages.fetch(raidDbData.messageId);
         }
         catch (error) {
             return console.error(`[Error code: 1037] Error during updateRaidMessage`, { msg });

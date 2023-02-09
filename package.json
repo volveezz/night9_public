@@ -1,6 +1,6 @@
 {
 	"name": "nightfuture",
-	"version": "2.0.12.4",
+	"version": "2.1.0",
 	"engines": {
 		"node": "19.2.0"
 	},
@@ -19,12 +19,15 @@
 		"dotenv": "^16.0.3",
 		"express": "^4.18.2",
 		"form-data": "^4.0.0",
+		"mongoose": "^6.9.0",
+		"node-cron": "^3.0.2",
 		"node-fetch": "^3.3.0",
 		"pg": "^8.8.0",
 		"pg-hstore": "^2.3.4",
 		"sequelize": "^6.28.0"
 	},
 	"devDependencies": {
+		"@types/node-cron": "^3.0.7",
 		"bungie-api-ts": "^4.21.0",
 		"concurrently": "^7.6.0",
 		"nodemon": "^2.0.20"

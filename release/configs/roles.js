@@ -66,6 +66,7 @@ const releaseStatisticsRoles = {
         "790529780008484884",
     ],
     active: [
+        { roleId: "1068834689109983292", triumphScore: 25000 },
         { roleId: "850783884341805126", triumphScore: 22500 },
         { roleId: "850782655602884628", triumphScore: 20000 },
         { roleId: "790529941107114014", triumphScore: 17500 },
@@ -76,6 +77,7 @@ const releaseStatisticsRoles = {
         { roleId: "790529881171558432", triumphScore: 5000 },
         { roleId: "790529840913842246", triumphScore: 2500 },
         { roleId: "790529780008484884", triumphScore: 1000 },
+        { roleId: "1068834723943694460", triumphScore: 0 },
     ],
     allKd: [
         "1006747462645588079",
@@ -235,6 +237,7 @@ const devStatisticsRoles = {
         "1007814171502579739",
     ],
     active: [
+        { roleId: "1068836164854882344", triumphScore: 25000 },
         { roleId: "1007814171527749735", triumphScore: 22500 },
         { roleId: "1007814171527749734", triumphScore: 20000 },
         { roleId: "1007814171527749734", triumphScore: 17500 },
@@ -245,6 +248,7 @@ const devStatisticsRoles = {
         { roleId: "1007814171502579741", triumphScore: 5000 },
         { roleId: "1007814171502579740", triumphScore: 2500 },
         { roleId: "1007814171502579739", triumphScore: 1000 },
+        { roleId: "1068836229921124422", triumphScore: 0 },
     ],
     allKd: [
         "1007814171552907329",

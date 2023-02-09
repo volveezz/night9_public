@@ -6,7 +6,7 @@ import colors from "../../configs/colors.js";
 import { CachedDestinyRecordDefinition } from "../../functions/manifestHandler.js";
 import { activityRoles, raidRoles, statisticsRoles, titleCategory, triumphsCategory } from "../../configs/roles.js";
 import { completedRaidsData, longOffline, userTimezones } from "../../features/memberStatisticsHandler.js";
-import convertSeconds from "../../functions/convertSeconds.js";
+import convertSeconds from "../../functions/utilities.js";
 export default new Command({
     name: "db",
     description: "Database",

@@ -6,7 +6,7 @@ const dmChn = client.guilds.cache.get(guildId)?.channels.cache.get(ids.dmMsgsChn
 export async function dmHandler(message) {
     if (message.channel.type !== ChannelType.DM)
         return;
-    if ((await message.channel.messages.fetch({ limit: 2 }))
+    if ((await message.channel.messages.fetch({ limit: 5 }))
         .map((msg) => {
         if (msg.content === "Введите новый текст оповещения" && msg.author.id === client.user.id) {
             return false;

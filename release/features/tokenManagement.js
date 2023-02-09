@@ -1,55 +1,46 @@
 import fetch from "node-fetch";
 import { database, AuthData, LeavedUsersData } from "../handlers/sequelize.js";
 import { Feature } from "../structures/feature.js";
-const timer = (ms) => new Promise((res) => setTimeout(res, ms));
+const BUNGIE_TOKEN_URL = "https://www.bungie.net/Platform/App/OAuth/Token/";
+async function bungieGrantRequest(row, table, t, retry = false) {
+    const form = new URLSearchParams(Object.entries({
+        grant_type: "refresh_token",
+        refresh_token: row.refreshToken,
+    }));
+    const fetchRequest = (await fetch(BUNGIE_TOKEN_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: `Basic ${process.env.AUTH}`,
+        },
+        body: form,
+    }));
+    const request = await fetchRequest.json();
+    if (request && request.access_token) {
+        await (table === 1 ? AuthData : LeavedUsersData).update({ accessToken: request.access_token, refreshToken: request.refresh_token }, { where: { bungieId: row.bungieId }, transaction: t });
+    }
+    else {
+        if (retry === false) {
+            bungieGrantRequest(row, table, t, true);
+            console.error(`[Error code: 1420] For ${row.bungieId}`);
+        }
+        else
+            console.error(`[Error code: 1231] For ${row.bungieId}`);
+    }
+}
 async function refreshTokens(table) {
     const data = table === 1
         ? await AuthData.findAll({ attributes: ["bungieId", "refreshToken"] })
         : await LeavedUsersData.findAll({ attributes: ["bungieId", "refreshToken"] });
     const t = await database.transaction();
-    for await (const row of data) {
+    for (const row of data) {
         try {
             if (!row.refreshToken)
                 return;
-            const form = new URLSearchParams();
-            form.append("grant_type", "refresh_token");
-            form.append("refresh_token", row.refreshToken);
-            const fetchRequest = fetch("https://www.bungie.net/Platform/App/OAuth/Token/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    Authorization: `Basic ${process.env.AUTH}`,
-                },
-                body: form,
-            });
-            const request = await (await fetchRequest).json();
-            fetchRequest.catch((err) => {
-                console.error(`[Error code: 1024] [tokenGen error] ${row.bungieId} data was lost ${err.statusCode}`);
-                return null;
-            });
-            if (request && request?.access_token) {
-                (table === 1 ? AuthData : LeavedUsersData)
-                    .update({
-                    accessToken: request.access_token,
-                    refreshToken: request.refresh_token,
-                }, {
-                    where: {
-                        bungieId: row.bungieId,
-                    },
-                    transaction: t,
-                })
-                    .then((query) => {
-                    if (!query || query[0] !== 1)
-                        console.error(`[Error code: 1031] [tokenGen] DB query error for ${row.bungieId}`, request, query);
-                });
-            }
-            else {
-                console.error(`[Error code: 1231] For ${row.bungieId}`, { request });
-            }
-            await timer(150);
+            await bungieGrantRequest(row, table, t, false);
         }
         catch (error) {
-            console.error(`[Error code: 1242] Error during refreshing token of ${row.bungieId}`);
+            console.error(`[Error code: 1242] Error during refreshing token of ${row.bungieId}: ${error}`);
         }
     }
     try {
@@ -57,15 +48,15 @@ async function refreshTokens(table) {
     }
     catch (error) {
         await t.rollback();
-        console.error(`[Error code: 1032] ${error}`);
+        console.error(`[Error code: 1421] Error during commiting DB changes`);
     }
 }
 export default new Feature({
     execute: async ({}) => {
         if (process.env.DEV_BUILD === "dev")
             return;
-        refreshTokens(1);
-        refreshTokens(2);
-        setInterval(() => refreshTokens(1), 1000 * 60 * 50);
+        await refreshTokens(1);
+        await refreshTokens(2);
+        setInterval(async () => await refreshTokens(1), 1000 * 60 * 50);
     },
 });

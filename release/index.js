@@ -8,7 +8,7 @@ client.rest.on("rateLimited", (rateLimit) => {
     console.error(`Ratelimited for ${rateLimit.timeToReset} ms, route: ${rateLimit.route}${rateLimit.majorParameter ? `, parameter: ${rateLimit.majorParameter}` : ""}`);
 });
 process.on("uncaughtException", (error, origin) => {
-    console.error(`uncaughtException at top level`, { origin });
+    console.error(`uncaughtException at top level`, origin === "uncaughtException" ? error : origin);
 });
 process.on("unhandledRejection", (error, a) => {
     if (error.code === "ECONNRESET")
@@ -29,7 +29,10 @@ const app = express();
 const port = process.env.PORT || 3000;
 const __dirname = resolve();
 app.get("/", async (req, res) => {
-    if (req.query.code && req.query.code.length > 20 && req.query.state && req.query.state.length > 20) {
+    if (req.query.code &&
+        parseInt(req.query.code.length?.toString() || "0") > 20 &&
+        req.query.state &&
+        parseInt(req.query.state.length?.toString() || "0") > 20) {
         const { default: webHandler } = await import("./functions/webHandler.js");
         webHandler(req.query.code.toString(), req.query.state.toString(), res);
     }

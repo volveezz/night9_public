@@ -12,5 +12,7 @@ var UserErrors;
     UserErrors["WRONG_HEX"] = "WRONG_HEX";
     UserErrors["MISSING_PERMISSIONS"] = "MISSING_PERMISSIONS";
     UserErrors["RAID_TIME_ERROR"] = "RAID_TIME_ERROR";
+    UserErrors["SURVEY_ALREADY_VOTED"] = "SURVEY_ALREADY_VOTED";
+    UserErrors["SURVEY_UNKNOWN_ERROR"] = "SURVEY_UNKNOWN_ERROR";
 })(UserErrors || (UserErrors = {}));
 export default UserErrors;

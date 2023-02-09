@@ -10,7 +10,7 @@ export default new Command({
     },
     description: "Статистика закрытых рейдов на каждом классе",
     descriptionLocalizations: {
-        "en-US": "Completed raid statistics on each character",
+        "en-US": "Statistics of completed raid on each character",
     },
     options: [
         {
@@ -36,7 +36,8 @@ export default new Command({
             attributes: ["bungieId", "platform", "accessToken"],
         });
         if (db_data === null) {
-            if (interaction instanceof UserContextMenuCommandInteraction || interaction.options.getUser("пользователь")?.id !== interaction.user.id) {
+            if (interaction instanceof UserContextMenuCommandInteraction ||
+                interaction.options.getUser("пользователь")?.id !== interaction.user.id) {
                 throw { name: `Выбранный пользователь не зарегистрирован` };
             }
             throw { name: "Эта команда доступна после регистрации" };
@@ -92,8 +93,8 @@ export default new Command({
             if (!activity_fresh)
                 throw { name: "Произошла ошибка со стороны Bungie" };
             arr.forEach(async (activity_data) => {
-                const clears = activity_fresh.filter((d) => d.activityHash === Number(activity_data.activity))[0]?.values.activityCompletions.basic
-                    .value;
+                const clears = activity_fresh.filter((d) => d.activityHash === Number(activity_data.activity))[0]?.values.activityCompletions
+                    .basic.value;
                 if (clears !== undefined && clears >= 1) {
                     activity_map.set(activity_data.acitivty_name, {
                         activity: activity_data.acitivty_name,

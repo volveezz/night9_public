@@ -10,22 +10,35 @@ import { RaidButtons } from "../enums/Buttons.js";
 import { getRaidData, getRaidDatabaseInfo, raidAnnounceSystem, raidChallenges, timeConverter, updatePrivateRaidMessage, updateRaidMessage, } from "../functions/raidFunctions.js";
 import { RaidNames } from "../enums/Raids.js";
 import nameCleaner from "../functions/nameClearer.js";
+import { descriptionFormatter } from "../functions/utilities.js";
+import { schedule } from "node-cron";
 export const raidAnnounceSet = new Set();
 RaidEvent.findAll({
     where: {
         [Op.and]: [
             { time: { [Op.gt]: Math.trunc(new Date().getTime() / 1000) } },
-            { time: { [Op.lt]: Math.trunc(Math.trunc(new Date().getTime() / 1000) + 24 * 60 * 60 * 2) } },
+            { time: { [Op.lt]: Math.trunc(Math.trunc(new Date().getTime() / 1000) + 24 * 60 * 60) } },
         ],
     },
 }).then((RaidEvent) => RaidEvent.forEach((raidData) => raidAnnounceSystem(raidData)));
+schedule("0 4 * * *", () => {
+    console.debug(`Run scheduling at ${new Date()}`);
+    RaidEvent.findAll({
+        where: {
+            [Op.and]: [
+                { time: { [Op.gt]: Math.trunc(new Date().getTime() / 1000) } },
+                { time: { [Op.lt]: Math.trunc(Math.trunc(new Date().getTime() / 1000) + 24 * 60 * 60) } },
+            ],
+        },
+    }).then((RaidEvent) => RaidEvent.forEach((raidData) => raidAnnounceSystem(raidData)));
+});
 export default new Command({
     name: "рейд",
     nameLocalizations: {
         "en-US": "raid",
     },
     description: "Создание и управление наборами на рейды",
-    descriptionLocalizations: { "en-US": "Raid party creation and management" },
+    descriptionLocalizations: { "en-US": "Raid creation and management" },
     options: [
         {
             type: ApplicationCommandOptionType.Subcommand,
@@ -84,7 +97,7 @@ export default new Command({
                     name: "время",
                     nameLocalizations: { "en-US": "time" },
                     description: "Укажите время старта. Формат: ЧАС:МИНУТА ДЕНЬ/МЕСЯЦ",
-                    descriptionLocalizations: { "en-US": "Specify LFG start time in format: HH:mm dd/MM" },
+                    descriptionLocalizations: { "en-US": "Specify the start time in the format: HH:mm dd/MM" },
                     autocomplete: true,
                     required: true,
                 },
@@ -93,7 +106,7 @@ export default new Command({
                     name: "описание",
                     nameLocalizations: { "en-US": "description" },
                     description: "Укажите описание набора. Вы можете указать здесь что угодно. Знаки для разметки: \\n \\*",
-                    descriptionLocalizations: { "en-US": "Specify LFG description. You can write anything here. Formatting symbols: \\n \\*" },
+                    descriptionLocalizations: { "en-US": "Provide a description. You can specify anything here. Markdown symbols: \\n \\*" },
                     maxLength: 1000,
                 },
                 {
@@ -124,7 +137,7 @@ export default new Command({
                     name: "требуемых_закрытий",
                     nameLocalizations: { "en-US": "clears_requirement" },
                     description: "Укажите минимальное количество закрытий этого рейда для записи",
-                    descriptionLocalizations: { "en-US": "Specify raid clears requirement of this raid for joining LFG" },
+                    descriptionLocalizations: { "en-US": "Specify minimum number of completions of this raid for join" },
                 },
             ],
         },
@@ -133,7 +146,7 @@ export default new Command({
             name: "изменить",
             nameLocalizations: { "en-US": "edit" },
             description: "Изменение созданного набора",
-            descriptionLocalizations: { "en-US": "Change created LFG" },
+            descriptionLocalizations: { "en-US": "Modify existing raid" },
             options: [
                 {
                     type: ApplicationCommandOptionType.Integer,
@@ -143,7 +156,7 @@ export default new Command({
                     nameLocalizations: { "en-US": "raid_id" },
                     autocomplete: true,
                     description: "Укажите Id редактируемого рейда",
-                    descriptionLocalizations: { "en-US": "Specify the raid id of edited raid" },
+                    descriptionLocalizations: { "en-US": "Specify the raid id of modified raid" },
                 },
                 {
                     type: ApplicationCommandOptionType.String,
@@ -393,7 +406,7 @@ export default new Command({
             if (raidDescription !== null && raidDescription.length < 1024) {
                 embed.spliceFields(2, 0, {
                     name: "Описание",
-                    value: raidDescription.replace(/\\n/g, "\n").replace(/\\\*/g, "\n - "),
+                    value: descriptionFormatter(raidDescription),
                 });
             }
             const mainComponents = [
@@ -574,7 +587,7 @@ export default new Command({
                 const descriptionFieldIndex = raidEmbed.data.fields?.findIndex((field) => field.name === "Описание");
                 const field = {
                     name: `Описание`,
-                    value: newDescription.replace(/\\n/g, "\n").replace(/\\\*/g, "\n - "),
+                    value: descriptionFormatter(newDescription),
                 };
                 if (descriptionFieldIndex !== undefined && descriptionFieldIndex !== -1) {
                     if (newDescription !== " " && newDescription !== "-") {

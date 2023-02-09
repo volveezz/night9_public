@@ -38,7 +38,6 @@ export default {
                 .setStyle(TextInputStyle.Short)
                 .setCustomId(ClanJoinButtons.modalPowerlite)
                 .setPlaceholder("С учетом артефакта")
-                .setValue("15")
                 .setRequired(false);
             const additionalInfo = new TextInputBuilder()
                 .setCustomId(ClanJoinButtons.modalUserInfo)
@@ -46,12 +45,13 @@ export default {
                 .setPlaceholder("по желанию")
                 .setStyle(TextInputStyle.Paragraph)
                 .setRequired(false);
-            const row = new ActionRowBuilder().addComponents(userName);
-            const row1 = new ActionRowBuilder().addComponents(userAge);
-            const row2 = new ActionRowBuilder().addComponents(userMicrophone);
-            const row3 = new ActionRowBuilder().addComponents(userPower);
-            const row4 = new ActionRowBuilder().addComponents(additionalInfo);
-            modal.addComponents(row, row1, row2, row3, row4);
+            modal.setComponents(...[
+                new ActionRowBuilder().addComponents(userName),
+                new ActionRowBuilder().addComponents(userAge),
+                new ActionRowBuilder().addComponents(userMicrophone),
+                new ActionRowBuilder().addComponents(userPower),
+                new ActionRowBuilder().addComponents(additionalInfo),
+            ]);
             await chatInteraction.showModal(modal);
         }
         else if (modalSubmit) {
