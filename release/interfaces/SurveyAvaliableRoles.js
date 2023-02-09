@@ -1,6 +1,6 @@
 export var SurveyAvaliableRoles;
 (function (SurveyAvaliableRoles) {
-    SurveyAvaliableRoles["clanMember"] = "1007814171586474048";
-    SurveyAvaliableRoles["member"] = "1007814171586474044";
+    SurveyAvaliableRoles["clanMember"] = "678945074113019914";
+    SurveyAvaliableRoles["member"] = "678945074113019914";
     SurveyAvaliableRoles["everyone"] = "null";
 })(SurveyAvaliableRoles || (SurveyAvaliableRoles = {}));
