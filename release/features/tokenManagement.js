@@ -22,7 +22,7 @@ async function bungieGrantRequest(row, table, t, retry = false) {
     else {
         if (retry === false) {
             bungieGrantRequest(row, table, t, true);
-            console.error(`[Error code: 1420] For ${row.bungieId}`);
+            console.error(`[Error code: 1420] For ${row.bungieId}`, request);
         }
         else
             console.error(`[Error code: 1231] For ${row.bungieId}`, request);

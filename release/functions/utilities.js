@@ -3,7 +3,7 @@ export function isSnowflake(value) {
     return value.match(discordSnowflakeRegex) !== null;
 }
 export function descriptionFormatter(text) {
-    return text.replace(/(\\n)|(\*)/g, (_match, firstGroup, secondGroup) => (firstGroup ? "\n" : secondGroup ? "\n — " : _match)).trim();
+    return text.replace(/(\\n)|(\\\*)/g, (_match, firstGroup, secondGroup) => (firstGroup ? "\n" : secondGroup ? "\n — " : _match)).trim();
 }
 export async function timer(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
