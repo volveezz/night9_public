@@ -1,6 +1,6 @@
 import { EmbedBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, } from "discord.js";
 import { Command } from "../structures/command.js";
-import { database, AuthData, RaidEvent } from "../handlers/sequelize.js";
+import { database, RaidEvent } from "../handlers/sequelize.js";
 import { completedRaidsData, userTimezones } from "../features/memberStatisticsHandler.js";
 import { ids, guildId } from "../configs/ids.js";
 import { Op, Sequelize } from "sequelize";
@@ -21,7 +21,7 @@ RaidEvent.findAll({
         ],
     },
 }).then((RaidEvent) => RaidEvent.forEach((raidData) => raidAnnounceSystem(raidData)));
-schedule("0 4 * * *", () => {
+schedule("0 17 * * *", () => {
     console.debug(`Run scheduling at ${new Date()}`);
     RaidEvent.findAll({
         where: {
@@ -347,20 +347,18 @@ export default new Command({
     run: async ({ client, interaction, args }) => {
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const subCommand = args.getSubcommand(true);
-        const member = (interaction.member ? interaction.member : client.getCachedGuild().members.cache.get(interaction.user.id));
-        const guild = (client.getCachedGuild() || interaction.guild || client.guilds.cache.get(guildId));
+        const guild = (client.getCachedGuild() ||
+            interaction.guild ||
+            client.guilds.cache.get(guildId) ||
+            (await client.guilds.fetch(guildId)));
+        const member = (interaction.member ? interaction.member : guild.members.cache.get(interaction.user.id)) ||
+            (await guild.members.fetch(interaction.user.id));
         if (subCommand === "создать") {
             const raid = args.getString("рейд", true);
             const time = args.getString("время", true);
             const raidDescription = args.getString("описание");
             const difficulty = (args.getInteger("сложность") ?? 1);
             const reqClears = args.getInteger("требуемых_закрытий") ?? 0;
-            const data = parseInt(time) < 1000000
-                ? AuthData.findOne({
-                    where: { discordId: member.id },
-                    attributes: ["timezone"],
-                })
-                : null;
             const raidData = getRaidData(raid, difficulty);
             const parsedTime = timeConverter(time, userTimezones.get(interaction.user.id));
             if (parsedTime <= Math.trunc(new Date().getTime() / 1000)) {
