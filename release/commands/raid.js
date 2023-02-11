@@ -21,7 +21,7 @@ RaidEvent.findAll({
         ],
     },
 }).then((RaidEvent) => RaidEvent.forEach((raidData) => raidAnnounceSystem(raidData)));
-schedule("0 17 * * *", () => {
+schedule("0 23 * * *", () => {
     console.debug(`Run scheduling at ${new Date()}`);
     RaidEvent.findAll({
         where: {

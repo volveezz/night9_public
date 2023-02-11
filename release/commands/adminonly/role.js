@@ -1,5 +1,6 @@
 import { ApplicationCommandOptionType, EmbedBuilder, GuildMember } from "discord.js";
 import { Command } from "../../structures/command.js";
+import colors from "../../configs/colors.js";
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 export default new Command({
     name: "role",
@@ -17,7 +18,12 @@ export default new Command({
             description: "Установить определенную роль пользователю",
             options: [
                 { type: ApplicationCommandOptionType.Role, name: "role", description: "Устанавливаемая роль", required: true },
-                { type: ApplicationCommandOptionType.User, name: "user", description: "Пользователь, которому устанавливаем роль", required: true },
+                {
+                    type: ApplicationCommandOptionType.User,
+                    name: "user",
+                    description: "Пользователь, которому устанавливаем роль",
+                    required: true,
+                },
             ],
         },
     ],
@@ -35,17 +41,16 @@ export default new Command({
                 for (let n = 0; n < members.size; n++) {
                     const member = members.at(n);
                     i++;
-                    member.roles.remove(role.id, "Cleaning users role").catch((e) => {
+                    member.roles.remove(role.id, "Cleaning user role").catch((e) => {
                         i--;
                         if (e.code !== 50013) {
-                            console.error(e);
+                            console.error(`[Error code: 1436]`, e);
                         }
                     });
-                    await timer(i * 366);
+                    await timer(i * 450);
                 }
-                const embed = new EmbedBuilder().setColor("Green").setDescription(`Роль ${role} была удалена у ${i} участников`);
-                await deferredReply;
-                interaction.editReply({ embeds: [embed] });
+                const embed = new EmbedBuilder().setColor(colors.success).setDescription(`Роль ${role} была удалена у ${i} участников`);
+                (await deferredReply) && interaction.editReply({ embeds: [embed] });
                 return;
             }
             case "set": {
@@ -54,7 +59,7 @@ export default new Command({
                     const u = user.roles
                         .set([role.id])
                         .then(async (m) => {
-                        embed.setColor("Green").setDescription(`Роль ${role} установлена ${m}`);
+                        embed.setColor(colors.success).setDescription(`Роль ${role} установлена ${m}`);
                         await deferredReply;
                         interaction.editReply({ embeds: [embed] });
                         return true;
@@ -64,11 +69,14 @@ export default new Command({
                             return false;
                         }
                         else {
-                            console.log(e);
+                            console.log(`[Error code: 1435]`, e);
                         }
                     });
                     if ((await u) === false) {
-                        throw { name: "Ошибка", description: `Недостаточно прав для установки роли ${role} пользователю ${user}`, falseAlarm: true };
+                        throw {
+                            name: "Ошибка",
+                            description: `Недостаточно прав для установки роли ${role} пользователю ${user}`,
+                        };
                     }
                 }
                 break;

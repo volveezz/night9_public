@@ -7,6 +7,7 @@ import { CachedDestinyRecordDefinition } from "../../functions/manifestHandler.j
 import { activityRoles, raidRoles, statisticsRoles, titleCategory, triumphsCategory } from "../../configs/roles.js";
 import { completedRaidsData, longOffline, userTimezones } from "../../features/memberStatisticsHandler.js";
 import convertSeconds from "../../functions/utilities.js";
+import NightRoleCategory from "../../enums/RoleCategory.js";
 export default new Command({
     name: "db",
     description: "Database",
@@ -84,26 +85,26 @@ export default new Command({
                                 },
                                 {
                                     name: "Stats",
-                                    value: 1,
+                                    value: NightRoleCategory.Stats,
                                 },
                                 {
                                     name: "Titles",
-                                    value: 3,
+                                    value: NightRoleCategory.Titles,
                                 },
                                 {
                                     name: "Triumphs",
-                                    value: 4,
+                                    value: NightRoleCategory.Triumphs,
                                 },
                                 {
                                     name: "Activity",
-                                    value: 5,
+                                    value: NightRoleCategory.Activity,
                                 },
                             ],
                         },
                         {
                             type: ApplicationCommandOptionType.Integer,
                             name: "unique",
-                            description: "unique limit",
+                            description: "Unique limit",
                             minValue: -99,
                             maxValue: 1000,
                         },
@@ -112,17 +113,17 @@ export default new Command({
                 {
                     type: ApplicationCommandOptionType.Subcommand,
                     name: "fetch",
-                    description: "FETCH",
+                    description: "Fetch",
                 },
                 {
                     type: ApplicationCommandOptionType.Subcommand,
                     name: "remove",
-                    description: "REMOVE",
+                    description: "Remove",
                     options: [
                         {
                             type: ApplicationCommandOptionType.String,
                             name: "removeroleid",
-                            description: "roleId or HASH",
+                            description: "Id of role or it hash",
                             required: true,
                         },
                     ],
@@ -130,14 +131,12 @@ export default new Command({
             ],
         },
     ],
-    run: async ({ client, interaction: CommandInteraction }) => {
-        const interaction = CommandInteraction;
-        const { options, member: APIMember } = interaction;
-        const member = APIMember;
+    run: async ({ client, interaction, args }) => {
+        const member = interaction.member || client.getCachedMembers().get(interaction.user.id);
         const deferredReply = interaction.deferReply({ ephemeral: true });
-        const Subcommand = options.getSubcommand();
-        const id = options.getString("id") ? (options.getString("id") === "me" ? member.id : options.getString("id", true)) : [];
-        switch (Subcommand) {
+        const subcommand = args.getSubcommand();
+        const id = args.getString("id") ? (args.getString("id") === "me" ? member.id : args.getString("id", true)) : [];
+        switch (subcommand) {
             case "select": {
                 const middle = client.uptime;
                 const request = await AuthData.findOne({
@@ -246,9 +245,9 @@ export default new Command({
                 return;
             }
             case "add": {
-                const hash = options.getInteger("hash", true);
-                const roleId = options.getString("roleid");
-                const unique = options.getInteger("unique") ?? -99;
+                const hash = args.getInteger("hash", true);
+                const roleId = args.getString("roleid");
+                const unique = args.getInteger("unique") ?? -99;
                 if (!CachedDestinyRecordDefinition[hash])
                     throw { name: "Триумф под таким хешем не найден", description: `Hash: ${hash}` };
                 const db_query = roleId !== null
@@ -263,7 +262,11 @@ export default new Command({
                         ? "⚜️" + CachedDestinyRecordDefinition[hash].titleInfo.titlesByGender.Male
                         : CachedDestinyRecordDefinition[hash].titleInfo.titlesByGender.Male
                     : CachedDestinyRecordDefinition[hash].displayProperties.name;
-                const category = db_query ? db_query.category : title ? 3 : options.getInteger("category") ?? 4;
+                const category = db_query
+                    ? db_query.category
+                    : title
+                        ? NightRoleCategory.Titles
+                        : args.getInteger("category") ?? NightRoleCategory.Triumphs;
                 const embed = new EmbedBuilder().setColor(colors.default);
                 if (db_query) {
                     embed.setTitle(`Дополнение существующей авто-роли`);
@@ -284,7 +287,7 @@ export default new Command({
                 }
                 embed.addFields({
                     name: "Категория",
-                    value: String(db_query?.category ?? category ?? 3),
+                    value: String(db_query?.category ?? category ?? NightRoleCategory.Titles),
                     inline: true,
                 });
                 if (unique && unique >= 1) {
@@ -324,8 +327,7 @@ export default new Command({
                     if (!collected.deferred)
                         collected.deferUpdate();
                     if (collected.customId === "db_roles_add_cancel") {
-                        await deferredReply;
-                        interaction.editReply({ components: [], embeds: [], content: "Отменено" });
+                        (await deferredReply) && interaction.editReply({ components: [], embeds: [], content: "Отменено" });
                         collector.stop("Canceled");
                     }
                     else if (collected.customId === "db_roles_add_confirm") {
@@ -335,13 +337,13 @@ export default new Command({
                                 name: guildableTitle ? title_name.slice(1) : title_name,
                                 reason: "Creating auto-role",
                                 color: colors.default,
-                                position: interaction.guild.roles.cache.get(category === 5
+                                position: interaction.guild.roles.cache.get(category === NightRoleCategory.Activity
                                     ? activityRoles.category
-                                    : category === 4
+                                    : category === NightRoleCategory.Triumphs
                                         ? triumphsCategory
-                                        : category === 3
+                                        : category === NightRoleCategory.Titles
                                             ? titleCategory
-                                            : category === 1
+                                            : category === NightRoleCategory.Stats
                                                 ? statisticsRoles.category
                                                 : raidRoles.roles[0].roleId)?.position ?? undefined,
                             });
@@ -471,7 +473,7 @@ export default new Command({
                 return;
             }
             case "remove": {
-                const removeroleid = options.getString("removeroleid", true);
+                const removeroleid = args.getString("removeroleid", true);
                 const t = await database.transaction();
                 const selectQuery = await AutoRoleData.findOne({
                     where: { [Op.or]: [{ roleId: removeroleid }, { triumphRequirement: removeroleid }] },

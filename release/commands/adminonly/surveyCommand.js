@@ -21,7 +21,42 @@ export default new Command({
             type: ApplicationCommandOptionType.Subcommand,
             name: "reset",
             description: "Resets survey status",
-            options: [{ type: ApplicationCommandOptionType.String, name: "discordid", description: "Discord Id of target for resetting" }],
+            options: [
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "discordid",
+                    description: "Discord Id of target for resetting",
+                    required: true,
+                },
+            ],
+        },
+        {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: "add",
+            description: "adds new value to survey database",
+            options: [
+                {
+                    type: ApplicationCommandOptionType.Integer,
+                    name: "questionindex",
+                    description: "questionIndex",
+                    required: true,
+                    minValue: 0,
+                    maxValue: 1000,
+                },
+                {
+                    type: ApplicationCommandOptionType.Integer,
+                    name: "answerindex",
+                    description: "answerIndex",
+                    required: true,
+                    minValue: 0,
+                    maxValue: 1000,
+                },
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "answervalue",
+                    description: "answerValue",
+                },
+            ],
         },
     ],
     run: async ({ interaction, args, client }) => {
@@ -92,7 +127,20 @@ export default new Command({
                 await SurveyAnswer.deleteOne({ where: { discordId } });
                 reply.push("Database was wiped");
             }
-            (await deferredReply) && interaction.editReply({ content: `Data was wiped: ${reply || "nothing"}` });
+            (await deferredReply) && interaction.editReply({ content: `Data was wiped: ${reply.join(", ") || "nothing"}` });
+        }
+        else if (command === "add") {
+            const defferedReply = interaction.deferReply({ ephemeral: true });
+            const discordId = args.getInteger("discordid", true);
+            const questionIndex = args.getInteger("questionindex", true);
+            const answerIndex = args.getInteger("answerindex", true);
+            const answerValue = args.getString("answervalue") || "plain";
+            const database = await SurveyAnswer.findOne({ where: { discordId } });
+            if (!database)
+                throw { name: "User not found" };
+            database.answers.push({ questionIndex, answerIndex, answerValue });
+            await database.save();
+            return (await defferedReply) && interaction.editReply({ content: `User <@${discordId}> updated` });
         }
         else {
             interaction.reply({ content: "Wrong command", ephemeral: true });

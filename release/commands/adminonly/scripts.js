@@ -3,6 +3,8 @@ import colors from "../../configs/colors.js";
 import { statusRoles } from "../../configs/roles.js";
 import { AuthData, UserActivityData } from "../../handlers/sequelize.js";
 import { Command } from "../../structures/command.js";
+import { SurveyAnswer } from "../../handlers/mongodb.js";
+import { timer } from "../../functions/utilities.js";
 export default new Command({
     name: "scripts",
     description: "script system",
@@ -85,6 +87,28 @@ export default new Command({
                     },
                 ];
                 (await defferedReply) && interaction.editReply({ embeds: [embed], components });
+                return;
+            }
+            case "fix": {
+                const users = await SurveyAnswer.find({});
+                async function removeDuplicateAnswers() {
+                    const allAnswersIds = [];
+                    const outputAnswers = [];
+                    for await (const user of users) {
+                        const uniqueAnswers = [];
+                        for await (const answer of user.answers) {
+                            if (answer._id && !allAnswersIds.includes(answer._id.toString())) {
+                                uniqueAnswers.push(answer);
+                                allAnswersIds.push(answer._id.toString());
+                            }
+                        }
+                        uniqueAnswers.sort((a, b) => a.questionIndex - b.questionIndex);
+                        outputAnswers.push({ discordId: user.discordId, username: user.username, answers: uniqueAnswers });
+                        await timer(50);
+                    }
+                    console.log("Duplicate answers removed successfully!");
+                }
+                removeDuplicateAnswers().catch(console.error);
                 return;
             }
             default:

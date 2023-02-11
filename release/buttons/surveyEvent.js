@@ -28,7 +28,7 @@ export async function syncVotesWithDatabase() {
                     await newEntry.save();
                 }
                 else {
-                    await SurveyAnswer.updateOne({ answers, where: { discordId } });
+                    await SurveyAnswer.updateOne({ discordId }, { $set: { answers } });
                 }
                 surveyResults.delete(discordId);
             }
