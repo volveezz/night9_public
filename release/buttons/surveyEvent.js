@@ -14,6 +14,7 @@ export async function syncVotesWithDatabase() {
         isSyncStarted = false;
         setTimeout(async () => {
             for (const [discordId, answers] of surveyResults) {
+                surveyResults.delete(discordId);
                 const userAnswersData = await SurveyAnswer.findOne({ discordId }, {
                     _id: 0,
                     __v: 0,
@@ -30,7 +31,6 @@ export async function syncVotesWithDatabase() {
                 else {
                     await SurveyAnswer.updateOne({ discordId }, { $set: { answers } });
                 }
-                surveyResults.delete(discordId);
             }
             isSyncStarted = true;
         }, 1000 * 60 * 30);
@@ -46,21 +46,11 @@ export default {
         const surveyQuestion = parseInt(interactionCustomIdParts[1]);
         const answerIndex = parseInt(interactionCustomIdParts[2]);
         const answerValue = interactionCustomIdParts[3];
-        const userVotes = surveyResults.get(interaction.user.id) ||
-            (await SurveyAnswer.findOne({ where: { discordId: interaction.user.id } }, {
-                _id: 0,
-                __v: 0,
-            }))?.answers ||
-            [] ||
-            [];
-        userVotes.push({ questionIndex: surveyQuestion, answerIndex, answerValue });
-        surveyResults.set(interaction.user.id, userVotes);
-        syncVotesWithDatabase();
         if (answerValue === "modal") {
             const modalData = surveyModalData.find((data) => data.customId === `surveyModal_${surveyQuestion}_${answerIndex}`) ||
                 surveyModalData.find((data) => data.customId.startsWith(`surveyModal_${surveyQuestion}`)) || {
                 title: "Объясните ваш вариант ответа",
-                customId: `surveyModal_${surveyQuestion}_${answerIndex}_not_found`,
+                customId: `surveyModal_${surveyQuestion}_${answerIndex}_notfound`,
                 fields: [
                     new TextInputBuilder()
                         .setLabel("Ответ")
@@ -76,6 +66,17 @@ export default {
             lastestSurveyModalsIds.set(interaction.user.id, interaction.customId);
             return interaction.showModal(modal);
         }
+        const userVotes = surveyResults.get(interaction.user.id) ||
+            (await SurveyAnswer.findOne({ discordId: interaction.user.id }, {
+                _id: 0,
+                __v: 0,
+            }))?.answers ||
+            [];
+        userVotes.push({ questionIndex: surveyQuestion, answerIndex, answerValue });
+        if (surveyQuestion >= 3 && surveyQuestion <= 5)
+            userVotes.sort((a, b) => a.questionIndex - b.questionIndex);
+        surveyResults.set(interaction.user.id, userVotes);
+        syncVotesWithDatabase();
         const surverMessageButtonRows = interaction.message.components.map((actionRow) => {
             const surveyMessageButtons = actionRow.components.map((component) => {
                 if (component.type === ComponentType.Button) {
@@ -97,7 +98,7 @@ export default {
                 return { components, type: ComponentType.ActionRow };
             }),
         });
-        const { embeds, components } = surveyQuestionGenerator(surveyQuestion + 1, interaction.user.id);
+        const { embeds, components } = surveyQuestionGenerator((surveyQuestion === 5 ? userVotes[userVotes.length - 1].questionIndex : surveyQuestion) + 1, interaction.user.id);
         (interaction.channel || interaction.user.dmChannel || (await interaction.user.createDM())).send({ embeds, components });
     },
 };

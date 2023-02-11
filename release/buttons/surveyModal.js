@@ -4,7 +4,8 @@ import colors from "../configs/colors.js";
 import { SurveyButtons } from "../enums/Buttons.js";
 import { surveyQuestionGenerator } from "../functions/surveyQuestionGenerator.js";
 import { surveyQuestions } from "../configs/survey.js";
-import { lastestSurveyModalsIds } from "./surveyEvent.js";
+import { lastestSurveyModalsIds, surveyResults, syncVotesWithDatabase } from "./surveyEvent.js";
+import { SurveyAnswer } from "../handlers/mongodb.js";
 export default {
     name: "surveyModal",
     run: async ({ client, modalSubmit: interaction }) => {
@@ -21,6 +22,24 @@ export default {
             console.error(`[Error code: 1430]`, guild, modalChannel, member);
             throw { name: "Критическая ошибка" };
         }
+        const surveyQuestion = parseInt(customIdArgs[1]) ?? surveyQuestions.length - 2;
+        const userVotes = surveyResults.get(interaction.user.id) ||
+            (await SurveyAnswer.findOne({ discordId: interaction.user.id }, {
+                _id: 0,
+                __v: 0,
+            }))?.answers ||
+            [] ||
+            [];
+        const lastestSurveyModalsIdsParts = lastestSurveyId?.split("_") || customIdArgs;
+        userVotes.push({
+            questionIndex: parseInt(lastestSurveyModalsIdsParts[1]),
+            answerIndex: parseInt(lastestSurveyModalsIdsParts[2] || "0") || 0,
+            answerValue: lastestSurveyModalsIdsParts[3] || "modal",
+        });
+        if (surveyQuestion >= 3 && surveyQuestion <= 5)
+            userVotes.sort((a, b) => a.questionIndex - b.questionIndex);
+        surveyResults.set(interaction.user.id, userVotes);
+        syncVotesWithDatabase();
         const embed = new EmbedBuilder()
             .setAuthor({ name: `${member.displayName} — ${member.id}`, iconURL: member.displayAvatarURL() })
             .setTitle(`${interaction.customId}`)
@@ -57,7 +76,6 @@ export default {
                 }),
             });
         (await deferredInteraction) && interaction.editReply({ embeds: [modalConfirm] });
-        const surveyQuestion = parseInt(customIdArgs[1]) ?? surveyQuestions.length - 2;
         const { embeds, components } = surveyQuestionGenerator(surveyQuestion + 1);
         (interaction.user.dmChannel || (await interaction.user.createDM())).send({ embeds, components });
     },

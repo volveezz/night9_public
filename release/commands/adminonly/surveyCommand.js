@@ -35,6 +35,7 @@ export default new Command({
             name: "add",
             description: "adds new value to survey database",
             options: [
+                { type: ApplicationCommandOptionType.String, name: "discordid", description: "discordid", required: true },
                 {
                     type: ApplicationCommandOptionType.Integer,
                     name: "questionindex",
@@ -116,7 +117,7 @@ export default new Command({
         else if (command === "reset") {
             const deferredReply = interaction.deferReply({ ephemeral: true });
             const discordId = args.getString("discordid", true);
-            const database = await SurveyAnswer.findOne({ where: { discordId } });
+            const database = await SurveyAnswer.findOne({ discordId });
             const cachedDatabase = surveyResults.get(discordId);
             const reply = [];
             if (cachedDatabase) {
@@ -124,8 +125,9 @@ export default new Command({
                 reply.push("Cached data was wiped");
             }
             if (database) {
-                await SurveyAnswer.deleteOne({ where: { discordId } });
-                reply.push("Database was wiped");
+                await SurveyAnswer.deleteOne({ discordId }).then((c) => {
+                    reply.push(`${c.acknowledged ? "Success" : "Error"}, ${c.deletedCount} deleted`);
+                });
             }
             (await deferredReply) && interaction.editReply({ content: `Data was wiped: ${reply.join(", ") || "nothing"}` });
         }
@@ -135,7 +137,7 @@ export default new Command({
             const questionIndex = args.getInteger("questionindex", true);
             const answerIndex = args.getInteger("answerindex", true);
             const answerValue = args.getString("answervalue") || "plain";
-            const database = await SurveyAnswer.findOne({ where: { discordId } });
+            const database = await SurveyAnswer.findOne({ discordId });
             if (!database)
                 throw { name: "User not found" };
             database.answers.push({ questionIndex, answerIndex, answerValue });

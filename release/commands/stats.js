@@ -1,7 +1,6 @@
-import { ButtonBuilder, EmbedBuilder, ApplicationCommandOptionType, ChatInputCommandInteraction, ButtonStyle, ComponentType, ApplicationCommandType, } from "discord.js";
+import { ButtonBuilder, EmbedBuilder, ChatInputCommandInteraction, ButtonStyle, ComponentType, ApplicationCommandType, } from "discord.js";
 import { Command } from "../structures/command.js";
 import { AuthData, UserActivityData } from "../handlers/sequelize.js";
-import fetch from "node-fetch";
 import { CachedDestinyRaceDefinition } from "../functions/manifestHandler.js";
 import { fetchRequest } from "../functions/fetchRequest.js";
 import { StatsButton } from "../enums/Buttons.js";
@@ -24,13 +23,6 @@ export default new Command({
         type: ApplicationCommandType.Message,
         nameLocalizations: { "en-US": "Information", "en-GB": "Information" },
     },
-    options: [
-        {
-            type: ApplicationCommandOptionType.String,
-            name: "bungiename",
-            description: "Введите BungieName игрока для поиска",
-        },
-    ],
     run: async ({ interaction: commandInteraction, userMenuInteraction: userInteraction, messageMenuInteraction: messageMenuInteraction, }) => {
         const interaction = messageMenuInteraction || userInteraction || commandInteraction;
         await interaction.deferReply({ ephemeral: true });
@@ -42,50 +34,6 @@ export default new Command({
             : interaction.targetId;
         const targetName = optionId ? [] : interaction.guild.members.cache.get(targetId)?.displayName;
         const targetAvatar = optionId ? undefined : interaction.guild.members.cache.get(targetId)?.displayAvatarURL();
-        if (optionId) {
-            const bName = optionId.split("#");
-            if (bName.length === 2) {
-                const response = await fetch("http://bungie.net/Platform/User/Search/GlobalName/0/", {
-                    method: "POST",
-                    headers: {
-                        "X-API-KEY": process.env.XAPI,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ displayNamePrefix: bName[0] }),
-                }).then(async (d) => {
-                    return (await d.json()).Response;
-                });
-                const lookingUser = response.searchResults
-                    .find((result) => result.bungieGlobalDisplayName.startsWith(bName[0]) && result.bungieGlobalDisplayNameCode === parseInt(bName[1]))
-                    ?.destinyMemberships.find((membership) => membership.crossSaveOverride === membership.membershipType || membership.membershipType === 3);
-                if (!lookingUser)
-                    throw { name: "Пользователь не найден", decsription: `Пользователь \`${bName[0] + `#` + bName[1]}\` не был найден` };
-                const { membershipId: bungieId, membershipType: platform, bungieGlobalDisplayName: displayName } = lookingUser;
-                if (!displayName || !bungieId)
-                    throw { name: `${optionId} не найден` };
-                const embed = new EmbedBuilder()
-                    .setAuthor({
-                    name: `Статистика ${displayName}`,
-                })
-                    .setColor(colors.success)
-                    .setTimestamp()
-                    .setFooter({ text: `BId: ${bungieId}` });
-                const reportPlatform = platform === 3 ? "pc" : platform === 2 ? "ps" : platform === 1 ? "xb" : "stadia";
-                embed.setColor(colors.success).addFields([
-                    {
-                        name: "Ссылки",
-                        value: `[Trials.Report](https://trials.report/report/${platform}/${bungieId}), [Raid.Report](https://raid.report/${reportPlatform}/${bungieId}), [Crucible.Report](https://crucible.report/report/${platform}/${bungieId}), [Strike.Report](https://strike.report/${reportPlatform}/${bungieId}), [DestinyTracker](https://destinytracker.com/destiny-2/profile/${platform === 3 ? "steam" : platform === 2 ? "psn" : platform === 1 ? "xbl" : "stadia"}/${bungieId}/overview), [WastedonDestiny](https://wastedondestiny.com/${bungieId})`,
-                    },
-                ]);
-                return interaction.editReply({ embeds: [embed] });
-            }
-            else {
-                throw {
-                    name: `Проверьте правильность BungieName (${bName})`,
-                    description: `В корректном BungieName обязана присутстовать левая и правые части разделенные знаком #`,
-                };
-            }
-        }
         const embed = new EmbedBuilder()
             .setAuthor({
             name: `Статистика ${targetName}`,

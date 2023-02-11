@@ -4,7 +4,7 @@ import { statusRoles } from "../../configs/roles.js";
 import { AuthData, UserActivityData } from "../../handlers/sequelize.js";
 import { Command } from "../../structures/command.js";
 import { SurveyAnswer } from "../../handlers/mongodb.js";
-import { timer } from "../../functions/utilities.js";
+import { client } from "../../index.js";
 export default new Command({
     name: "scripts",
     description: "script system",
@@ -89,27 +89,42 @@ export default new Command({
                 (await defferedReply) && interaction.editReply({ embeds: [embed], components });
                 return;
             }
-            case "fix": {
-                const users = await SurveyAnswer.find({});
-                async function removeDuplicateAnswers() {
-                    const allAnswersIds = [];
-                    const outputAnswers = [];
-                    for await (const user of users) {
-                        const uniqueAnswers = [];
-                        for await (const answer of user.answers) {
-                            if (answer._id && !allAnswersIds.includes(answer._id.toString())) {
-                                uniqueAnswers.push(answer);
-                                allAnswersIds.push(answer._id.toString());
-                            }
-                        }
-                        uniqueAnswers.sort((a, b) => a.questionIndex - b.questionIndex);
-                        outputAnswers.push({ discordId: user.discordId, username: user.username, answers: uniqueAnswers });
-                        await timer(50);
+            case "resendsurvey": {
+                const clanMembers = client.getCachedMembers().filter((member) => member.roles.cache.has(statusRoles.clanmember));
+                const answersDatabase = await SurveyAnswer.find({});
+                const meetRequirements = answersDatabase
+                    .map((database) => {
+                    if (clanMembers.has(database.discordId) &&
+                        (!database.answers.find((answer) => answer.questionIndex === 3) ||
+                            !database.answers.find((answer) => answer.questionIndex === 4) ||
+                            !database.answers.find((answer) => answer.questionIndex === 5))) {
+                        return database.discordId;
                     }
-                    console.log("Duplicate answers removed successfully!");
-                }
-                removeDuplicateAnswers().catch(console.error);
-                return;
+                    else {
+                        return null;
+                    }
+                })
+                    .filter((v) => v !== null);
+                if (!meetRequirements || !meetRequirements[0] || meetRequirements.length === 0)
+                    return;
+                const embed = new EmbedBuilder()
+                    .setColor(colors.warning)
+                    .setTitle(`Оповещение об ошибке`)
+                    .setDescription(`Недавно вы проходили опрос по серверу и клану - в нем была обнаружена ошибка.\nЭта ошибка скрыла несколько вопросов при прохождении.\n\nПожалуйста, нажмите на кнопку ниже и пройдите оставшиеся 3 вопроса.\nВ качестве компенсации за допущенную ошибку предоставляем вам возможность получить уникальную роль до конца сезона`);
+                const components = [
+                    {
+                        type: ComponentType.ActionRow,
+                        components: [
+                            new ButtonBuilder().setCustomId("startSurvey_again").setStyle(ButtonStyle.Success).setLabel("Оставшиеся вопросы"),
+                            new ButtonBuilder().setCustomId("sorryGift").setStyle(ButtonStyle.Success).setLabel("Получить роль"),
+                        ],
+                    },
+                ];
+                meetRequirements.forEach(async (id) => {
+                    (await (client.getCachedMembers().get(id) ||
+                        client.users.cache.get(id) ||
+                        (await client.getCachedGuild().members.fetch(id))).createDM()).send({ embeds: [embed], components });
+                });
             }
             default:
                 await defferedReply;
