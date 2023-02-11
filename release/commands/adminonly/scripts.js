@@ -125,10 +125,10 @@ export default new Command({
                         client.users.cache.get(id) ||
                         (await client.getCachedGuild().members.fetch(id))).createDM()).send({ embeds: [embed], components });
                 });
+                return;
             }
             default:
-                await defferedReply;
-                interaction.editReply("Base response");
+                (await defferedReply) && interaction.editReply("Base response");
                 break;
         }
     },
