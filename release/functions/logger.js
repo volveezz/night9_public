@@ -9,6 +9,7 @@ import { client } from "../index.js";
 import { AuthData, UserActivityData, RaidEvent } from "../handlers/sequelize.js";
 import { RaidButtons } from "../enums/Buttons.js";
 import { completedPhases } from "./activityCompletionChecker.js";
+import convertSeconds from "./utilities.js";
 const pgcrIds = new Set();
 export async function logClientDmMessages(member, text, id, interaction) {
     const dmLogChannel = interaction ? null : client.getCachedGuild().channels.cache.get(ids.dmMsgsChnId);
@@ -174,7 +175,7 @@ export async function activityReporter(pgcrId) {
                             name: "Затраченное время на этапы",
                             value: `${encountersData
                                 ?.map((encounter) => {
-                                return `⁣　⁣${encounter.phaseIndex}. <t:${encounter.start}:t> - <t:${encounter.end}:t>`;
+                                return `⁣　⁣${encounter.phaseIndex}. <t:${Math.floor(encounter.start / 1000)}:t> - <t:${Math.floor(encounter.end / 1000)}:t>, **${convertSeconds(Math.floor(encounter.end / 1000 - encounter.start / 1000))}**`;
                             })
                                 .join("\n")}`,
                         },

@@ -81,7 +81,7 @@ export async function activityCompletionChecker({ platform, bungieId, accessToke
                                 let alreadyCompletedPhases = completedPhases.get(bungieId) || [
                                     {
                                         phase: updatedMilestoneActivity.phases[phaseIndex].phaseHash,
-                                        phaseIndex,
+                                        phaseIndex: phaseIndex + 1,
                                         start: startTime,
                                         end: -1,
                                     },
@@ -91,16 +91,19 @@ export async function activityCompletionChecker({ platform, bungieId, accessToke
                                     phase.end = new Date().getTime();
                                     alreadyCompletedPhases.splice(alreadyCompletedPhases.findIndex((ph) => ph.phase === updatedMilestoneActivity.phases[phaseIndex].phaseHash), 1, { ...phase });
                                     if (updatedMilestoneActivity.phases[phaseIndex + 1] !== undefined &&
-                                        updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash !== undefined)
+                                        updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash !== undefined) {
                                         alreadyCompletedPhases.push({
                                             phase: updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash,
-                                            phaseIndex: phaseIndex + 1,
+                                            phaseIndex: phaseIndex + 2,
                                             start: phase.end,
                                             end: -1,
                                         });
-                                    console.debug(`DEBUG3`, {
-                                        alreadyCompletedPhases,
-                                    });
+                                    }
+                                    else {
+                                        currentlyRuning.delete(id);
+                                        console.debug(`DEBUG9 | Activity checker ended due completion of actvitiy`);
+                                    }
+                                    console.debug(`DEBUG3 Index: ${phaseIndex}`, alreadyCompletedPhases);
                                     completedPhases.set(bungieId, alreadyCompletedPhases);
                                     break;
                                 }
