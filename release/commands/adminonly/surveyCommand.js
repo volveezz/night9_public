@@ -133,7 +133,7 @@ export default new Command({
         }
         else if (command === "add") {
             const defferedReply = interaction.deferReply({ ephemeral: true });
-            const discordId = args.getInteger("discordid", true);
+            const discordId = args.getString("discordid", true);
             const questionIndex = args.getInteger("questionindex", true);
             const answerIndex = args.getInteger("answerindex", true);
             const answerValue = args.getString("answervalue") || "plain";

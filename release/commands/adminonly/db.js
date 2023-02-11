@@ -1,4 +1,4 @@
-import { EmbedBuilder, ButtonStyle, ApplicationCommandOptionType, ButtonBuilder, ComponentType, } from "discord.js";
+import { EmbedBuilder, ButtonStyle, ApplicationCommandOptionType, ButtonBuilder, ComponentType } from "discord.js";
 import { AuthData, database, UserActivityData, AutoRoleData } from "../../handlers/sequelize.js";
 import { Op } from "sequelize";
 import { Command } from "../../structures/command.js";

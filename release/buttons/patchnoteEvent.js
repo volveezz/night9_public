@@ -14,7 +14,10 @@ export default {
                     {
                         type: ComponentType.ActionRow,
                         components: [
-                            new ButtonBuilder().setCustomId(PatchnoteButtons.sendToPublic).setStyle(ButtonStyle.Success).setLabel("Опубликовать для всех"),
+                            new ButtonBuilder()
+                                .setCustomId(PatchnoteButtons.sendToPublic)
+                                .setStyle(ButtonStyle.Success)
+                                .setLabel("Опубликовать для всех"),
                         ],
                     },
                 ];

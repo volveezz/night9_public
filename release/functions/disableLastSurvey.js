@@ -4,7 +4,7 @@ export async function disableLastSurvey(userId) {
     const user = client.getCachedMembers().get(userId) || client.users.cache.get(userId) || (await client.users.fetch(userId));
     const dmChannel = user.dmChannel || (await user.createDM());
     const messages = (await dmChannel.messages.fetch({ limit: 10 })).filter((a) => a.author.bot);
-    const lastSurvey = messages.find((message) => message.embeds && message.embeds[0].color === 13442767 && message.components?.[0] !== undefined);
+    const lastSurvey = messages.find((message) => message.embeds && message.embeds?.[0]?.color === 13442767 && message.components?.[0] !== undefined);
     if (lastSurvey) {
         const surverMessageButtonRows = lastSurvey.components.map((actionRow) => {
             const surveyMessageButtons = actionRow.components.map((component) => {

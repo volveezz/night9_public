@@ -14,7 +14,11 @@ export default {
                 {
                     const initialColor = member.roles.highest.color;
                     const embed = new EmbedBuilder().setColor(colors.default).setTitle("Введите HEX-код цвета роли");
-                    const collector = channel.createMessageCollector({ filter: (m) => m.author.id === interaction.user.id, max: 1, time: 60 * 1000 });
+                    const collector = channel.createMessageCollector({
+                        filter: (m) => m.author.id === interaction.user.id,
+                        max: 1,
+                        time: 60 * 1000,
+                    });
                     interaction.reply({ embeds: [embed], ephemeral: true });
                     collector.on("collect", async (m) => {
                         m.delete();
@@ -35,7 +39,9 @@ export default {
                             const resultEmbed = new EmbedBuilder()
                                 .setColor("Green")
                                 .setTitle("Цвет роли был изменен")
-                                .setDescription(`**Предыдущий:** ${initialColor.toString(16).toUpperCase()}\n**Текущий:** ${resultRole.color.toString(16).toUpperCase()}`);
+                                .setDescription(`**Предыдущий:** ${initialColor.toString(16).toUpperCase()}\n**Текущий:** ${resultRole.color
+                                .toString(16)
+                                .toUpperCase()}`);
                             interaction.editReply({ embeds: [resultEmbed] });
                             return collector.stop("Completed");
                         });
@@ -51,7 +57,11 @@ export default {
             case "customRoleName":
                 {
                     const embed = new EmbedBuilder().setColor(colors.default).setTitle("Введите название роли");
-                    const collector = channel.createMessageCollector({ filter: (m) => m.author.id === interaction.user.id, max: 1, time: 60 * 1000 });
+                    const collector = channel.createMessageCollector({
+                        filter: (m) => m.author.id === interaction.user.id,
+                        max: 1,
+                        time: 60 * 1000,
+                    });
                     interaction.reply({ embeds: [embed], ephemeral: true });
                     collector.on("collect", async (m) => {
                         m.delete();

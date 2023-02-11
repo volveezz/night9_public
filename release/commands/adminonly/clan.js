@@ -94,7 +94,9 @@ export default new Command({
                 const lastMember = {
                     ...destinyUser,
                     memberDbData,
-                    serverMember: memberDbData ? (interaction.guild || client.getCachedGuild()).members.cache.get(memberDbData.discordId) : undefined,
+                    serverMember: memberDbData
+                        ? (interaction.guild || client.getCachedGuild()).members.cache.get(memberDbData.discordId)
+                        : undefined,
                 };
                 const removalEmbed = new EmbedBuilder()
                     .setColor(colors.default)
@@ -108,7 +110,9 @@ export default new Command({
                     { name: "Ранг", value: `${lastMember.rank}`, inline: true },
                     {
                         name: "Id",
-                        value: `${lastMember.memberDbData && lastMember.memberDbData.discordId ? `DiscordId: ${lastMember.memberDbData.discordId}` : ""}${lastMember.serverMember?.user.id &&
+                        value: `${lastMember.memberDbData && lastMember.memberDbData.discordId
+                            ? `DiscordId: ${lastMember.memberDbData.discordId}`
+                            : ""}${lastMember.serverMember?.user.id &&
                             lastMember.memberDbData &&
                             lastMember.memberDbData.discordId !== lastMember.serverMember.user.id
                             ? `(${lastMember.serverMember.user.id})`
@@ -197,13 +201,21 @@ export default new Command({
                                 {
                                     type: ComponentType.ActionRow,
                                     components: [
-                                        new ButtonBuilder().setCustomId("clanManagment_kick_confirm").setLabel("Подтвердить").setStyle(ButtonStyle.Primary),
-                                        new ButtonBuilder().setCustomId("clanManagment_kick_cancel").setLabel("Отменить").setStyle(ButtonStyle.Danger),
+                                        new ButtonBuilder()
+                                            .setCustomId("clanManagment_kick_confirm")
+                                            .setLabel("Подтвердить")
+                                            .setStyle(ButtonStyle.Primary),
+                                        new ButtonBuilder()
+                                            .setCustomId("clanManagment_kick_cancel")
+                                            .setLabel("Отменить")
+                                            .setStyle(ButtonStyle.Danger),
                                     ],
                                 },
                             ],
                         }));
-                    const confirmationCollector = btnFollowUp.createMessageComponentCollector({ filter: (btn) => btn.user.id === interaction.user.id });
+                    const confirmationCollector = btnFollowUp.createMessageComponentCollector({
+                        filter: (btn) => btn.user.id === interaction.user.id,
+                    });
                     confirmationCollector.on("collect", async (confirmationButton) => {
                         if (confirmationButton.customId === "clanManagment_kick_confirm") {
                             const query = (await fetch(`https://www.bungie.net/Platform/GroupV2/4123712/Members/${lastMember.membershipType}/${lastMember.bungieId}/Kick/`, {

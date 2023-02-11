@@ -63,7 +63,9 @@ export default {
                     }
                     function embedPrep() {
                         const categoryChecker = (categoryId) => {
-                            return (roleCategoriesBits & categoryId) === 0 ? "<:crossmark:1020504750350934026>" : "<:successCheckmark:1018320951173189743>";
+                            return (roleCategoriesBits & categoryId) === 0
+                                ? "<:crossmark:1020504750350934026>"
+                                : "<:successCheckmark:1018320951173189743>";
                         };
                         return embed.setDescription(`<:dot:1018321568218226788>**Общая статистика** — ${categoryChecker(1)}\n<:dot:1018321568218226788>**Статистика Испытаний Осириса** — ${categoryChecker(2)}\n<:dot:1018321568218226788>**Титулы** — ${categoryChecker(4)}\n<:dot:1018321568218226788>**Триумфы** — ${categoryChecker(8)}\n<:dot:1018321568218226788>**Активность на сервере** — ${categoryChecker(16)}`);
                     }
