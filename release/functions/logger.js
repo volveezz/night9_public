@@ -170,12 +170,16 @@ export async function activityReporter(pgcrId) {
                 if (completedPhases.has(dbMemberData.bungieId)) {
                     const testEmbed = EmbedBuilder.from(embed);
                     const encountersData = completedPhases.get(dbMemberData.bungieId);
+                    if (encountersData[0].phaseIndex !== 1 && response.activityWasStartedFromBeginning) {
+                        encountersData[0].phaseIndex = `1-${encountersData[0].phaseIndex}`;
+                        encountersData[0].start = new Date(response.period).getTime();
+                    }
                     testEmbed.addFields([
                         {
                             name: "Затраченное время на этапы",
                             value: `${encountersData
-                                ?.map((encounter) => {
-                                return `⁣　⁣${encounter.phaseIndex}. <t:${Math.floor(encounter.start / 1000)}:t> - <t:${Math.floor(encounter.end / 1000)}:t>, **${convertSeconds(Math.floor(encounter.end / 1000 - encounter.start / 1000))}**`;
+                                .map((encounter) => {
+                                return `⁣　⁣${encounter.phaseIndex}. <t:${Math.floor(encounter.start / 1000)}:t> — <t:${Math.floor(encounter.end / 1000)}:t>, **${convertSeconds(Math.floor(encounter.end / 1000 - encounter.start / 1000))}**`;
                             })
                                 .join("\n")}`,
                         },

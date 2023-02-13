@@ -52,7 +52,7 @@ export default new Command({
         const { platform, bungieId: bungieId } = parsedData;
         const reportPlatform = platform === 3 ? "pc" : platform === 2 ? "ps" : platform === 1 ? "xb" : "stadia";
         const fieldUrls = [];
-        fieldUrls.push(`[Trials.Report](https://trials.report/report/${platform}/${bungieId})`, `[Raid.Report](https://raid.report/${reportPlatform}/${bungieId})`, `[Crucible.Report](https://crucible.report/report/${platform}/${bungieId})`, `[Strike.Report](https://strike.report/${reportPlatform}/${bungieId})`, `[DestinyTracker](https://destinytracker.com/destiny-2/profile/${platform === 3 ? "steam" : platform === 2 ? "psn" : platform === 1 ? "xbl" : "stadia"}/${bungieId}/overview)`, `[WastedonDestiny](https://wastedondestiny.com/${bungieId})`);
+        fieldUrls.push(`[Trials.Report](https://trials.report/report/${platform}/${bungieId})`, `[Raid.Report](https://raid.report/${reportPlatform}/${bungieId})`, `[Dungeon.Report](https://dungeon.report/${reportPlatform}/${bungieId})`, `[Crucible.Report](https://crucible.report/report/${platform}/${bungieId})`, `[Strike.Report](https://strike.report/${reportPlatform}/${bungieId})`, `[DestinyTracker](https://destinytracker.com/destiny-2/profile/${platform === 3 ? "steam" : platform === 2 ? "psn" : platform === 1 ? "xbl" : "stadia"}/${bungieId}/overview)`, `[WastedonDestiny](https://wastedondestiny.com/${bungieId})`);
         embed.setColor(colors.success).addFields([
             {
                 name: "Ссылки",
