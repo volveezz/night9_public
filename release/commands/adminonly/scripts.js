@@ -1,10 +1,11 @@
-import { EmbedBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, } from "discord.js";
+import { EmbedBuilder, ApplicationCommandOptionType, } from "discord.js";
 import colors from "../../configs/colors.js";
 import { statusRoles } from "../../configs/roles.js";
 import { AuthData, UserActivityData } from "../../handlers/sequelize.js";
 import { Command } from "../../structures/command.js";
 import { SurveyAnswer } from "../../handlers/mongodb.js";
 import { client } from "../../index.js";
+import convertSeconds from "../../functions/utilities.js";
 export default new Command({
     name: "scripts",
     description: "script system",
@@ -70,24 +71,11 @@ export default new Command({
                     .setDescription(`${voiceTop
                     .splice(0, 50)
                     .map((v, i) => {
-                    return `${i + 1}. <@${v.discordId}> —${v.UserActivityData.voice > 3600 ? ` ${Math.floor(v.UserActivityData.voice / 3600)} ч` : ""}${v.UserActivityData.voice % 3600 > 60 ? ` ${Math.floor((v.UserActivityData.voice % 3600) / 60)} м` : ""}`;
+                    return `${i + 1}. <@${v.discordId}> —${convertSeconds(v.UserActivityData.voice)}`;
                 })
                     .join("\n")
                     .slice(0, 2048)}`);
                 return defferedReply.then((m) => interaction.editReply({ embeds: [msgEmbed, voiceEmbed] }));
-            }
-            case "surveyrestart": {
-                const embed = new EmbedBuilder().setColor(colors.default).setTitle("Начать опрос?");
-                const components = [
-                    {
-                        type: ComponentType.ActionRow,
-                        components: [
-                            new ButtonBuilder().setCustomId("startSurvey_from_godChannel").setStyle(ButtonStyle.Success).setLabel("Начать"),
-                        ],
-                    },
-                ];
-                (await defferedReply) && interaction.editReply({ embeds: [embed], components });
-                return;
             }
             case "resendsurvey": {
                 const clanMembers = client.getCachedMembers().filter((member) => member.roles.cache.has(statusRoles.clanmember));
@@ -105,27 +93,9 @@ export default new Command({
                     }
                 })
                     .filter((v) => v !== null);
-                if (!meetRequirements || !meetRequirements[0] || meetRequirements.length === 0)
-                    return;
-                const embed = new EmbedBuilder()
-                    .setColor(colors.warning)
-                    .setTitle(`Оповещение об ошибке`)
-                    .setDescription(`Недавно вы проходили опрос по серверу и клану - в нем была обнаружена ошибка.\nЭта ошибка скрыла несколько вопросов при прохождении.\n\nПожалуйста, нажмите на кнопку ниже и пройдите оставшиеся 3 вопроса.\nВ качестве компенсации за допущенную ошибку предоставляем вам возможность получить уникальную роль до конца сезона`);
-                const components = [
-                    {
-                        type: ComponentType.ActionRow,
-                        components: [
-                            new ButtonBuilder().setCustomId("startSurvey_again").setStyle(ButtonStyle.Success).setLabel("Оставшиеся вопросы"),
-                            new ButtonBuilder().setCustomId("sorryGift").setStyle(ButtonStyle.Success).setLabel("Получить роль"),
-                        ],
-                    },
-                ];
-                meetRequirements.forEach(async (id) => {
-                    (await (client.getCachedMembers().get(id) ||
-                        client.users.cache.get(id) ||
-                        (await client.getCachedGuild().members.fetch(id))).createDM()).send({ embeds: [embed], components });
-                });
-                return;
+                if (!meetRequirements || !meetRequirements[0] || meetRequirements.length === 0) {
+                    (await defferedReply) && interaction.editReply({ content: `Possible matches: ${meetRequirements || 0}` });
+                }
             }
             default:
                 (await defferedReply) && interaction.editReply("Base response");

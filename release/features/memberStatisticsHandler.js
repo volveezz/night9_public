@@ -15,6 +15,7 @@ export const character_data = new Map();
 export const longOffline = new Set();
 export const bungieNames = new Map();
 export const userTimezones = new Map();
+export const clanOnline = new Map();
 const clanJoinDateCheck = new Set();
 const throttleSet = new Set();
 async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId, accessToken, displayName, roleCategoriesBits, UserActivityData: userActivity }, member, role_db) {
@@ -358,6 +359,7 @@ async function destinyClanManagmentSystem(bungie_array) {
             console.error("[Error code: 1015]", clanList?.results?.length);
             return;
         }
+        clanOnline.clear();
         const onlineCounter = clanList.results.filter((f) => f.isOnline === true).length;
         if (onlineCounter === 0) {
             client.user.setActivity(`${clanList.results.length} участников в клане`, { type: 3 });
@@ -368,14 +370,20 @@ async function destinyClanManagmentSystem(bungie_array) {
         const t = await database.transaction();
         await Promise.all(clanList.results.map(async (result) => {
             if (bungie_array.some((e) => e.bungieId === result.destinyUserInfo.membershipId)) {
-                const [clan_member] = bungie_array.splice(bungie_array.findIndex((e) => e.bungieId === result.destinyUserInfo.membershipId), 1);
+                const [memberAuthData] = bungie_array.splice(bungie_array.findIndex((e) => e.bungieId === result.destinyUserInfo.membershipId), 1);
+                if (result.isOnline) {
+                    clanOnline.set(memberAuthData.discordId, {
+                        platform: result.destinyUserInfo.membershipType,
+                        membershipId: result.destinyUserInfo.membershipId,
+                    });
+                }
                 if (!clanJoinDateCheck.has(result.destinyUserInfo.membershipId)) {
                     await timer(1000);
-                    if (!(clan_member.roleCategoriesBits & NightRoleCategory.Triumphs))
+                    if (!(memberAuthData.roleCategoriesBits & NightRoleCategory.Triumphs))
                         return clanJoinDateCheck.add(result.destinyUserInfo.membershipId);
-                    const member = client.getCachedMembers().get(clan_member.discordId);
+                    const member = client.getCachedMembers().get(memberAuthData.discordId);
                     if (!member)
-                        return console.error(`[Error code: 1087] Member not found ${clan_member.discordId}/${clan_member.displayName}`);
+                        return console.error(`[Error code: 1087] Member not found ${memberAuthData.discordId}/${memberAuthData.displayName}`);
                     for (const step of clanJoinDateRoles.roles) {
                         if (step.days <= Math.trunc((new Date().getTime() - new Date(result.joinDate).getTime()) / 1000 / 60 / 60 / 24)) {
                             if (!member.roles.cache.has(step.roleId)) {
@@ -396,7 +404,8 @@ async function destinyClanManagmentSystem(bungie_array) {
                     }
                     clanJoinDateCheck.add(result.destinyUserInfo.membershipId);
                 }
-                if (clan_member.displayName !== result.destinyUserInfo.bungieGlobalDisplayName && !clan_member.displayName.startsWith("⁣")) {
+                if (memberAuthData.displayName !== result.destinyUserInfo.bungieGlobalDisplayName &&
+                    !memberAuthData.displayName.startsWith("⁣")) {
                     await AuthData.update({
                         displayName: result.destinyUserInfo.bungieGlobalDisplayName,
                     }, {
@@ -405,16 +414,16 @@ async function destinyClanManagmentSystem(bungie_array) {
                         },
                         transaction: t,
                     });
-                    userNicknameChanging(clan_member.discordId, result.destinyUserInfo.bungieGlobalDisplayName);
+                    userNicknameChanging(memberAuthData.discordId, result.destinyUserInfo.bungieGlobalDisplayName);
                 }
-                if (clan_member.clan === false) {
+                if (memberAuthData.clan === false) {
                     await AuthData.update({ clan: true }, {
                         where: {
                             bungieId: result.destinyUserInfo.membershipId,
                         },
                         transaction: t,
                     });
-                    updateClanRolesWithLogging(clan_member, true);
+                    updateClanRolesWithLogging(memberAuthData, true);
                 }
             }
         }));

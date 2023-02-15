@@ -395,7 +395,14 @@ export default {
                     return activeCharacter;
                 }
                 const { characterId: character, isFound } = await getActiveCharacter((await fetchRequest(`/Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=204`, authData.accessToken)));
-                await activityCompletionChecker(authData, raidData, character);
+                await activityCompletionChecker({
+                    accessToken: authData.accessToken,
+                    bungieId: authData.bungieId,
+                    characterId: character,
+                    id: raidData.id,
+                    platform: authData.platform,
+                    raid: raidData.raid,
+                });
                 (await deferredReply) &&
                     interaction.followUp({
                         content: `Started for char ${character}\n${isFound ? `Character found in raid activity` : `Character **not found** in raid activity`}`,

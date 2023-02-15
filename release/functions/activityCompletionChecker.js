@@ -1,7 +1,9 @@
 import { AuthData } from "../handlers/sequelize.js";
 import { fetchRequest } from "./fetchRequest.js";
 import { getRaidData } from "./raidFunctions.js";
-const currentProfiles = new Map();
+import { clanOnline } from "../features/memberStatisticsHandler.js";
+import raidMilestoneHashes from "./raidMilestones.js";
+export const activityCompletionCurrentProfiles = new Map();
 export const completedPhases = new Map();
 const currentlyRuning = new Map();
 function compareObjects(obj1, obj2) {
@@ -20,18 +22,56 @@ function compareObjects(obj1, obj2) {
         console.debug(`RaidCompletionChecker: Still same data`);
     }
 }
-export async function activityCompletionChecker({ platform, bungieId, accessToken }, { id, raid }, characterId) {
-    const { milestoneHash: activityMilestoneHash } = getRaidData(raid);
+export async function clanOnlineMemberActivityChecker() {
+    const raidActivityModeHash = 2043403989;
+    let anyMemberInRaid = false;
+    for await (const [discordId, { membershipId, platform }] of clanOnline) {
+        const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204`);
+        const characterActivities = response.characterActivities.data;
+        if (!characterActivities)
+            continue;
+        const characterIds = Object.keys(characterActivities);
+        const mostRecentCharacterId = characterIds.reduce((a, b) => {
+            const aDate = new Date(characterActivities[a].dateActivityStarted);
+            const bDate = new Date(characterActivities[b].dateActivityStarted);
+            return aDate > bDate ? a : b;
+        });
+        const activeCharacter = characterActivities[mostRecentCharacterId];
+        if ((activeCharacter.currentActivityModeType === 4 ||
+            activeCharacter.currentActivityModeTypes.includes(4)) &&
+            activeCharacter.currentActivityModeHash === raidActivityModeHash) {
+            if (!activityCompletionCurrentProfiles.has(membershipId)) {
+                const authData = await AuthData.findByPk(discordId, { attributes: ["platform", "bungieId", "accessToken"] });
+                const raidMilestoneHash = raidMilestoneHashes.get(activeCharacter.currentActivityHash);
+                if (!authData || !raidMilestoneHash)
+                    return console.error(`[Error code: 1438]`, authData, raidMilestoneHash, activeCharacter);
+                activityCompletionChecker({
+                    accessToken: authData.accessToken,
+                    bungieId: membershipId,
+                    characterId: mostRecentCharacterId,
+                    platform,
+                    raid: raidMilestoneHash,
+                });
+                console.debug(`DEBUG775 Started auto checker for ${platform}/${membershipId}/${mostRecentCharacterId}`);
+            }
+        }
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
+    return anyMemberInRaid;
+}
+export async function activityCompletionChecker({ accessToken, bungieId, characterId, id, platform, raid }) {
+    const milestoneHash = typeof raid === "string" ? getRaidData(raid).milestoneHash : raid;
     let startTime = new Date().getTime();
     let interval;
     let previousActivityHash;
+    let uniqueId = id || Math.floor(Math.random() * (1000 - 101 + 1)) + 101;
     async function checkActivityHash() {
         try {
             const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`, {
                 accessToken,
             });
             if (!response) {
-                console.error(`[Error code: 1211]`, { response }, characterId);
+                console.error(`[Error code: 1211] Error during checking character inside checkActivityHash function\n`, response, characterId);
                 const authData = await AuthData.findOne({
                     where: { bungieId: bungieId },
                     attributes: ["accessToken"],
@@ -61,12 +101,12 @@ export async function activityCompletionChecker({ platform, bungieId, accessToke
         }
     }
     interval = setInterval(() => checkActivityHash(), 60000);
-    currentlyRuning.set(id, interval);
+    currentlyRuning.set(uniqueId, interval);
     async function characterMilestonesChecker(response) {
         const characterMilestones = response.progressions.data.milestones;
-        const updatedMilestone = characterMilestones[activityMilestoneHash];
-        if (currentProfiles.has(bungieId)) {
-            const cachedMilestone = currentProfiles.get(bungieId);
+        const updatedMilestone = characterMilestones[milestoneHash];
+        if (activityCompletionCurrentProfiles.has(bungieId)) {
+            const cachedMilestone = activityCompletionCurrentProfiles.get(bungieId);
             if (cachedMilestone !== updatedMilestone) {
                 for (const milestineIndex in updatedMilestone.activities) {
                     const cachedMilestoneActivity = cachedMilestone.activities[milestineIndex];
@@ -100,7 +140,7 @@ export async function activityCompletionChecker({ platform, bungieId, accessToke
                                         });
                                     }
                                     else {
-                                        currentlyRuning.delete(id);
+                                        currentlyRuning.delete(uniqueId);
                                         console.debug(`DEBUG9 | Activity checker ended due completion of actvitiy`);
                                     }
                                     console.debug(`DEBUG3 Index: ${phaseIndex}`, alreadyCompletedPhases);
@@ -116,7 +156,7 @@ export async function activityCompletionChecker({ platform, bungieId, accessToke
                 }
             }
         }
-        currentProfiles.set(bungieId, updatedMilestone);
+        activityCompletionCurrentProfiles.set(bungieId, updatedMilestone);
     }
 }
 export async function activityCompletionCheckerCancel({ id }) {

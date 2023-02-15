@@ -13,3 +13,7 @@ export var RaidDifficulty;
     RaidDifficulty[RaidDifficulty["normal"] = 1] = "normal";
     RaidDifficulty[RaidDifficulty["master"] = 2] = "master";
 })(RaidDifficulty || (RaidDifficulty = {}));
+export var RaidHashes;
+(function (RaidHashes) {
+    RaidHashes[RaidHashes["nebula"] = 999999999] = "nebula";
+})(RaidHashes || (RaidHashes = {}));
