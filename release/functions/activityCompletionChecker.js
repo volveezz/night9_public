@@ -38,7 +38,7 @@ export async function clanOnlineMemberActivityChecker() {
         });
         const activeCharacter = characterActivities[mostRecentCharacterId];
         if ((activeCharacter.currentActivityModeType === 4 ||
-            activeCharacter.currentActivityModeTypes.includes(4)) &&
+            activeCharacter.currentActivityModeTypes?.includes(4)) &&
             activeCharacter.currentActivityModeHash === raidActivityModeHash) {
             if (!activityCompletionCurrentProfiles.has(membershipId)) {
                 const authData = await AuthData.findByPk(discordId, { attributes: ["platform", "bungieId", "accessToken"] });
