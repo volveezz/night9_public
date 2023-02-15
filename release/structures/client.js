@@ -2,6 +2,7 @@ import { ActivityType, Client, Collection, GatewayIntentBits, Partials, } from "
 import { resolve, join } from "path";
 import getFiles from "../handlers/fileReader.js";
 import { guildId } from "../configs/ids.js";
+import { clanOnlineMemberActivityChecker } from "../functions/activityCompletionChecker.js";
 const __dirname = resolve();
 export class ExtendedClient extends Client {
     commands = new Collection();
@@ -15,7 +16,7 @@ export class ExtendedClient extends Client {
         { name: "🔁 Protecting the Last City", type: ActivityType.Competing, url: undefined },
         { name: "🔁 Fighting the Vex", type: ActivityType.Watching, url: undefined },
         {
-            name: "🔁 Singing along to the Traveler's melodies",
+            name: "🔁 Looking for the Traveler",
             type: ActivityType.Streaming,
             url: "https://www.youtube.com/watch?v=pLBhEAo2wXc",
         },
@@ -25,7 +26,7 @@ export class ExtendedClient extends Client {
             intents: [
                 GatewayIntentBits.Guilds,
                 GatewayIntentBits.GuildMembers,
-                GatewayIntentBits.GuildBans,
+                GatewayIntentBits.GuildModeration,
                 GatewayIntentBits.GuildInvites,
                 GatewayIntentBits.GuildVoiceStates,
                 GatewayIntentBits.GuildMessages,
@@ -150,6 +151,9 @@ export class ExtendedClient extends Client {
                 this.registerCommands({ global: false, commands: guildCommands });
             });
             import("../handlers/mongodb.js");
+            setTimeout(() => {
+                clanOnlineMemberActivityChecker();
+            }, 60 * 1000 * 10);
             setInterval(() => {
                 const time = Math.trunc(this.uptime / 1000);
                 const calculatedTime = [];

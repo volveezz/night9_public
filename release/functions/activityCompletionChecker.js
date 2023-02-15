@@ -3,6 +3,7 @@ import { fetchRequest } from "./fetchRequest.js";
 import { getRaidData } from "./raidFunctions.js";
 import { clanOnline } from "../features/memberStatisticsHandler.js";
 import raidMilestoneHashes from "./raidMilestones.js";
+import { timer } from "./utilities.js";
 export const activityCompletionCurrentProfiles = new Map();
 export const completedPhases = new Map();
 const currentlyRuning = new Map();
@@ -24,7 +25,6 @@ function compareObjects(obj1, obj2) {
 }
 export async function clanOnlineMemberActivityChecker() {
     const raidActivityModeHash = 2043403989;
-    let anyMemberInRaid = false;
     for await (const [discordId, { membershipId, platform }] of clanOnline) {
         const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204`);
         const characterActivities = response.characterActivities.data;
@@ -55,9 +55,8 @@ export async function clanOnlineMemberActivityChecker() {
                 console.debug(`DEBUG775 Started auto checker for ${platform}/${membershipId}/${mostRecentCharacterId}`);
             }
         }
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await timer(5000);
     }
-    return anyMemberInRaid;
 }
 export async function activityCompletionChecker({ accessToken, bungieId, characterId, id, platform, raid }) {
     const milestoneHash = typeof raid === "string" ? getRaidData(raid).milestoneHash : raid;
