@@ -232,7 +232,7 @@ export async function updateRaidMessage(raidDbData, interaction) {
 }
 export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) {
     if (difficulty > 2)
-        return;
+        return null;
     const milestoneRequest = await fetchRequest("Platform/Destiny2/Milestones/");
     const raidMilestone = milestoneRequest[raidData.milestoneHash];
     const manifest = CachedDestinyActivityModifierDefinition;
@@ -288,12 +288,14 @@ export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) 
     return inChnMsg.edit({ embeds: [embed] });
 }
 export async function updatePrivateRaidMessage({ raidEvent, retry }) {
-    if (!raidEvent)
-        return console.error(`[Error code: 1051] raidDataInChnMsg, no raidData info`);
+    if (!raidEvent) {
+        console.error(`[Error code: 1051] raidDataInChnMsg, no raidData info`);
+        return null;
+    }
     if (retry) {
         raidEvent = await RaidEvent.findByPk(raidEvent.id);
         if (!raidEvent)
-            return;
+            return null;
     }
     const inChnMsgPromise = client.getCachedGuild().channels.cache.get(raidEvent.channelId).messages.fetch(raidEvent.inChannelMessageId);
     const guildMembers = client.getCachedMembers();
@@ -348,7 +350,7 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
     if (raidEvent.alt.length > 0)
         embed.spliceFields(3, 0, { name: "Закрытия рейдов у возможных участников", value: (await Promise.all(alt)).join("\n") });
     embed.setTimestamp();
-    inChnMsg.edit({ embeds: [embed] });
+    return inChnMsg.edit({ embeds: [embed] });
 }
 export function timeConverter(str, timezoneOffset = 3) {
     if (!str || str.length === 0)

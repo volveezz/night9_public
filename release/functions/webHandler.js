@@ -47,16 +47,25 @@ export default async (code, state, res) => {
         }
         const { membershipType: platform, membershipId: bungieId } = fetchedData;
         const displayName = fetchedData.bungieGlobalDisplayName || fetchedData.LastSeenDisplayName || fetchedData.displayName;
-        const authData = await AuthData.create({
-            discordId: json.discordId,
-            bungieId,
-            platform,
-            clan: false,
-            displayName,
-            accessToken: body.access_token,
-            refreshToken: body.refresh_token,
-            membershipId: body.membership_id,
+        const [authData, created] = await AuthData.findOrCreate({
+            where: {
+                bungieId,
+            },
+            defaults: {
+                discordId: json.discordId,
+                bungieId,
+                platform,
+                clan: false,
+                displayName,
+                accessToken: body.access_token,
+                refreshToken: body.refresh_token,
+                membershipId: body.membership_id,
+            },
         });
+        if (!created) {
+            console.error(`[Error code: 1439] User (${json.discordId}) tried to connect already registered bungieId`, authData);
+            return res.send(`<script>location.replace('error.html')</script>`);
+        }
         InitData.destroy({
             where: { discordId: json.discordId },
         });

@@ -470,13 +470,12 @@ export default new Command({
                         components: [
                             new ButtonBuilder()
                                 .setCustomId(RaidButtons.startActivityChecker)
-                                .setLabel("[PH] AlphaButton1")
+                                .setLabel("[PH] Checker start")
                                 .setStyle(ButtonStyle.Primary),
                             new ButtonBuilder()
                                 .setCustomId(RaidButtons.endActivityChecker)
-                                .setLabel("[PH] AlphaButton2")
+                                .setLabel("[PH] Checker end")
                                 .setStyle(ButtonStyle.Primary),
-                            new ButtonBuilder().setCustomId(RaidButtons.invite).setLabel("[PH] InviteSystem").setStyle(ButtonStyle.Primary),
                         ],
                     },
                 ];
@@ -496,7 +495,7 @@ export default new Command({
                 await updatePrivateRaidMessage({ raidEvent: insertedRaidData[1][0] });
                 const privateChannelMessage = (await inChnMsg) || (await chn.messages.fetch((await inChnMsg).id));
                 if (raidData.raid !== RaidNames.nebula)
-                    raidChallenges(raidData, privateChannelMessage, parsedTime, difficulty);
+                    await raidChallenges(raidData, privateChannelMessage, parsedTime, difficulty);
             });
         }
         else if (subCommand === "изменить") {
