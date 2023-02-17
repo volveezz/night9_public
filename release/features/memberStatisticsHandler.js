@@ -40,7 +40,7 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                 throttleSet.add(member.id);
                 return;
             }
-            return console.error("[Error code: 1039]", displayName, ErrorResponse);
+            return console.error("[Error code: 1039]", displayName, JSON.stringify(ErrorResponse));
         }
         if (!bungieNames.get(discordId)) {
             let bungieCode = (destinyProfileResponse.profile.data.userInfo.bungieGlobalDisplayNameCode ?? "0000").toString();
