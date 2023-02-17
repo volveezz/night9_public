@@ -451,10 +451,11 @@ async function destinyClanManagmentSystem(bungie_array) {
 async function destinyUserKDChecker({ platform, bungieId, accessToken }, member) {
     try {
         const request = await fetchRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
-        if (!request.mergedAllCharacters.results.allPvP.allTime)
+        if (!request.mergedAllCharacters.results.allPvP.allTime ||
+            !request?.mergedAllCharacters?.results?.allPvP?.allTime?.killsDeathsRatio?.basic.value)
             return member.roles.add([statisticsRoles.allKd[statisticsRoles.allKd.length - 1], statisticsRoles.category]);
         for (const step of statisticsRoles.kd) {
-            if (step.kd <= request.mergedAllCharacters.results.allPvP.allTime.killsDeathsRatio.basic.value) {
+            if (step.kd <= request?.mergedAllCharacters?.results?.allPvP?.allTime?.killsDeathsRatio?.basic.value) {
                 const addedRoles = [];
                 if (!member.roles.cache.has(statisticsRoles.category))
                     addedRoles.push(statisticsRoles.category);

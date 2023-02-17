@@ -63,7 +63,7 @@ export default async (code, state, res) => {
             },
         });
         if (!created) {
-            console.error(`[Error code: 1439] User (${json.discordId}) tried to connect already registered bungieId`, authData);
+            console.error(`[Error code: 1439] User (${json.discordId}) tried to connect already registered bungieId`, authData?.toJSON());
             return res.send(`<script>location.replace('error.html')</script>`);
         }
         InitData.destroy({
