@@ -3,6 +3,7 @@ import { resolve, join } from "path";
 import getFiles from "../handlers/fileReader.js";
 import { guildId } from "../configs/ids.js";
 import { clanOnlineMemberActivityChecker } from "../functions/activityCompletionChecker.js";
+import { raidMilestones } from "../functions/raidMilestones.js";
 const __dirname = resolve();
 export class ExtendedClient extends Client {
     commands = new Collection();
@@ -151,6 +152,7 @@ export class ExtendedClient extends Client {
                 this.registerCommands({ global: false, commands: guildCommands });
             });
             import("../handlers/mongodb.js");
+            raidMilestones();
             setTimeout(() => {
                 clanOnlineMemberActivityChecker();
             }, 60 * 1000 * 10);
