@@ -152,7 +152,9 @@ export class ExtendedClient extends Client {
                 this.registerCommands({ global: false, commands: guildCommands });
             });
             import("../handlers/mongodb.js");
-            raidMilestones();
+            setTimeout(() => {
+                raidMilestones();
+            }, 30 * 1000);
             setTimeout(() => {
                 clanOnlineMemberActivityChecker();
             }, 60 * 1000 * 10);

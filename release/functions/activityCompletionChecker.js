@@ -43,8 +43,10 @@ export async function clanOnlineMemberActivityChecker() {
             if (!activityCompletionCurrentProfiles.has(membershipId)) {
                 const authData = await AuthData.findByPk(discordId, { attributes: ["platform", "bungieId", "accessToken"] });
                 const raidMilestoneHash = raidMilestoneHashes.get(activeCharacter.currentActivityHash);
-                if (!authData || !raidMilestoneHash)
-                    return console.error(`[Error code: 1438]`, authData, raidMilestoneHash, activeCharacter);
+                if (!authData)
+                    return console.error(`[Error code: 1438] No authorization data for user ${membershipId}`, raidMilestoneHash, activeCharacter);
+                if (!raidMilestoneHash)
+                    return console.error(`[Error code: 1440] No raid milestone data for user ${authData.bungieId}\n${activeCharacter.currentActivityHash} - ${raidMilestoneHash}\n`, activeCharacter.currentActivityHash, activeCharacter.currentActivityModeHash, activeCharacter.dateActivityStarted, activeCharacter.currentActivityModeHashes, activeCharacter.currentActivityModeType, activeCharacter.currentActivityModeTypes);
                 activityCompletionChecker({
                     accessToken: authData.accessToken,
                     bungieId: membershipId,
@@ -75,7 +77,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
             if (!response) {
                 console.error(`[Error code: 1211] Error during checking character inside checkActivityHash function\n`, response, characterId);
                 const authData = await AuthData.findOne({
-                    where: { bungieId: bungieId },
+                    where: { bungieId },
                     attributes: ["accessToken"],
                 });
                 if (authData && authData.accessToken)

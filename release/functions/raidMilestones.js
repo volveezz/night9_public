@@ -5,7 +5,7 @@ export async function raidMilestones() {
         if (milestone.activities) {
             milestone.activities.forEach((activity) => {
                 if (activity.phases) {
-                    raidMilestoneHashes.set(milestone.hash, activity.activityHash);
+                    raidMilestoneHashes.set(activity.activityHash, milestone.hash);
                 }
             });
         }
