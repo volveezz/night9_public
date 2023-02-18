@@ -99,6 +99,9 @@ export default {
             }),
         });
         const { embeds, components } = surveyQuestionGenerator((surveyQuestion === 5 ? userVotes[userVotes.length - 1].questionIndex : surveyQuestion) + 1, interaction.user.id);
-        (interaction.channel || interaction.user.dmChannel || (await interaction.user.createDM())).send({ embeds, components });
+        (interaction.channel || interaction.user.dmChannel || (await interaction.user.createDM())).send({
+            embeds,
+            components,
+        });
     },
 };

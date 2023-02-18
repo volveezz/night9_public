@@ -24,7 +24,7 @@ function compareObjects(obj1, obj2) {
     }
 }
 export async function clanOnlineMemberActivityChecker() {
-    const raidActivityModeHash = 2043403989;
+    const raidActivityModeHash = 2166136261;
     for await (const [discordId, { membershipId, platform }] of clanOnline) {
         const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204`);
         const characterActivities = response.characterActivities.data;
@@ -37,8 +37,8 @@ export async function clanOnlineMemberActivityChecker() {
             return aDate > bDate ? a : b;
         });
         const activeCharacter = characterActivities[mostRecentCharacterId];
-        if ((activeCharacter.currentActivityModeType === 4 ||
-            activeCharacter.currentActivityModeTypes?.includes(4)) &&
+        if (activeCharacter.currentActivityModeType === 4 ||
+            activeCharacter.currentActivityModeTypes?.includes(4) ||
             activeCharacter.currentActivityModeHash === raidActivityModeHash) {
             if (!activityCompletionCurrentProfiles.has(membershipId)) {
                 const authData = await AuthData.findByPk(discordId, { attributes: ["platform", "bungieId", "accessToken"] });

@@ -89,6 +89,7 @@ export default {
                     time: 60 * 1000,
                 });
                 collector.on("collect", async (int) => {
+                    const channel = interaction.channel;
                     switch (int.customId) {
                         case RaidAdditionalFunctional.confirm: {
                             collector.stop("completed");
@@ -114,8 +115,8 @@ export default {
                                                 .then((d) => sendedTo.push(`${user.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} получил оповещение`))
                                                 .catch(async (e) => {
                                                 if (e.code === 50007) {
-                                                    await interaction
-                                                        .channel.send(`<@${user.id}>, ${raidLeaderEmbed.data.description}`)
+                                                    await channel
+                                                        .send(`<@${user.id}>, ${raidLeaderEmbed.data.description}`)
                                                         .then((d) => sendedTo.push(`${user.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} получил текстовое оповещение`));
                                                 }
                                                 else {
@@ -152,8 +153,8 @@ export default {
                                     .then((d) => sendedTo.push(`${member.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} получил оповещение`))
                                     .catch(async (e) => {
                                     if (e.code === 50007) {
-                                        await interaction
-                                            .channel.send(`<@${member.id}>, ${raidLeaderEmbed.data.description}`)
+                                        await channel
+                                            .send(`<@${member.id}>, ${raidLeaderEmbed.data.description}`)
                                             .then((d) => sendedTo.push(`${member.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")} получил текстовое оповещение`));
                                     }
                                     else {
@@ -162,7 +163,7 @@ export default {
                                 });
                             }));
                             const finishEmbed = new EmbedBuilder()
-                                .setColor("Green")
+                                .setColor(colors.success)
                                 .setTitle(`Оповещение было доставлено ${sendedTo.length} участникам из ${raidMembersLength} записавшихся`);
                             sendedTo.length === 0 ? [] : finishEmbed.setDescription(sendedTo.join("\n") || "nothing");
                             m.edit({ components: [], embeds: [finishEmbed] }).catch((e) => `raidAddF ${e.code}`);
@@ -353,7 +354,7 @@ export default {
             }
             case RaidButtons.resend: {
                 return interaction.channel
-                    ?.send({ embeds: [interaction.message.embeds[0]], components: interaction.message.components })
+                    .send({ embeds: [interaction.message.embeds[0]], components: interaction.message.components })
                     .then((msg) => {
                     RaidEvent.update({ inChannelMessageId: msg.id }, { where: { channelId: interaction.channelId } }).then(async () => {
                         interaction.message.delete();

@@ -27,7 +27,9 @@ export async function patchnoteGenerator(message) {
             ],
         },
     ];
-    channel.send({ embeds: embed ? [embed] : undefined, content: embed ? undefined : patchnoteMessage, components }).then((_r) => {
+    channel
+        .send({ embeds: embed ? [embed] : undefined, content: embed ? undefined : patchnoteMessage, components })
+        .then((_r) => {
         message.delete();
     });
 }

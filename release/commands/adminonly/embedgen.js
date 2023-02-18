@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, } from "discord.js";
 import colors from "../../configs/colors.js";
 import { activityRoles, clanJoinDateRoles, dlcRoles, raidRoles, seasonalRoles, statisticsRoles, trialsRoles } from "../../configs/roles.js";
 import { CachedDestinyRecordDefinition } from "../../functions/manifestHandler.js";
@@ -170,8 +170,14 @@ export default new Command({
                         {
                             type: ComponentType.ActionRow,
                             components: [
-                                new ButtonBuilder().setCustomId(`roleChannel_roles_enable_${roleRow}`).setLabel("Включить").setStyle(ButtonStyle.Success),
-                                new ButtonBuilder().setCustomId(`roleChannel_roles_disable_${roleRow}`).setLabel("Отключить").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder()
+                                    .setCustomId(`roleChannel_roles_enable_${roleRow}`)
+                                    .setLabel("Включить")
+                                    .setStyle(ButtonStyle.Success),
+                                new ButtonBuilder()
+                                    .setCustomId(`roleChannel_roles_disable_${roleRow}`)
+                                    .setLabel("Отключить")
+                                    .setStyle(ButtonStyle.Secondary),
                             ],
                         },
                     ];
@@ -194,7 +200,10 @@ export default new Command({
                                     .setEmoji("<:titan:995496472722284596>")
                                     .setLabel("Титан")
                                     .setStyle(ButtonStyle.Secondary),
-                                new ButtonBuilder().setCustomId(`roleChannel_classRoles_disable`).setLabel("Отключить").setStyle(ButtonStyle.Danger),
+                                new ButtonBuilder()
+                                    .setCustomId(`roleChannel_classRoles_disable`)
+                                    .setLabel("Отключить")
+                                    .setStyle(ButtonStyle.Danger),
                             ],
                         },
                     ];
@@ -277,8 +286,14 @@ export default new Command({
                                     .setCustomId(`godEvent_customRoleName`)
                                     .setLabel("Установить свое название роли")
                                     .setStyle(ButtonStyle.Primary),
-                                new ButtonBuilder().setCustomId(`godEvent_getInvite`).setLabel("Приглашение на альфа-сервер").setStyle(ButtonStyle.Secondary),
-                                new ButtonBuilder().setCustomId(`godEvent_achatAccess`).setLabel("Получить доступ к а-чату").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder()
+                                    .setCustomId(`godEvent_getInvite`)
+                                    .setLabel("Приглашение на альфа-сервер")
+                                    .setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder()
+                                    .setCustomId(`godEvent_achatAccess`)
+                                    .setLabel("Получить доступ к а-чату")
+                                    .setStyle(ButtonStyle.Secondary),
                                 new ButtonBuilder()
                                     .setCustomId(`godEvent_achatVoiceAccess`)
                                     .setLabel("Доступ к голосовому а-чату")
@@ -292,7 +307,10 @@ export default new Command({
                                     .setCustomId(`godEvent_manifestAccess`)
                                     .setLabel("Канал с обновлениями базы данных игры")
                                     .setStyle(ButtonStyle.Primary),
-                                new ButtonBuilder().setCustomId(`godEvent_vchatAccess`).setLabel("Логи голосовых каналов").setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder()
+                                    .setCustomId(`godEvent_vchatAccess`)
+                                    .setLabel("Логи голосовых каналов")
+                                    .setStyle(ButtonStyle.Secondary),
                             ],
                         },
                     ];
@@ -333,7 +351,10 @@ export default new Command({
                             type: ComponentType.ActionRow,
                             components: [
                                 new ButtonBuilder().setCustomId(RegisterButtons.register).setLabel("Регистрация").setStyle(ButtonStyle.Success),
-                                new ButtonBuilder().setCustomId(ClanButtons.invite).setLabel("Отправить приглашение в клан").setStyle(ButtonStyle.Success),
+                                new ButtonBuilder()
+                                    .setCustomId(ClanButtons.invite)
+                                    .setLabel("Отправить приглашение в клан")
+                                    .setStyle(ButtonStyle.Success),
                             ],
                         },
                     ];

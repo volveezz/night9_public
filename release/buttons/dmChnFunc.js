@@ -4,6 +4,7 @@ import UserErrors from "../enums/UserErrors.js";
 import { logClientDmMessages } from "../functions/logger.js";
 import nameCleaner from "../functions/nameClearer.js";
 import { descriptionFormatter } from "../functions/utilities.js";
+import { ids } from "../configs/ids.js";
 export default {
     name: "dmChnFunc",
     run: async ({ client, interaction }) => {
@@ -11,6 +12,7 @@ export default {
         const messageId = interaction.message.embeds[0].footer.text.split(" | MId: ").pop();
         const userId = interaction.message.embeds[0].footer.text.split(" | MId: ").shift().split("UId: ").pop();
         const replyMember = interaction.guild.members.cache.get(userId);
+        const channel = (interaction.channel || (await client.getCachedGuild().channels.fetch(ids.dmMsgsChnId)));
         if (!replyMember)
             throw { name: "[dmChnFunc error] User not found", userId, errorType: UserErrors.MEMBER_NOT_FOUND };
         switch (buttonId) {
@@ -23,7 +25,7 @@ export default {
                     iconURL: replyMember.displayAvatarURL(),
                 });
                 interaction.reply({ embeds: [embed] });
-                const collector = interaction.channel.createMessageCollector({
+                const collector = channel.createMessageCollector({
                     filter: (m) => m.author.id === interaction.member.id,
                     time: 60 * 1000 * 5,
                     max: 1,
