@@ -20,7 +20,7 @@ function compareObjects(obj1, obj2) {
         console.log(`DEBUG1 RaidCompletionChecker:`, changes);
     }
     else {
-        console.debug(`RaidCompletionChecker: Still same data`);
+        console.log(`RaidCompletionChecker: Still same data`);
     }
 }
 export async function clanOnlineMemberActivityChecker() {
@@ -57,6 +57,9 @@ export async function clanOnlineMemberActivityChecker() {
         }
         await timer(5000);
     }
+    setTimeout(() => {
+        clanOnlineMemberActivityChecker();
+    }, 60 * 1000 * 8);
 }
 export async function activityCompletionChecker({ accessToken, bungieId, characterId, id, platform, raid }) {
     const milestoneHash = typeof raid === "string" ? getRaidData(raid).milestoneHash : raid;

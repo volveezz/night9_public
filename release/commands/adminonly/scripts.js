@@ -71,11 +71,11 @@ export default new Command({
                     .setDescription(`${voiceTop
                     .splice(0, 50)
                     .map((v, i) => {
-                    return `${i + 1}. <@${v.discordId}> —${convertSeconds(v.UserActivityData.voice)}`;
+                    return `${i + 1}. <@${v.discordId}> — ${convertSeconds(v.UserActivityData.voice)}`;
                 })
                     .join("\n")
                     .slice(0, 2048)}`);
-                return defferedReply.then((m) => interaction.editReply({ embeds: [msgEmbed, voiceEmbed] }));
+                return (await defferedReply) && interaction.editReply({ embeds: [msgEmbed, voiceEmbed] });
             }
             case "resendsurvey": {
                 const clanMembers = client.getCachedMembers().filter((member) => member.roles.cache.has(statusRoles.clanmember));
