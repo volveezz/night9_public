@@ -27,7 +27,6 @@ function compareObjects(obj1, obj2, logData) {
 }
 let checkedArray = [];
 export async function clanOnlineMemberActivityChecker() {
-    console.debug(`DEBUG 16000 Started activity checker`);
     for await (const [discordId, { membershipId, platform }] of clanOnline) {
         if (checkedArray.includes(discordId)) {
             console.log(`${discordId} already was checked`);
@@ -64,6 +63,7 @@ export async function clanOnlineMemberActivityChecker() {
                     characterId: mostRecentCharacterId,
                     platform,
                     raid: raidMilestoneHash,
+                    discordId,
                 });
             }
         }
@@ -71,7 +71,7 @@ export async function clanOnlineMemberActivityChecker() {
     }
     checkedArray = [];
 }
-export async function activityCompletionChecker({ accessToken, bungieId, characterId, id, platform, raid }) {
+export async function activityCompletionChecker({ accessToken, bungieId, characterId, id, platform, raid, discordId, }) {
     console.debug(`DEBUG 17000 Started activityCompletionChecker for ${platform}/${bungieId} | ${raid}`);
     const milestoneHash = typeof raid === "string" ? getRaidData(raid).milestoneHash : raid;
     let startTime = new Date().getTime();
@@ -110,6 +110,13 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                 CachedDestinyActivityDefinition[currentActivityHash]?.activityTypeHash !== raidActivityModeHashes) {
                 clearInterval(interval);
                 console.debug(`DEBUG4 Activity no longer checking becouse of changing it\nActivityHash is ${currentActivityHash}, previous was ${previousActivityHash}`);
+                currentlyRuning.delete(uniqueId);
+                activityCompletionCurrentProfiles.delete(bungieId);
+                return null;
+            }
+            if (discordId && !clanOnline.has(discordId)) {
+                clearInterval(interval);
+                console.debug(`DEBUG17002 Player left the game so he no longer checked\nActivityHash is ${currentActivityHash}, previous was ${previousActivityHash}`);
                 currentlyRuning.delete(uniqueId);
                 activityCompletionCurrentProfiles.delete(bungieId);
                 return null;
