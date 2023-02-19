@@ -4,6 +4,7 @@ import getFiles from "../handlers/fileReader.js";
 import { guildId } from "../configs/ids.js";
 import { raidMilestones } from "../functions/raidMilestones.js";
 import convertSeconds from "../functions/utilities.js";
+import { clanOnlineMemberActivityChecker } from "../functions/activityCompletionChecker.js";
 const __dirname = resolve();
 export class ExtendedClient extends Client {
     commands = new Collection();
@@ -155,6 +156,9 @@ export class ExtendedClient extends Client {
             setTimeout(() => {
                 raidMilestones();
             }, 30 * 1000);
+            setInterval(() => {
+                clanOnlineMemberActivityChecker();
+            }, 60 * 1000 * 3);
             setInterval(() => {
                 const time = Math.trunc(this.uptime / 1000);
                 console.log(`Client uptime: ${convertSeconds(time)}`);
