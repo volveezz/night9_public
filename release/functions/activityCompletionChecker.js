@@ -24,8 +24,10 @@ function compareObjects(obj1, obj2) {
     }
 }
 export async function clanOnlineMemberActivityChecker() {
+    console.debug(`DEBUG 16000 Started clanOnlineMemberActivityChecker`);
     const raidActivityModeHashes = [2166136261, 2043403989];
     for await (const [discordId, { membershipId, platform }] of clanOnline) {
+        console.debug(`DEBUG 16001 Checking ${discordId} | ${platform}/${membershipId}`);
         const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204`);
         const characterActivities = response.characterActivities.data;
         if (!characterActivities)
@@ -36,17 +38,21 @@ export async function clanOnlineMemberActivityChecker() {
             const bDate = new Date(characterActivities[b].dateActivityStarted);
             return aDate > bDate ? a : b;
         });
+        console.debug(`DEBUG 16002 Active character of ${discordId} | ${platform}/${membershipId} is ${mostRecentCharacterId}`);
         const activeCharacter = characterActivities[mostRecentCharacterId];
         if (activeCharacter.currentActivityModeType === 4 ||
             activeCharacter.currentActivityModeTypes?.includes(4) ||
             raidActivityModeHashes.includes(activeCharacter.currentActivityModeHash)) {
+            console.debug(`DEBUG 16003 User found in raid activity ${discordId} | ${platform}/${membershipId} at ${mostRecentCharacterId}`);
             if (!activityCompletionCurrentProfiles.has(membershipId)) {
+                console.debug(`DEBUG 16004 User not already checking ${discordId} | ${platform}/${membershipId} at ${mostRecentCharacterId}`);
                 const authData = await AuthData.findByPk(discordId, { attributes: ["platform", "bungieId", "accessToken"] });
                 const raidMilestoneHash = raidMilestoneHashes.get(activeCharacter.currentActivityHash);
                 if (!authData)
                     return console.error(`[Error code: 1438] No authorization data for user ${membershipId}`, raidMilestoneHash, activeCharacter);
                 if (!raidMilestoneHash)
                     return console.error(`[Error code: 1440] No raid milestone data for user ${authData.bungieId}\n${activeCharacter.currentActivityHash} - ${raidMilestoneHash}\n`, activeCharacter.currentActivityHash, activeCharacter.currentActivityModeHash, activeCharacter.dateActivityStarted, activeCharacter.currentActivityModeHashes, activeCharacter.currentActivityModeType, activeCharacter.currentActivityModeTypes);
+                console.debug(`DEBUG 16005 User sent to checking ${discordId} | ${platform}/${membershipId} at ${mostRecentCharacterId}`);
                 activityCompletionChecker({
                     accessToken: authData.accessToken,
                     bungieId: membershipId,
@@ -64,6 +70,7 @@ export async function clanOnlineMemberActivityChecker() {
     }, 60 * 1000 * 8);
 }
 export async function activityCompletionChecker({ accessToken, bungieId, characterId, id, platform, raid }) {
+    console.debug(`DEBUG 17000 Started activityCompletionChecker for ${platform}/${bungieId} | ${id} | ${raid}`);
     const milestoneHash = typeof raid === "string" ? getRaidData(raid).milestoneHash : raid;
     let startTime = new Date().getTime();
     let interval;
