@@ -4,9 +4,11 @@ import { getRaidData } from "./raidFunctions.js";
 import { clanOnline } from "../features/memberStatisticsHandler.js";
 import raidMilestoneHashes from "./raidMilestones.js";
 import { timer } from "./utilities.js";
+import { CachedDestinyActivityDefinition } from "./manifestHandler.js";
 export const activityCompletionCurrentProfiles = new Map();
 export const completedPhases = new Map();
 const currentlyRuning = new Map();
+const raidActivityModeHashes = 2043403989;
 function compareObjects(obj1, obj2) {
     let changes = [];
     for (let i = 0; i < obj1.length; i++) {
@@ -24,7 +26,6 @@ function compareObjects(obj1, obj2) {
     }
 }
 export async function clanOnlineMemberActivityChecker() {
-    const raidActivityModeHashes = 2043403989;
     for await (const [discordId, { membershipId, platform }] of clanOnline) {
         const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204`);
         const characterActivities = response.characterActivities.data;
@@ -40,7 +41,9 @@ export async function clanOnlineMemberActivityChecker() {
         const activeCharacter = characterActivities[mostRecentCharacterId];
         if (activeCharacter.currentActivityModeType === 4 ||
             (activeCharacter.currentActivityModeTypes && activeCharacter.currentActivityModeTypes.includes(4)) ||
-            raidActivityModeHashes === activeCharacter.currentActivityModeHash) {
+            raidActivityModeHashes === activeCharacter.currentActivityModeHash ||
+            (activeCharacter.currentActivityHash &&
+                CachedDestinyActivityDefinition[activeCharacter.currentActivityHash]?.activityTypeHash === raidActivityModeHashes)) {
             console.debug(`DEBUG 16003 User found in raid activity ${discordId} | ${platform}/${membershipId} at ${mostRecentCharacterId}\n${activeCharacter.currentActivityHash} | ${activeCharacter.currentActivityModeHash} | ${activeCharacter.currentActivityModeType} | ${activeCharacter.currentActivityModeTypes}`);
             if (!activityCompletionCurrentProfiles.has(membershipId)) {
                 console.debug(`DEBUG 16004 User not already checking ${discordId} | ${platform}/${membershipId} at ${mostRecentCharacterId}`);
@@ -92,6 +95,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                 clearInterval(interval);
                 currentlyRuning.delete(uniqueId);
                 activityCompletionCurrentProfiles.delete(bungieId);
+                console.debug(`DEBUG 17001 Exit from checkActivityHash due of not found character data`);
                 return null;
             }
             const characterData = response.activities.data;
