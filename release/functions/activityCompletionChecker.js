@@ -9,7 +9,9 @@ export const activityCompletionCurrentProfiles = new Map();
 export const completedPhases = new Map();
 const currentlyRuning = new Map();
 const raidActivityModeHashes = 2043403989;
-function compareObjects(obj1, obj2) {
+function compareObjects(obj1, obj2, logData) {
+    if (logData)
+        console.log(`[Error code: 1441]`, logData);
     let changes = [];
     for (let i = 0; i < obj1.length; i++) {
         for (let key in obj1[i]) {
@@ -61,9 +63,6 @@ export async function clanOnlineMemberActivityChecker() {
         }
         await timer(5000);
     }
-    setTimeout(() => {
-        clanOnlineMemberActivityChecker();
-    }, 60 * 1000 * 8);
 }
 export async function activityCompletionChecker({ accessToken, bungieId, characterId, id, platform, raid }) {
     console.debug(`DEBUG 17000 Started activityCompletionChecker for ${platform}/${bungieId} | ${raid}`);
@@ -123,7 +122,13 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                 for (const milestineIndex in updatedMilestone.activities) {
                     const cachedMilestoneActivity = cachedMilestone.activities[milestineIndex];
                     const updatedMilestoneActivity = updatedMilestone.activities[milestineIndex];
-                    compareObjects(cachedMilestoneActivity.phases, updatedMilestoneActivity.phases);
+                    compareObjects(cachedMilestoneActivity.phases, updatedMilestoneActivity.phases, {
+                        platform,
+                        bungieId,
+                        id,
+                        raid,
+                        characterId,
+                    });
                     for (const phaseIndexString in updatedMilestoneActivity.phases) {
                         const phaseIndex = parseInt(phaseIndexString);
                         const cachedMilestonePhase = cachedMilestoneActivity.phases[phaseIndex];

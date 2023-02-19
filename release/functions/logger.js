@@ -170,21 +170,11 @@ export async function activityReporter(pgcrId) {
                 if (completedPhases.has(dbMemberData.bungieId)) {
                     const testEmbed = EmbedBuilder.from(embed);
                     let encountersData = completedPhases.get(dbMemberData.bungieId);
+                    completedPhases.delete(dbMemberData.bungieId);
                     if (encountersData[0].phaseIndex !== 1 && response.activityWasStartedFromBeginning) {
                         encountersData[0].phaseIndex = `1-${encountersData[0].phaseIndex}`;
-                        encountersData[0].start = new Date(response.period).getTime();
                     }
-                    else if (encountersData[0].phaseIndex === 1 && response.activityWasStartedFromBeginning) {
-                        encountersData = [
-                            {
-                                start: new Date(response.period).getTime(),
-                                end: encountersData[0].end,
-                                phaseIndex: `1-FROM_GAME`,
-                                phase: encountersData[0].phase,
-                            },
-                            ...encountersData,
-                        ];
-                    }
+                    encountersData[0].start = new Date(response.period).getTime();
                     testEmbed.addFields([
                         {
                             name: "Затраченное время на этапы",

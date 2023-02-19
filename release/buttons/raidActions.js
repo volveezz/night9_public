@@ -59,7 +59,7 @@ async function joinedFromHotJoined(raidData) {
     const member = client.getCachedMembers().get(newRaidJoined);
     if (!member)
         throw { errorType: UserErrors.MEMBER_NOT_FOUND };
-    raidData.update({
+    await raidData.update({
         joined: Sequelize.fn("array_append", Sequelize.col("joined"), `${newRaidJoined}`),
         hotJoined: Sequelize.fn("array_remove", Sequelize.col("hotJoined"), `${newRaidJoined}`),
         alt: Sequelize.fn("array_remove", Sequelize.col("alt"), `${newRaidJoined}`),
@@ -119,7 +119,7 @@ export default {
                 actionMessageHandler({ interaction, raidEvent, target: "leave" });
                 client.getCachedGuild().channels.cache.get(raidEvent.channelId).permissionOverwrites.delete(interaction.user.id);
                 if (raidEvent.joined.length === 5 && raidEvent.hotJoined.length > 0)
-                    joinedFromHotJoined(raidEvent);
+                    setTimeout(() => joinedFromHotJoined(raidEvent), 500);
             });
         }
         let raidEvent = await RaidEvent.findOne({

@@ -4,6 +4,7 @@ import getFiles from "../handlers/fileReader.js";
 import { guildId } from "../configs/ids.js";
 import { clanOnlineMemberActivityChecker } from "../functions/activityCompletionChecker.js";
 import { raidMilestones } from "../functions/raidMilestones.js";
+import convertSeconds from "../functions/utilities.js";
 const __dirname = resolve();
 export class ExtendedClient extends Client {
     commands = new Collection();
@@ -44,7 +45,7 @@ export class ExtendedClient extends Client {
     }
     startUpdatingPresence() {
         this.updatePresence();
-        this.intervalId = global.setInterval(() => {
+        this.intervalId = setInterval(() => {
             this.updatePresence();
         }, 60000);
     }
@@ -155,19 +156,12 @@ export class ExtendedClient extends Client {
             setTimeout(() => {
                 raidMilestones();
             }, 30 * 1000);
-            setTimeout(() => {
+            setInterval(() => {
                 clanOnlineMemberActivityChecker();
-            }, 60 * 1000 * 9);
+            }, 60 * 1000 * 8);
             setInterval(() => {
                 const time = Math.trunc(this.uptime / 1000);
-                const calculatedTime = [];
-                if (time / 86400 >= 1)
-                    calculatedTime.push(`${Math.trunc(time / 86400)}d`);
-                if ((time % 86400) / 3600 >= 1)
-                    calculatedTime.push(`${Math.trunc((time % 86400) / 3600)}h`);
-                if ((time % 3600) / 60 >= 1)
-                    calculatedTime.push(`${Math.trunc((time % 3600) / 60)}m`);
-                console.log(`Client uptime: ${calculatedTime.join(":")}`);
+                console.log(`Client uptime: ${convertSeconds(time)}`);
             }, 1000 * 60 * 30);
         });
     }
