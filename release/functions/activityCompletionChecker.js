@@ -29,9 +29,12 @@ function compareObjects(obj1, obj2, logData) {
 }
 let checkedArray = [];
 export async function clanOnlineMemberActivityChecker() {
+    console.debug(`DEBUG 16000 Started activity checker`);
     for await (const [discordId, { membershipId, platform }] of clanOnline) {
-        if (checkedArray.includes(discordId))
+        if (checkedArray.includes(discordId)) {
             console.log(`${discordId} already was checked`);
+            continue;
+        }
         checkedArray.push(discordId);
         const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204,1000`);
         const characterActivities = response.characterActivities.data;
@@ -106,7 +109,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
             }
             else if (currentActivityHash !== previousActivityHash ||
                 currentActivityHash === 82913930 ||
-                CachedDestinyActivityDefinition[currentActivityHash]?.activityTypeHash === raidActivityModeHashes) {
+                CachedDestinyActivityDefinition[currentActivityHash]?.activityTypeHash !== raidActivityModeHashes) {
                 clearInterval(interval);
                 console.debug(`DEBUG4 Activity no longer checking becouse of changing it\nActivityHash is ${currentActivityHash}, previous was ${previousActivityHash}`);
                 currentlyRuning.delete(uniqueId);

@@ -2,7 +2,6 @@ import { ActivityType, Client, Collection, GatewayIntentBits, Partials, } from "
 import { resolve, join } from "path";
 import getFiles from "../handlers/fileReader.js";
 import { guildId } from "../configs/ids.js";
-import { clanOnlineMemberActivityChecker } from "../functions/activityCompletionChecker.js";
 import { raidMilestones } from "../functions/raidMilestones.js";
 import convertSeconds from "../functions/utilities.js";
 const __dirname = resolve();
@@ -156,9 +155,6 @@ export class ExtendedClient extends Client {
             setTimeout(() => {
                 raidMilestones();
             }, 30 * 1000);
-            setInterval(() => {
-                clanOnlineMemberActivityChecker();
-            }, 60 * 1000 * 8);
             setInterval(() => {
                 const time = Math.trunc(this.uptime / 1000);
                 console.log(`Client uptime: ${convertSeconds(time)}`);
