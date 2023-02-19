@@ -372,6 +372,9 @@ async function destinyClanManagmentSystem(bungie_array) {
             if (bungie_array.some((e) => e.bungieId === result.destinyUserInfo.membershipId)) {
                 const [memberAuthData] = bungie_array.splice(bungie_array.findIndex((e) => e.bungieId === result.destinyUserInfo.membershipId), 1);
                 if (result.isOnline) {
+                    if (clanOnline.has(memberAuthData.discordId)) {
+                        console.log(`DEBUG 15001 Member already in clanOnline map ${memberAuthData.discordId}`);
+                    }
                     clanOnline.set(memberAuthData.discordId, {
                         platform: result.destinyUserInfo.membershipType,
                         membershipId: result.destinyUserInfo.membershipId,
