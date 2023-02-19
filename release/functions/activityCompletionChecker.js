@@ -24,7 +24,7 @@ function compareObjects(obj1, obj2) {
     }
 }
 export async function clanOnlineMemberActivityChecker() {
-    const raidActivityModeHashes = [2166136261, 2043403989];
+    const raidActivityModeHashes = 2043403989;
     for await (const [discordId, { membershipId, platform }] of clanOnline) {
         const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204`);
         const characterActivities = response.characterActivities.data;
@@ -39,9 +39,9 @@ export async function clanOnlineMemberActivityChecker() {
         console.debug(`DEBUG 16002 Most recent character of ${discordId} | ${platform}/${membershipId} is ${mostRecentCharacterId}`);
         const activeCharacter = characterActivities[mostRecentCharacterId];
         if (activeCharacter.currentActivityModeType === 4 ||
-            activeCharacter.currentActivityModeTypes?.includes(4) ||
-            raidActivityModeHashes.includes(activeCharacter.currentActivityModeHash)) {
-            console.debug(`DEBUG 16003 User found in raid activity ${discordId} | ${platform}/${membershipId} at ${mostRecentCharacterId}`);
+            (activeCharacter.currentActivityModeTypes && activeCharacter.currentActivityModeTypes.includes(4)) ||
+            raidActivityModeHashes === activeCharacter.currentActivityModeHash) {
+            console.debug(`DEBUG 16003 User found in raid activity ${discordId} | ${platform}/${membershipId} at ${mostRecentCharacterId}\n${activeCharacter.currentActivityHash} | ${activeCharacter.currentActivityModeHash} | ${activeCharacter.currentActivityModeType} | ${activeCharacter.currentActivityModeTypes}`);
             if (!activityCompletionCurrentProfiles.has(membershipId)) {
                 console.debug(`DEBUG 16004 User not already checking ${discordId} | ${platform}/${membershipId} at ${mostRecentCharacterId}`);
                 const authData = await AuthData.findByPk(discordId, { attributes: ["platform", "bungieId", "accessToken"] });
