@@ -10,8 +10,6 @@ export const completedPhases = new Map();
 const currentlyRuning = new Map();
 const raidActivityModeHashes = 2043403989;
 function compareObjects(obj1, obj2, logData) {
-    if (logData)
-        console.log(`[Error code: 1441]`, logData);
     let changes = [];
     for (let i = 0; i < obj1.length; i++) {
         for (let key in obj1[i]) {
@@ -21,10 +19,10 @@ function compareObjects(obj1, obj2, logData) {
         }
     }
     if (changes.length !== 0) {
-        console.log(`DEBUG1 RaidCompletionChecker:`, changes);
+        console.log(`DEBUG1 RaidCompletionChecker of ${logData}\n`, changes);
     }
     else {
-        console.log(`RaidCompletionChecker: Still same data`);
+        console.log(`RaidCompletionChecker: Still same data for ${logData}`);
     }
 }
 let checkedArray = [];
