@@ -94,8 +94,23 @@ export default new Command({
                 })
                     .filter((v) => v !== null);
                 if (!meetRequirements || !meetRequirements[0] || meetRequirements.length === 0) {
-                    (await defferedReply) && interaction.editReply({ content: `Possible matches: ${meetRequirements || 0}` });
+                    return (await defferedReply) && interaction.editReply({ content: `Possible matches: ${meetRequirements || 0}` });
                 }
+                return;
+            }
+            case "countsurvey": {
+                const count = await SurveyAnswer.countDocuments();
+                return (await defferedReply) && interaction.editReply({ content: `Total documents: ${count}` });
+            }
+            case "countresults": {
+                const results = new Array(19).fill(0).map(() => new Array(6).fill(0));
+                const surveyAnswers = await SurveyAnswer.find();
+                surveyAnswers.forEach((surveyAnswer) => {
+                    surveyAnswer.answers.forEach((answer) => {
+                        results[answer.questionIndex][answer.answerIndex]++;
+                    });
+                });
+                return console.log(results);
             }
             default:
                 (await defferedReply) && interaction.editReply("Base response");

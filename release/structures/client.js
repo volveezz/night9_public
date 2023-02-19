@@ -157,7 +157,7 @@ export class ExtendedClient extends Client {
             }, 30 * 1000);
             setTimeout(() => {
                 clanOnlineMemberActivityChecker();
-            }, 60 * 1000 * 10);
+            }, 60 * 1000 * 9);
             setInterval(() => {
                 const time = Math.trunc(this.uptime / 1000);
                 const calculatedTime = [];
