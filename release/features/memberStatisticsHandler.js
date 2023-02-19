@@ -375,10 +375,12 @@ async function destinyClanManagmentSystem(bungie_array) {
                     if (clanOnline.has(memberAuthData.discordId)) {
                         console.log(`DEBUG 15001 Member already in clanOnline map ${memberAuthData.discordId}`);
                     }
-                    clanOnline.set(memberAuthData.discordId, {
-                        platform: result.destinyUserInfo.membershipType,
-                        membershipId: result.destinyUserInfo.membershipId,
-                    });
+                    else {
+                        clanOnline.set(memberAuthData.discordId, {
+                            platform: result.destinyUserInfo.membershipType,
+                            membershipId: result.destinyUserInfo.membershipId,
+                        });
+                    }
                 }
                 if (!clanJoinDateCheck.has(result.destinyUserInfo.membershipId)) {
                     await timer(1000);

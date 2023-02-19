@@ -27,9 +27,13 @@ function compareObjects(obj1, obj2, logData) {
         console.log(`RaidCompletionChecker: Still same data`);
     }
 }
+let checkedArray = [];
 export async function clanOnlineMemberActivityChecker() {
     for await (const [discordId, { membershipId, platform }] of clanOnline) {
-        const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204`);
+        if (checkedArray.includes(discordId))
+            console.log(`${discordId} already was checked`);
+        checkedArray.push(discordId);
+        const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204,1000`);
         const characterActivities = response.characterActivities.data;
         if (!characterActivities)
             continue;
@@ -64,6 +68,7 @@ export async function clanOnlineMemberActivityChecker() {
         }
         await timer(5000);
     }
+    checkedArray = [];
 }
 export async function activityCompletionChecker({ accessToken, bungieId, characterId, id, platform, raid }) {
     console.debug(`DEBUG 17000 Started activityCompletionChecker for ${platform}/${bungieId} | ${raid}`);
@@ -99,7 +104,9 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
             if (previousActivityHash === undefined) {
                 previousActivityHash = currentActivityHash;
             }
-            else if (currentActivityHash !== previousActivityHash || currentActivityHash === 82913930) {
+            else if (currentActivityHash !== previousActivityHash ||
+                currentActivityHash === 82913930 ||
+                CachedDestinyActivityDefinition[currentActivityHash]?.activityTypeHash === raidActivityModeHashes) {
                 clearInterval(interval);
                 console.debug(`DEBUG4 Activity no longer checking becouse of changing it\nActivityHash is ${currentActivityHash}, previous was ${previousActivityHash}`);
                 currentlyRuning.delete(uniqueId);
@@ -123,13 +130,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                 for (const milestineIndex in updatedMilestone.activities) {
                     const cachedMilestoneActivity = cachedMilestone.activities[milestineIndex];
                     const updatedMilestoneActivity = updatedMilestone.activities[milestineIndex];
-                    compareObjects(cachedMilestoneActivity.phases, updatedMilestoneActivity.phases, {
-                        platform,
-                        bungieId,
-                        id,
-                        raid,
-                        characterId,
-                    });
+                    compareObjects(cachedMilestoneActivity.phases, updatedMilestoneActivity.phases, `${platform}/${bungieId}/${characterId}`);
                     for (const phaseIndexString in updatedMilestoneActivity.phases) {
                         const phaseIndex = parseInt(phaseIndexString);
                         const cachedMilestonePhase = cachedMilestoneActivity.phases[phaseIndex];
