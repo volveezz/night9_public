@@ -95,17 +95,6 @@ export async function activityReporter(pgcrId) {
         });
         const membersMembershipIds = Array.from(completedUsers.keys());
         completedUsers.forEach((value, key) => {
-            const arr = [];
-            arr.push(value.timeInActivity >= 3600 ? Math.trunc(value.timeInActivity / 60 / 60) + "ч" : "");
-            arr.push(value.timeInActivity >= 60
-                ? (value.timeInActivity > 660
-                    ? Math.trunc(value.timeInActivity / 60) - Math.trunc(value.timeInActivity / 60 / 60) * 60
-                    : Math.trunc(value.timeInActivity / 60)) + "м"
-                : "");
-            if (value.timeInActivity < 3600)
-                arr.push(value.timeInActivity - Math.trunc(value.timeInActivity / 60) * 60 !== 0
-                    ? value.timeInActivity - Math.trunc(value.timeInActivity / 60) * 60 + "с"
-                    : "");
             if (!value.completed) {
                 return;
             }
@@ -115,7 +104,7 @@ export async function activityReporter(pgcrId) {
             embed.addFields({
                 name: value.bungieName,
                 value: `${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
-                    ? `\nВ ${response.activityDetails.mode === 4 ? "рейде" : response.activityDetails.mode === 82 ? "подземелье" : "активности"}: **${arr.join(" ").trim()}**`
+                    ? `\nВ ${response.activityDetails.mode === 4 ? "рейде" : response.activityDetails.mode === 82 ? "подземелье" : "активности"}: **${convertSeconds(value.timeInActivity)}**`
                     : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
                 inline: true,
             });
@@ -124,21 +113,10 @@ export async function activityReporter(pgcrId) {
             return a.name.localeCompare(b.name);
         });
         completedUsers.forEach((value, _key) => {
-            const arr = [];
-            arr.push(value.timeInActivity >= 3600 ? Math.trunc(value.timeInActivity / 60 / 60) + "ч" : "");
-            arr.push(value.timeInActivity >= 60
-                ? (value.timeInActivity > 660
-                    ? Math.trunc(value.timeInActivity / 60) - Math.trunc(value.timeInActivity / 60 / 60) * 60
-                    : Math.trunc(value.timeInActivity / 60)) + "м"
-                : "");
-            if (value.timeInActivity < 3600)
-                arr.push(value.timeInActivity - Math.trunc(value.timeInActivity / 60) * 60 !== 0
-                    ? value.timeInActivity - Math.trunc(value.timeInActivity / 60) * 60 + "с"
-                    : "");
             embed.addFields({
                 name: "❌" + value.bungieName,
                 value: `${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
-                    ? `\nВ ${response.activityDetails.mode === 4 ? "рейде" : response.activityDetails.mode === 82 ? "подземелье" : "активности"}: **${arr.join(" ").trim()}**`
+                    ? `\nВ ${response.activityDetails.mode === 4 ? "рейде" : response.activityDetails.mode === 82 ? "подземелье" : "активности"}: **${convertSeconds(value.timeInActivity)}**`
                     : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
                 inline: true,
             });
@@ -146,19 +124,82 @@ export async function activityReporter(pgcrId) {
         if (membersMembershipIds.length <= 0)
             return;
         const dbData = await AuthData.findAll({ where: { bungieId: { [Op.any]: membersMembershipIds } } });
-        if (dbData.length >= 1 && dbData.filter((a) => a.clan).length >= 1) {
-            if (response.activityDetails.mode === 4 && dbData.length <= 1 && dbData.filter((a) => a.clan).length <= 1)
+        const clanMembersInRaid = dbData.filter((a) => a.clan).length;
+        if (dbData.length >= 1 && clanMembersInRaid >= 1) {
+            if (response.activityDetails.mode === 4 && dbData.length <= 1 && clanMembersInRaid <= 1)
                 return;
-            if (response.activityDetails.mode === 82 &&
-                (dbData.filter((a) => a.clan).length < 1 || (membersMembershipIds.length > 1 && dbData.length <= 1)))
+            if (response.activityDetails.mode === 82 && (clanMembersInRaid < 1 || (membersMembershipIds.length > 1 && dbData.length <= 1)))
                 return;
             const msg = await client.getCachedGuild().channels.cache.get(ids.activityChnId).send({ embeds: [embed] });
+            const encounterTimes = new Map();
+            membersMembershipIds.forEach((bungieId) => {
+                if (completedPhases.has(bungieId)) {
+                    const completedPhasesForUser = completedPhases.get(bungieId);
+                    completedPhasesForUser.forEach((completedPhase) => {
+                        const { phase: phaseHash, phaseIndex, start, end } = completedPhase;
+                        if (!encounterTimes.has(phaseHash)) {
+                            encounterTimes.set(phaseHash, { start, end, phaseIndex, phase: phaseHash });
+                        }
+                        else {
+                            const existingEncounter = encounterTimes.get(phaseHash);
+                            if (start < existingEncounter.start) {
+                                existingEncounter.start = start;
+                            }
+                            if (end < existingEncounter.end) {
+                                existingEncounter.end = end;
+                            }
+                            encounterTimes.set(phaseHash, existingEncounter);
+                        }
+                    });
+                    completedPhases.delete(bungieId);
+                }
+            });
+            if (encounterTimes) {
+                const testEmbed = EmbedBuilder.from(embed);
+                const encountersData = [];
+                encounterTimes.forEach((encounterData, index) => {
+                    if (index === 0) {
+                        return encountersData.push({
+                            end: encounterData.end,
+                            phase: encounterData.phase,
+                            phaseIndex: encounterData.phaseIndex !== 1 && response.activityWasStartedFromBeginning
+                                ? `1-${encounterData.phaseIndex}`
+                                : encounterData.phaseIndex,
+                            start: new Date(response.period).getTime(),
+                        });
+                    }
+                    encountersData.push({
+                        end: encounterData.end,
+                        phase: encounterData.phase,
+                        phaseIndex: encounterData.phaseIndex,
+                        start: encounterData.start,
+                    });
+                });
+                testEmbed.addFields([
+                    {
+                        name: "Затраченное время на этапы",
+                        value: `${encountersData
+                            .map((encounter) => {
+                            return `⁣　⁣${encounter.phaseIndex}. <t:${Math.floor(encounter.start / 1000)}:t> — <t:${Math.floor(encounter.end / 1000)}:t>, **${convertSeconds(Math.floor(encounter.end / 1000 - encounter.start / 1000))}**`;
+                        })
+                            .join("\n")}`,
+                    },
+                ]);
+                try {
+                    (client.getCachedGuild().channels.cache.get(ids.adminChnId) ||
+                        (await client.getCachedGuild().channels.fetch(ids.adminChnId))).send({ embeds: [testEmbed] });
+                }
+                catch (error) {
+                    console.error(`[Error code: 1422]`, { error });
+                }
+                encounterTimes.clear();
+            }
             dbData.forEach(async (dbMemberData) => {
-                if (response.activityDetails.mode === 82 && dbData.filter((a) => a.clan).length > 1)
+                if (response.activityDetails.mode === 82 && clanMembersInRaid > 1)
                     return UserActivityData.increment("dungeons", { by: 1, where: { discordId: dbMemberData.discordId } });
                 if (response.activityDetails.mode !== 4)
                     return;
-                if (dbMemberData.clan && dbData.filter((a) => a.clan).length > 2)
+                if (dbMemberData.clan && clanMembersInRaid > 2)
                     UserActivityData.increment("raids", { by: 1, where: { discordId: dbMemberData.discordId } });
                 const dbRaidData = await RaidEvent.findAll({ where: { creator: dbMemberData.discordId } }).then((data) => {
                     for (let i = 0; i < data.length; i++) {
@@ -167,41 +208,16 @@ export async function activityReporter(pgcrId) {
                             return row;
                     }
                 });
-                if (completedPhases.has(dbMemberData.bungieId)) {
-                    const testEmbed = EmbedBuilder.from(embed);
-                    let encountersData = completedPhases.get(dbMemberData.bungieId);
-                    completedPhases.delete(dbMemberData.bungieId);
-                    if (encountersData[0].phaseIndex !== 1 && response.activityWasStartedFromBeginning) {
-                        encountersData[0].phaseIndex = `1-${encountersData[0].phaseIndex}`;
-                    }
-                    encountersData[0].start = new Date(response.period).getTime();
-                    testEmbed.addFields([
-                        {
-                            name: "Затраченное время на этапы",
-                            value: `${encountersData
-                                .map((encounter) => {
-                                return `⁣　⁣${encounter.phaseIndex}. <t:${Math.floor(encounter.start / 1000)}:t> — <t:${Math.floor(encounter.end / 1000)}:t>, **${convertSeconds(Math.floor(encounter.end / 1000 - encounter.start / 1000))}**`;
-                            })
-                                .join("\n")}`,
-                        },
-                    ]);
-                    try {
-                        (client.getCachedGuild().channels.cache.get(ids.adminChnId) ||
-                            (await client.getCachedGuild().channels.fetch(ids.adminChnId))).send({ embeds: [testEmbed] });
-                    }
-                    catch (error) {
-                        console.error(`[Error code: 1422]`, { error });
-                    }
-                }
                 if (dbRaidData && dbRaidData.time < Math.trunc(new Date().getTime() / 1000)) {
                     const embed = new EmbedBuilder()
                         .setColor(colors.serious)
                         .setFooter({ text: `RId: ${dbRaidData.id}` })
                         .setTitle("Созданный вами рейд был завершен")
                         .setDescription(`Вы создавали рейд ${dbRaidData.id}-${dbRaidData.raid} на <t:${dbRaidData.time}> и сейчас он был завершен.\nПодтвердите завершение рейда для удаления набора.\n\n[История активностей](https://discord.com/channels/${msg.guildId + "/" + msg.channelId + "/" + msg.id})`);
-                    return client.users.cache
-                        .get(dbRaidData.creator)
-                        ?.send({
+                    return (client.users.cache.get(dbRaidData.creator) ||
+                        client.getCachedGuild().members.cache.get(dbRaidData.creator) ||
+                        (await client.users.fetch(dbRaidData.creator)))
+                        .send({
                         embeds: [embed],
                         components: [
                             {
