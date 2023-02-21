@@ -336,9 +336,8 @@ async function destinyClanManagmentSystem(bungie_array) {
         if (clanList?.ErrorCode !== undefined && clanList.ErrorCode !== apiStatus.status) {
             apiStatus.status = clanList.ErrorCode;
         }
-        else {
-            if (apiStatus.status !== 1 && clanList?.results && clanList.results.length >= 1)
-                apiStatus.status = 1;
+        else if (apiStatus.status !== 1 && clanList?.results && clanList.results.length >= 1) {
+            apiStatus.status = 1;
         }
         if (client.user.presence.activities[0].name.startsWith("🔁")) {
             client.stopUpdatingPresence();
@@ -505,11 +504,11 @@ export default new Feature({
                 },
                 transaction: t,
             });
-            const dbNotFiltred = (await AuthData.findAll({
+            const dbNotFiltred = await AuthData.findAll({
                 attributes: ["discordId", "bungieId", "platform", "clan", "displayName", "accessToken", "roleCategoriesBits"],
                 transaction: t,
                 include: UserActivityData,
-            }));
+            });
             try {
                 await t.commit();
             }
@@ -561,7 +560,7 @@ export default new Feature({
                             !member.roles.cache.has(trialsRoles.wintrader) &&
                             member.roles.cache.has(trialsRoles.category))
                             destinyActivityChecker(db_row, member, 84);
-                        await timer(750);
+                        await timer(900);
                     }
                 }
             }
@@ -580,11 +579,12 @@ export default new Feature({
                     return;
                 const { timezone, displayName: userDbName } = userDbData;
                 if (member.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "") !== userDbName && !userDbName.startsWith("⁣"))
-                    if (!member.permissions.has("Administrator"))
+                    if (!member.permissions.has("Administrator")) {
                         member
                             .setNickname(userDbData.timezone ? `[+${timezone}] ${userDbName}` : userDbName)
                             .catch((e) => console.error("[Error code: 1030] Name autochange error", e));
+                    }
             });
-        }, 1000 * 70 * 5);
+        }, 1000 * 60 * 60);
     },
 });

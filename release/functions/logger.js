@@ -175,7 +175,7 @@ export async function activityReporter(pgcrId) {
                         end: encounterData.end,
                         phase: encounterData.phase,
                         phaseIndex: encounterData.phaseIndex,
-                        start: encounterData.start,
+                        start: new Date(response.period).getTime(),
                     });
                 });
                 testEmbed.addFields([
@@ -183,7 +183,7 @@ export async function activityReporter(pgcrId) {
                         name: "Затраченное время на этапы",
                         value: `${encountersData
                             .map((encounter) => {
-                            return `⁣　⁣${encounter.phaseIndex}. <t:${Math.floor(encounter.start / 1000)}:t> — <t:${Math.floor(encounter.end / 1000)}:t>, **${convertSeconds(Math.floor(encounter.end / 1000 - encounter.start / 1000))}**`;
+                            return `⁣　⁣${encounter.phaseIndex}. <t:${Math.floor(encounter.start / 1000)}:t> — <t:${Math.floor(encounter.end / 1000)}:t>, **${convertSeconds(Math.floor((encounter.end - encounter.start) / 1000))}**`;
                         })
                             .join("\n")}`,
                     },
