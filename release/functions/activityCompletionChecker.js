@@ -25,18 +25,10 @@ function compareObjects(obj1, obj2, logData) {
         console.log(`RaidCompletionChecker: Still same data for ${logData}`);
     }
 }
-let checkedArray = [];
 export async function clanOnlineMemberActivityChecker() {
     setInterval(async () => {
-        console.log(`  =  CHECKING STARTED  =  `);
         const checkingUsers = new Map(clanOnline);
         for (const [discordId, { membershipId, platform }] of checkingUsers) {
-            console.log(`Checking: ${discordId} ${platform}/${membershipId}`);
-            if (checkedArray.includes(discordId)) {
-                console.log(` - REPEAT FOUND [${discordId} ${platform}/${membershipId}] - `);
-                continue;
-            }
-            checkedArray.push(discordId);
             const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204,1000`);
             const characterActivities = response.characterActivities.data;
             if (!characterActivities)
@@ -73,8 +65,6 @@ export async function clanOnlineMemberActivityChecker() {
             }
             await timer(5000);
         }
-        console.log(`  =  CHECKING ENDED  =  `);
-        checkedArray = [];
     }, 60 * 1000 * 8);
 }
 export async function activityCompletionChecker({ accessToken, bungieId, characterId, id, platform, raid, discordId, }) {
