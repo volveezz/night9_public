@@ -27,14 +27,12 @@ function compareObjects(obj1, obj2, logData) {
 }
 let checkedArray = [];
 export async function clanOnlineMemberActivityChecker() {
-    let i = 0;
     setInterval(async () => {
-        i++;
+        console.log(`  =  CHECKING STARTED  =  `);
         for await (const [discordId, { membershipId, platform }] of clanOnline) {
+            console.log(`Checking: ${discordId} ${platform}/${membershipId}`);
             if (checkedArray.includes(discordId)) {
-                console.log(` = REPEAT ${i} FOUND = `);
-                clanOnline.forEach((v, i) => console.log(`${i}. ${v}`));
-                console.log(` = REPEAT ${i} FOUND = `);
+                console.log(` - REPEAT FOUND [${discordId} ${platform}/${membershipId}] - `);
                 continue;
             }
             checkedArray.push(discordId);
@@ -74,6 +72,7 @@ export async function clanOnlineMemberActivityChecker() {
             }
             await timer(5000);
         }
+        console.log(`  =  CHECKING ENDED  =  `);
         checkedArray = [];
     }, 60 * 1000 * 8);
 }
