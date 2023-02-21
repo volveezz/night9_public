@@ -24,8 +24,14 @@ async function bungieGrantRequest(row, table, t, retry = false) {
             bungieGrantRequest(row, table, t, true);
             console.error(`[Error code: 1420] For ${row.bungieId}`, request);
         }
-        else
+        else {
             console.error(`[Error code: 1231] For ${row.bungieId}`, request);
+            if (request.error_description === "AuthorizationRecordRevoked") {
+                await (table === 1 ? AuthData : LeavedUsersData)
+                    .destroy({ where: { bungieId: row.bungieId }, transaction: t })
+                    .then((r) => console.log(`User (${row.bungieId}) was deleted in table ${table} becouse he revoked authToken`, request));
+            }
+        }
     }
 }
 async function refreshTokens(table) {

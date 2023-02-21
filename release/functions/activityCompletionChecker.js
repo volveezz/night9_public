@@ -27,51 +27,55 @@ function compareObjects(obj1, obj2, logData) {
 }
 let checkedArray = [];
 export async function clanOnlineMemberActivityChecker() {
-    for await (const [discordId, { membershipId, platform }] of clanOnline) {
-        if (checkedArray.includes(discordId)) {
-            console.log(" = REPEAT FOUND = ");
-            clanOnline.forEach((v, i) => console.log(`${i}. ${v}`));
-            console.log(" = REPEAT FOUND = ");
-            continue;
-        }
-        checkedArray.push(discordId);
-        const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204,1000`);
-        const characterActivities = response.characterActivities.data;
-        if (!characterActivities)
-            continue;
-        const characterIds = Object.keys(characterActivities);
-        const mostRecentCharacterId = characterIds.reduce((a, b) => {
-            const aDate = new Date(characterActivities[a].dateActivityStarted);
-            const bDate = new Date(characterActivities[b].dateActivityStarted);
-            return aDate > bDate ? a : b;
-        });
-        const activeCharacter = characterActivities[mostRecentCharacterId];
-        if (activeCharacter.currentActivityModeType === 4 ||
-            (activeCharacter.currentActivityModeTypes && activeCharacter.currentActivityModeTypes.includes(4)) ||
-            raidActivityModeHashes === activeCharacter.currentActivityModeHash ||
-            (activeCharacter.currentActivityHash &&
-                CachedDestinyActivityDefinition[activeCharacter.currentActivityHash]?.activityTypeHash === raidActivityModeHashes)) {
-            if (!activityCompletionCurrentProfiles.has(membershipId)) {
-                const authData = await AuthData.findByPk(discordId, { attributes: ["platform", "bungieId", "accessToken"] });
-                const raidMilestoneHash = raidMilestoneHashes.get(activeCharacter.currentActivityHash);
-                if (!authData)
-                    return console.error(`[Error code: 1438] No authorization data for user ${membershipId}`, raidMilestoneHash, activeCharacter);
-                if (!raidMilestoneHash)
-                    return console.error(`[Error code: 1440] No raid milestone data for user ${authData.bungieId}\n${activeCharacter.currentActivityHash} - ${raidMilestoneHash}\n`, activeCharacter.currentActivityHash, activeCharacter.currentActivityModeHash, activeCharacter.dateActivityStarted, activeCharacter.currentActivityModeHashes, activeCharacter.currentActivityModeType, activeCharacter.currentActivityModeTypes);
-                console.debug(`DEBUG 16001 Started checking ${platform}/${membershipId}/${mostRecentCharacterId} in ${activeCharacter.currentActivityHash}/${activeCharacter.currentActivityModeTypes}`);
-                activityCompletionChecker({
-                    accessToken: authData.accessToken,
-                    bungieId: membershipId,
-                    characterId: mostRecentCharacterId,
-                    platform,
-                    raid: raidMilestoneHash,
-                    discordId,
-                });
+    let i = 0;
+    setInterval(async () => {
+        i++;
+        for await (const [discordId, { membershipId, platform }] of clanOnline) {
+            if (checkedArray.includes(discordId)) {
+                console.log(` = REPEAT ${i} FOUND = `);
+                clanOnline.forEach((v, i) => console.log(`${i}. ${v}`));
+                console.log(` = REPEAT ${i} FOUND = `);
+                continue;
             }
+            checkedArray.push(discordId);
+            const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204,1000`);
+            const characterActivities = response.characterActivities.data;
+            if (!characterActivities)
+                continue;
+            const characterIds = Object.keys(characterActivities);
+            const mostRecentCharacterId = characterIds.reduce((a, b) => {
+                const aDate = new Date(characterActivities[a].dateActivityStarted);
+                const bDate = new Date(characterActivities[b].dateActivityStarted);
+                return aDate > bDate ? a : b;
+            });
+            const activeCharacter = characterActivities[mostRecentCharacterId];
+            if (activeCharacter.currentActivityModeType === 4 ||
+                (activeCharacter.currentActivityModeTypes && activeCharacter.currentActivityModeTypes.includes(4)) ||
+                raidActivityModeHashes === activeCharacter.currentActivityModeHash ||
+                (activeCharacter.currentActivityHash &&
+                    CachedDestinyActivityDefinition[activeCharacter.currentActivityHash]?.activityTypeHash === raidActivityModeHashes)) {
+                if (!activityCompletionCurrentProfiles.has(membershipId)) {
+                    const authData = await AuthData.findByPk(discordId, { attributes: ["platform", "bungieId", "accessToken"] });
+                    const raidMilestoneHash = raidMilestoneHashes.get(activeCharacter.currentActivityHash);
+                    if (!authData)
+                        return console.error(`[Error code: 1438] No authorization data for user ${membershipId}`, raidMilestoneHash, activeCharacter);
+                    if (!raidMilestoneHash)
+                        return console.error(`[Error code: 1440] No raid milestone data for user ${authData.bungieId}\n${activeCharacter.currentActivityHash} - ${raidMilestoneHash}\n`, activeCharacter.currentActivityHash, activeCharacter.currentActivityModeHash, activeCharacter.dateActivityStarted, activeCharacter.currentActivityModeHashes, activeCharacter.currentActivityModeType, activeCharacter.currentActivityModeTypes);
+                    console.debug(`DEBUG 16001 Started checking ${platform}/${membershipId}/${mostRecentCharacterId} in ${activeCharacter.currentActivityHash}/${activeCharacter.currentActivityModeTypes}`);
+                    activityCompletionChecker({
+                        accessToken: authData.accessToken,
+                        bungieId: membershipId,
+                        characterId: mostRecentCharacterId,
+                        platform,
+                        raid: raidMilestoneHash,
+                        discordId,
+                    });
+                }
+            }
+            await timer(5000);
         }
-        await timer(5000);
-    }
-    checkedArray = [];
+        checkedArray = [];
+    }, 60 * 1000 * 8);
 }
 export async function activityCompletionChecker({ accessToken, bungieId, characterId, id, platform, raid, discordId, }) {
     console.debug(`DEBUG 17000 Started activityCompletionChecker for ${platform}/${bungieId} | ${raid}`);
