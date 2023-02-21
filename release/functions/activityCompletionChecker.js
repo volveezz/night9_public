@@ -29,7 +29,9 @@ let checkedArray = [];
 export async function clanOnlineMemberActivityChecker() {
     for await (const [discordId, { membershipId, platform }] of clanOnline) {
         if (checkedArray.includes(discordId)) {
-            console.log(`${discordId} already was checked`);
+            console.log(" = REPEAT FOUND = ");
+            clanOnline.forEach((v, i) => console.log(`${i}. ${v}`));
+            console.log(" = REPEAT FOUND = ");
             continue;
         }
         checkedArray.push(discordId);

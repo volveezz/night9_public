@@ -161,7 +161,7 @@ export class ExtendedClient extends Client {
             }, 60 * 1000 * 8);
             setInterval(() => {
                 const time = Math.trunc(this.uptime / 1000);
-                console.log(`Client uptime: ${convertSeconds(time)}`);
+                console.log(`Client uptime: ${convertSeconds(time, "en")}`);
             }, 1000 * 60 * 30);
         });
     }
