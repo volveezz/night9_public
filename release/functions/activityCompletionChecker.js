@@ -29,7 +29,8 @@ let checkedArray = [];
 export async function clanOnlineMemberActivityChecker() {
     setInterval(async () => {
         console.log(`  =  CHECKING STARTED  =  `);
-        for (const [discordId, { membershipId, platform }] of clanOnline) {
+        const checkingUsers = new Map(clanOnline);
+        for (const [discordId, { membershipId, platform }] of checkingUsers) {
             console.log(`Checking: ${discordId} ${platform}/${membershipId}`);
             if (checkedArray.includes(discordId)) {
                 console.log(` - REPEAT FOUND [${discordId} ${platform}/${membershipId}] - `);
