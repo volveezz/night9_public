@@ -134,33 +134,36 @@ export async function activityReporter(pgcrId) {
             if (response.activityDetails.mode === 82 && (clanMembersInRaid < 1 || (membersMembershipIds.length > 1 && dbData.length <= 1)))
                 return;
             const msg = await client.getCachedGuild().channels.cache.get(ids.activityChnId).send({ embeds: [embed] });
-            const encounterTimes = new Map();
+            const preciseEncountersTime = new Map();
             membersMembershipIds.forEach((bungieId) => {
                 if (completedPhases.has(bungieId)) {
                     const completedPhasesForUser = completedPhases.get(bungieId);
+                    let previousEncounterEndTime = 0;
                     completedPhasesForUser.forEach((completedPhase) => {
                         const { phase: phaseHash, phaseIndex, start, end } = completedPhase;
-                        if (!encounterTimes.has(phaseHash)) {
-                            encounterTimes.set(phaseHash, { start, end, phaseIndex, phase: phaseHash });
+                        if (!preciseEncountersTime.has(phaseHash)) {
+                            preciseEncountersTime.set(phaseHash, { start, end, phaseIndex, phase: phaseHash });
+                            previousEncounterEndTime = end;
                         }
                         else {
-                            const existingEncounter = encounterTimes.get(phaseHash);
-                            if (start < existingEncounter.start) {
-                                existingEncounter.start = start;
+                            const preciseStoredEncounterTime = preciseEncountersTime.get(phaseHash);
+                            if (start > 1 && start < preciseStoredEncounterTime.start && previousEncounterEndTime <= start) {
+                                preciseStoredEncounterTime.start = start;
                             }
-                            if (end < existingEncounter.end) {
-                                existingEncounter.end = end;
+                            if (end > 1 && end < preciseStoredEncounterTime.end && previousEncounterEndTime < end) {
+                                preciseStoredEncounterTime.end = end;
                             }
-                            encounterTimes.set(phaseHash, existingEncounter);
+                            preciseEncountersTime.set(phaseHash, preciseStoredEncounterTime);
+                            previousEncounterEndTime = preciseStoredEncounterTime.end;
                         }
                     });
                     completedPhases.delete(bungieId);
                 }
             });
-            if (encounterTimes) {
+            if (preciseEncountersTime) {
                 const testEmbed = EmbedBuilder.from(embed);
                 const encountersData = [];
-                encounterTimes.forEach((encounterData, index) => {
+                preciseEncountersTime.forEach((encounterData, index) => {
                     if (index === 0) {
                         return encountersData.push({
                             end: encounterData.end,
@@ -195,7 +198,7 @@ export async function activityReporter(pgcrId) {
                 catch (error) {
                     console.error(`[Error code: 1422]`, { error });
                 }
-                encounterTimes.clear();
+                preciseEncountersTime.clear();
             }
             dbData.forEach(async (dbMemberData) => {
                 if (response.activityDetails.mode === 82 && clanMembersInRaid > 1)

@@ -21,7 +21,7 @@ export default function convertSeconds(time, language = "ru") {
         result += minutes + `${language === "en" ? "m" : "м"} `;
     }
     if (remainingSeconds > 0) {
-        result += remainingSeconds + language === "en" ? "s" : "с";
+        result += remainingSeconds + `${language === "en" ? "s" : "с"}`;
     }
     if (result === "")
         return language === "en" ? "less than a second" : "менее секунды";
