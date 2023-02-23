@@ -19,7 +19,7 @@ export function getRaidData(raid, difficulty = 1) {
                 raid,
                 raidName: difficulty === 2 ? "[PH] Рейд Конца Света: Мастер" : "[PH] Рейд Конца Света",
                 maxDifficulty: 2,
-                raidBanner: "https://cdn.discordapp.com/attachments/1039091402874835004/1049124063332806656/jesse-van-dijk-destiny-2020-jessevandijk-020.png",
+                raidBanner: "https://images.contentstack.io/v3/assets/blte410e3b15535c144/bltbbbdfd5337645c9d/62fdec5e301df410c6363888/lightfall-raid-1920x1080.jpg",
                 raidColor: (difficulty === 2 ? "#FF063A" : "#C500FF"),
                 channelName: "-конец-света",
                 requiredRole: dlcRoles.lf,

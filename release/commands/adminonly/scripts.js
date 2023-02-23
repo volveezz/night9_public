@@ -1,4 +1,4 @@
-import { EmbedBuilder, ApplicationCommandOptionType, } from "discord.js";
+import { EmbedBuilder, ApplicationCommandOptionType } from "discord.js";
 import colors from "../../configs/colors.js";
 import { statusRoles } from "../../configs/roles.js";
 import { AuthData, UserActivityData } from "../../handlers/sequelize.js";
@@ -111,6 +111,17 @@ export default new Command({
                     });
                 });
                 return console.log(results);
+            }
+            case "timetill": {
+                const channel = interaction.channel;
+                const embed = new EmbedBuilder().setColor(colors.default);
+                const array = [];
+                array.push(` — Начало 24-часовых тех. работ\n · В течение этого времени сервера игры не будут доступны\n · Предзагрузка следующего обновления станет доступной после начала тех. работ\n⁣ ⁣ ⁣ ⁣Начало: <t:1677517200>, <t:1677517200:R>\n⁣ ⁣ ⁣ ⁣Завершение: <t:1677603600>, <t:1677603600:R>`);
+                array.push(` — Запуск следующего дополнения LightFall и старт следующего сезона «Сопротивление»\n⁣ ⁣ ⁣ ⁣<t:1677603600>, <t:1677603600:R>`);
+                array.push(` — Старт нового рейда\n · Откроется доступ к новому рейду с сложным "Contest"-модификатором\n · Обычный рейд станет доступен после завершения DayOne\n⁣ ⁣ ⁣ ⁣Начало DayOne: <t:1678467600>, <t:1678467600:R>\n⁣ ⁣ ⁣ ⁣Завершение "DayOne": <t:1678640400>, <t:1678640400:R>`);
+                embed.setDescription(array.join("\n\n"));
+                channel.send({ embeds: [embed] });
+                return;
             }
             default:
                 (await defferedReply) && interaction.editReply("Base response");
