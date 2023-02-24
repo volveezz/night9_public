@@ -481,7 +481,7 @@ export default new Command({
                 ];
                 const inChnMsg = chn.send({
                     embeds: [premiumEmbed],
-                    components: components,
+                    components,
                 });
                 const insertedRaidData = await RaidEvent.update({
                     channelId: chn.id,

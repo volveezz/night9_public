@@ -216,7 +216,7 @@ export async function pvePartyHandler(message) {
             ? [
                 {
                     type: ComponentType.ActionRow,
-                    components: components,
+                    components,
                 },
             ]
             : [],

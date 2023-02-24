@@ -87,14 +87,14 @@ export default new Command({
         }
         interaction.editReply({
             embeds: [embed],
-            components: optionId ? undefined : [{ type: ComponentType.ActionRow, components: components }],
+            components: optionId ? undefined : [{ type: ComponentType.ActionRow, components }],
         });
         fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/?components=100,200`)
             .then(async (response) => {
             const data = response?.profile?.data;
             const characterDataArray = [];
             if (!data) {
-                embed.setTitle("Произошла ошибка со стороны Bungie").setColor("Red");
+                embed.setTitle("Произошла ошибка со стороны Bungie").setColor(colors.error);
                 return interaction.editReply({
                     embeds: [embed],
                     components: [],

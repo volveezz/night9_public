@@ -469,7 +469,7 @@ async function raidAnnounce(oldRaidData) {
             components: [
                 {
                     type: ComponentType.ActionRow,
-                    components: components,
+                    components,
                 },
             ],
         });

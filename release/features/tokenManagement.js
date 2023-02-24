@@ -1,6 +1,10 @@
 import fetch from "node-fetch";
 import { database, AuthData, LeavedUsersData } from "../handlers/sequelize.js";
 import { Feature } from "../structures/feature.js";
+import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import colors from "../configs/colors.js";
+import { RegisterButtons } from "../enums/Buttons.js";
+import { client } from "../index.js";
 const BUNGIE_TOKEN_URL = "https://www.bungie.net/Platform/App/OAuth/Token/";
 async function bungieGrantRequest(row, table, t, retry = false) {
     const form = new URLSearchParams(Object.entries({
@@ -30,6 +34,35 @@ async function bungieGrantRequest(row, table, t, retry = false) {
                 await (table === 1 ? AuthData : LeavedUsersData)
                     .destroy({ where: { bungieId: row.bungieId }, transaction: t })
                     .then((r) => console.log(`User (${row.bungieId}) was deleted in table ${table} becouse he revoked authToken`, request));
+            }
+            else if (request.error_description === "AuthorizationRecordExpired") {
+                if (table === 1) {
+                    const { discordId } = (await AuthData.findOne({ where: { bungieId: row.bungieId }, attributes: ["discordId"] }));
+                    await AuthData.destroy({ where: { bungieId: row.bungieId }, transaction: t }).then(async (r) => {
+                        console.log(`User (${row.bungieId}) was deleted in table ${table} becouse his authToken was expired`, request);
+                        const embed = new EmbedBuilder()
+                            .setColor(colors.warning)
+                            .setTitle("Необходима повторная регистрация")
+                            .setDescription(`У вашего авторизационного токена истек срок годности. Зарегистрируйтесь повторно`);
+                        const components = [
+                            {
+                                type: ComponentType.ActionRow,
+                                components: [
+                                    new ButtonBuilder().setCustomId(RegisterButtons.register).setLabel("Регистрация").setStyle(ButtonStyle.Success),
+                                ],
+                            },
+                        ];
+                        const user = client.users.cache.get(discordId) ||
+                            (await client.users.fetch(discordId)) ||
+                            (await client.getCachedGuild().members.fetch(discordId));
+                        user.send({ embeds: [embed], components });
+                    });
+                }
+                else {
+                    await LeavedUsersData.destroy({ where: { bungieId: row.bungieId }, transaction: t }).then((r) => {
+                        console.log(`User (${row.bungieId}) was deleted in table ${table} becouse his authToken was expired`, request);
+                    });
+                }
             }
         }
     }

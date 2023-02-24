@@ -80,7 +80,7 @@ export default {
                     components: [
                         {
                             type: ComponentType.ActionRow,
-                            components: components,
+                            components,
                         },
                     ],
                 });
@@ -308,7 +308,7 @@ export default {
                 const msg = await interaction.followUp({
                     ephemeral: true,
                     embeds: [embed],
-                    components: components,
+                    components,
                 });
                 const collector = msg.createMessageComponentCollector({
                     time: 60 * 1000,

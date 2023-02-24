@@ -314,7 +314,7 @@ export default new Command({
                     components: [
                         {
                             type: ComponentType.ActionRow,
-                            components: components,
+                            components,
                         },
                     ],
                 });

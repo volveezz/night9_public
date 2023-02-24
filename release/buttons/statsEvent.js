@@ -83,7 +83,7 @@ export default {
                 await deferredReply;
                 const int = await interaction.editReply({
                     embeds: [embed],
-                    components: [{ type: ComponentType.ActionRow, components: components }],
+                    components: [{ type: ComponentType.ActionRow, components }],
                 });
                 const collector = int.createMessageComponentCollector({
                     filter: ({ user }) => user.id == interaction.user.id,
