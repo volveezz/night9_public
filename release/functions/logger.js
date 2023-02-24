@@ -174,12 +174,15 @@ export async function activityReporter(pgcrId) {
                             start: new Date(response.period).getTime(),
                         });
                     }
-                    encountersData.push({
-                        end: encounterData.end,
-                        phase: encounterData.phase,
-                        phaseIndex: encounterData.phaseIndex,
-                        start: new Date(response.period).getTime(),
-                    });
+                    else if (index === preciseEncountersTime.size - 1) {
+                        return encountersData.push({
+                            end: new Date(response.period).getTime() + response.entries[0].values.activityDurationSeconds.basic.value * 1000,
+                            phase: encounterData.phase,
+                            phaseIndex: encounterData.phaseIndex,
+                            start: encounterData.start,
+                        });
+                    }
+                    encountersData.push(encounterData);
                 });
                 testEmbed.addFields([
                     {

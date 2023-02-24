@@ -55,7 +55,7 @@ export default new Event("guildMemberRemove", (member) => {
                 membershipId: data.membershipId,
                 timezone: data.timezone,
             }, {
-                transaction: transaction,
+                transaction,
             });
             await transaction.commit();
             embed.fields.push({
@@ -68,7 +68,7 @@ export default new Event("guildMemberRemove", (member) => {
                 inline: true,
             }, {
                 name: "MembershipId",
-                value: String(data.membershipId),
+                value: `[${data.membershipId}](https://www.bungie.net/7/ru/User/Profile/254/${data.membershipId})`,
                 inline: true,
             });
             m.edit({ embeds: [embed] });
