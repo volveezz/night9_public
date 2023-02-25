@@ -48,7 +48,7 @@ export default {
                     .setColor(colors.default)
                     .setTitle("Введите текст оповещения для участников или оставьте шаблон")
                     .setDescription(`Рейдер, тебя оповестил ${raidData.creator === interaction.user.id ? "создатель рейда" : "администратор"} об скором старте.\n\nЗаходи в голосовой канал как можно скорее!`)
-                    .setImage(await getRandomGIF("destiny 2 raid time"));
+                    .setImage(await getRandomGIF("raid time"));
                 const invite = await member.voice.channel?.createInvite({ reason: "Raid invite", maxAge: 60 * 120 });
                 const raidVoiceChannels = member.guild.channels.cache
                     .filter((chn) => chn.parentId === ids.raidChnCategoryId && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"))

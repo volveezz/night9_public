@@ -90,7 +90,7 @@ export default new Command({
                     }
                 })
                     .filter((v) => v !== undefined);
-                console.log(`For resending: ${answersDatabase.length}/${guildMembers.size}\n`, notCompleted);
+                console.log(`For resending: ${answersDatabase.length}/${notCompleted.length}/${guildMembers.size}\n`, notCompleted);
                 return;
             }
             case "countsurvey": {

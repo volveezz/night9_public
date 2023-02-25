@@ -1,3 +1,4 @@
+import fetch from "node-fetch";
 export function isSnowflake(value) {
     const discordSnowflakeRegex = /^[0-9]{17,19}$/;
     return value.match(discordSnowflakeRegex) !== null;
@@ -29,8 +30,8 @@ export default function convertSeconds(time, language = "ru") {
 }
 export async function getRandomGIF(prompt) {
     try {
-        const response = await (await fetch(`https://api.giphy.com/v1/gifs/random?api_key=${process.env.GIPHY_API}&tag=${prompt}&rating=G`)).json();
-        return response.data.images.original.url;
+        const response = await (await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${process.env.GIPHY_API}&q=${prompt.replaceAll(" ", "+")}&limit=1&offset=${Math.floor(Math.random() * 50)}&rating=g&lang=en`)).json();
+        return response.data[0]?.images.original.url;
     }
     catch (error) {
         console.error(`[Error code: 1600] Giphy error`, error);
