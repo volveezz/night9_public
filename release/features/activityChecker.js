@@ -4,7 +4,7 @@ import { longOffline } from "./memberStatisticsHandler.js";
 import { Feature } from "../structures/feature.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { destinyActivityChecker } from "../functions/activitiesChecker.js";
-const timer = (ms) => new Promise((res) => setTimeout(res, ms));
+import { timer } from "../functions/utilities.js";
 export default new Feature({
     execute: async ({ client }) => {
         if (process.env.DEV_BUILD === "dev")

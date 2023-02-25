@@ -78,24 +78,19 @@ export default new Command({
                 return (await defferedReply) && interaction.editReply({ embeds: [msgEmbed, voiceEmbed] });
             }
             case "resendsurvey": {
-                const clanMembers = client.getCachedMembers().filter((member) => member.roles.cache.has(statusRoles.clanmember));
-                const answersDatabase = await SurveyAnswer.find({});
-                const meetRequirements = answersDatabase
-                    .map((database) => {
-                    if (clanMembers.has(database.discordId) &&
-                        (!database.answers.find((answer) => answer.questionIndex === 3) ||
-                            !database.answers.find((answer) => answer.questionIndex === 4) ||
-                            !database.answers.find((answer) => answer.questionIndex === 5))) {
-                        return database.discordId;
+                const answersDatabase = (await SurveyAnswer.find({})).map((r) => r.discordId);
+                const guildMembers = client.getCachedMembers().filter((v) => !v.user.bot);
+                const notCompleted = guildMembers
+                    .map((v) => {
+                    if (!answersDatabase.includes(v.user.id)) {
+                        return v.user.id;
                     }
                     else {
-                        return null;
+                        return undefined;
                     }
                 })
-                    .filter((v) => v !== null);
-                if (!meetRequirements || !meetRequirements[0] || meetRequirements.length === 0) {
-                    return (await defferedReply) && interaction.editReply({ content: `Possible matches: ${meetRequirements || 0}` });
-                }
+                    .filter((v) => v !== undefined);
+                console.log(`For resending: ${answersDatabase.length}/${guildMembers.size}\n`, notCompleted);
                 return;
             }
             case "countsurvey": {
@@ -111,17 +106,6 @@ export default new Command({
                     });
                 });
                 return console.log(results);
-            }
-            case "timetill": {
-                const channel = interaction.channel;
-                const embed = new EmbedBuilder().setColor(colors.default);
-                const array = [];
-                array.push(` — Начало 24-часовых тех. работ\n · В течение этого времени сервера игры не будут доступны\n · Предзагрузка следующего обновления станет доступной после начала тех. работ\n⁣ ⁣ ⁣ ⁣Начало: <t:1677517200>, <t:1677517200:R>\n⁣ ⁣ ⁣ ⁣Завершение: <t:1677603600>, <t:1677603600:R>`);
-                array.push(` — Запуск следующего дополнения LightFall и старт следующего сезона «Сопротивление»\n⁣ ⁣ ⁣ ⁣<t:1677603600>, <t:1677603600:R>`);
-                array.push(` — Старт нового рейда\n · Откроется доступ к новому рейду с сложным "Contest"-модификатором\n · Обычный рейд станет доступен после завершения DayOne\n⁣ ⁣ ⁣ ⁣Начало DayOne: <t:1678467600>, <t:1678467600:R>\n⁣ ⁣ ⁣ ⁣Завершение "DayOne": <t:1678640400>, <t:1678640400:R>`);
-                embed.setDescription(array.join("\n\n"));
-                channel.send({ embeds: [embed] });
-                return;
             }
             default:
                 (await defferedReply) && interaction.editReply("Base response");

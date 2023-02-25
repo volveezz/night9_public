@@ -382,7 +382,7 @@ export default new Command({
                             }
                             catch (e) {
                                 const errorEmbed = new EmbedBuilder()
-                                    .setColor("Red")
+                                    .setColor(colors.error)
                                     .setTitle(`Ошибка ${e.parent.name}`)
                                     .setDescription(e.parent.detail);
                                 await deferredReply;
@@ -391,7 +391,7 @@ export default new Command({
                                 role.delete("Got error during creation");
                                 return;
                             }
-                            embed = new EmbedBuilder().setColor("Green").addFields([
+                            embed = new EmbedBuilder().setColor(colors.success).addFields([
                                 {
                                     name: "Роль была создана",
                                     value: `<@&${role.id}>${gildedRoles.length > 0 ? `, <@&${gildedRoles[0]}>` : ""}`,
@@ -405,20 +405,20 @@ export default new Command({
                                 where: { roleId: db_query.roleId },
                             });
                             embed = new EmbedBuilder()
-                                .setColor("Green")
+                                .setColor(colors.success)
                                 .addFields([{ name: "Требования к роли были дополнены", value: `<@&${role.id}>` }]);
                         }
                         collector.stop("Completed");
-                        await deferredReply;
-                        interaction.editReply({
-                            embeds: [embed],
-                            components: [],
-                        });
+                        (await deferredReply) &&
+                            interaction.editReply({
+                                embeds: [embed],
+                                components: [],
+                            });
                     }
                     else if (collected.customId === "db_roles_add_change_name") {
                         interaction.channel
                             ?.createMessageCollector({
-                            time: 15 * 1000,
+                            time: 60 * 1000,
                             max: 1,
                             filter: (message) => message.author.id === interaction.user.id,
                         })
@@ -428,22 +428,21 @@ export default new Command({
                                 const embed = m.embeds[0];
                                 embed.fields[0].value = `${msg.cleanContent}`;
                                 title_name = guildableTitle ? "⚜️" + msg.cleanContent : msg.cleanContent;
-                                await deferredReply;
-                                interaction.editReply({ embeds: [embed] });
+                                (await deferredReply) && interaction.editReply({ embeds: [embed] });
                             });
                         });
                     }
                 })
                     .on("end", async () => {
-                    await deferredReply;
-                    interaction.editReply({
-                        components: [],
-                    });
+                    (await deferredReply) &&
+                        interaction.editReply({
+                            components: [],
+                        });
                 });
                 break;
             }
             case "fetch": {
-                const dbQuery = await AutoRoleData.findAll({ attributes: ["hash", "roleId"] });
+                const dbQuery = await AutoRoleData.findAll({ attributes: ["triumphRequirement", "roleId"] });
                 const embed = new EmbedBuilder().setColor(colors.default).setTitle("Auto roles");
                 for (let i = 0; i < dbQuery.length; i++) {
                     const roleData = dbQuery[i];
@@ -454,8 +453,7 @@ export default new Command({
                     });
                     if (embed.data.fields?.length === 25 || i === dbQuery.length - 1) {
                         if (i === 24) {
-                            await deferredReply;
-                            await interaction.editReply({ embeds: [embed] });
+                            (await deferredReply) && (await interaction.editReply({ embeds: [embed] }));
                             embed.setTitle(null).spliceFields(0, 25);
                         }
                         else {
@@ -466,8 +464,7 @@ export default new Command({
                 }
                 if (dbQuery.length === 0) {
                     embed.setDescription("There are no auto-roles");
-                    await deferredReply;
-                    interaction.editReply({ embeds: [embed] });
+                    (await deferredReply) && interaction.editReply({ embeds: [embed] });
                     return;
                 }
                 return;

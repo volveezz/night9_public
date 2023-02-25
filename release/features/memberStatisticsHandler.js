@@ -1,7 +1,7 @@
 import { ActivityType } from "discord.js";
 import { AuthData, database, UserActivityData, AutoRoleData } from "../handlers/sequelize.js";
 import { Op } from "sequelize";
-import { statusRoles, seasonalRoles, dlcRoles, statisticsRoles, titleCategory, triumphsCategory, activityRoles, trialsRoles, clanJoinDateRoles, } from "../configs/roles.js";
+import { statusRoles, seasonalRoles, dlcRoles, statisticsRoles, titleCategory, triumphsCategory, activityRoles, trialsRoles, clanJoinDateRoles, dungeonMasterRole, } from "../configs/roles.js";
 import NightRoleCategory from "../enums/RoleCategory.js";
 import { updateClanRolesWithLogging } from "../functions/logger.js";
 import { fetchRequest } from "../functions/fetchRequest.js";
@@ -9,6 +9,7 @@ import { client } from "../index.js";
 import { Feature } from "../structures/feature.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { destinyActivityChecker } from "../functions/activitiesChecker.js";
+import { dungeonsTriumphHashes } from "../configs/roleRequirements.js";
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 export const completedRaidsData = new Map();
 export const character_data = new Map();
@@ -18,9 +19,15 @@ export const userTimezones = new Map();
 export const clanOnline = new Map();
 const clanJoinDateCheck = new Set();
 const throttleSet = new Set();
+const dungeonRoles = await AutoRoleData.findAll({ where: { category: 8 } }).then((rolesData) => {
+    return rolesData
+        .filter((roleData) => dungeonsTriumphHashes.includes(roleData.triumphRequirement))
+        .map((r) => r.roleId)
+        .join(",");
+});
 async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId, accessToken, displayName, roleCategoriesBits, UserActivityData: userActivity }, member, role_db) {
-    const give_roles = [];
-    const remove_roles = [];
+    const givenRoles = [];
+    const removedRoles = [];
     const memberRoles = member.roles.cache;
     const destinyProfileResponse = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/?components=100,900,1100`, accessToken);
     try {
@@ -52,31 +59,31 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
         if (new Date().getTime() - new Date(destinyProfileResponse.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60 * 2)
             longOffline.add(member.id);
         if (!memberRoles.has(statusRoles.verified))
-            give_roles.push(statusRoles.verified);
+            givenRoles.push(statusRoles.verified);
         async function dlc_rolesChecker(version) {
             if (!version)
                 return;
             if (version > 7 && memberRoles.has(dlcRoles.vanilla)) {
-                remove_roles.push(dlcRoles.vanilla);
+                removedRoles.push(dlcRoles.vanilla);
             }
             else if (version <= 7 && !memberRoles.has(dlcRoles.vanilla)) {
-                give_roles.push(dlcRoles.vanilla);
-                remove_roles.push(Object.values(dlcRoles)
+                givenRoles.push(dlcRoles.vanilla);
+                removedRoles.push(Object.values(dlcRoles)
                     .filter((a) => a !== dlcRoles.vanilla)
                     .toString());
             }
             if (version & 8 && !memberRoles.has(dlcRoles.frs))
-                give_roles.push(dlcRoles.frs);
+                givenRoles.push(dlcRoles.frs);
             if (version & 32 && !memberRoles.has(dlcRoles.sk))
-                give_roles.push(dlcRoles.sk);
+                givenRoles.push(dlcRoles.sk);
             if (version & 64 && !memberRoles.has(dlcRoles.bl))
-                give_roles.push(dlcRoles.bl);
+                givenRoles.push(dlcRoles.bl);
             if (version & 128 && !memberRoles.has(dlcRoles.anni))
-                give_roles.push(dlcRoles.anni);
+                givenRoles.push(dlcRoles.anni);
             if (version & 256 && !memberRoles.has(dlcRoles.twq))
-                give_roles.push(dlcRoles.twq);
+                givenRoles.push(dlcRoles.twq);
             if (version & 512 && !memberRoles.has(dlcRoles.lf))
-                give_roles.push(dlcRoles.lf);
+                givenRoles.push(dlcRoles.lf);
         }
         async function triumphsChecker() {
             if (roleCategoriesBits & NightRoleCategory.Stats) {
@@ -84,10 +91,10 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                 for (const step of statisticsRoles.active) {
                     if (activeTriumphs >= step.triumphScore) {
                         if (!memberRoles.has(statisticsRoles.category))
-                            give_roles.push(statisticsRoles.category);
+                            givenRoles.push(statisticsRoles.category);
                         if (!memberRoles.has(step.roleId)) {
-                            give_roles.push(step.roleId);
-                            remove_roles.push(statisticsRoles.allActive.filter((r) => r !== step.roleId).toString());
+                            givenRoles.push(step.roleId);
+                            removedRoles.push(statisticsRoles.allActive.filter((r) => r !== step.roleId).toString());
                         }
                         break;
                     }
@@ -105,8 +112,8 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                             const index = triumphRecord.completedCount;
                             if (role.gildedRoles && role.gildedRoles.at(index - 1) && role.gildedRoles.at(index - 1).toLowerCase() !== "null") {
                                 if (!memberRoles.has(role.gildedRoles.at(index - 1))) {
-                                    give_roles.push(role.gildedRoles.at(index - 1));
-                                    remove_roles.push(role.roleId, role.gildedRoles
+                                    givenRoles.push(role.gildedRoles.at(index - 1));
+                                    removedRoles.push(role.roleId, role.gildedRoles
                                         .filter((r) => r && r !== null && r.toLowerCase() !== "null" && r !== role.gildedRoles.at(index - 1))
                                         .toString());
                                     if (role.available && role.available > 0) {
@@ -128,8 +135,8 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                                         if (nonGuildedRole &&
                                             member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`) !== undefined) {
                                             if (!memberRoles.has(member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`).id)) {
-                                                give_roles.push(member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`).id);
-                                                remove_roles.push(role.roleId, role
+                                                givenRoles.push(member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`).id);
+                                                removedRoles.push(role.roleId, role
                                                     .gildedRoles.filter((r) => r &&
                                                     r.toLowerCase() !== "null" &&
                                                     r !==
@@ -162,8 +169,8 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                                             if (!element || element === undefined || element?.toLowerCase() === "null")
                                                 dbRoleUpdated.gildedRoles[i] = "null";
                                         }
-                                        give_roles.push(createdRole.id);
-                                        remove_roles.push(role.roleId, dbRoleUpdated
+                                        givenRoles.push(createdRole.id);
+                                        removedRoles.push(role.roleId, dbRoleUpdated
                                             .gildedRoles.filter((r) => r && r.toLowerCase() !== "null" && r !== createdRole.id)
                                             .toString());
                                         await AutoRoleData.update({ gildedRoles: dbRoleUpdated.gildedRoles }, { where: { gildedTriumphRequirement: dbRoleUpdated.gildedTriumphRequirement } });
@@ -185,8 +192,8 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                                 : notGuidedTriumphRecord.intervalObjectives?.pop()?.complete === true) {
                                 if (!memberRoles.has(role.roleId)) {
                                     if (role.category & NightRoleCategory.Titles && !memberRoles.has(titleCategory))
-                                        give_roles.push(titleCategory);
-                                    give_roles.push(role.roleId);
+                                        givenRoles.push(titleCategory);
+                                    givenRoles.push(role.roleId);
                                 }
                             }
                         }
@@ -197,6 +204,16 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                 }
                 else {
                     const triumphHash = role.triumphRequirement;
+                    if (dungeonsTriumphHashes.includes(triumphHash)) {
+                        if (memberRoles.hasAll(dungeonRoles) && !memberRoles.has(dungeonMasterRole) && !givenRoles.includes(dungeonMasterRole)) {
+                            givenRoles.push(dungeonMasterRole);
+                            removedRoles.push(dungeonRoles);
+                            return;
+                        }
+                        else if (memberRoles.has(dungeonMasterRole) && !memberRoles.hasAll(dungeonRoles)) {
+                            removedRoles.push(dungeonRoles);
+                        }
+                    }
                     const triumphRecord = destinyProfileResponse.profileRecords.data.records[triumphHash] ||
                         destinyProfileResponse.characterRecords.data[Object.keys(destinyProfileResponse.characterRecords.data)[0]].records[triumphHash];
                     if (triumphRecord) {
@@ -204,17 +221,17 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                             (triumphRecord.intervalObjectives &&
                                 triumphRecord.intervalObjectives[triumphRecord.intervalObjectives.length - 1].complete === true)) {
                             if (role.category === NightRoleCategory.Titles && !memberRoles.has(titleCategory))
-                                give_roles.push(titleCategory);
+                                givenRoles.push(titleCategory);
                             if (role.category === NightRoleCategory.Triumphs && !memberRoles.has(triumphsCategory))
-                                give_roles.push(triumphsCategory);
+                                givenRoles.push(triumphsCategory);
                             if (role.category === NightRoleCategory.Activity && !memberRoles.has(activityRoles.category))
-                                give_roles.push(activityRoles.category);
+                                givenRoles.push(activityRoles.category);
                             if (!memberRoles.has(role.roleId))
-                                give_roles.push(role.roleId);
+                                givenRoles.push(role.roleId);
                         }
                         else {
                             if (memberRoles.has(role.roleId))
-                                remove_roles.push(role.roleId);
+                                removedRoles.push(role.roleId);
                         }
                     }
                 }
@@ -222,15 +239,15 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
         }
         if (destinyProfileResponse.profile.data.seasonHashes.includes(destinyProfileResponse.profile.data.currentSeasonHash)) {
             if (!memberRoles.has(seasonalRoles.curSeasonRole))
-                give_roles.push(seasonalRoles.curSeasonRole);
+                givenRoles.push(seasonalRoles.curSeasonRole);
             if (memberRoles.has(seasonalRoles.nonCurSeasonRole))
-                remove_roles.push(seasonalRoles.nonCurSeasonRole);
+                removedRoles.push(seasonalRoles.nonCurSeasonRole);
         }
         else {
             if (!memberRoles.has(seasonalRoles.nonCurSeasonRole))
-                give_roles.push(seasonalRoles.nonCurSeasonRole);
+                givenRoles.push(seasonalRoles.nonCurSeasonRole);
             if (memberRoles.has(seasonalRoles.curSeasonRole))
-                remove_roles.push(seasonalRoles.curSeasonRole);
+                removedRoles.push(seasonalRoles.curSeasonRole);
         }
         dlc_rolesChecker(destinyProfileResponse.profile.data.versionsOwned).catch((e) => console.error(`[Error code: 1092] dlc_rolesChecker`, { e }, member.displayName));
         triumphsChecker().catch((e) => console.error(`[Error code: 1093] triumphsChecker`, { e }, member.displayName));
@@ -242,10 +259,10 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                 for (const step of trialsRoles.roles) {
                     if (step.totalFlawless <= metrics) {
                         if (!member.roles.cache.has(trialsRoles.category))
-                            give_roles.push(trialsRoles.category);
+                            givenRoles.push(trialsRoles.category);
                         if (!member.roles.cache.has(step.roleId)) {
-                            give_roles.push(step.roleId);
-                            remove_roles.push(trialsRoles.allRoles.filter((r) => r != step.roleId).toString());
+                            givenRoles.push(step.roleId);
+                            removedRoles.push(trialsRoles.allRoles.filter((r) => r != step.roleId).toString());
                         }
                         break;
                     }
@@ -255,20 +272,20 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
         if (roleCategoriesBits & NightRoleCategory.Activity) {
             if (!userActivity) {
                 if (memberRoles.hasAny(activityRoles.allVoice.toString()))
-                    remove_roles.push(activityRoles.allVoice.toString());
+                    removedRoles.push(activityRoles.allVoice.toString());
                 if (memberRoles.hasAny(activityRoles.allMessages.toString()))
-                    remove_roles.push(activityRoles.allMessages.toString());
+                    removedRoles.push(activityRoles.allMessages.toString());
                 if (memberRoles.has(activityRoles.category))
-                    remove_roles.push(activityRoles.category);
+                    removedRoles.push(activityRoles.category);
             }
             else {
                 for (const step of activityRoles.voice) {
                     if (step.voiceMinutes <= userActivity.voice) {
                         if (!member.roles.cache.has(step.roleId)) {
                             if (!member.roles.cache.has(activityRoles.category))
-                                give_roles.push(activityRoles.category);
-                            give_roles.push(step.roleId);
-                            remove_roles.push(activityRoles.allVoice.filter((r) => r != step.roleId).toString());
+                                givenRoles.push(activityRoles.category);
+                            givenRoles.push(step.roleId);
+                            removedRoles.push(activityRoles.allVoice.filter((r) => r != step.roleId).toString());
                         }
                         break;
                     }
@@ -277,30 +294,30 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                     if (step.messageCount <= userActivity.messages) {
                         if (!member.roles.cache.has(step.roleId)) {
                             if (!member.roles.cache.has(activityRoles.category))
-                                give_roles.push(activityRoles.category);
-                            give_roles.push(step.roleId);
-                            remove_roles.push(activityRoles.allMessages.filter((r) => r != step.roleId).toString());
+                                givenRoles.push(activityRoles.category);
+                            givenRoles.push(step.roleId);
+                            removedRoles.push(activityRoles.allMessages.filter((r) => r != step.roleId).toString());
                         }
                         break;
                     }
                 }
             }
         }
-        if (give_roles.length > 0) {
+        if (givenRoles.length > 0) {
             setTimeout(() => {
-                const rolesForGiving = give_roles
+                const rolesForGiving = givenRoles
                     .join()
                     .split(",")
                     .filter((r) => r.length > 10);
-                if (give_roles.filter((r) => r.length <= 10).length > 0)
-                    console.error(`[Error code: 1096] Error during giving roles [ ${give_roles} ] for ${member.displayName}`);
+                if (givenRoles.filter((r) => r.length <= 10).length > 0)
+                    console.error(`[Error code: 1096] Error during giving roles [ ${givenRoles} ] for ${member.displayName}`);
                 member.roles
                     .add(rolesForGiving, "+Autorole")
                     .catch((e) => console.error(`[Error code: 1097] [Autorole error]`, e, rolesForGiving));
-            }, remove_roles.length > 0 ? 4444 : 0);
+            }, removedRoles.length > 0 ? 4444 : 0);
         }
-        if (remove_roles.length > 0) {
-            const rolesForRemoving = remove_roles
+        if (removedRoles.length > 0) {
+            const rolesForRemoving = removedRoles
                 .join()
                 .split(",")
                 .filter((r) => r.length > 10);

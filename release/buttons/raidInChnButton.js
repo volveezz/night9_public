@@ -7,6 +7,7 @@ import { AuthData, RaidEvent } from "../handlers/sequelize.js";
 import { RaidAdditionalFunctional, RaidButtons } from "../enums/Buttons.js";
 import { activityCompletionChecker, activityCompletionCheckerCancel } from "../functions/activityCompletionChecker.js";
 import { fetchRequest } from "../functions/fetchRequest.js";
+import { getRandomGIF } from "../functions/utilities.js";
 export default {
     name: "raidInChnButton",
     run: async ({ client, interaction }) => {
@@ -46,7 +47,8 @@ export default {
                 const raidLeaderEmbed = new EmbedBuilder()
                     .setColor(colors.default)
                     .setTitle("Введите текст оповещения для участников или оставьте шаблон")
-                    .setDescription(`Рейдер, тебя оповестил ${raidData.creator === interaction.user.id ? "создатель рейда" : "администратор"} об скором старте.\n\nЗаходи в голосовой канал как можно скорее!`);
+                    .setDescription(`Рейдер, тебя оповестил ${raidData.creator === interaction.user.id ? "создатель рейда" : "администратор"} об скором старте.\n\nЗаходи в голосовой канал как можно скорее!`)
+                    .setImage(await getRandomGIF("destiny 2 raid time"));
                 const invite = await member.voice.channel?.createInvite({ reason: "Raid invite", maxAge: 60 * 120 });
                 const raidVoiceChannels = member.guild.channels.cache
                     .filter((chn) => chn.parentId === ids.raidChnCategoryId && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"))

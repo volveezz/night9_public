@@ -348,3 +348,4 @@ export const statisticsRoles = process.env.DEV_BUILD !== "dev" ? releaseStatisti
 export const activityRoles = process.env.DEV_BUILD !== "dev" ? releaseActivityRoles : devActivityRoles;
 export const titleCategory = process.env.DEV_BUILD !== "dev" ? releaseTitleCategory : devTitleCategory;
 export const trialsRoles = process.env.DEV_BUILD !== "dev" ? releaseTrialsRoles : devTrialsRoles;
+export const dungeonMasterRole = process.env.DEV_BUILD !== "dev" ? "1012474229448507526" : "1078853339984449546";

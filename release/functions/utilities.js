@@ -27,3 +27,12 @@ export default function convertSeconds(time, language = "ru") {
         return language === "en" ? "less than a second" : "менее секунды";
     return result;
 }
+export async function getRandomGIF(prompt) {
+    try {
+        const response = await (await fetch(`https://api.giphy.com/v1/gifs/random?api_key=${process.env.GIPHY_API}&tag=${prompt}&rating=G`)).json();
+        return response.data.images.original.url;
+    }
+    catch (error) {
+        console.error(`[Error code: 1600] Giphy error`, error);
+    }
+}

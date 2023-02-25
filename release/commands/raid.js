@@ -465,19 +465,6 @@ export default new Command({
                             new ButtonBuilder().setCustomId(RaidButtons.resend).setLabel("Обновить сообщение").setStyle(ButtonStyle.Secondary),
                         ],
                     },
-                    {
-                        type: ComponentType.ActionRow,
-                        components: [
-                            new ButtonBuilder()
-                                .setCustomId(RaidButtons.startActivityChecker)
-                                .setLabel("[PH] Checker start")
-                                .setStyle(ButtonStyle.Primary),
-                            new ButtonBuilder()
-                                .setCustomId(RaidButtons.endActivityChecker)
-                                .setLabel("[PH] Checker end")
-                                .setStyle(ButtonStyle.Primary),
-                        ],
-                    },
                 ];
                 const inChnMsg = chn.send({
                     embeds: [premiumEmbed],
@@ -510,7 +497,7 @@ export default new Command({
             let raidData = await getRaidDatabaseInfo(raidId, interaction);
             if (raidData === null || (Array.isArray(raidData) && raidData.length === 0))
                 throw { errorType: UserErrors.RAID_NOT_FOUND };
-            const raidInfo = getRaidData((newRaid ?? raidData.raid), newDifficulty ?? raidData.difficulty);
+            const raidInfo = getRaidData((newRaid || raidData.raid), newDifficulty ?? raidData.difficulty);
             const { time, requiredClears: reqClears, messageId: msgId } = raidData;
             const changes = [];
             const raidEmbed = EmbedBuilder.from((await client.getCachedGuild().channels.cache.get(ids.raidChnId).messages.fetch(msgId))?.embeds[0]);
