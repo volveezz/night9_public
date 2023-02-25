@@ -3,10 +3,8 @@ import { Op } from "sequelize";
 import colors from "../configs/colors.js";
 import { ids } from "../configs/ids.js";
 import UserErrors from "../enums/UserErrors.js";
-import { AuthData, RaidEvent } from "../handlers/sequelize.js";
+import { RaidEvent } from "../handlers/sequelize.js";
 import { RaidAdditionalFunctional, RaidButtons } from "../enums/Buttons.js";
-import { activityCompletionChecker, activityCompletionCheckerCancel } from "../functions/activityCompletionChecker.js";
-import { fetchRequest } from "../functions/fetchRequest.js";
 import { getRandomGIF } from "../functions/utilities.js";
 export default {
     name: "raidInChnButton",
@@ -364,61 +362,6 @@ export default {
                         (await deferredReply) && interaction.followUp({ embeds: [embed], ephemeral: true });
                     });
                 });
-            }
-            case RaidButtons.startActivityChecker: {
-                if (interaction.user.id !== raidData.creator && !interaction.member?.permissions.has("Administrator"))
-                    return (await deferredReply) && interaction.followUp({ content: "Under development", ephemeral: true });
-                const authData = await AuthData.findByPk(raidData.creator, { attributes: ["bungieId", "platform", "accessToken"] });
-                if (!authData)
-                    throw { errorType: UserErrors.DB_USER_NOT_FOUND };
-                async function getActiveCharacter(response) {
-                    if (!response.characterActivities.data)
-                        throw { name: "Characters not found" };
-                    const characterIds = Object.keys(response.characterActivities.data);
-                    let activeCharacter = {
-                        characterId: characterIds[0],
-                        isFound: false,
-                        dateActivityStarted: "",
-                    };
-                    for (const characterId of characterIds) {
-                        const characterActivity = response.characterActivities.data[characterId];
-                        if (characterActivity.currentActivityModeType === 4 ||
-                            characterActivity.currentActivityModeHash === 2166136261) {
-                            if (!activeCharacter.isFound) {
-                                activeCharacter = { characterId, isFound: true, dateActivityStarted: characterActivity.dateActivityStarted };
-                            }
-                            else {
-                                if (new Date(characterActivity.dateActivityStarted).getTime() >
-                                    new Date(activeCharacter.dateActivityStarted).getTime()) {
-                                    activeCharacter = { characterId, isFound: true, dateActivityStarted: characterActivity.dateActivityStarted };
-                                }
-                            }
-                        }
-                    }
-                    return activeCharacter;
-                }
-                const { characterId: character, isFound } = await getActiveCharacter((await fetchRequest(`/Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=204`, authData.accessToken)));
-                await activityCompletionChecker({
-                    accessToken: authData.accessToken,
-                    bungieId: authData.bungieId,
-                    characterId: character,
-                    id: raidData.id,
-                    platform: authData.platform,
-                    raid: raidData.raid,
-                });
-                (await deferredReply) &&
-                    interaction.followUp({
-                        content: `Started for char ${character}\n${isFound ? `Character found in raid activity` : `Character **not found** in raid activity`}`,
-                        ephemeral: true,
-                    });
-                return;
-            }
-            case RaidButtons.endActivityChecker: {
-                if (interaction.user.id !== raidData.creator && !interaction.member?.permissions.has("Administrator"))
-                    (await deferredReply) && interaction.followUp({ content: "Under development", ephemeral: true });
-                const content = await activityCompletionCheckerCancel(raidData);
-                (await deferredReply) && interaction.followUp({ content, ephemeral: true });
-                return;
             }
             case RaidButtons.invite: {
                 (await deferredReply) && interaction.followUp({ content: "Under development", ephemeral: true });

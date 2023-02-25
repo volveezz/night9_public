@@ -1,10 +1,5 @@
 import fetch from "node-fetch";
-export async function fetchRequest(url, authorizationData) {
-    const cleanUrl = url.startsWith("https://bungie.net/") || url.startsWith("https://www.bungie.net/")
-        ? console.error("[Error code: 1025] Wrong url", url)
-        : url.startsWith("/")
-            ? url.slice(1)
-            : url;
+export async function fetchRequest(cleanUrl, authorizationData) {
     const response = await fetch(`https://www.bungie.net/${cleanUrl}`, {
         headers: {
             "X-API-KEY": process.env.XAPI,

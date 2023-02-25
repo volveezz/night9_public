@@ -11,8 +11,6 @@ export var RaidButtons;
     RaidButtons["unlock"] = "raidInChnButton_unlock";
     RaidButtons["resend"] = "raidInChnButton_resend";
     RaidButtons["invite"] = "raidInChnButton_inviteTo_raid_send";
-    RaidButtons["startActivityChecker"] = "raidInChnButton_activityChecker_start";
-    RaidButtons["endActivityChecker"] = "raidInChnButton_activityChecker_end";
     RaidButtons["confirmNotify"] = "raidAddFunc_notify_confirm";
     RaidButtons["editNotify"] = "raidAddFunc_notify_edit";
     RaidButtons["notifyCancel"] = "raidAddFunc_notify_cancel";

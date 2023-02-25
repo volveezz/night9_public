@@ -133,7 +133,6 @@ export async function activityReporter(pgcrId) {
                 return;
             if (response.activityDetails.mode === 82 && (clanMembersInRaid < 1 || (membersMembershipIds.length > 1 && dbData.length <= 1)))
                 return;
-            const msg = await client.getCachedGuild().channels.cache.get(ids.activityChnId).send({ embeds: [embed] });
             const preciseEncountersTime = new Map();
             membersMembershipIds.forEach((bungieId) => {
                 if (completedPhases.has(bungieId)) {
@@ -161,7 +160,6 @@ export async function activityReporter(pgcrId) {
                 }
             });
             if (preciseEncountersTime) {
-                const testEmbed = EmbedBuilder.from(embed);
                 const encountersData = [];
                 let index = 0;
                 preciseEncountersTime.forEach((encounterData) => {
@@ -170,7 +168,7 @@ export async function activityReporter(pgcrId) {
                         return encountersData.push({
                             end: encounterData.end,
                             phase: encounterData.phase,
-                            phaseIndex: encounterData.phaseIndex !== 1 && response.activityWasStartedFromBeginning
+                            phaseIndex: encounterData.phaseIndex != 1 && response.activityWasStartedFromBeginning
                                 ? `1-${encounterData.phaseIndex}`
                                 : encounterData.phaseIndex,
                             start: new Date(response.period).getTime(),
@@ -178,8 +176,9 @@ export async function activityReporter(pgcrId) {
                     }
                     else if (index === preciseEncountersTime.size - 1) {
                         index++;
+                        const activityEndTime = new Date(response.period).getTime() + response.entries[0].values.activityDurationSeconds.basic.value * 1000;
                         return encountersData.push({
-                            end: new Date(response.period).getTime() + response.entries[0].values.activityDurationSeconds.basic.value * 1000,
+                            end: encounterData.end > activityEndTime ? activityEndTime : encounterData.end,
                             phase: encounterData.phase,
                             phaseIndex: encounterData.phaseIndex,
                             start: encounterData.start,
@@ -188,7 +187,7 @@ export async function activityReporter(pgcrId) {
                     index++;
                     encountersData.push(encounterData);
                 });
-                testEmbed.addFields([
+                embed.addFields([
                     {
                         name: "Затраченное время на этапы",
                         value: `${encountersData
@@ -198,15 +197,9 @@ export async function activityReporter(pgcrId) {
                             .join("\n")}`,
                     },
                 ]);
-                try {
-                    (client.getCachedGuild().channels.cache.get(ids.adminChnId) ||
-                        (await client.getCachedGuild().channels.fetch(ids.adminChnId))).send({ embeds: [testEmbed] });
-                }
-                catch (error) {
-                    console.error(`[Error code: 1422]`, { error });
-                }
                 preciseEncountersTime.clear();
             }
+            const msg = await client.getCachedGuild().channels.cache.get(ids.activityChnId).send({ embeds: [embed] });
             dbData.forEach(async (dbMemberData) => {
                 if (response.activityDetails.mode === 82 && clanMembersInRaid > 1)
                     return UserActivityData.increment("dungeons", { by: 1, where: { discordId: dbMemberData.discordId } });
@@ -228,7 +221,7 @@ export async function activityReporter(pgcrId) {
                         .setTitle("Созданный вами рейд был завершен")
                         .setDescription(`Вы создавали рейд ${dbRaidData.id}-${dbRaidData.raid} на <t:${dbRaidData.time}> и сейчас он был завершен.\nПодтвердите завершение рейда для удаления набора.\n\n[История активностей](https://discord.com/channels/${msg.guildId + "/" + msg.channelId + "/" + msg.id})`);
                     return (client.users.cache.get(dbRaidData.creator) ||
-                        client.getCachedGuild().members.cache.get(dbRaidData.creator) ||
+                        client.getCachedMembers().get(dbRaidData.creator) ||
                         (await client.users.fetch(dbRaidData.creator)))
                         .send({
                         embeds: [embed],

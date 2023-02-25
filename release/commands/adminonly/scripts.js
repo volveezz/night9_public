@@ -4,8 +4,7 @@ import { statusRoles } from "../../configs/roles.js";
 import { AuthData, UserActivityData } from "../../handlers/sequelize.js";
 import { Command } from "../../structures/command.js";
 import { SurveyAnswer } from "../../handlers/mongodb.js";
-import { client } from "../../index.js";
-import convertSeconds from "../../functions/utilities.js";
+import convertSeconds, { timer } from "../../functions/utilities.js";
 export default new Command({
     name: "scripts",
     description: "script system",
@@ -18,12 +17,12 @@ export default new Command({
             required: true,
         },
     ],
-    run: async ({ interaction }) => {
+    run: async ({ client, interaction }) => {
         const defferedReply = interaction.deferReply();
         const scriptId = interaction.options.getString("script", true).toLowerCase();
         switch (scriptId) {
             case "rolesweeper": {
-                const members = interaction.guild.members.cache.filter((m) => {
+                const members = (interaction.guild || client.getCachedGuild()).members.cache.filter((m) => {
                     return ((m.roles.cache.has(statusRoles.member) || m.roles.cache.has(statusRoles.kicked)) &&
                         m.roles.cache.has(statusRoles.verified));
                 });
@@ -37,11 +36,11 @@ export default new Command({
                                 : "",
                         member.roles.cache.has(statusRoles.verified) ? statusRoles.verified : "",
                     ])
-                        .catch((e) => defferedReply.then((v) => interaction.followUp(`Возникла ошибка во время обновления ${member.displayName}`)));
-                    await new Promise((res) => setTimeout(res, 500));
+                        .catch((e) => defferedReply.then((v) => interaction.followUp({ content: `Возникла ошибка во время обновления ${member.displayName}`, ephemeral: true })));
+                    await timer(500);
                 });
                 const embed = new EmbedBuilder()
-                    .setColor("Green")
+                    .setColor(colors.success)
                     .setTitle(`${updatedMembers.length} пользователей было обновлено из ${members.size}`);
                 interaction.editReply({ embeds: [embed] });
                 return;

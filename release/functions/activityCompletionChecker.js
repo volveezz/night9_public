@@ -9,22 +9,6 @@ export const activityCompletionCurrentProfiles = new Map();
 export const completedPhases = new Map();
 const currentlyRuning = new Map();
 const raidActivityModeHashes = 2043403989;
-function compareObjects(obj1, obj2, logData) {
-    let changes = [];
-    for (let i = 0; i < obj1.length; i++) {
-        for (let key in obj1[i]) {
-            if (obj1[i][key] !== obj2[i][key]) {
-                changes.push(`${key} on index ${i} was changed`, obj1, obj2);
-            }
-        }
-    }
-    if (changes.length !== 0) {
-        console.log(`DEBUG1 RaidCompletionChecker of ${logData}\n`, changes);
-    }
-    else {
-        console.log(`RaidCompletionChecker: Still same data for ${logData}`);
-    }
-}
 export async function clanOnlineMemberActivityChecker() {
     setInterval(async () => {
         const checkingUsers = new Map(clanOnline);
@@ -134,7 +118,6 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                 for (const milestineIndex in updatedMilestone.activities) {
                     const cachedMilestoneActivity = cachedMilestone.activities[milestineIndex];
                     const updatedMilestoneActivity = updatedMilestone.activities[milestineIndex];
-                    compareObjects(cachedMilestoneActivity.phases, updatedMilestoneActivity.phases, `${platform}/${bungieId}/${characterId}`);
                     for (const phaseIndexString in updatedMilestoneActivity.phases) {
                         const phaseIndex = parseInt(phaseIndexString);
                         const cachedMilestonePhase = cachedMilestoneActivity.phases[phaseIndex];
@@ -180,15 +163,5 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
             }
         }
         activityCompletionCurrentProfiles.set(bungieId, updatedMilestone);
-    }
-}
-export async function activityCompletionCheckerCancel({ id }) {
-    if (currentlyRuning.has(id)) {
-        clearInterval(currentlyRuning.get(id));
-        currentlyRuning.delete(id);
-        return "success";
-    }
-    else {
-        return "not found";
     }
 }
