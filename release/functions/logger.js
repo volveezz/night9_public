@@ -163,8 +163,10 @@ export async function activityReporter(pgcrId) {
             if (preciseEncountersTime) {
                 const testEmbed = EmbedBuilder.from(embed);
                 const encountersData = [];
-                preciseEncountersTime.forEach((encounterData, index) => {
+                let index = 0;
+                preciseEncountersTime.forEach((encounterData) => {
                     if (index === 0) {
+                        index++;
                         return encountersData.push({
                             end: encounterData.end,
                             phase: encounterData.phase,
@@ -175,6 +177,7 @@ export async function activityReporter(pgcrId) {
                         });
                     }
                     else if (index === preciseEncountersTime.size - 1) {
+                        index++;
                         return encountersData.push({
                             end: new Date(response.period).getTime() + response.entries[0].values.activityDurationSeconds.basic.value * 1000,
                             phase: encounterData.phase,
@@ -182,6 +185,7 @@ export async function activityReporter(pgcrId) {
                             start: encounterData.start,
                         });
                     }
+                    index++;
                     encountersData.push(encounterData);
                 });
                 testEmbed.addFields([
