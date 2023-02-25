@@ -41,7 +41,7 @@ export default new Command({
             const preset = interaction.options.getString("code", true).toLowerCase();
             switch (preset) {
                 case "roles": {
-                    const roleData = await AutoRoleData.findAll({ where: { category: 4 } });
+                    const roleData = await AutoRoleData.findAll();
                     const manifest = CachedDestinyRecordDefinition;
                     const topRolesRaw = new EmbedBuilder()
                         .setTitle("⁣⁣Ненастраиваемые роли")
@@ -160,19 +160,21 @@ export default new Command({
                     triumphsRaw.addFields({
                         name: `⁣`,
                         value: `\`\`\`fix\nРоли за различные триумфы в игре\`\`\`\n　<:dot:1018321568218226788>${roleData
-                            .filter((v) => !dungeonsTriumphHashes.includes(v.triumphRequirement) && v.category === NightRoleCategory.Triumphs)
+                            .filter((v) => !dungeonsTriumphHashes.includes(Number(v.triumphRequirement)) && v.category === NightRoleCategory.Triumphs)
                             .map((data) => {
-                            const recordDescription = roleRequirements[data.triumphRequirement] || manifest[data.triumphRequirement].displayProperties.name;
+                            const recordDescription = roleRequirements[Number(data.triumphRequirement)] ||
+                                manifest[Number(data.triumphRequirement)].displayProperties.name;
                             return `<@&${data.roleId}> — ${recordDescription}`;
                         })
                             .join("\n　<:dot:1018321568218226788>")}`,
                     });
                     triumphsRaw.addFields({
                         name: `⁣`,
-                        value: `\`\`\`fix\nРоли за полное прохождение подземелий в одиночку без смертей\`\`\`\n　<:dot:1018321568218226788>${roleData
-                            .filter((v) => dungeonsTriumphHashes.includes(v.triumphRequirement))
+                        value: `\`\`\`fix\nРоли за прохождение подземелий в одиночку без смертей\`\`\`\n　<:dot:1018321568218226788>${roleData
+                            .filter((v) => dungeonsTriumphHashes.includes(Number(v.triumphRequirement)))
                             .map((data) => {
-                            const recordDescription = roleRequirements[data.triumphRequirement] || manifest[data.triumphRequirement].displayProperties.name;
+                            const recordDescription = roleRequirements[Number(data.triumphRequirement)] ||
+                                manifest[Number(data.triumphRequirement)].displayProperties.name;
                             return `<@&${data.roleId}> — ${recordDescription}`;
                         })
                             .join("\n　<:dot:1018321568218226788>")}`,
