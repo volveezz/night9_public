@@ -36,7 +36,7 @@ export async function clanOnlineMemberActivityChecker() {
                         return console.error(`[Error code: 1438] No authorization data for user ${membershipId}`, raidMilestoneHash, activeCharacter);
                     if (!raidMilestoneHash)
                         return console.error(`[Error code: 1440] No raid milestone data for user ${authData.bungieId}\n${activeCharacter.currentActivityHash} - ${raidMilestoneHash}\n`, activeCharacter.currentActivityHash, activeCharacter.currentActivityModeHash, activeCharacter.dateActivityStarted, activeCharacter.currentActivityModeHashes, activeCharacter.currentActivityModeType, activeCharacter.currentActivityModeTypes);
-                    console.debug(`DEBUG 16001 Started checking ${platform}/${membershipId}/${mostRecentCharacterId} in ${activeCharacter.currentActivityHash}/${activeCharacter.currentActivityModeTypes}`);
+                    completedPhases.delete(membershipId);
                     activityCompletionChecker({
                         accessToken: authData.accessToken,
                         bungieId: membershipId,
@@ -87,18 +87,16 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
             }
             else if (currentActivityHash !== previousActivityHash ||
                 currentActivityHash === 82913930 ||
-                CachedDestinyActivityDefinition[currentActivityHash]?.activityTypeHash !== raidActivityModeHashes) {
+                CachedDestinyActivityDefinition[currentActivityHash]?.activityTypeHash !== raidActivityModeHashes ||
+                (discordId && !clanOnline.has(discordId))) {
                 clearInterval(interval);
-                console.debug(`DEBUG4 Activity no longer checking becouse of changing it\nActivityHash is ${currentActivityHash}, previous was ${previousActivityHash}`);
                 currentlyRuning.delete(uniqueId);
                 activityCompletionCurrentProfiles.delete(bungieId);
-                return null;
-            }
-            if (discordId && !clanOnline.has(discordId)) {
-                clearInterval(interval);
-                console.debug(`DEBUG17002 Player left the game so he no longer checked\nActivityHash is ${currentActivityHash}, previous was ${previousActivityHash}`);
-                currentlyRuning.delete(uniqueId);
-                activityCompletionCurrentProfiles.delete(bungieId);
+                const cachedData = completedPhases.get(bungieId);
+                setTimeout(() => {
+                    if (completedPhases.get(bungieId) === cachedData)
+                        completedPhases.delete(bungieId);
+                }, 60 * 1000 * 30);
                 return null;
             }
             characterMilestonesChecker(response);
@@ -147,9 +145,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                                     }
                                     else {
                                         currentlyRuning.delete(uniqueId);
-                                        console.debug(`DEBUG9 | Activity checker ended due completion of actvitiy`);
                                     }
-                                    console.debug(`DEBUG3 Index: ${phaseIndex}`, alreadyCompletedPhases);
                                     completedPhases.set(bungieId, alreadyCompletedPhases);
                                     break;
                                 }
