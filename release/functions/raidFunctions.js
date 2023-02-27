@@ -409,6 +409,8 @@ export function timeConverter(str, timezoneOffset = 3) {
     return Math.round(date.getTime() / 1000);
 }
 export async function raidAnnounceSystem(raidData) {
+    if (process.env.DEV_BUILD === "dev")
+        return;
     if (!raidAnnounceSet.has(raidData.id)) {
         raidAnnounceSet.add(raidData.id);
         const time = raidData.time - Math.trunc(new Date().getTime() / 1000);

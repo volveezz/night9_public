@@ -1,10 +1,9 @@
 import { EmbedBuilder, ApplicationCommandOptionType } from "discord.js";
 import colors from "../../configs/colors.js";
-import { statusRoles } from "../../configs/roles.js";
 import { AuthData, UserActivityData } from "../../handlers/sequelize.js";
 import { Command } from "../../structures/command.js";
 import { SurveyAnswer } from "../../handlers/mongodb.js";
-import convertSeconds, { timer } from "../../functions/utilities.js";
+import convertSeconds from "../../functions/utilities.js";
 export default new Command({
     name: "scripts",
     description: "script system",
@@ -21,30 +20,6 @@ export default new Command({
         const defferedReply = interaction.deferReply();
         const scriptId = interaction.options.getString("script", true).toLowerCase();
         switch (scriptId) {
-            case "rolesweeper": {
-                const members = (interaction.guild || client.getCachedGuild()).members.cache.filter((m) => {
-                    return ((m.roles.cache.has(statusRoles.member) || m.roles.cache.has(statusRoles.kicked)) &&
-                        m.roles.cache.has(statusRoles.verified));
-                });
-                const updatedMembers = members.map(async (member) => {
-                    await member.roles
-                        .set([
-                        member.roles.cache.has(statusRoles.member)
-                            ? statusRoles.member
-                            : member.roles.cache.has(statusRoles.kicked)
-                                ? statusRoles.kicked
-                                : "",
-                        member.roles.cache.has(statusRoles.verified) ? statusRoles.verified : "",
-                    ])
-                        .catch((e) => defferedReply.then((v) => interaction.followUp({ content: `Возникла ошибка во время обновления ${member.displayName}`, ephemeral: true })));
-                    await timer(500);
-                });
-                const embed = new EmbedBuilder()
-                    .setColor(colors.success)
-                    .setTitle(`${updatedMembers.length} пользователей было обновлено из ${members.size}`);
-                interaction.editReply({ embeds: [embed] });
-                return;
-            }
             case "activitytop": {
                 const dbData = (await AuthData.findAll({ include: UserActivityData, attributes: ["displayName", "discordId"] })).filter((v) => v.UserActivityData && (v.UserActivityData.messages > 0 || v.UserActivityData.voice > 0));
                 const messageTop = dbData

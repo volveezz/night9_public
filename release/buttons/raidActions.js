@@ -14,15 +14,17 @@ async function actionMessageHandler({ interaction, raidEvent, target }) {
     const member = interaction.member;
     const displayName = nameCleaner(member.displayName);
     const resolvedTarget = target === "hotJoined"
-        ? " ранее состоя в запасе"
+        ? "[Запас] → "
         : target === "joined"
-            ? " ранее состоя как участник"
+            ? "[Участник] → "
             : target === "alt"
-                ? " ранее состоя как возможный участник"
-                : "";
+                ? "[Возможный участник] → "
+                : target === "leave"
+                    ? ""
+                    : "❌ → ";
     if (raidEvent.hotJoined.includes(interaction.user.id)) {
         embed.setColor(colors.serious).setAuthor({
-            name: `${displayName} записался, но был перемещен в запас${resolvedTarget}`,
+            name: `${displayName}: ${resolvedTarget}[Запас]`,
             iconURL: member.displayAvatarURL(),
         });
     }
@@ -30,26 +32,26 @@ async function actionMessageHandler({ interaction, raidEvent, target }) {
         switch (interaction.customId) {
             case RaidButtons.join:
                 embed.setColor(colors.success).setAuthor({
-                    name: `${displayName} записался${resolvedTarget}`,
+                    name: `${displayName}: ${resolvedTarget}[Участник]`,
                     iconURL: member.displayAvatarURL(),
                 });
                 break;
             case RaidButtons.alt:
                 embed.setColor(colors.warning).setAuthor({
-                    name: `${displayName} записался как возможный участник${resolvedTarget}`,
+                    name: `${displayName}: ${resolvedTarget}[Возможный участник]`,
                     iconURL: member.displayAvatarURL(),
                 });
                 break;
             case RaidButtons.leave:
                 embed.setColor(colors.error).setAuthor({
-                    name: `${displayName} выписался${resolvedTarget}`,
+                    name: `${displayName}: ${resolvedTarget}❌`,
                     iconURL: member.displayAvatarURL(),
                 });
                 break;
             default:
                 embed
                     .setColor("NotQuiteBlack")
-                    .setAuthor({ name: `${displayName} проник на рейд\n<@${ownerId}>`, iconURL: member.displayAvatarURL() });
+                    .setAuthor({ name: `${displayName}: проник на рейд\n<@${ownerId}>`, iconURL: member.displayAvatarURL() });
         }
     }
     client.getCachedGuild().channels.cache.get(raidEvent.channelId).send({ embeds: [embed] });
@@ -64,8 +66,8 @@ async function joinedFromHotJoined(raidData) {
         hotJoined: Sequelize.fn("array_remove", Sequelize.col("hotJoined"), `${newRaidJoined}`),
         alt: Sequelize.fn("array_remove", Sequelize.col("alt"), `${newRaidJoined}`),
     }, { where: { id: raidData.id } });
-    const embed = new EmbedBuilder().setColor("Orange").setAuthor({
-        name: `${nameCleaner(member.displayName)} был автоматически записан ранее состоя в запасе`,
+    const embed = new EmbedBuilder().setColor(colors.serious).setAuthor({
+        name: `СИСТЕМА: ${nameCleaner(member.displayName)}: [Запас] → [Участник]`,
         iconURL: member.displayAvatarURL(),
     });
     client.getCachedGuild().channels.cache.get(raidData.channelId).send({ embeds: [embed] });
@@ -91,6 +93,10 @@ export default {
     run: async ({ client, interaction }) => {
         interaction.deferUpdate();
         if (interaction.customId === RaidButtons.leave) {
+            const raidDataBeforeLeave = RaidEvent.findOne({
+                where: { messageId: interaction.message.id },
+                attributes: ["joined", "hotJoined", "alt"],
+            });
             return await RaidEvent.update({
                 joined: Sequelize.fn("array_remove", Sequelize.col("joined"), `${interaction.user.id}`),
                 hotJoined: Sequelize.fn("array_remove", Sequelize.col("hotJoined"), `${interaction.user.id}`),
@@ -116,10 +122,24 @@ export default {
                     throw { errorType: UserErrors.RAID_NOT_FOUND };
                 updatePrivateRaidMessage({ raidEvent });
                 updateRaidMessage(raidEvent, interaction);
-                actionMessageHandler({ interaction, raidEvent, target: "leave" });
                 client.getCachedGuild().channels.cache.get(raidEvent.channelId).permissionOverwrites.delete(interaction.user.id);
-                if (raidEvent.joined.length === 5 && raidEvent.hotJoined.length > 0)
-                    setTimeout(() => joinedFromHotJoined(raidEvent), 500);
+                raidDataBeforeLeave.then((r) => {
+                    actionMessageHandler({
+                        interaction,
+                        raidEvent,
+                        target: r
+                            ? r.joined.includes(interaction.user.id)
+                                ? "joined"
+                                : r.alt.includes(interaction.user.id)
+                                    ? "alt"
+                                    : r.hotJoined.includes(interaction.user.id)
+                                        ? "hotJoined"
+                                        : "leave"
+                            : "leave",
+                    });
+                    if (raidEvent.joined.length === 5 && raidEvent.hotJoined.length > 0)
+                        setTimeout(() => joinedFromHotJoined(raidEvent), 500);
+                });
             });
         }
         let raidEvent = await RaidEvent.findOne({
@@ -141,9 +161,9 @@ export default {
         });
         if (!raidEvent)
             throw { errorType: UserErrors.RAID_NOT_FOUND };
-        const userAlreadyInHotJoined = raidEvent.hotJoined.some((user) => user === interaction.user.id);
-        const userAlreadyJoined = raidEvent.joined.some((user) => user === interaction.user.id);
-        const userAlreadyAlt = raidEvent.alt.some((user) => user === interaction.user.id);
+        const userAlreadyInHotJoined = raidEvent.hotJoined.includes(interaction.user.id);
+        const userAlreadyJoined = raidEvent.joined.includes(interaction.user.id);
+        const userAlreadyAlt = raidEvent.alt.includes(interaction.user.id);
         const userTarget = interaction.customId === RaidButtons.join
             ? raidEvent.joined.length >= 6 && !userAlreadyInHotJoined
                 ? "hotJoined"

@@ -178,7 +178,7 @@ export async function activityReporter(pgcrId) {
                         index++;
                         const activityEndTime = new Date(response.period).getTime() + response.entries[0].values.activityDurationSeconds.basic.value * 1000;
                         return encountersData.push({
-                            end: encounterData.end > activityEndTime ? activityEndTime : encounterData.end,
+                            end: encounterData.end > activityEndTime || encounterData.end <= 1 ? activityEndTime : encounterData.end,
                             phase: encounterData.phase,
                             phaseIndex: encounterData.phaseIndex,
                             start: encounterData.start,
@@ -187,16 +187,21 @@ export async function activityReporter(pgcrId) {
                     index++;
                     encountersData.push(encounterData);
                 });
-                embed.addFields([
-                    {
-                        name: "Затраченное время на этапы",
-                        value: `${encountersData
-                            .map((encounter) => {
-                            return `⁣　⁣${encounter.phaseIndex}. <t:${Math.floor(encounter.start / 1000)}:t> — <t:${Math.floor(encounter.end / 1000)}:t>, **${convertSeconds(Math.floor((encounter.end - encounter.start) / 1000))}**`;
-                        })
-                            .join("\n")}`,
-                    },
-                ]);
+                try {
+                    embed.addFields([
+                        {
+                            name: "Затраченное время на этапы",
+                            value: `${encountersData
+                                .map((encounter) => {
+                                return `⁣　⁣${encounter.phaseIndex}. <t:${Math.floor(encounter.start / 1000)}:t> — <t:${Math.floor(encounter.end / 1000)}:t>, **${convertSeconds(Math.floor((encounter.end - encounter.start) / 1000))}**`;
+                            })
+                                .join("\n")}`,
+                        },
+                    ]);
+                }
+                catch (error) {
+                    console.error(`[Error code: 1610] Error during adding fields to the raid result`, error);
+                }
                 preciseEncountersTime.clear();
             }
             const msg = await client.getCachedGuild().channels.cache.get(ids.activityChnId).send({ embeds: [embed] });

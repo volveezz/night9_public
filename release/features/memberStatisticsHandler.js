@@ -20,10 +20,7 @@ export const clanOnline = new Map();
 const clanJoinDateCheck = new Set();
 const throttleSet = new Set();
 const dungeonRoles = await AutoRoleData.findAll({ where: { category: 8 } }).then((rolesData) => {
-    return rolesData
-        .filter((roleData) => dungeonsTriumphHashes.includes(roleData.triumphRequirement))
-        .map((r) => r.roleId)
-        .join(",");
+    return rolesData.filter((roleData) => dungeonsTriumphHashes.includes(roleData.triumphRequirement)).map((r) => r.roleId);
 });
 async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId, accessToken, displayName, roleCategoriesBits, UserActivityData: userActivity }, member, role_db) {
     const givenRoles = [];
@@ -204,14 +201,17 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                 }
                 else {
                     const triumphHash = role.triumphRequirement;
+                    console.debug(`Debug1`, dungeonsTriumphHashes.includes(triumphHash), triumphHash, dungeonRoles);
                     if (dungeonsTriumphHashes.includes(triumphHash)) {
-                        if (memberRoles.hasAll(dungeonRoles) && !memberRoles.has(dungeonMasterRole) && !givenRoles.includes(dungeonMasterRole)) {
+                        if (memberRoles.hasAll(...dungeonRoles) &&
+                            !memberRoles.has(dungeonMasterRole) &&
+                            !givenRoles.includes(dungeonMasterRole)) {
                             givenRoles.push(dungeonMasterRole);
-                            removedRoles.push(dungeonRoles);
+                            removedRoles.push(...dungeonRoles);
                             return;
                         }
-                        else if (memberRoles.has(dungeonMasterRole) && !memberRoles.hasAll(dungeonRoles)) {
-                            removedRoles.push(dungeonRoles);
+                        else if (memberRoles.has(dungeonMasterRole) && !memberRoles.hasAll(...dungeonRoles)) {
+                            removedRoles.push(...dungeonRoles);
                         }
                     }
                     const triumphRecord = destinyProfileResponse.profileRecords.data.records[triumphHash] ||
@@ -385,18 +385,19 @@ async function destinyClanManagmentSystem(bungie_array) {
         }
         const t = await database.transaction();
         await Promise.all(clanList.results.map(async (result) => {
-            if (bungie_array.some((e) => e.bungieId === result.destinyUserInfo.membershipId)) {
-                const [memberAuthData] = bungie_array.splice(bungie_array.findIndex((e) => e.bungieId === result.destinyUserInfo.membershipId), 1);
+            const membershipId = result.destinyUserInfo.membershipId;
+            if (bungie_array.some((e) => e.bungieId === membershipId)) {
+                const [memberAuthData] = bungie_array.splice(bungie_array.findIndex((e) => e.bungieId === membershipId), 1);
                 if (result.isOnline) {
                     clanOnline.set(memberAuthData.discordId, {
                         platform: result.destinyUserInfo.membershipType,
-                        membershipId: result.destinyUserInfo.membershipId,
+                        membershipId,
                     });
                 }
-                if (!clanJoinDateCheck.has(result.destinyUserInfo.membershipId)) {
+                if (!clanJoinDateCheck.has(membershipId)) {
                     await timer(1000);
                     if (!(memberAuthData.roleCategoriesBits & NightRoleCategory.Triumphs))
-                        return clanJoinDateCheck.add(result.destinyUserInfo.membershipId);
+                        return clanJoinDateCheck.add(membershipId);
                     const member = client.getCachedMembers().get(memberAuthData.discordId);
                     if (!member)
                         return console.error(`[Error code: 1087] Member not found ${memberAuthData.discordId}/${memberAuthData.displayName}`);
@@ -418,7 +419,7 @@ async function destinyClanManagmentSystem(bungie_array) {
                             break;
                         }
                     }
-                    clanJoinDateCheck.add(result.destinyUserInfo.membershipId);
+                    clanJoinDateCheck.add(membershipId);
                 }
                 if (memberAuthData.displayName !== result.destinyUserInfo.bungieGlobalDisplayName &&
                     !memberAuthData.displayName.startsWith("⁣")) {
@@ -426,7 +427,7 @@ async function destinyClanManagmentSystem(bungie_array) {
                         displayName: result.destinyUserInfo.bungieGlobalDisplayName,
                     }, {
                         where: {
-                            bungieId: result.destinyUserInfo.membershipId,
+                            bungieId: membershipId,
                         },
                         transaction: t,
                     });
@@ -435,7 +436,7 @@ async function destinyClanManagmentSystem(bungie_array) {
                 if (memberAuthData.clan === false) {
                     await AuthData.update({ clan: true }, {
                         where: {
-                            bungieId: result.destinyUserInfo.membershipId,
+                            bungieId: membershipId,
                         },
                         transaction: t,
                     });

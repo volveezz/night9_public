@@ -732,9 +732,9 @@ export default new Command({
             const embedReply = new EmbedBuilder().setColor(colors.success);
             const embed = new EmbedBuilder().setColor(colors.success);
             const raidData = await raidDataQuery;
-            const userAlreadyInHotJoined = raidData.hotJoined.some((user) => user === addedUser.id);
-            const userAlreadyJoined = raidData.joined.some((user) => user === addedUser.id);
-            const userAlreadyAlt = raidData.alt.some((user) => user === addedUser.id);
+            const userAlreadyInHotJoined = raidData.hotJoined.includes(addedUser.id);
+            const userAlreadyJoined = raidData.joined.includes(addedUser.id);
+            const userAlreadyAlt = raidData.alt.includes(addedUser.id);
             const userTarget = args.getBoolean("альтернатива") === true
                 ? "alt"
                 : raidData.joined.length >= 6 && !userAlreadyInHotJoined
