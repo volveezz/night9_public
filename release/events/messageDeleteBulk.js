@@ -4,9 +4,10 @@ import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 const messageChannel = client.channels.cache.get(ids.messagesChnId);
 export default new Event("messageDeleteBulk", (messages) => {
+    const messagesArray = messages.reverse();
     const embed = new EmbedBuilder().setColor("DarkRed").setAuthor({ name: "Группа сообщений удалена" });
-    for (let i = 0; i < messages.size && i < 24; i++) {
-        const m = messages.at(i);
+    for (let i = 0; i < messagesArray.size && i < 24; i++) {
+        const m = messagesArray.at(i);
         embed.addFields([
             {
                 name: `Сообщение ${m?.member?.displayName} (${m?.id})`,
@@ -18,6 +19,6 @@ export default new Event("messageDeleteBulk", (messages) => {
             },
         ]);
     }
-    messages.size > 24 ? embed.setFooter({ text: `И ещё ${messages.size - 24} сообщений` }) : [];
+    messagesArray.size > 24 ? embed.setFooter({ text: `И ещё ${messagesArray.size - 24} сообщений` }) : [];
     messageChannel.send({ embeds: [embed] });
 });

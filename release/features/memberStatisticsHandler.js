@@ -20,7 +20,12 @@ export const clanOnline = new Map();
 const clanJoinDateCheck = new Set();
 const throttleSet = new Set();
 const dungeonRoles = await AutoRoleData.findAll({ where: { category: 8 } }).then((rolesData) => {
-    return rolesData.filter((roleData) => dungeonsTriumphHashes.includes(roleData.triumphRequirement)).map((r) => r.roleId);
+    return rolesData
+        .filter((roleData) => {
+        if (dungeonsTriumphHashes.includes(roleData.triumphRequirement))
+            return roleData;
+    })
+        .map((r) => r.roleId);
 });
 async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId, accessToken, displayName, roleCategoriesBits, UserActivityData: userActivity }, member, role_db) {
     const givenRoles = [];
