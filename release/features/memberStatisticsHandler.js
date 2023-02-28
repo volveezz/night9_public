@@ -209,8 +209,11 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                             removedRoles.push(...dungeonRoles);
                             return;
                         }
-                        else if (memberRoles.has(dungeonMasterRole) && !memberRoles.hasAll(...dungeonRoles)) {
+                        else if (memberRoles.has(dungeonMasterRole) && memberRoles.hasAny(...dungeonRoles)) {
                             removedRoles.push(...dungeonRoles);
+                        }
+                        else if (memberRoles.has(dungeonMasterRole)) {
+                            return;
                         }
                     }
                     const triumphRecord = destinyProfileResponse.profileRecords.data.records[Number(triumphHash)] ||
