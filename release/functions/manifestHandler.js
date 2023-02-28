@@ -10,7 +10,7 @@ async function getManifest() {
     }
 }
 async function getSpecificManifest(page) {
-    return fetchRequest(`${manifestData.jsonWorldComponentContentPaths.ru[page]}`)
+    return fetchRequest(`${manifestData.jsonWorldComponentContentPaths?.ru?.[page]}`)
         .then((manifest) => {
         return manifest;
     })

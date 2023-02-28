@@ -5,15 +5,22 @@ import { clanOnline } from "../features/memberStatisticsHandler.js";
 import raidMilestoneHashes from "./raidMilestones.js";
 import { timer } from "./utilities.js";
 import { CachedDestinyActivityDefinition } from "./manifestHandler.js";
+import { apiStatus } from "../structures/apiStatus.js";
 export const activityCompletionCurrentProfiles = new Map();
 export const completedPhases = new Map();
 const currentlyRuning = new Map();
 const raidActivityModeHashes = 2043403989;
 export async function clanOnlineMemberActivityChecker() {
     setInterval(async () => {
+        if (apiStatus.status !== 1)
+            return;
         const checkingUsers = new Map(clanOnline);
         for (const [discordId, { membershipId, platform }] of checkingUsers) {
             const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204,1000`);
+            if (!response || !response.characterActivities) {
+                console.error(`[Error code: 1612] Error during checking clan members`, response);
+                break;
+            }
             const characterActivities = response.characterActivities.data;
             if (!characterActivities)
                 continue;
@@ -58,12 +65,20 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
     let interval;
     let previousActivityHash;
     let uniqueId = id || Math.floor(Math.random() * (1000 - 101 + 1)) + 101;
+    let isErrorHappen = false;
     async function checkActivityHash() {
         try {
             const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`, {
                 accessToken,
             });
             if (!response) {
+                if (isErrorHappen) {
+                    clearInterval(interval);
+                    currentlyRuning.delete(uniqueId);
+                    activityCompletionCurrentProfiles.delete(bungieId);
+                    console.error(`[Error code: 1611] Checker stopped for ${platform}/${bungieId}/${characterId} becouse of continuous errors`, response);
+                }
+                isErrorHappen = true;
                 console.error(`[Error code: 1211] Error during checking character inside checkActivityHash function\n`, response, characterId);
                 const authData = await AuthData.findOne({
                     where: { bungieId },
