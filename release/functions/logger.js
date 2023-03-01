@@ -134,11 +134,11 @@ export async function activityReporter(pgcrId) {
             if (response.activityDetails.mode === 82 && (clanMembersInRaid < 1 || (membersMembershipIds.length > 1 && dbData.length <= 1)))
                 return;
             const preciseEncountersTime = new Map();
-            membersMembershipIds.forEach((bungieId) => {
+            membersMembershipIds.forEach((bungieId, i1) => {
                 if (completedPhases.has(bungieId)) {
                     const completedPhasesForUser = completedPhases.get(bungieId);
                     let previousEncounterEndTime = 0;
-                    completedPhasesForUser.forEach((completedPhase) => {
+                    completedPhasesForUser.forEach((completedPhase, i2) => {
                         const { phase: phaseHash, phaseIndex, start, end } = completedPhase;
                         if (!preciseEncountersTime.has(phaseHash)) {
                             preciseEncountersTime.set(phaseHash, { start, end, phaseIndex, phase: phaseHash });
@@ -151,6 +151,11 @@ export async function activityReporter(pgcrId) {
                             }
                             if (end > 1 && end < preciseStoredEncounterTime.end && previousEncounterEndTime < end) {
                                 preciseStoredEncounterTime.end = end;
+                            }
+                            else if (end <= 1) {
+                                const resolvedTime = completedPhasesForUser[i2 + 1]?.start || completedPhases.get(membersMembershipIds[i1 + 1])?.[i2 + 1]?.start;
+                                if (resolvedTime && resolvedTime > 1)
+                                    preciseStoredEncounterTime.end = resolvedTime;
                             }
                             preciseEncountersTime.set(phaseHash, preciseStoredEncounterTime);
                             previousEncounterEndTime = preciseStoredEncounterTime.end;
@@ -187,20 +192,25 @@ export async function activityReporter(pgcrId) {
                     index++;
                     encountersData.push(encounterData);
                 });
-                try {
-                    embed.addFields([
-                        {
-                            name: "Затраченное время на этапы",
-                            value: `${encountersData
-                                .map((encounter) => {
-                                return `⁣　⁣${encounter.phaseIndex}. <t:${Math.floor(encounter.start / 1000)}:t> — <t:${Math.floor(encounter.end / 1000)}:t>, **${convertSeconds(Math.floor((encounter.end - encounter.start) / 1000))}**`;
-                            })
-                                .join("\n")}`,
-                        },
-                    ]);
+                if (encountersData.length >= 1) {
+                    try {
+                        embed.addFields([
+                            {
+                                name: "Затраченное время на этапы",
+                                value: `${encountersData
+                                    .map((encounter) => {
+                                    return `⁣　⁣${encounter.phaseIndex}. <t:${Math.floor(encounter.start / 1000)}:t> — <t:${Math.floor(encounter.end / 1000)}:t>, **${convertSeconds(Math.floor((encounter.end - encounter.start) / 1000))}**`;
+                                })
+                                    .join("\n")}`,
+                            },
+                        ]);
+                    }
+                    catch (error) {
+                        console.error(`[Error code: 1610] Error during adding fields to the raid result`, error);
+                    }
                 }
-                catch (error) {
-                    console.error(`[Error code: 1610] Error during adding fields to the raid result`, error);
+                else {
+                    console.error(`[Error code: 1613]`, encountersData, preciseEncountersTime, preciseEncountersTime.size);
                 }
                 preciseEncountersTime.clear();
             }
