@@ -153,6 +153,7 @@ export async function activityReporter(pgcrId) {
                                 preciseStoredEncounterTime.end = end;
                             }
                             else if (end <= 1) {
+                                console.debug(`DEBUG20000 ${completedPhasesForUser[i2 + 1]?.start} | ${completedPhases.get(membersMembershipIds[i1 + 1])?.[i2 + 1]?.start} | ${preciseStoredEncounterTime} | ${end}`);
                                 const resolvedTime = completedPhasesForUser[i2 + 1]?.start || completedPhases.get(membersMembershipIds[i1 + 1])?.[i2 + 1]?.start;
                                 if (resolvedTime && resolvedTime > 1)
                                     preciseStoredEncounterTime.end = resolvedTime;
@@ -164,12 +165,11 @@ export async function activityReporter(pgcrId) {
                     completedPhases.delete(bungieId);
                 }
             });
-            if (preciseEncountersTime) {
+            if (preciseEncountersTime && preciseEncountersTime.size > 0) {
                 const encountersData = [];
-                let index = 0;
-                preciseEncountersTime.forEach((encounterData) => {
-                    if (index === 0) {
-                        index++;
+                const phasesArray = Array.from(preciseEncountersTime.values()).sort((a, b) => a.phaseIndex - b.phaseIndex);
+                phasesArray.forEach((encounterData, i) => {
+                    if (i === 0) {
                         return encountersData.push({
                             end: encounterData.end,
                             phase: encounterData.phase,
@@ -179,8 +179,7 @@ export async function activityReporter(pgcrId) {
                             start: new Date(response.period).getTime(),
                         });
                     }
-                    else if (index === preciseEncountersTime.size - 1) {
-                        index++;
+                    else if (i === phasesArray.length - 1) {
                         const activityEndTime = new Date(response.period).getTime() + response.entries[0].values.activityDurationSeconds.basic.value * 1000;
                         return encountersData.push({
                             end: encounterData.end > activityEndTime || encounterData.end <= 1 ? activityEndTime : encounterData.end,
@@ -189,7 +188,7 @@ export async function activityReporter(pgcrId) {
                             start: encounterData.start,
                         });
                     }
-                    index++;
+                    i++;
                     encountersData.push(encounterData);
                 });
                 if (encountersData.length >= 1) {
@@ -214,7 +213,7 @@ export async function activityReporter(pgcrId) {
                 }
                 preciseEncountersTime.clear();
             }
-            const msg = await client.getCachedGuild().channels.cache.get(ids.activityChnId).send({ embeds: [embed] });
+            const msg = client.getCachedGuild().channels.cache.get(ids.activityChnId).send({ embeds: [embed] });
             dbData.forEach(async (dbMemberData) => {
                 if (response.activityDetails.mode === 82 && clanMembersInRaid > 1)
                     return UserActivityData.increment("dungeons", { by: 1, where: { discordId: dbMemberData.discordId } });
@@ -230,11 +229,12 @@ export async function activityReporter(pgcrId) {
                     }
                 });
                 if (dbRaidData && dbRaidData.time < Math.trunc(new Date().getTime() / 1000)) {
+                    const resolvedMsg = await msg;
                     const embed = new EmbedBuilder()
                         .setColor(colors.serious)
                         .setFooter({ text: `RId: ${dbRaidData.id}` })
                         .setTitle("Созданный вами рейд был завершен")
-                        .setDescription(`Вы создавали рейд ${dbRaidData.id}-${dbRaidData.raid} на <t:${dbRaidData.time}> и сейчас он был завершен.\nПодтвердите завершение рейда для удаления набора.\n\n[История активностей](https://discord.com/channels/${msg.guildId + "/" + msg.channelId + "/" + msg.id})`);
+                        .setDescription(`Вы создавали рейд ${dbRaidData.id}-${dbRaidData.raid} на <t:${dbRaidData.time}> и сейчас он был завершен.\nПодтвердите завершение рейда для удаления набора.\n\n[История активностей](https://discord.com/channels/${resolvedMsg.guildId + "/" + resolvedMsg.channelId + "/" + resolvedMsg.id})`);
                     return (client.users.cache.get(dbRaidData.creator) ||
                         client.getCachedMembers().get(dbRaidData.creator) ||
                         (await client.users.fetch(dbRaidData.creator)))
