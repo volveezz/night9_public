@@ -53,7 +53,7 @@ export default async (code, state, res) => {
             request.destinyMemberships[0];
         if (!fetchedData) {
             res.send(`<script>location.replace('error.html')</script>`);
-            return console.error("[Error code: 1011]", `State: ${state} / Code:${code}`, body);
+            return console.error("[Error code: 1011]", `State: ${state} / Code:${code}`, body, fetchedData, request);
         }
         const { membershipType: platform, membershipId: bungieId } = fetchedData;
         const displayName = fetchedData.bungieGlobalDisplayName || fetchedData.LastSeenDisplayName || fetchedData.displayName;
