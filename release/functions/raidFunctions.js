@@ -12,16 +12,17 @@ import { fetchRequest } from "./fetchRequest.js";
 import { raidAnnounceSet } from "../commands/raid.js";
 import { RaidNames } from "../enums/Raids.js";
 import nameCleaner from "./nameClearer.js";
+import { getRandomGIF } from "./utilities.js";
 export function getRaidData(raid, difficulty = 1) {
     switch (raid) {
-        case "nebula":
+        case "ron":
             return {
                 raid,
-                raidName: difficulty === 2 ? "[PH] Рейд Конца Света: Мастер" : "[PH] Рейд Конца Света",
+                raidName: difficulty === 2 ? "Источник кошмаров: Мастер" : "Источник кошмаров",
                 maxDifficulty: 2,
-                raidBanner: "https://images.contentstack.io/v3/assets/blte410e3b15535c144/bltbbbdfd5337645c9d/62fdec5e301df410c6363888/lightfall-raid-1920x1080.jpg",
-                raidColor: (difficulty === 2 ? "#FF063A" : "#C500FF"),
-                channelName: "-конец-света",
+                raidBanner: "https://images.contentstack.io/v3/assets/blte410e3b15535c144/bltd95f9a53ce953669/63ffd4b9a7d98e0267ed24eb/Fp_5gnkX0AULoRF.jpg",
+                raidColor: (difficulty === 2 ? "#FF063A" : "#ffa8ae"),
+                channelName: "-источник-кошмаров",
                 requiredRole: dlcRoles.lf,
                 milestoneHash: 292102995,
             };
@@ -447,6 +448,12 @@ async function raidAnnounce(oldRaidData) {
             value: raidMembersNames.join("\n") || "⁣　*никого*",
         },
     ]);
+    try {
+        embed.setImage(await getRandomGIF("raid time"));
+    }
+    catch (error) {
+        console.error(`[Error code: 1631] Error during adding image to the notify message`, error);
+    }
     const raidVoiceChannels = guild.channels.cache
         .filter((chn) => chn.parentId === ids.raidChnCategoryId && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"))
         .reverse();

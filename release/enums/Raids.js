@@ -1,6 +1,6 @@
 export var RaidNames;
 (function (RaidNames) {
-    RaidNames["nebula"] = "nebula";
+    RaidNames["ron"] = "ron";
     RaidNames["kf"] = "kf";
     RaidNames["votd"] = "votd";
     RaidNames["vog"] = "vog";
@@ -13,7 +13,3 @@ export var RaidDifficulty;
     RaidDifficulty[RaidDifficulty["normal"] = 1] = "normal";
     RaidDifficulty[RaidDifficulty["master"] = 2] = "master";
 })(RaidDifficulty || (RaidDifficulty = {}));
-export var RaidHashes;
-(function (RaidHashes) {
-    RaidHashes[RaidHashes["nebula"] = 999999999] = "nebula";
-})(RaidHashes || (RaidHashes = {}));

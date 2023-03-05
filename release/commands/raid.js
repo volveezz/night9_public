@@ -56,9 +56,9 @@ export default new Command({
                     required: true,
                     choices: [
                         {
-                            name: "[PH] Рейд Конца Света",
-                            nameLocalizations: { "en-US": "[PH] Lightfall raid" },
-                            value: "nebula",
+                            name: "Источник кошмаров",
+                            nameLocalizations: { "en-US": "Root of Nightmares" },
+                            value: "ron",
                         },
                         {
                             name: "Гибель короля",
@@ -166,9 +166,9 @@ export default new Command({
                     descriptionLocalizations: { "en-US": "Specify new raid if you want to change it" },
                     choices: [
                         {
-                            name: "[PH] Рейд Конца Света",
-                            nameLocalizations: { "en-US": "[PH] Lightfall raid" },
-                            value: "nebula",
+                            name: "Источник кошмаров",
+                            nameLocalizations: { "en-US": "Root of Nightmares" },
+                            value: "ron",
                         },
                         {
                             name: "Гибель короля",
@@ -481,7 +481,7 @@ export default new Command({
                     });
                 await updatePrivateRaidMessage({ raidEvent: insertedRaidData[1][0] });
                 const privateChannelMessage = (await inChnMsg) || (await chn.messages.fetch((await inChnMsg).id));
-                if (raidData.raid !== RaidNames.nebula)
+                if (raidData.raid !== RaidNames.ron)
                     await raidChallenges(raidData, privateChannelMessage, parsedTime, difficulty);
             });
         }
@@ -526,7 +526,7 @@ export default new Command({
                         where: { id: raidData.id },
                         transaction: t,
                     });
-                    if (raidInfo.raid !== RaidNames.nebula)
+                    if (raidInfo.raid !== RaidNames.ron)
                         raidChallenges(raidInfo, client.getCachedGuild().channels.cache.get(raidData.channelId).messages.cache.get(raidData.inChannelMessageId) ??
                             (await client.getCachedGuild().channels.cache.get(raidData.channelId).messages.fetch(raidData.inChannelMessageId)), raidData.time, newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : raidData.difficulty);
                     client

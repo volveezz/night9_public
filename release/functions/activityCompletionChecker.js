@@ -59,7 +59,6 @@ export async function clanOnlineMemberActivityChecker() {
     }, 60 * 1000 * 8);
 }
 export async function activityCompletionChecker({ accessToken, bungieId, characterId, id, platform, raid, discordId, }) {
-    console.debug(`DEBUG 17000 Started activityCompletionChecker for ${platform}/${bungieId} | ${raid}`);
     const milestoneHash = typeof raid === "string" ? getRaidData(raid).milestoneHash : raid;
     let startTime = new Date().getTime();
     let interval;
@@ -79,7 +78,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                     console.error(`[Error code: 1611] Checker stopped for ${platform}/${bungieId}/${characterId} becouse of continuous errors`, response);
                 }
                 isErrorHappen = true;
-                console.error(`[Error code: 1211] Error during checking character inside checkActivityHash function\n`, response, characterId);
+                console.error(`[Error code: 1630] Error during checking character of (${platform}/${bungieId}/${characterId}) inside checkActivityHash function`);
                 const authData = await AuthData.findOne({
                     where: { bungieId },
                     attributes: ["accessToken"],

@@ -106,7 +106,7 @@ RaidEvent.init({
     },
     alt: { type: DataTypes.ARRAY(DataTypes.STRING(30)), defaultValue: [] },
     time: { type: DataTypes.INTEGER, allowNull: false },
-    raid: { type: DataTypes.ENUM("kf", "votd", "vog", "dsc", "gos", "lw", "nebula") },
+    raid: { type: DataTypes.ENUM("kf", "votd", "vog", "dsc", "gos", "lw", "ron") },
     requiredClears: {
         type: DataTypes.SMALLINT,
         defaultValue: 0,

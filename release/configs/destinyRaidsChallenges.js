@@ -1,5 +1,5 @@
 const destinyRaidChallanges = {
-    nebula: [
+    ron: [
         {
             hash: 10000,
             encounter: 1,

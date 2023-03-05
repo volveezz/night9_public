@@ -206,6 +206,12 @@ export default {
         client.getCachedGuild().channels.cache.get(raidEvent.channelId).permissionOverwrites.create(interaction.user.id, {
             ViewChannel: true,
         });
+        if (userAlreadyJoined &&
+            interaction.customId === RaidButtons.alt &&
+            raidEvent.joined.length === 5 &&
+            raidEvent.hotJoined.length > 0) {
+            setTimeout(() => joinedFromHotJoined(raidEvent), 500);
+        }
         return;
     },
 };
