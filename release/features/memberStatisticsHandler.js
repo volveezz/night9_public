@@ -22,7 +22,7 @@ const throttleSet = new Set();
 const dungeonRoles = await AutoRoleData.findAll({ where: { category: 8 } }).then((rolesData) => {
     return rolesData.filter((roleData) => dungeonsTriumphHashes.includes(Number(roleData.triumphRequirement))).map((r) => r.roleId);
 });
-async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId, accessToken, displayName, roleCategoriesBits, UserActivityData: userActivity }, member, role_db) {
+async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId, accessToken, displayName, roleCategoriesBits, UserActivityData: userActivity }, member, roleDataFromDatabase) {
     const givenRoles = [];
     const removedRoles = [];
     const memberRoles = member.roles.cache;
@@ -97,7 +97,7 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                     }
                 }
             }
-            role_db.forEach(async (role) => {
+            roleDataFromDatabase.forEach(async (role) => {
                 if (role.category === NightRoleCategory.Titles && !(roleCategoriesBits & NightRoleCategory.Titles))
                     return;
                 if (role.category === NightRoleCategory.Triumphs && !(roleCategoriesBits & NightRoleCategory.Triumphs))

@@ -3,7 +3,7 @@ import colors from "../../configs/colors.js";
 import { AuthData, UserActivityData } from "../../handlers/sequelize.js";
 import { Command } from "../../structures/command.js";
 import { SurveyAnswer } from "../../handlers/mongodb.js";
-import convertSeconds from "../../functions/utilities.js";
+import convertSeconds, { timer } from "../../functions/utilities.js";
 import { SurveyButtons } from "../../enums/Buttons.js";
 export default new Command({
     name: "scripts",
@@ -60,7 +60,7 @@ export default new Command({
                 const notCompleted = guildMembers
                     .map((v) => {
                     if (!answersDatabase.includes(v.user.id)) {
-                        return `<@${v.user.id}>`;
+                        return v.user;
                     }
                     else {
                         return undefined;
@@ -70,12 +70,16 @@ export default new Command({
                 const embed = new EmbedBuilder()
                     .setColor(colors.default)
                     .setTitle(`Предупреждение о скором завершении опроса`)
-                    .setDescription(`Ранее вы получили сообщение насчёт прохождения опроса, но так и не прошли его.\n\nЧерез несколько дней опрос завершится. Если Вы не успеете пройти обязательную часть опроса до 15 марта, Вы будете исключены с сервера, а если Вы были в клане, то и из клана.`);
+                    .setDescription(`Ранее вы получили сообщение насчёт прохождения опроса, но так и не прошли его.\n\nЧерез несколько дней опрос завершится. Если Вы не успеете пройти обязательную часть опроса до 15 марта, то будете исключены с сервера, а если Вы были в клане, то и из клана.\n\nВсе решения об исключении будут приниматься индвидуально, но лучше не испытывать судьбу...`);
                 const initialComponents = [
                     new ButtonBuilder().setCustomId(SurveyButtons.start).setLabel("Начать").setStyle(ButtonStyle.Primary),
                 ];
-                interaction.user.send({ embeds: [embed], components: [{ type: ComponentType.ActionRow, components: initialComponents }] });
-                console.log(`For resending: ${answersDatabase.length}/${notCompleted.length}/${guildMembers.size}\n`, notCompleted.join(", "));
+                for await (const user of notCompleted) {
+                    user
+                        .send({ embeds: [embed], components: [{ type: ComponentType.ActionRow, components: initialComponents }] })
+                        .then((r) => console.debug(`Message was sent again to ${user?.username}`));
+                    await timer(1000);
+                }
                 return;
             }
             case "countsurvey": {

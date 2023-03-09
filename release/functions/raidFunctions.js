@@ -319,6 +319,8 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
             }
         }
         const raidClears = [];
+        if (raidUserData.ron > 0)
+            raidClears.push(`${raidUserData.ron}${raidUserData.ronMaster > 0 ? `(${raidUserData.ronMaster})` : ""} ИК`);
         if (raidUserData.kf > 0)
             raidClears.push(`${raidUserData.kf}${raidUserData.kfMaster > 0 ? `(${raidUserData.kfMaster})` : ""} ГК`);
         if (raidUserData.votd > 0)
@@ -460,13 +462,13 @@ async function raidAnnounce(oldRaidData) {
     const components = [];
     for await (const [i, chn] of raidVoiceChannels) {
         if (chn.type === ChannelType.GuildVoice &&
-            (chn.userLimit === 0 || chn.userLimit - 6 > chn.members.size || chn.members.has(raidData.creator))) {
+            (chn.userLimit === 0 || chn.userLimit - 6 > chn?.members.size || chn?.members.has(raidData.creator))) {
             const invite = await chn.createInvite({ reason: "Raid automatic invite", maxAge: 60 * 120 });
             invite
                 ? components.push(new ButtonBuilder({
                     style: ButtonStyle.Link,
                     url: invite.url,
-                    label: `Перейти ${chn.members.has(raidData.creator) ? "к создателю рейда" : "в рейдовый канал"}`,
+                    label: `Перейти ${chn?.members.has(raidData.creator) ? "к создателю рейда" : "в рейдовый канал"}`,
                 }))
                 : "";
             break;
