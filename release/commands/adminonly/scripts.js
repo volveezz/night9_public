@@ -1,11 +1,10 @@
-import { EmbedBuilder, ApplicationCommandOptionType } from "discord.js";
+import { EmbedBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, } from "discord.js";
 import colors from "../../configs/colors.js";
 import { AuthData, UserActivityData } from "../../handlers/sequelize.js";
 import { Command } from "../../structures/command.js";
 import { SurveyAnswer } from "../../handlers/mongodb.js";
 import convertSeconds from "../../functions/utilities.js";
-import { statusRoles } from "../../configs/roles.js";
-import { Op } from "sequelize";
+import { SurveyButtons } from "../../enums/Buttons.js";
 export default new Command({
     name: "scripts",
     description: "script system",
@@ -22,26 +21,6 @@ export default new Command({
         const defferedReply = interaction.deferReply();
         const scriptId = interaction.options.getString("script", true).toLowerCase();
         switch (scriptId) {
-            case "clearinactive": {
-                const parsedUsers = client
-                    .getCachedMembers()
-                    .filter((member) => member.roles.cache.hasAll(statusRoles.verified, statusRoles.member));
-                const usersIds = parsedUsers.map((member) => member.id);
-                const userActivityData = await UserActivityData.findAll({ where: { discordId: { [Op.in]: usersIds } } });
-                for (const [d, member] of parsedUsers) {
-                    const userData = userActivityData.find((d) => d.discordId === member.id);
-                    if (!userData) {
-                        console.error(`[Error code: 1632] Couldn't find user data for ${d}`);
-                        continue;
-                    }
-                    if (userData.voice === 0 && userData.messages === 0) {
-                        if (member.roles.cache.size > 3) {
-                            console.log(`We should clear roles of ${member.displayName}`);
-                        }
-                    }
-                }
-                return;
-            }
             case "activitytop": {
                 const dbData = (await AuthData.findAll({ include: UserActivityData, attributes: ["displayName", "discordId"] })).filter((v) => v.UserActivityData && (v.UserActivityData.messages > 0 || v.UserActivityData.voice > 0));
                 const messageTop = dbData
@@ -77,7 +56,7 @@ export default new Command({
                 const answersDatabase = (await SurveyAnswer.find({})).map((r) => r.discordId);
                 const guildMembers = client
                     .getCachedMembers()
-                    .filter((v) => !v.user.bot && v.joinedTimestamp && v.joinedTimestamp < 1675987200);
+                    .filter((v) => !v.user.bot && v.joinedTimestamp && v.joinedTimestamp < 1675987200000);
                 const notCompleted = guildMembers
                     .map((v) => {
                     if (!answersDatabase.includes(v.user.id)) {
@@ -92,6 +71,10 @@ export default new Command({
                     .setColor(colors.default)
                     .setTitle(`Предупреждение о скором завершении опроса`)
                     .setDescription(`Ранее вы получили сообщение насчёт прохождения опроса, но так и не прошли его.\n\nЧерез несколько дней опрос завершится. Если Вы не успеете пройти обязательную часть опроса до 15 марта, Вы будете исключены с сервера, а если Вы были в клане, то и из клана.`);
+                const initialComponents = [
+                    new ButtonBuilder().setCustomId(SurveyButtons.start).setLabel("Начать").setStyle(ButtonStyle.Primary),
+                ];
+                interaction.user.send({ embeds: [embed], components: [{ type: ComponentType.ActionRow, components: initialComponents }] });
                 console.log(`For resending: ${answersDatabase.length}/${notCompleted.length}/${guildMembers.size}\n`, notCompleted.join(", "));
                 return;
             }
