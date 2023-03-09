@@ -35,8 +35,8 @@ export default new Command({
                         continue;
                     }
                     if (userData.voice === 0 && userData.messages === 0) {
-                        if (member.roles.cache.size > 2) {
-                            console.log(`We should give roles to ${member.displayName}`);
+                        if (member.roles.cache.size > 3) {
+                            console.log(`We should clear roles of ${member.displayName}`);
                         }
                     }
                 }
@@ -75,18 +75,24 @@ export default new Command({
             }
             case "resendsurvey": {
                 const answersDatabase = (await SurveyAnswer.find({})).map((r) => r.discordId);
-                const guildMembers = client.getCachedMembers().filter((v) => !v.user.bot);
+                const guildMembers = client
+                    .getCachedMembers()
+                    .filter((v) => !v.user.bot && v.joinedTimestamp && v.joinedTimestamp < 1675987200);
                 const notCompleted = guildMembers
                     .map((v) => {
                     if (!answersDatabase.includes(v.user.id)) {
-                        return v.user.id;
+                        return `<@${v.user.id}>`;
                     }
                     else {
                         return undefined;
                     }
                 })
                     .filter((v) => v !== undefined);
-                console.log(`For resending: ${answersDatabase.length}/${notCompleted.length}/${guildMembers.size}\n`, notCompleted);
+                const embed = new EmbedBuilder()
+                    .setColor(colors.default)
+                    .setTitle(`Предупреждение о скором завершении опроса`)
+                    .setDescription(`Ранее вы получили сообщение насчёт прохождения опроса, но так и не прошли его.\n\nЧерез несколько дней опрос завершится. Если Вы не успеете пройти обязательную часть опроса до 15 марта, Вы будете исключены с сервера, а если Вы были в клане, то и из клана.`);
+                console.log(`For resending: ${answersDatabase.length}/${notCompleted.length}/${guildMembers.size}\n`, notCompleted.join(", "));
                 return;
             }
             case "countsurvey": {
