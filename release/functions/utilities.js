@@ -9,23 +9,36 @@ export function descriptionFormatter(text) {
 export async function timer(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
-export default function convertSeconds(time, language = "ru") {
-    const seconds = Math.trunc(time);
-    let hours = Math.floor(seconds / 3600);
-    let minutes = Math.floor((seconds % 3600) / 60);
-    let remainingSeconds = seconds % 60;
+export default function convertSeconds(seconds, language = "ru") {
+    const secondsInDay = 86400;
+    const secondsInHour = 3600;
+    const secondsInMinute = 60;
+    let remainingSeconds = Math.trunc(seconds);
+    if (isNaN(remainingSeconds)) {
+        return language === "en" ? "incorrect time" : "некорректное время";
+    }
+    let days = Math.floor(remainingSeconds / secondsInDay);
+    remainingSeconds %= secondsInDay;
+    let hours = Math.floor(remainingSeconds / secondsInHour);
+    remainingSeconds %= secondsInHour;
+    let minutes = Math.floor(remainingSeconds / secondsInMinute);
+    remainingSeconds %= secondsInMinute;
     let result = "";
+    if (days > 0) {
+        result += `${days}${language === "en" ? "d " : "д "}`;
+    }
     if (hours > 0) {
-        result += hours + `${language === "en" ? "h" : "ч"} `;
+        result += `${hours}${language === "en" ? "h " : "ч "}`;
     }
     if (minutes > 0) {
-        result += minutes + `${language === "en" ? "m" : "м"} `;
+        result += `${minutes}${language === "en" ? "m " : "м "}`;
     }
-    if (remainingSeconds > 0) {
-        result += remainingSeconds + `${language === "en" ? "s" : "с"}`;
+    if (remainingSeconds > 0 || result === "") {
+        result += `${remainingSeconds}${language === "en" ? "s" : "с"}`;
     }
-    if (result === "")
+    if (result === "") {
         return language === "en" ? "less than a second" : "менее секунды";
+    }
     return result;
 }
 export async function getRandomGIF(prompt) {

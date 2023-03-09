@@ -4,6 +4,8 @@ import { AuthData, UserActivityData } from "../../handlers/sequelize.js";
 import { Command } from "../../structures/command.js";
 import { SurveyAnswer } from "../../handlers/mongodb.js";
 import convertSeconds from "../../functions/utilities.js";
+import { statusRoles } from "../../configs/roles.js";
+import { Op } from "sequelize";
 export default new Command({
     name: "scripts",
     description: "script system",
@@ -20,6 +22,26 @@ export default new Command({
         const defferedReply = interaction.deferReply();
         const scriptId = interaction.options.getString("script", true).toLowerCase();
         switch (scriptId) {
+            case "clearinactive": {
+                const parsedUsers = client
+                    .getCachedMembers()
+                    .filter((member) => member.roles.cache.hasAll(statusRoles.verified, statusRoles.member));
+                const usersIds = parsedUsers.map((member) => member.id);
+                const userActivityData = await UserActivityData.findAll({ where: { discordId: { [Op.in]: usersIds } } });
+                for (const [d, member] of parsedUsers) {
+                    const userData = userActivityData.find((d) => d.discordId === member.id);
+                    if (!userData) {
+                        console.error(`[Error code: 1632] Couldn't find user data for ${d}`);
+                        continue;
+                    }
+                    if (userData.voice === 0 && userData.messages === 0) {
+                        if (member.roles.cache.size > 2) {
+                            console.log(`We should give roles to ${member.displayName}`);
+                        }
+                    }
+                }
+                return;
+            }
             case "activitytop": {
                 const dbData = (await AuthData.findAll({ include: UserActivityData, attributes: ["displayName", "discordId"] })).filter((v) => v.UserActivityData && (v.UserActivityData.messages > 0 || v.UserActivityData.voice > 0));
                 const messageTop = dbData

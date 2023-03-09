@@ -1,6 +1,6 @@
 {
 	"name": "nightfuture",
-	"version": "2.1.12.1",
+	"version": "2.1.13",
 	"engines": {
 		"node": "18.14.2"
 	},
@@ -19,12 +19,12 @@
 		"dotenv": "^16.0.3",
 		"express": "^4.18.2",
 		"form-data": "^4.0.0",
-		"mongoose": "^6.10.0",
+		"mongoose": "^7.0.1",
 		"node-cron": "^3.0.2",
 		"node-fetch": "^3.3.0",
-		"pg": "^8.9.0",
+		"pg": "^8.10.0",
 		"pg-hstore": "^2.3.4",
-		"sequelize": "^6.29.0"
+		"sequelize": "^6.29.1"
 	},
 	"devDependencies": {
 		"@types/express": "^4.17.17",

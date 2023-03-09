@@ -24,6 +24,8 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
             let page = 0;
             await checker();
             async function checker() {
+                if (apiStatus.status !== 1)
+                    return;
                 const response = await fetchRequest(`Platform/Destiny2/${platform}/Account/${bungieId}/Character/${character}/Stats/Activities/?count=${count}&mode=${mode}&page=${page}`, accessToken);
                 if (!response)
                     return console.error(`[Error code: 1018] Response error for ${bungieId} during checking ${mode} mode`);
@@ -58,7 +60,9 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
             }
             const raidCounts = completedActivities.reduce((counts, activity) => {
                 switch (activity) {
-                    case 9999999:
+                    case 2381413764:
+                    case 1191701339:
+                    case 2918919505:
                         counts.ron += 1;
                         break;
                     case 1374392663:
