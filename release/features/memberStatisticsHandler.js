@@ -472,9 +472,9 @@ async function destinyClanManagmentSystem(bungie_array) {
 async function destinyUserKDChecker({ platform, bungieId, accessToken }, member) {
     try {
         const request = await fetchRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
-        if (!request.mergedAllCharacters) {
+        if (!request || !request.mergedAllCharacters || !request.mergedAllCharacters.results) {
             throttleSet.add(member.id);
-            console.error(`[Error code: 1634] Got error ${request.ErrorStatus}:${request.Message} during checking KD of ${member.displayName}`);
+            console.error(`[Error code: 1634] Got error ${request.ErrorStatus} during checking KD of ${member.displayName}`);
             return;
         }
         if (!request.mergedAllCharacters.results.allPvP.allTime ||
