@@ -5,7 +5,7 @@ export async function setUserCharacters(authData, member) {
     try {
         const destinyCharacterRequest = await fetchRequest(`Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
         if (!destinyCharacterRequest.characters)
-            return console.error(`[Error code: 1105] For ${member.displayName}`);
+            return console.error(`[Error code: 1105] Error during caching characters of ${member.displayName}`);
         const charIdArray = [];
         destinyCharacterRequest.characters.sort((a, b) => (a.deleted === false ? 1 : 0));
         destinyCharacterRequest.characters.forEach((ch) => charIdArray.push(ch.characterId));

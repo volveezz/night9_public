@@ -37,7 +37,9 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
             const ErrorResponse = destinyProfileResponse;
             if (ErrorResponse?.ErrorCode === 5)
                 return (apiStatus.status = ErrorResponse.ErrorStatus);
-            if (ErrorResponse?.ErrorCode === 1688 || ErrorResponse?.ErrorCode === 1672 || ErrorResponse?.ErrorCode === 1618) {
+            if (ErrorResponse?.ErrorCode === 1688 ||
+                ErrorResponse?.ErrorCode === 1672 ||
+                ErrorResponse?.ErrorCode === 1618) {
                 if (ErrorResponse?.ErrorCode === 1618)
                     longOffline.add(member.id);
                 console.error(`[Error code: 1081] ${ErrorResponse.ErrorStatus} for ${displayName}`);
@@ -470,6 +472,11 @@ async function destinyClanManagmentSystem(bungie_array) {
 async function destinyUserKDChecker({ platform, bungieId, accessToken }, member) {
     try {
         const request = await fetchRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
+        if (!request.mergedAllCharacters) {
+            throttleSet.add(member.id);
+            console.error(`[Error code: 1634] Got error ${request.ErrorStatus}:${request.Message} during checking KD of ${member.displayName}`);
+            return;
+        }
         if (!request.mergedAllCharacters.results.allPvP.allTime ||
             !request?.mergedAllCharacters?.results?.allPvP?.allTime?.killsDeathsRatio?.basic.value)
             return member.roles.add([statisticsRoles.allKd[statisticsRoles.allKd.length - 1], statisticsRoles.category]);
@@ -490,8 +497,10 @@ async function destinyUserKDChecker({ platform, bungieId, accessToken }, member)
     catch (e) {
         if (e.statusCode >= 400 || e.statusCode <= 599)
             console.error(`[Error code: 1219] ${e.statusCode} error for ${bungieId}`);
-        else
+        else {
+            throttleSet.add(member.id);
             console.error("[Error code: 1016]", e.error?.message || e.message || e.error?.name || e.name, bungieId, e.statusCode || e, e.ErrorStatus);
+        }
     }
 }
 export default new Feature({

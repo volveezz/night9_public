@@ -120,7 +120,8 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                 const vogClears = vog + vogMaster;
                 const totalClears = totalRaidCount;
                 for await (const step of raidRoles.roles) {
-                    if (kfClears >= step.individualClears &&
+                    if (ronClears >= step.individualClears / 2 &&
+                        kfClears >= step.individualClears &&
                         votdClears >= step.individualClears &&
                         vogClears >= step.individualClears &&
                         dsc >= step.individualClears &&
