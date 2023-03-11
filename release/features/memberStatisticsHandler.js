@@ -491,7 +491,7 @@ async function destinyUserKDChecker({ platform, bungieId, accessToken }, member)
         if (e.statusCode >= 400 || e.statusCode <= 599)
             console.error(`[Error code: 1219] ${e.statusCode} error for ${bungieId}`);
         else
-            console.error("[Error code: 1016]", e.error?.message || e.message || e.error?.name || e.name, bungieId, e.statusCode);
+            console.error("[Error code: 1016]", e.error?.message || e.message || e.error?.name || e.name, bungieId, e.statusCode || e, e.ErrorStatus);
     }
 }
 export default new Feature({

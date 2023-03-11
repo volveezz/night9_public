@@ -63,8 +63,21 @@ export default {
             }
             else if (clanInviteRequest.ErrorCode === 676) {
                 const embed = new EmbedBuilder().setColor(colors.success).setTitle("Вы уже участник нашего клана :)");
-                await deferredReply;
-                interaction.editReply({ embeds: [embed] });
+                (await deferredReply) && interaction.editReply({ embeds: [embed] });
+                if (!interaction.channel?.isDMBased())
+                    return;
+                interaction.channel?.messages.fetch(interaction.message.id).then((msg) => {
+                    const reEmbed = EmbedBuilder.from(msg.embeds[0]).setDescription(null);
+                    msg.edit({ components: [], embeds: [reEmbed] });
+                });
+                return;
+            }
+            else if (clanInviteRequest.ErorCode === 695) {
+                const embed = new EmbedBuilder()
+                    .setColor(colors.error)
+                    .setTitle("Ошибка")
+                    .setDescription(`На вашем аккаунте стоит запрет на получение приглашений в клан\nПопробуйте вступить вручную через [bungie.net](https://www.bungie.net/ru/ClanV2?groupid=4123712)`);
+                (await deferredReply) && interaction.editReply({ embeds: [embed] });
                 if (!interaction.channel?.isDMBased())
                     return;
                 interaction.channel?.messages.fetch(interaction.message.id).then((msg) => {
@@ -74,7 +87,7 @@ export default {
                 return;
             }
             else {
-                console.error(`[Error code: 1214]`, clanInviteRequest);
+                console.error(`[Error code: 1633]`, clanInviteRequest);
                 throw { name: "Критическая ошибка", description: "API игры, скорее всего, недоступно в данный момент" };
             }
         }

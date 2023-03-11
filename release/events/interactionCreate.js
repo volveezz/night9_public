@@ -6,14 +6,16 @@ const optionParser = (option) => {
     return option
         .map((v) => {
         if (v)
-            return `${v.name}${v.value ? `:${v.value}` : ""}${v.options && v.options.length > 0 ? ` ${optionParser(v.options)}` : ""}`;
+            return `${v.name}${v.value != null ? `:${v.value}` : ""}${v.options != null && v.options.length > 0 ? ` ${optionParser(v.options)}` : ""}`;
     })
         .join(" ");
 };
 const commandLogger = (interaction) => {
     if (interaction instanceof AutocompleteInteraction)
         return;
-    console.log(`${interaction.member ? interaction.member.displayName : interaction.user.username} used ${interaction.isCommand() ? interaction.commandName : interaction.customId}${interaction.isCommand() && interaction.options.data.length > 0 ? ` ${optionParser(interaction.options.data)}` : ""}${interaction.channel && !interaction.channel.isDMBased() ? ` at ${interaction.channel.name}` : ""}`);
+    console.log(`${interaction.member ? interaction.member.displayName : interaction.user.username} used ${interaction.isCommand() ? interaction.commandName : interaction.customId}${interaction.isMessageComponent() && interaction.message && interaction.message.embeds && interaction.message.embeds?.[0]?.title
+        ? ` on ${interaction.message.embeds[0].title}`
+        : ""}${interaction.isCommand() && interaction.options.data.length > 0 ? ` ${optionParser(interaction.options.data)}` : ""}${interaction.channel && !interaction.channel.isDMBased() ? ` in ${interaction.channel.name}` : ""}`);
 };
 export default new Event("interactionCreate", async (interaction) => {
     if (interaction.isCommand()) {

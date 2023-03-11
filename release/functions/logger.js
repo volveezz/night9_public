@@ -153,7 +153,6 @@ export async function activityReporter(pgcrId) {
                                 preciseStoredEncounterTime.end = end;
                             }
                             else if (end <= 1) {
-                                console.debug(`DEBUG20000 ${completedPhasesForUser[i2 + 1]?.start} | ${completedPhases.get(membersMembershipIds[i1 + 1])?.[i2 + 1]?.start} | ${end}`, preciseStoredEncounterTime);
                                 const resolvedTime = completedPhasesForUser[i2 + 1]?.start || completedPhases.get(membersMembershipIds[i1 + 1])?.[i2 + 1]?.start;
                                 if (resolvedTime && resolvedTime > 1)
                                     preciseStoredEncounterTime.end = resolvedTime;
