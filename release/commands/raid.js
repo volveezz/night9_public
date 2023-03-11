@@ -13,16 +13,17 @@ import nameCleaner from "../functions/nameClearer.js";
 import { descriptionFormatter } from "../functions/utilities.js";
 import { schedule } from "node-cron";
 export const raidAnnounceSet = new Set();
-RaidEvent.findAll({
-    where: {
-        [Op.and]: [
-            { time: { [Op.gt]: Math.trunc(new Date().getTime() / 1000) } },
-            { time: { [Op.lt]: Math.trunc(Math.trunc(new Date().getTime() / 1000) + 24 * 60 * 60) } },
-        ],
-    },
-}).then((RaidEvent) => RaidEvent.forEach((raidData) => raidAnnounceSystem(raidData)));
+setTimeout(() => {
+    RaidEvent.findAll({
+        where: {
+            [Op.and]: [
+                { time: { [Op.gt]: Math.trunc(new Date().getTime() / 1000) } },
+                { time: { [Op.lt]: Math.trunc(Math.trunc(new Date().getTime() / 1000) + 24 * 60 * 60) } },
+            ],
+        },
+    }).then((RaidEvent) => RaidEvent.forEach((raidData) => raidAnnounceSystem(raidData)));
+}, 15000);
 schedule("0 23 * * *", () => {
-    console.debug(`Run scheduling at ${new Date()}`);
     RaidEvent.findAll({
         where: {
             [Op.and]: [
