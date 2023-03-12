@@ -65,15 +65,14 @@ export async function activityReporter(pgcrId) {
         response.entries.forEach((entry) => {
             const userData = completedUsers.get(entry.player.destinyUserInfo.membershipId);
             const miscArray = userData?.misc || [];
-            entry.extended?.weapons?.some((a) => a.referenceId === 4103414242) && !miscArray.some((a) => a.endsWith("**Божественность**"))
-                ? miscArray.push("<a:catbowtie:1034701666580189256>**Божественность**")
-                : false;
-            entry.extended?.weapons?.some((a) => a.referenceId === 3580904581) && !miscArray.some((a) => a.endsWith("**Буксировщик**"))
-                ? miscArray.push("<:moyaichad:1018345835962044559>**Буксировщик**")
-                : false;
-            entry.extended?.weapons?.some((a) => a.referenceId === 1363886209) && !miscArray.some((a) => a.endsWith("**Гьяллархорн**"))
-                ? miscArray.push("<:workin:1077438227830542406>**Гьяллархорн**")
-                : false;
+            if (entry.extended?.weapons?.some((a) => a.referenceId === 4103414242) && !miscArray.some((a) => a.endsWith("**Божественность**")))
+                miscArray.push("<a:catbowtie:1034701666580189256>**Божественность**");
+            if (entry.extended?.weapons?.some((a) => a.referenceId === 3580904581) && !miscArray.some((a) => a.endsWith("**Буксировщик**")))
+                miscArray.push("<:moyaichad:1018345835962044559>**Буксировщик**");
+            if (entry.extended?.weapons?.some((a) => a.referenceId === 1363886209) && !miscArray.some((a) => a.endsWith("**Гьяллархорн**")))
+                miscArray.push("<a:workin:1077438227830542406>**Гьяллархорн**");
+            if (entry.extended?.weapons?.some((a) => a.referenceId === 1363886209) && !miscArray.some((a) => a.endsWith("**Люмина**")))
+                miscArray.push("<a:iamthebest:1084475253901774938>**Люмина**");
             completedUsers.set(entry.player.destinyUserInfo.membershipId, {
                 bungieName: entry.player.destinyUserInfo.bungieGlobalDisplayName,
                 classHash: entry.values.completed.basic.value === 1

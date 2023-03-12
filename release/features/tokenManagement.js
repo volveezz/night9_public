@@ -5,6 +5,8 @@ import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord
 import colors from "../configs/colors.js";
 import { RegisterButtons } from "../enums/Buttons.js";
 import { client } from "../index.js";
+import nameCleaner from "../functions/nameClearer.js";
+import { statusRoles } from "../configs/roles.js";
 const BUNGIE_TOKEN_URL = "https://www.bungie.net/Platform/App/OAuth/Token/";
 async function bungieGrantRequest(row, table, t, retry = false) {
     const form = new URLSearchParams(Object.entries({
@@ -52,10 +54,27 @@ async function bungieGrantRequest(row, table, t, retry = false) {
                                 ],
                             },
                         ];
-                        const user = client.users.cache.get(discordId) ||
+                        const member = client.getCachedMembers().get(discordId) || (await client.getCachedGuild().members.fetch(discordId));
+                        const user = member ||
+                            client.users.cache.get(discordId) ||
                             (await client.users.fetch(discordId)) ||
                             (await client.getCachedGuild().members.fetch(discordId));
-                        user.send({ embeds: [embed], components });
+                        if (member) {
+                            member.roles.set([statusRoles.newbie]).catch((e) => {
+                                console.error(`[Error code: 1635] Got error during removal roles of ${member.displayName || member.user.username}`, e);
+                            });
+                        }
+                        user.send({ embeds: [embed], components }).catch(async (e) => {
+                            if (e.code === 50007) {
+                                const botChannel = client.getCachedGuild().channels.cache.get("677552181154676758") ||
+                                    (await client.getCachedGuild().channels.fetch("677552181154676758"));
+                                embed.setAuthor({
+                                    name: `${nameCleaner(user.displayName ? user.displayName : user.user?.username || user.username)}`,
+                                    iconURL: user.displayAvatarURL(),
+                                });
+                                botChannel.send({ embeds: [embed], components });
+                            }
+                        });
                     });
                 }
                 else {
