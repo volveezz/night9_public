@@ -31,7 +31,7 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
     try {
         if (!destinyProfileResponse ||
             !destinyProfileResponse.metrics ||
-            !destinyProfileResponse.profileRecords.data?.activeScore != null ||
+            destinyProfileResponse.profileRecords.data?.activeScore == null ||
             !destinyProfileResponse.characterRecords ||
             !destinyProfileResponse.profile ||
             !destinyProfileResponse.profile.data) {
