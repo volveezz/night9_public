@@ -28,12 +28,12 @@ process.on("unhandledRejection", (error, a) => {
 const app = express();
 const port = process.env.PORT || 3000;
 const __dirname = resolve();
+const { default: webHandler } = await import("./functions/webHandler.js");
 app.get("/", async (req, res) => {
     if (req.query.code &&
         parseInt(req.query.code.length?.toString() || "0") > 20 &&
         req.query.state &&
         parseInt(req.query.state.length?.toString() || "0") > 20) {
-        const { default: webHandler } = await import("./functions/webHandler.js");
         webHandler(req.query.code.toString(), req.query.state.toString(), res);
     }
     else

@@ -14,7 +14,6 @@ export default new Event("guildMemberUpdate", (oldMember, newMember) => {
         const newRoles = newMember.roles.cache;
         const addedRoles = newRoles.filter((role) => !oldRoles.has(role.id));
         const removedRoles = oldRoles.filter((role) => !newRoles.has(role.id));
-        embed.setAuthor({ name: `У ${nameCleaner(newMember.displayName)} были обновлены роли`, iconURL: newMember.displayAvatarURL() });
         if (addedRoles.size > 0) {
             const addedRolesString = addedRoles
                 .map((r) => {
@@ -25,7 +24,6 @@ export default new Event("guildMemberUpdate", (oldMember, newMember) => {
                 {
                     name: `${addedRoles.size === 1 ? `Роль добавлена` : `Роли добавлены`}`,
                     value: addedRolesString.length > 1024 ? "Слишком много ролей" : addedRolesString,
-                    inline: true,
                 },
             ]);
         }
@@ -39,11 +37,13 @@ export default new Event("guildMemberUpdate", (oldMember, newMember) => {
                 {
                     name: `${removedRoles.size === 1 ? `Роль удалена` : `Роли удалены`}`,
                     value: removedRolesString.length > 1024 ? "Слишком много ролей" : removedRolesString,
-                    inline: true,
                 },
             ]);
         }
-        guildMemberChannel.send({ embeds: [embed] });
+        if (addedRoles.size > 0 || removedRoles.size > 0) {
+            embed.setAuthor({ name: `У ${nameCleaner(newMember.displayName)} были обновлены роли`, iconURL: newMember.displayAvatarURL() });
+            guildMemberChannel.send({ embeds: [embed] });
+        }
     }
     if (oldMember.displayName !== newMember.displayName) {
         embed
