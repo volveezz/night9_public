@@ -3,6 +3,7 @@ import colors from "../configs/colors.js";
 import { ids } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
+import nameCleaner from "../functions/nameClearer.js";
 const guildMemberChannel = client.channels.cache.get(ids.guildMemberChnId);
 export default new Event("guildMemberUpdate", (oldMember, newMember) => {
     if (!oldMember.joinedTimestamp || (!oldMember.nickname && oldMember.roles.cache.size === 0))
@@ -13,6 +14,7 @@ export default new Event("guildMemberUpdate", (oldMember, newMember) => {
         const newRoles = newMember.roles.cache;
         const addedRoles = newRoles.filter((role) => !oldRoles.has(role.id));
         const removedRoles = oldRoles.filter((role) => !newRoles.has(role.id));
+        embed.setAuthor({ name: `У ${nameCleaner(newMember.displayName)} были обновлены роли`, iconURL: newMember.displayAvatarURL() });
         if (addedRoles.size > 0) {
             const addedRolesString = addedRoles
                 .map((r) => {
