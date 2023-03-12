@@ -13,6 +13,7 @@ import { raidAnnounceSet } from "../commands/raid.js";
 import { RaidNames } from "../enums/Raids.js";
 import nameCleaner from "./nameClearer.js";
 import { getRandomGIF } from "./utilities.js";
+const modifierHashesArray = [1123720291, 1783825372, 782039530, 2006149364, 197794292, 3307318061];
 export function getRaidData(raid, difficulty = 1) {
     switch (raid) {
         case "ron":
@@ -24,7 +25,7 @@ export function getRaidData(raid, difficulty = 1) {
                 raidColor: (difficulty === 2 ? "#FF063A" : "#ffa8ae"),
                 channelName: "-источник-кошмаров",
                 requiredRole: dlcRoles.lf,
-                milestoneHash: 292102995,
+                milestoneHash: 99999999,
             };
         case "kf":
             return {
@@ -240,14 +241,14 @@ export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) 
     const raidChallengesArray = [];
     const raidModifiersArray = [];
     const raidDataChallanges = destinyRaidsChallenges[raidData.raid];
-    raidMilestone?.activities[raidMilestone?.activities.length > 1 ? (difficulty === 1 ? 0 : 1) : 0].modifierHashes.forEach((modifier) => {
-        if (modifier === 1123720291 ||
-            modifier === 1783825372 ||
-            modifier === 782039530 ||
-            modifier === 2006149364 ||
-            modifier === 197794292 ||
-            modifier === 3307318061 ||
-            (difficulty !== 1 && modifier === 97112028))
+    const embed = EmbedBuilder.from(inChnMsg.embeds[0]);
+    if (!raidMilestone) {
+        embed.data.fields[0].name = `**Испытания рейда**`;
+        embed.data.fields[0].value = `⁣　⁣*отсутствуют*`;
+        return inChnMsg.edit({ embeds: [embed] });
+    }
+    raidMilestone.activities[raidMilestone?.activities.length > 1 ? (difficulty === 1 ? 0 : 1) : 0].modifierHashes.forEach((modifier) => {
+        if (modifierHashesArray.includes(modifier) || (difficulty !== 1 && modifier === 97112028))
             return;
         if (manifest[modifier].displayProperties.description.toLowerCase().startsWith("вас ждет испытание")) {
             const challenge = new Date(raidMilestone.endDate).getTime() > startTime * 1000
@@ -274,7 +275,6 @@ export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) 
                 String(manifest[modifier].displayProperties.description).toLowerCase());
         }
     });
-    const embed = EmbedBuilder.from(inChnMsg.embeds[0]);
     embed.data.fields[0].name =
         raidChallengesArray.length > 0
             ? `**Испытани${raidChallengesArray.length === 1 ? "е" : "я"} ${new Date(raidMilestone.endDate).getTime() > startTime * 1000 ? "этой" : "следующей"} недели**`
@@ -426,7 +426,7 @@ async function raidAnnounce(oldRaidData) {
     if (!raidData || (raidData && raidData.time !== oldRaidData.time))
         return;
     const raidInfo = getRaidData(raidData.raid, raidData.difficulty);
-    const guild = (client.getCachedGuild() || client.guilds.cache.get(guildId));
+    const guild = (client.getCachedGuild() || client.guilds.cache.get(guildId) || (await client.guilds.fetch(guildId)));
     const raidMembers = raidData.joined.map(async (userId) => {
         return guild.members.cache.get(userId) ?? (await guild.members.fetch(userId));
     });
@@ -434,7 +434,7 @@ async function raidAnnounce(oldRaidData) {
         .sort((a) => (a.id === raidData.creator ? 1 : 0))
         .map((member, index) => {
         const raidClears = completedRaidsData.get(member.id);
-        return `⁣　${index + 1}. **${member.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "")}**${raidClears
+        return `⁣　${index + 1}. **${nameCleaner(member.displayName)}**${raidClears
             ? ` — ${raidClears[raidData.raid]} закрытий${raidClears[raidData.raid + "Master"] ? ` (+${raidClears[raidData.raid + "Master"]} на мастере)` : ""}`
             : ""}`;
     });

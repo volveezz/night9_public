@@ -224,7 +224,7 @@ export default new Command({
                     await deferredReply;
                     return interaction.editReply({ embeds: [embed] });
                 }
-                if (data.displayName.startsWith("⁣")) {
+                if (!data.displayName.startsWith("⁣")) {
                     await AuthData.update({
                         displayName: data.displayName.replace("⁣", ""),
                     }, {
@@ -234,7 +234,7 @@ export default new Command({
                     await deferredReply;
                     return interaction.editReply({ embeds: [embed] });
                 }
-                else if (!data.displayName.startsWith("⁣")) {
+                else if (data.displayName.startsWith("⁣")) {
                     await AuthData.update({
                         displayName: `⁣${data.displayName}`,
                     }, { where: { displayName: data.displayName } });

@@ -1,17 +1,19 @@
 import { forbiddenRaidIds, ownerId } from "../configs/ids.js";
 import { activityRoles, raidRoles, statusRoles, trialsRoles } from "../configs/roles.js";
-import { character_data, completedRaidsData } from "../features/memberStatisticsHandler.js";
+import { userCharactersId, completedRaidsData } from "../features/memberStatisticsHandler.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { activityReporter } from "./logger.js";
 import { setUserCharacters } from "./setUserCharacters.js";
 import { fetchRequest } from "./fetchRequest.js";
+const cachedKDData = new Map();
 export async function destinyActivityChecker(authData, member, mode, count = 250) {
     if (apiStatus.status !== 1)
         return;
+    const activityAvaliableTime = new Date().getTime() - 1000 * 60 * 20;
     const { platform, bungieId, accessToken } = authData;
-    const userCharactersArray = character_data.get(member.id);
+    const userCharactersArray = userCharactersId.get(member.id);
     if (!userCharactersArray) {
-        character_data.set(member.id, []);
+        userCharactersId.set(member.id, []);
         await setUserCharacters(authData, member);
         destinyActivityChecker(authData, member, mode);
     }
@@ -33,7 +35,7 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                     await Promise.all(response.activities.map((activity) => {
                         if ((mode === 82 || mode === 4) && activity.values.completed.basic.value) {
                             if (new Date(activity.period).getTime() + activity.values.activityDurationSeconds.basic.value * 1000 >
-                                new Date().getTime() - 1000 * 60 * 15)
+                                activityAvaliableTime)
                                 activityReporter(activity.activityDetails.instanceId);
                             if (mode === 4 && !forbiddenRaidIds.includes(activity.activityDetails.referenceId))
                                 completedActivities.push(activity.activityDetails.referenceId);
@@ -153,6 +155,13 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
             }
             else {
                 const kd = kills / deaths;
+                const cachedUserKd = cachedKDData.get(member.id);
+                if (!cachedUserKd || cachedUserKd < kills + deaths) {
+                    cachedKDData.set(member.id, kills + deaths);
+                }
+                else if (cachedUserKd > kills + deaths) {
+                    return;
+                }
                 if (!isNaN(kd)) {
                     for (const step of trialsRoles.kd) {
                         if (kd >= step.kd) {
@@ -167,7 +176,7 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                     }
                 }
                 else {
-                    console.error(`[Error code: 1019] KD is NaN for ${member.displayName}, ${kills}/${deaths}/${wtmatches}`);
+                    console.error(`[Error code: 1019] KD is NaN for ${member.displayName}`);
                     return;
                 }
             }

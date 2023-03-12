@@ -376,55 +376,17 @@ export default new Command({
                 joined: [member.id],
                 time: parsedTime,
                 raid: raidData.raid,
-                difficulty: difficulty,
+                difficulty,
                 requiredClears: reqClears,
             });
             const raidClears = completedRaidsData.get(interaction.user.id);
-            const embed = new EmbedBuilder()
-                .setTitle(`Рейд: ${raidData.raidName}${reqClears >= 1 ? ` от ${reqClears} закрыт${reqClears === 1 ? "ия" : "ий"}` : ""}`)
-                .setColor(raidData.raidColor)
-                .setFooter({
-                text: `Создатель рейда: ${nameCleaner(member.displayName)}`,
-                iconURL: "https://www.bungie.net/common/destiny2_content/icons/8b1bfd1c1ce1cab51d23c78235a6e067.png",
-            })
-                .setThumbnail(raidData.raidBanner)
-                .addFields([
-                { name: "Id", value: raidDb.id.toString(), inline: true },
-                {
-                    name: `Начало: <t:${parsedTime}:R>`,
-                    value: `<t:${parsedTime}>`,
-                    inline: true,
-                },
-                {
-                    name: "Участник: 1/6",
-                    value: `⁣　1. **${nameCleaner(member.displayName)}**${raidClears
-                        ? ` — ${raidClears[raidData.raid]} закрыт${raidClears[raidData.raid] === 1 ? "ие" : "ий"}${raidClears[raidData.raid + "Master"] ? ` (+${raidClears[raidData.raid + "Master"]} на мастере)` : ""}`
-                        : ""}`,
-                },
-            ]);
-            if (raidDescription !== null && raidDescription.length < 1024) {
-                embed.spliceFields(2, 0, {
-                    name: "Описание",
-                    value: descriptionFormatter(raidDescription),
-                });
-            }
             const mainComponents = [
                 new ButtonBuilder().setCustomId(RaidButtons.join).setLabel("Записаться").setStyle(ButtonStyle.Success),
                 new ButtonBuilder().setCustomId(RaidButtons.leave).setLabel("Выйти").setStyle(ButtonStyle.Danger),
                 new ButtonBuilder().setCustomId(RaidButtons.alt).setLabel("Возможно буду").setStyle(ButtonStyle.Secondary),
             ];
             const content = `Открыт набор в рейд: ${raidData.raidName} ${raidData.requiredRole !== null ? `<@&${raidData.requiredRole}>` : member.guild.roles.everyone}`;
-            const raidChannel = client.getCachedGuild().channels.cache.get(ids.raidChnId);
-            const msg = raidChannel.send({
-                content: content,
-                embeds: [embed],
-                components: [
-                    {
-                        type: ComponentType.ActionRow,
-                        components: mainComponents,
-                    },
-                ],
-            });
+            const raidChannel = guild.channels.cache.get(ids.raidChnId) || (await guild.channels.fetch(ids.raidChnId));
             member.guild.channels
                 .create({
                 name: `🔥｜${raidDb.id}-${raidData.channelName}`,
@@ -433,21 +395,21 @@ export default new Command({
                 permissionOverwrites: [
                     {
                         deny: "ViewChannel",
-                        id: member.guild.roles.everyone,
+                        id: guild.roles.everyone,
                     },
                     {
                         allow: ["ViewChannel", "ManageMessages", "MentionEveryone"],
                         id: member.id,
                     },
                 ],
-                reason: `New raid by ${nameCleaner(member.displayName)}`,
+                reason: `${nameCleaner(member.displayName)} created new raid`,
             })
-                .then(async (chn) => {
+                .then(async (privateRaidChannel) => {
                 raidAnnounceSystem(raidDb);
                 const premiumEmbed = new EmbedBuilder()
                     .setColor("#F3AD0C")
                     .addFields([
-                    { name: "⁣", value: `**Испытания этой недели:**\n　*на одном из этапов*\n\n**Модификаторы рейда:**\n　*если есть..*` },
+                    { name: "⁣", value: `**Испытания этой недели**\n　*на одном из этапов*\n\n**Модификаторы рейда**\n　*если есть..*` },
                 ]);
                 const components = [
                     {
@@ -467,23 +429,64 @@ export default new Command({
                         ],
                     },
                 ];
-                const inChnMsg = chn.send({
+                const inChnMsg = privateRaidChannel.send({
                     embeds: [premiumEmbed],
                     components,
                 });
+                const embed = new EmbedBuilder()
+                    .setTitle(`Рейд: ${raidData.raidName}${reqClears >= 1 ? ` от ${reqClears} закрыт${reqClears === 1 ? "ия" : "ий"}` : ""}`)
+                    .setColor(raidData.raidColor)
+                    .setFooter({
+                    text: `Создатель рейда: ${nameCleaner(member.displayName)}`,
+                    iconURL: "https://www.bungie.net/common/destiny2_content/icons/8b1bfd1c1ce1cab51d23c78235a6e067.png",
+                })
+                    .setThumbnail(raidData.raidBanner)
+                    .addFields([
+                    {
+                        name: "Id",
+                        value: `[${raidDb.id}](https://discord.com/channels/${interaction.guildId}/${privateRaidChannel.id})`,
+                        inline: true,
+                    },
+                    {
+                        name: `Начало: <t:${parsedTime}:R>`,
+                        value: `<t:${parsedTime}>`,
+                        inline: true,
+                    },
+                    {
+                        name: "Участник: 1/6",
+                        value: `⁣　1. **${nameCleaner(member.displayName)}**${raidClears
+                            ? ` — ${raidClears[raidData.raid]} закрыт${raidClears[raidData.raid] === 1 ? "ие" : "ий"}${raidClears[raidData.raid + "Master"] ? ` (+${raidClears[raidData.raid + "Master"]} на мастере)` : ""}`
+                            : ""}`,
+                    },
+                ]);
+                if (raidDescription !== null && raidDescription.length < 1024) {
+                    embed.spliceFields(2, 0, {
+                        name: "Описание",
+                        value: descriptionFormatter(raidDescription),
+                    });
+                }
+                const msg = raidChannel.send({
+                    content,
+                    embeds: [embed],
+                    components: [
+                        {
+                            type: ComponentType.ActionRow,
+                            components: mainComponents,
+                        },
+                    ],
+                });
                 const insertedRaidData = await RaidEvent.update({
-                    channelId: chn.id,
+                    channelId: privateRaidChannel.id,
                     inChannelMessageId: (await inChnMsg).id,
                     messageId: (await msg).id,
                 }, { where: { channelId: member.id }, returning: true });
                 (await deferredReply) &&
                     interaction.editReply({
-                        content: `Рейд создан!\nКанал рейда: <#${chn.id}>, [ссылка на набор](https://discord.com/channels/${guild.id}/${raidChannel.id}/${(await msg).id})`,
+                        content: `Рейд создан!\nКанал рейда: <#${privateRaidChannel.id}>, [ссылка на сообщение набора](https://discord.com/channels/${guild.id}/${privateRaidChannel.id}/${(await msg).id})`,
                     });
                 await updatePrivateRaidMessage({ raidEvent: insertedRaidData[1][0] });
-                const privateChannelMessage = (await inChnMsg) || (await chn.messages.fetch((await inChnMsg).id));
-                if (raidData.raid !== RaidNames.ron)
-                    await raidChallenges(raidData, privateChannelMessage, parsedTime, difficulty);
+                const privateChannelMessage = (await inChnMsg) || (await privateRaidChannel.messages.fetch((await inChnMsg).id));
+                raidChallenges(raidData, privateChannelMessage, parsedTime, difficulty);
             });
         }
         else if (subCommand === "изменить") {

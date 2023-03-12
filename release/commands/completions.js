@@ -31,8 +31,12 @@ export default new Command({
             ],
         },
     ],
-    messageContextMenu: { name: "Закрытия рейдов", nameLocalizations: { "en-US": "completions" }, type: ApplicationCommandType.Message },
-    userContextMenu: { name: "Закрытия рейдов", nameLocalizations: { "en-US": "completions" }, type: ApplicationCommandType.User },
+    messageContextMenu: {
+        name: "Закрытия рейдов",
+        nameLocalizations: { "en-US": "Raid completions" },
+        type: ApplicationCommandType.Message,
+    },
+    userContextMenu: { name: "Закрытия рейдов", nameLocalizations: { "en-US": "Raid completions" }, type: ApplicationCommandType.User },
     run: async ({ args, interaction: slashInteraction, userMenuInteraction, messageMenuInteraction }) => {
         const interaction = messageMenuInteraction || userMenuInteraction || slashInteraction;
         const deferredInteraction = interaction.deferReply({ ephemeral: true });

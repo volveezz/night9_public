@@ -12,7 +12,7 @@ import { destinyActivityChecker } from "../functions/activitiesChecker.js";
 import { dungeonsTriumphHashes } from "../configs/roleRequirements.js";
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 export const completedRaidsData = new Map();
-export const character_data = new Map();
+export const userCharactersId = new Map();
 export const longOffline = new Set();
 export const bungieNames = new Map();
 export const userTimezones = new Map();
@@ -474,7 +474,7 @@ async function destinyUserKDChecker({ platform, bungieId, accessToken }, member)
         const request = await fetchRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
         if (!request || !request.mergedAllCharacters || !request.mergedAllCharacters.results) {
             throttleSet.add(member.id);
-            console.error(`[Error code: 1634] Got error ${request.ErrorStatus} during checking KD of ${member.displayName}`);
+            console.error(`[Error code: 1634] Got error ${request?.ErrorStatus} during checking KD of ${member.displayName}`);
             return;
         }
         if (!request.mergedAllCharacters.results.allPvP.allTime ||
@@ -499,7 +499,7 @@ async function destinyUserKDChecker({ platform, bungieId, accessToken }, member)
             console.error(`[Error code: 1219] ${e.statusCode} error for ${bungieId}`);
         else {
             throttleSet.add(member.id);
-            console.error("[Error code: 1016]", e.error?.message || e.message || e.error?.name || e.name, bungieId, e.statusCode || e, e.ErrorStatus);
+            console.error("[Error code: 1016]", e.error?.message || e.message || e.error?.name || e.name, bungieId, e.statusCode || e, e?.ErrorStatus);
         }
     }
 }

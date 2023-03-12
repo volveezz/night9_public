@@ -8,38 +8,40 @@ export default new Event("guildMemberUpdate", (oldMember, newMember) => {
     if (!oldMember.joinedTimestamp || (!oldMember.nickname && oldMember.roles.cache.size === 0))
         return;
     const embed = new EmbedBuilder().setColor(colors.default);
-    if (oldMember.roles.cache.size !== newMember.roles.cache.size) {
-        const roleDifferenceStatus = oldMember.roles.cache.size > newMember.roles.cache.size ? false : true;
-        const roleDifference = oldMember.roles.cache.difference(newMember.roles.cache).map((role) => `<@&${role.id}>`);
-        if (roleDifference.length > 0) {
-            embed
-                .setAuthor({
-                name: `${!roleDifferenceStatus ? `У ` : ""}${newMember.displayName} ${roleDifferenceStatus
-                    ? roleDifference.length === 1
-                        ? "была выдана роль"
-                        : "были выданы роли"
-                    : roleDifference.length === 1
-                        ? "была удалена роль"
-                        : "были удалены роли"}`,
-                iconURL: newMember.displayAvatarURL(),
+    if (oldMember.roles.cache !== newMember.roles.cache) {
+        const oldRoles = oldMember.roles.cache;
+        const newRoles = newMember.roles.cache;
+        const addedRoles = newRoles.filter((role) => !oldRoles.has(role.id));
+        const removedRoles = oldRoles.filter((role) => !newRoles.has(role.id));
+        if (addedRoles.size > 0) {
+            const addedRolesString = addedRoles
+                .map((r) => {
+                return `<@&${r.id}>`;
             })
-                .addFields([
+                .join(", ");
+            embed.addFields([
                 {
-                    name: "Пользователь",
-                    value: `<@${newMember.id}>`,
-                    inline: true,
-                },
-                {
-                    name: roleDifference.length === 1 ? "Роль" : "Роли",
-                    value: roleDifference.join(", ").length > 1023 ? "*Слишком много ролей*" : roleDifference.join(", "),
+                    name: `${addedRoles.size === 1 ? `Роль добавлена` : `Роли добавлены`}`,
+                    value: addedRolesString.length > 1024 ? "Слишком много ролей" : addedRolesString,
                     inline: true,
                 },
             ]);
-            guildMemberChannel.send({ embeds: [embed] });
         }
-        else {
-            console.debug(`[Error code: 1213] DEBUG: ${roleDifference}, ${roleDifferenceStatus}`, oldMember, newMember);
+        if (removedRoles.size > 0) {
+            const removedRolesString = removedRoles
+                .map((r) => {
+                return `<@&${r.id}>`;
+            })
+                .join(", ");
+            embed.addFields([
+                {
+                    name: `${addedRoles.size === 1 ? `Роль удалена` : `Роли удалены`}`,
+                    value: removedRolesString.length > 1024 ? "Слишком много ролей" : removedRolesString,
+                    inline: true,
+                },
+            ]);
         }
+        guildMemberChannel.send({ embeds: [embed] });
     }
     if (oldMember.displayName !== newMember.displayName) {
         embed

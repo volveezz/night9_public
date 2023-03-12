@@ -25,7 +25,7 @@ export default new Event("interactionCreate", async (interaction) => {
             console.error(content, { interaction });
             return interaction.followUp({ content, ephemeral: true });
         }
-        command.run({ args: interaction.options, client, interaction }).catch((e) => {
+        command.run({ args: interaction.options, client, interaction }).catch(async (e) => {
             const { embeds, components } = errorResolver(e);
             (interaction.replied || interaction.deferred
                 ? interaction.followUp({ embeds, components, ephemeral: true })
@@ -44,7 +44,7 @@ export default new Event("interactionCreate", async (interaction) => {
         const buttonInteraction = (interaction.isButton() ? interaction : null);
         const selectMenu = (interaction.isAnySelectMenu() ? interaction : null);
         const modalSubmit = (interaction.isModalSubmit() ? interaction : null);
-        button.run({ client, interaction: buttonInteraction, selectMenu, modalSubmit }).catch((e) => {
+        button.run({ client, interaction: buttonInteraction, selectMenu, modalSubmit }).catch(async (e) => {
             const { embeds, components } = errorResolver(e);
             (interaction.replied || interaction.deferred
                 ? interaction.followUp({ embeds, components, ephemeral: true })

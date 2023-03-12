@@ -5,6 +5,7 @@ import { createdChannelsMap, pvePartyVoiceChatHandler } from "../handlers/pvePar
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import colors from "../configs/colors.js";
+import convertSeconds from "../functions/utilities.js";
 const voiceChannel = client.channels.cache.get(ids.voiceChnId);
 const voiceUsers = new Map();
 export default new Event("voiceStateUpdate", (oldState, newState) => {
@@ -41,7 +42,7 @@ export default new Event("voiceStateUpdate", (oldState, newState) => {
             .setFooter({
             text: `Chn: ${oldState.channel?.name}`,
         })
-            .setColor("DarkRed")
+            .setColor(colors.error)
             .addFields([
             { name: "Пользователь", value: `<@${oldState.member.id}>`, inline: true },
             {
@@ -52,17 +53,10 @@ export default new Event("voiceStateUpdate", (oldState, newState) => {
         ]);
         if (getTimestamp) {
             const difference = Math.trunc((new Date().getTime() - getTimestamp) / 1000);
-            const calculatedTime = [
-                difference / 3600 >= 1 ? Math.trunc(difference / 3600) + "ч" : 0,
-                (difference % 3600) / 60 >= 1 ? Math.trunc((difference % 3600) / 60) + "м" : null,
-                difference % 60 >= 1 ? Math.trunc(difference % 60) + "с" : null,
-            ]
-                .filter((v) => v)
-                .join(":");
             embed.addFields([
                 {
                     name: "Времени в голосовых",
-                    value: calculatedTime || "менее 1 секунды",
+                    value: `**${convertSeconds(difference)}**`,
                     inline: true,
                 },
             ]);

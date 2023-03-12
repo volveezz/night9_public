@@ -1,4 +1,4 @@
-import { character_data } from "../features/memberStatisticsHandler.js";
+import { userCharactersId } from "../features/memberStatisticsHandler.js";
 import { fetchRequest } from "./fetchRequest.js";
 export async function setUserCharacters(authData, member) {
     const { discordId, platform, bungieId, accessToken } = authData;
@@ -9,7 +9,7 @@ export async function setUserCharacters(authData, member) {
         const charIdArray = [];
         destinyCharacterRequest.characters.sort((a, b) => (a.deleted === false ? 1 : 0));
         destinyCharacterRequest.characters.forEach((ch) => charIdArray.push(ch.characterId));
-        character_data.set(discordId, charIdArray);
+        userCharactersId.set(discordId, charIdArray);
     }
     catch (e) {
         if (e.statusCode >= 400 || e.statusCode <= 599)
