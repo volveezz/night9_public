@@ -2,6 +2,7 @@ import express from "express";
 import { ExtendedClient } from "./structures/client.js";
 import { resolve, join } from "path";
 import "dotenv/config";
+import webHandler from "./functions/webHandler.js";
 export const client = new ExtendedClient();
 await client.start();
 client.rest.on("rateLimited", (rateLimit) => {
@@ -28,7 +29,6 @@ process.on("unhandledRejection", (error, a) => {
 const app = express();
 const port = process.env.PORT || 3000;
 const __dirname = resolve();
-const { default: webHandler } = await import("./functions/webHandler.js");
 app.get("/", async (req, res) => {
     if (req.query.code &&
         parseInt(req.query.code.length?.toString() || "0") > 20 &&

@@ -7,7 +7,7 @@ import { client } from "../index.js";
 import { fetchRequest } from "./fetchRequest.js";
 import colors from "../configs/colors.js";
 import { ClanButtons } from "../enums/Buttons.js";
-export default async (code, state, res) => {
+export default async function webHandler(code, state, res) {
     const json = await InitData.findOne({ where: { state: state } });
     if (!json || !json.discordId)
         return console.error("[Error code: 1053] No data found", code, state);
@@ -192,4 +192,4 @@ export default async (code, state, res) => {
         }
         return console.error(`[Error code: 1234] State: ${state} / Code:${code}`, { body }, { error });
     }
-};
+}
