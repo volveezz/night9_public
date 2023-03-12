@@ -5,5 +5,6 @@ const colors = {
     error: "#DC3545",
     success: "#28A745",
     kicked: "#704214",
+    invisible: "#2b2d31",
 };
 export default colors;

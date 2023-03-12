@@ -71,7 +71,7 @@ export async function activityReporter(pgcrId) {
             entry.extended?.weapons?.some((a) => a.referenceId === 3580904581) && !miscArray.some((a) => a.endsWith("**Буксировщик**"))
                 ? miscArray.push("<:moyaichad:1018345835962044559>**Буксировщик**")
                 : false;
-            entry.extended?.weapons?.some((a) => a.referenceId === 4027219968) && !miscArray.some((a) => a.endsWith("**Гьяллархорн**"))
+            entry.extended?.weapons?.some((a) => a.referenceId === 1363886209) && !miscArray.some((a) => a.endsWith("**Гьяллархорн**"))
                 ? miscArray.push("<:workin:1077438227830542406>**Гьяллархорн**")
                 : false;
             completedUsers.set(entry.player.destinyUserInfo.membershipId, {

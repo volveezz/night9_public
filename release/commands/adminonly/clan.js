@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, } from "discord.js";
 import { AuthData, UserActivityData } from "../../handlers/sequelize.js";
 import colors from "../../configs/colors.js";
 import { fetchRequest } from "../../functions/fetchRequest.js";
@@ -168,13 +168,16 @@ export default new Command({
                 return { removalEmbed, components, lastMember, index: memberIndex };
             }
             const { components, removalEmbed } = await memberParser(lastMemberIndex);
+            await deferredReply;
             const removalMessage = await interaction.followUp({ embeds: [removalEmbed], components });
-            const collector = removalMessage.createMessageComponentCollector({
+            const collector = removalMessage.channel.createMessageComponentCollector({
+                message: removalMessage,
                 componentType: ComponentType.Button,
                 filter: (btn) => btn.user.id === interaction.user.id,
+                time: 60 * 60 * 1000,
             });
             collector.on("collect", async (button) => {
-                const defferedReply = button.deferUpdate();
+                const buttonDeferredReply = button.deferUpdate();
                 const { customId } = button;
                 var dbData = null;
                 if (!button.member || !button.member.permissions.has("Administrator"))
@@ -194,7 +197,7 @@ export default new Command({
                     lastMemberIndex = lastMemberIndex + (customId === "clanManagment_previous" ? -1 : 1);
                 }
                 else if (customId === "clanManagment_kick") {
-                    const btnFollowUp = (await defferedReply) &&
+                    const btnFollowUp = (await buttonDeferredReply) &&
                         (await button.followUp({
                             content: `Подтвердите исключение **${lastMember.bungieName}**`,
                             components: [

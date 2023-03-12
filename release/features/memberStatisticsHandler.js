@@ -10,6 +10,7 @@ import { Feature } from "../structures/feature.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { destinyActivityChecker } from "../functions/activitiesChecker.js";
 import { dungeonsTriumphHashes } from "../configs/roleRequirements.js";
+import nameCleaner from "../functions/nameClearer.js";
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 export const completedRaidsData = new Map();
 export const userCharactersId = new Map();
@@ -30,7 +31,7 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
     try {
         if (!destinyProfileResponse ||
             !destinyProfileResponse.metrics ||
-            !destinyProfileResponse.profileRecords.data?.activeScore ||
+            !destinyProfileResponse.profileRecords.data?.activeScore != null ||
             !destinyProfileResponse.characterRecords ||
             !destinyProfileResponse.profile ||
             !destinyProfileResponse.profile.data) {
@@ -46,7 +47,7 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
                 throttleSet.add(member.id);
                 return;
             }
-            return console.error("[Error code: 1039]", displayName, JSON.stringify(ErrorResponse));
+            return console.error("[Error code: 1039]", displayName, !destinyProfileResponse, !destinyProfileResponse.metrics, !destinyProfileResponse.profileRecords.data?.activeScore != null, !destinyProfileResponse.characterRecords, !destinyProfileResponse.profile, !destinyProfileResponse.profile.data);
         }
         if (!bungieNames.get(discordId)) {
             let bungieCode = (destinyProfileResponse.profile.data.userInfo.bungieGlobalDisplayNameCode ?? "0000").toString();
@@ -550,50 +551,50 @@ export default new Feature({
                 return ind < 5 ? `[Error code: 1021] ${val.displayName}/${val.discordId} not found on server` : null;
             });
             dbNotFoundUsers.length > 0 && process.env.DEV_BUILD !== "dev" ? console.error(dbNotFoundUsers.filter((val, ind) => ind < 5)) : [];
-            const db_plain = dbNotFiltred.filter((data) => client.getCachedMembers().has(data.discordId));
-            if (!db_plain || (db_plain.length === 0 && !process.env.DEV_BUILD)) {
-                return console.error(`[Checker] [Error code: 1022] DB is ${db_plain ? `${db_plain}${db_plain?.length} size` : `not avaliable`}`);
+            const databaseData = dbNotFiltred.filter((data) => client.getCachedMembers().has(data.discordId));
+            if (!databaseData || (databaseData.length === 0 && !process.env.DEV_BUILD)) {
+                return console.error(`[Checker] [Error code: 1022] DB is ${databaseData ? `${databaseData}${databaseData?.length} size` : `not avaliable`}`);
             }
             if (apiStatus.status === 1) {
-                for (let i = 0; i < db_plain.length; i++) {
-                    const db_row = db_plain[i];
+                for (let i = 0; i < databaseData.length; i++) {
+                    const userDatabaseData = databaseData[i];
                     const randomValue = Math.floor(Math.random() * 100);
-                    if (throttleSet.has(db_row.discordId))
-                        return throttleSet.delete(db_row.discordId);
-                    if (longOffline.has(db_row.discordId)) {
-                        if (randomValue >= 85)
-                            longOffline.delete(db_row.discordId);
+                    if (throttleSet.has(userDatabaseData.discordId))
+                        return throttleSet.delete(userDatabaseData.discordId);
+                    if (longOffline.has(userDatabaseData.discordId)) {
+                        if (randomValue >= 90)
+                            longOffline.delete(userDatabaseData.discordId);
                         continue;
                     }
-                    const member = client.getCachedMembers().get(db_row.discordId);
+                    const member = client.getCachedMembers().get(userDatabaseData.discordId);
                     if (!member) {
                         await client.getCachedGuild().members.fetch();
-                        console.error("[Error code: 1023] destinyUsestatisticsRolesChecker, member not found", db_row.displayName);
+                        console.error("[Error code: 1023] destinyUsestatisticsRolesChecker, member not found", userDatabaseData.displayName);
                         continue;
                     }
                     if (member.roles.cache.has(statusRoles.clanmember) ||
-                        (db_row.UserActivityData &&
-                            (db_row.UserActivityData.voice > 0 ||
-                                db_row.UserActivityData.messages > 0 ||
-                                db_row.UserActivityData.raids > 0 ||
-                                db_row.UserActivityData.dungeons > 0))) {
-                        if (randomValue >= 50)
-                            destinyUserStatisticsRolesChecker(db_row, member, autoRoleData);
-                        if ((randomValue < 10 || randomValue > 90) && db_row.roleCategoriesBits & NightRoleCategory.Stats)
-                            destinyUserKDChecker(db_row, member);
+                        (userDatabaseData.UserActivityData &&
+                            (userDatabaseData.UserActivityData.voice > 0 ||
+                                userDatabaseData.UserActivityData.messages > 0 ||
+                                userDatabaseData.UserActivityData.raids > 0 ||
+                                userDatabaseData.UserActivityData.dungeons > 0))) {
+                        if (randomValue > 50)
+                            destinyUserStatisticsRolesChecker(userDatabaseData, member, autoRoleData);
+                        if ((randomValue < 7 || randomValue > 93) && userDatabaseData.roleCategoriesBits & NightRoleCategory.Stats)
+                            destinyUserKDChecker(userDatabaseData, member);
                         if (randomValue <= 30 && member.roles.cache.hasAny(statusRoles.clanmember, statusRoles.member))
-                            destinyActivityChecker(db_row, member, 4);
-                        if (randomValue > 40 &&
+                            destinyActivityChecker(userDatabaseData, member, 4);
+                        if (randomValue > 45 &&
                             randomValue < 60 &&
-                            db_row.roleCategoriesBits & NightRoleCategory.Trials &&
+                            userDatabaseData.roleCategoriesBits & NightRoleCategory.Trials &&
                             !member.roles.cache.has(trialsRoles.wintrader) &&
                             member.roles.cache.has(trialsRoles.category))
-                            destinyActivityChecker(db_row, member, 84);
-                        await timer(900);
+                            destinyActivityChecker(userDatabaseData, member, 84);
+                        await timer(1000);
                     }
                 }
             }
-            destinyClanManagmentSystem(db_plain);
+            destinyClanManagmentSystem(databaseData);
         }, 1000 * 60 * 2);
         setInterval(async () => {
             if (apiStatus.status !== 1)
@@ -607,7 +608,7 @@ export default new Feature({
                 if (!userDbData)
                     return;
                 const { timezone, displayName: userDbName } = userDbData;
-                if (member.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "") !== userDbName && !userDbName.startsWith("⁣"))
+                if (nameCleaner(member.displayName) !== userDbName && !userDbName.startsWith("⁣"))
                     if (!member.permissions.has("Administrator")) {
                         member
                             .setNickname(userDbData.timezone ? `[+${timezone}] ${userDbName}` : userDbName)

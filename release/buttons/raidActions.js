@@ -4,7 +4,7 @@ import { RaidEvent } from "../handlers/sequelize.js";
 import { completedRaidsData } from "../features/memberStatisticsHandler.js";
 import { client } from "../index.js";
 import UserErrors from "../enums/UserErrors.js";
-import { updateRaidMessage, updatePrivateRaidMessage } from "../functions/raidFunctions.js";
+import { updateRaidMessage, updatePrivateRaidMessage, getRaidData } from "../functions/raidFunctions.js";
 import { RaidButtons } from "../enums/Buttons.js";
 import { Op, Sequelize } from "sequelize";
 import colors from "../configs/colors.js";
@@ -161,6 +161,13 @@ export default {
         });
         if (!raidEvent)
             throw { errorType: UserErrors.RAID_NOT_FOUND };
+        const raidData = getRaidData(raidEvent.raid, raidEvent.difficulty);
+        const member = interaction.member ||
+            client.getCachedGuild().members.cache.get(interaction.user.id) ||
+            (await client.getCachedGuild().members.fetch(interaction.user.id));
+        if (raidData.requiredRole && !member.roles.cache.has(raidData.requiredRole)) {
+            throw { errorType: UserErrors.RAID_MISSING_DLC, errorData: [`<@&${raidData.requiredRole}>`] };
+        }
         const userAlreadyInHotJoined = raidEvent.hotJoined.includes(interaction.user.id);
         const userAlreadyJoined = raidEvent.joined.includes(interaction.user.id);
         const userAlreadyAlt = raidEvent.alt.includes(interaction.user.id);

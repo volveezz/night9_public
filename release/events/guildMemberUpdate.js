@@ -37,7 +37,7 @@ export default new Event("guildMemberUpdate", (oldMember, newMember) => {
                 .join(", ");
             embed.addFields([
                 {
-                    name: `${addedRoles.size === 1 ? `Роль удалена` : `Роли удалены`}`,
+                    name: `${removedRoles.size === 1 ? `Роль удалена` : `Роли удалены`}`,
                     value: removedRolesString.length > 1024 ? "Слишком много ролей" : removedRolesString,
                     inline: true,
                 },

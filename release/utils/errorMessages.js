@@ -110,9 +110,14 @@ function errorMessages(errorType, ...rest) {
             return { embeds: [new EmbedBuilder().setColor(colors.warning).setTitle("Ошибка. Проверьте корректность времени")] };
         case UserErrors.SURVEY_ALREADY_VOTED:
             return { embeds: [new EmbedBuilder().setColor(colors.serious).setTitle("Вы уже выбрали ответ в этом вопросе")] };
-        case UserErrors.SURVEY_UNKNOWN_ERROR:
+        case UserErrors.RAID_MISSING_DLC:
             return {
-                embeds: [new EmbedBuilder().setColor(colors.error).setTitle(`Произошла ошибка при ответе на вопрос. Администрация оповещена`)],
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(colors.serious)
+                        .setTitle(`Ошибка. Нет необходимого DLC`)
+                        .setDescription(`Для записи на этот рейд необходимо дополнение ${rest[0]}`),
+                ],
             };
         default:
             return {
