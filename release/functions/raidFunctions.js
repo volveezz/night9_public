@@ -25,7 +25,7 @@ export function getRaidData(raid, difficulty = 1) {
                 raidColor: (difficulty === 2 ? "#FF063A" : "#ffa8ae"),
                 channelName: "-источник-кошмаров",
                 requiredRole: dlcRoles.lf,
-                milestoneHash: 99999999,
+                milestoneHash: 3699252268,
             };
         case "kf":
             return {
