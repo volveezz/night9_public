@@ -41,26 +41,41 @@ export async function activityReporter(pgcrId) {
     if (!pgcrIds.has(pgcrId)) {
         pgcrIds.add(pgcrId);
         const response = await fetchRequest(`Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`).catch((e) => console.log(`[Error code: 1072] activityReporter error`, pgcrId, e, e.statusCode));
-        if (!response.activityDetails)
-            return console.error(`[PGCR Checker] [Error code: 1009]`, pgcrId, response);
-        const embed = new EmbedBuilder().setColor(colors.success).setTimestamp(new Date(response.period));
-        response.activityDetails.mode === 4
-            ? embed.setAuthor({ name: `Raid Report`, url: `https://raid.report/pgcr/${pgcrId}` })
-            : response.activityDetails.mode === 82
-                ? embed.setAuthor({ name: `Dungeon Report`, url: `https://dungeon.report/pgcr/${pgcrId}` })
-                : embed.setAuthor({ name: "Bungie PGCR", url: `https://www.bungie.net/ru/PGCR/${pgcrId}` });
-        const footerText = `Активность была начата ${response.activityWasStartedFromBeginning ? "с начала" : "с сохранения"}`;
-        const referenceId = response.activityDetails.referenceId;
+        if (!response.activityDetails) {
+            console.error(`[PGCR Checker] [Error code: 1009]`, pgcrId, response);
+            return;
+        }
+        const { mode, referenceId } = response.activityDetails;
         const manifestData = CachedDestinyActivityDefinition[referenceId];
-        embed.setTitle(manifestData.displayProperties.name +
-            " - " +
-            response.entries[0].values.activityDurationSeconds.basic.displayValue.replace("h", "ч").replace("m", "м").replace("s", "с"));
-        manifestData.displayProperties.hasIcon
-            ? manifestData.displayProperties.highResIcon
-                ? embed.setFooter({ text: footerText, iconURL: `https://bungie.net${manifestData.displayProperties.highResIcon}` })
-                : embed.setFooter({ text: footerText, iconURL: `https://bungie.net${manifestData.displayProperties.icon}` })
-            : embed.setFooter({ text: footerText });
-        manifestData.pgcrImage ? embed.setThumbnail(`https://bungie.net${manifestData.pgcrImage}`) : "";
+        const footerText = `Активность была начата ${response.activityWasStartedFromBeginning ? "с начала" : "с сохранения"}`;
+        const thumbnailUrl = manifestData.pgcrImage === "/img/theme/destiny/bgs/pgcrs/placeholder.jpg" &&
+            [2381413764, 1191701339, 2918919505].includes(manifestData.hash)
+            ? "https://images.contentstack.io/v3/assets/blte410e3b15535c144/bltd95f9a53ce953669/63ffd4b9a7d98e0267ed24eb/Fp_5gnkX0AULoRF.jpg"
+            : `https://bungie.net${manifestData.pgcrImage}`;
+        const embed = new EmbedBuilder()
+            .setColor(colors.success)
+            .setTimestamp(new Date(response.period))
+            .setAuthor({
+            name: mode === 4 ? "Raid Report" : mode === 82 ? "Dungeon Report" : "Bungie PGCR",
+            url: mode === 4
+                ? `https://raid.report/pgcr/${pgcrId}`
+                : mode === 82
+                    ? `https://dungeon.report/pgcr/${pgcrId}`
+                    : `https://www.bungie.net/ru/PGCR/${pgcrId}`,
+        })
+            .setTitle(`${manifestData.displayProperties.name} - ${response.entries[0].values.activityDurationSeconds.basic.displayValue
+            .replace("h", "ч")
+            .replace("m", "м")
+            .replace("s", "с")}`)
+            .setFooter({
+            text: footerText,
+            iconURL: manifestData.displayProperties.hasIcon
+                ? manifestData.displayProperties.highResIcon
+                    ? `https://bungie.net${manifestData.displayProperties.highResIcon}`
+                    : `https://bungie.net${manifestData.displayProperties.icon}`
+                : undefined,
+        })
+            .setThumbnail(thumbnailUrl);
         const completedUsers = new Map();
         response.entries.forEach((entry) => {
             const userData = completedUsers.get(entry.player.destinyUserInfo.membershipId);
@@ -138,9 +153,9 @@ export async function activityReporter(pgcrId) {
                     const completedPhasesForUser = completedPhases.get(bungieId);
                     let previousEncounterEndTime = 0;
                     completedPhasesForUser.forEach((completedPhase, i2) => {
-                        const { phase: phaseHash, phaseIndex, start, end } = completedPhase;
+                        const { phase: phaseHash, start, end } = completedPhase;
                         if (!preciseEncountersTime.has(phaseHash)) {
-                            preciseEncountersTime.set(phaseHash, { start, end, phaseIndex, phase: phaseHash });
+                            preciseEncountersTime.set(phaseHash, completedPhase);
                             previousEncounterEndTime = end;
                         }
                         else {
@@ -186,7 +201,6 @@ export async function activityReporter(pgcrId) {
                             start: encounterData.start,
                         });
                     }
-                    i++;
                     encountersData.push(encounterData);
                 });
                 if (encountersData.length >= 1) {
@@ -212,21 +226,22 @@ export async function activityReporter(pgcrId) {
                 preciseEncountersTime.clear();
             }
             const msg = client.getCachedGuild().channels.cache.get(ids.activityChnId).send({ embeds: [embed] });
+            const currentTime = Math.trunc(new Date().getTime() / 1000);
             dbData.forEach(async (dbMemberData) => {
                 if (response.activityDetails.mode === 82 && clanMembersInRaid > 1)
                     return UserActivityData.increment("dungeons", { by: 1, where: { discordId: dbMemberData.discordId } });
                 if (response.activityDetails.mode !== 4)
                     return;
-                if (dbMemberData.clan && clanMembersInRaid > 2)
+                if (dbMemberData.clan === true && clanMembersInRaid > 2)
                     UserActivityData.increment("raids", { by: 1, where: { discordId: dbMemberData.discordId } });
                 const dbRaidData = await RaidEvent.findAll({ where: { creator: dbMemberData.discordId } }).then((data) => {
                     for (let i = 0; i < data.length; i++) {
                         const row = data[i];
-                        if (row.time < Math.trunc(new Date().getTime() / 1000))
+                        if (row.time < currentTime)
                             return row;
                     }
                 });
-                if (dbRaidData && dbRaidData.time < Math.trunc(new Date().getTime() / 1000)) {
+                if (dbRaidData && dbRaidData.time < currentTime) {
                     const resolvedMsg = await msg;
                     const embed = new EmbedBuilder()
                         .setColor(colors.serious)
@@ -263,7 +278,7 @@ export function logRegistrationLinkRequest(state, user, rowCreated) {
         .addFields([
         { name: "Пользователь", value: `<@${user.id}>`, inline: true },
         { name: "State", value: state, inline: true },
-        { name: "Впервые", value: String(rowCreated), inline: true },
+        { name: "Впервые", value: `${rowCreated}`, inline: true },
     ]);
     client.getCachedGuild().channels.cache.get(ids.botChnId).send({ embeds: [embed] });
 }
