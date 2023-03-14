@@ -333,6 +333,8 @@ export default {
                         }
                         const sucEmbed = new EmbedBuilder().setColor(colors.success).setTitle(`Рейд ${raidData.id}-${raidData.raid} удален`);
                         col.update({ components: [], embeds: [sucEmbed] });
+                        if (interaction.channel?.isDMBased())
+                            interaction.message.edit({ components: [] });
                     }
                     else {
                         console.error(`[Error code: 1423] Error during delete raid ${raidData.id}`, destroy, raidData);
@@ -341,6 +343,8 @@ export default {
                             .setTitle(`Произошла ошибка во время удаления`)
                             .setDescription(`Было удалено ${destroy} рейдов`);
                         col.update({ embeds: [errEmbed], components: [] });
+                        if (interaction.channel?.isDMBased())
+                            interaction.message.edit({ components: [] });
                     }
                 }
                 else if (col.customId === "raidAddFunc_delete_cancel") {

@@ -368,6 +368,12 @@ export default new Command({
                     description: `Вы указали время <t:${parsedTime}>, <t:${parsedTime}:R>, но время начала обязательно должно быть в будущем\n\nВремя указывается по часовому поясу, указанному с помощью \`/timezone\`\n**Пример:**\n> 20:00 15/9`,
                 };
             }
+            if (parsedTime >= 2147483647) {
+                throw {
+                    name: `Ошибка. Проверьте корректность времени`,
+                    description: `Вы указали время <t:${parsedTime}>, <t:${parsedTime}:R>...`,
+                };
+            }
             const raidDb = await RaidEvent.create({
                 channelId: member.id,
                 inChannelMessageId: member.id,
@@ -606,6 +612,12 @@ export default new Command({
                 const changedTime = timeConverter(newTime, userTimezones.get(interaction.user.id));
                 if (changedTime === time) {
                     changes.push(`Время старта осталось без изменений т.к. оно соответствует предыдущему`);
+                }
+                else if (changedTime >= 2147483647) {
+                    throw {
+                        name: `Ошибка. Проверьте корректность времени`,
+                        description: `Вы указали время <t:${changedTime}>, <t:${changedTime}:R>...`,
+                    };
                 }
                 else if (changedTime > Math.round(new Date().getTime() / 1000)) {
                     const timeFieldIndex = raidEmbed.data.fields?.findIndex((field) => field.name.startsWith("Начало"));
