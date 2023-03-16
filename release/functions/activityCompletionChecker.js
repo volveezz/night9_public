@@ -116,7 +116,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
             characterMilestonesChecker(response);
         }
         catch (error) {
-            console.error(`[Error code: 1209]`, error);
+            console.error(`[Error code: 1636]`, error);
         }
     }
     interval = setInterval(() => checkActivityHash(), 50000);

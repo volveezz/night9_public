@@ -10,7 +10,7 @@ import { RaidButtons } from "../enums/Buttons.js";
 import { getRaidData, getRaidDatabaseInfo, raidAnnounceSystem, raidChallenges, timeConverter, updatePrivateRaidMessage, updateRaidMessage, } from "../functions/raidFunctions.js";
 import { RaidNames } from "../enums/Raids.js";
 import nameCleaner from "../functions/nameClearer.js";
-import { descriptionFormatter } from "../functions/utilities.js";
+import { descriptionFormatter, escapeString } from "../functions/utilities.js";
 import { schedule } from "node-cron";
 export const raidAnnounceSet = new Set();
 setTimeout(() => {
@@ -510,7 +510,8 @@ export default new Command({
             const raidInfo = getRaidData((newRaid || raidData.raid), newDifficulty ?? raidData.difficulty);
             const { time, requiredClears: reqClears, messageId: msgId } = raidData;
             const changes = [];
-            const raidEmbed = EmbedBuilder.from((await client.getCachedGuild().channels.cache.get(ids.raidChnId).messages.fetch(msgId))?.embeds[0]);
+            const raidMessage = await client.getCachedGuild().channels.cache.get(ids.raidChnId).messages.fetch(msgId);
+            const raidEmbed = EmbedBuilder.from(raidMessage?.embeds[0]);
             const t = await database.transaction();
             const changesForChannel = [];
             if (newRaid !== null || newDifficulty !== null || newReqClears !== null) {
@@ -681,17 +682,17 @@ export default new Command({
                     await t.rollback();
                 }
                 newRaid
-                    ? client.getCachedGuild().channels.cache.get(ids.raidChnId).messages.cache.get(msgId).edit({
+                    ? raidMessage.edit({
                         content: "",
                         embeds: [raidEmbed],
                     })
-                    : client.getCachedGuild().channels.cache.get(ids.raidChnId).messages.cache.get(msgId).edit({
+                    : raidMessage.edit({
                         embeds: [raidEmbed],
                     });
                 const replyEmbed = new EmbedBuilder()
                     .setColor(colors.success)
                     .setTitle(`Рейд ${raidData.id} был изменен`)
-                    .setDescription(changes.join(`\n`) || "nothing");
+                    .setDescription(changes.join(`\n`) || "изменений нет");
                 (await deferredReply) && interaction.editReply({ embeds: [replyEmbed] });
                 const editedEmbedReplyInChn = new EmbedBuilder()
                     .setColor(colors.default)
@@ -716,19 +717,19 @@ export default new Command({
             const raidData = await getRaidDatabaseInfo(raidId, interaction);
             await RaidEvent.destroy({ where: { id: raidData.id } })
                 .then(async () => {
+                const guild = client.getCachedGuild() || client.guilds.cache.get(guildId) || (await client.guilds.fetch(guildId));
+                const raidsChannel = (guild.channels.cache.get(ids.raidChnId) || (await guild.channels.fetch(ids.raidChnId)));
+                const privateRaidChannel = (guild.channels.cache.get(raidData.channelId) ||
+                    (await guild.channels.fetch(raidData.channelId)));
                 try {
-                    await guild.channels.cache
-                        .get(raidData.channelId)
-                        ?.delete(`${interaction.member.displayName} deleted raid ${raidData.id}-${raidData.raid}`);
+                    await privateRaidChannel.delete(`${interaction.member.displayName} deleted raid ${raidData.id}-${raidData.raid}`);
                 }
                 catch (e) {
                     console.error(`[Error code: 1069] Channel during raid manual delete for raidId ${raidData.id} wasn't found`);
                     e.code !== 10008 ? console.error(e) : "";
                 }
                 try {
-                    client.getCachedGuild().channels.cache.get(ids.raidChnId).messages.cache
-                        .get(raidData.messageId)
-                        .delete();
+                    (raidsChannel.messages.cache.get(raidData.messageId) || (await raidsChannel.messages.fetch(raidData.messageId))).delete();
                 }
                 catch (e) {
                     console.error(`[Error code: 1070] Message during raid manual delete for raidId ${raidData.id} wasn't found`);
@@ -741,13 +742,12 @@ export default new Command({
         }
         else if (subCommand === "добавить") {
             const raidId = args.getInteger("id_рейда");
-            const raidDataQuery = getRaidDatabaseInfo(raidId, interaction);
+            const raidData = await getRaidDatabaseInfo(raidId, interaction);
             const addedUser = args.getUser("участник", true);
             if (addedUser.bot)
                 throw { name: "Нельзя записать бота как участника" };
-            const embedReply = new EmbedBuilder().setColor(colors.success);
-            const embed = new EmbedBuilder().setColor(colors.success);
-            const raidData = await raidDataQuery;
+            const addedUserDisplayName = nameCleaner(client.getCachedMembers().get(addedUser.id)?.displayName ||
+                (await client.guilds.cache.get(interaction.guild?.id || guildId).members.fetch(addedUser.id)).displayName);
             const userAlreadyInHotJoined = raidData.hotJoined.includes(addedUser.id);
             const userAlreadyJoined = raidData.joined.includes(addedUser.id);
             const userAlreadyAlt = raidData.alt.includes(addedUser.id);
@@ -756,6 +756,17 @@ export default new Command({
                 : raidData.joined.length >= 6 && !userAlreadyInHotJoined
                     ? "hotJoined"
                     : "joined";
+            const embedReply = new EmbedBuilder();
+            const embed = new EmbedBuilder().setColor(colors.success);
+            if (userTarget === "joined") {
+                embedReply.setColor(colors.success);
+            }
+            else if (userTarget === "alt") {
+                embedReply.setColor(colors.warning);
+            }
+            else {
+                embedReply.setColor(colors.serious);
+            }
             let update = {
                 joined: Sequelize.fn("array_remove", Sequelize.col("joined"), addedUser.id),
                 hotJoined: Sequelize.fn("array_remove", Sequelize.col("hotJoined"), addedUser.id),
@@ -770,24 +781,28 @@ export default new Command({
                 if (raidData.joined.length >= 6 && userAlreadyInHotJoined)
                     throw {
                         name: "Ошибка",
-                        description: `Набор ${raidData.id}-${raidData.raid} полон, а ${nameCleaner(interaction.guild.members.cache.get(addedUser.id).displayName)} уже добавлен в запас`,
+                        description: `Набор ${raidData.id}-${raidData.raid} полон, а ${addedUserDisplayName} уже добавлен в запас`,
                     };
             }
             else if (userAlreadyAlt) {
                 throw { name: "Пользователь уже записан как возможный участник" };
             }
             update[userTarget] = Sequelize.fn("array_append", Sequelize.col(userTarget), addedUser.id);
-            embedReply.setAuthor({
-                name: `${nameCleaner(interaction.guild.members.cache.get(addedUser.id).displayName)} был записан${userTarget === "alt" ? " как возможный участник" : userTarget === "hotJoined" ? " как запасной участник" : ""}${userAlreadyJoined
-                    ? " ранее состоя как участник"
+            embedReply
+                .setAuthor({
+                name: `${addedUserDisplayName}: ${userAlreadyJoined
+                    ? "[Участник] → "
                     : userAlreadyAlt
-                        ? " ранее состоя как возможный участник"
+                        ? "[Возможный участник] → "
                         : userAlreadyInHotJoined
-                            ? " ранее состоя в запасе"
-                            : ""}`,
+                            ? "[Запас] → "
+                            : "❌ → "}${userTarget === "alt" ? " [Возможный участник]" : userTarget === "hotJoined" ? " [Запас]" : "[Участник]"}`,
                 iconURL: addedUser.displayAvatarURL(),
+            })
+                .setFooter({
+                text: `Пользователь ${userAlreadyAlt || userAlreadyInHotJoined || userAlreadyJoined ? `перезаписан` : `записан`} ${raidData.creator === interaction.user.id ? "создателем рейда" : "администратором"}`,
             });
-            embed.setTitle(`${nameCleaner(interaction.guild.members.cache.get(addedUser.id).displayName)} был записан${userTarget === "alt" ? " как возможный участник" : userTarget === "hotJoined" ? " как запасной участник" : ""} на ${raidData.id}-${raidData.raid}`);
+            embed.setTitle(`Вы записали ${escapeString(addedUserDisplayName)} как ${userTarget === "alt" ? "возможного участника" : userTarget === "hotJoined" ? "запасного участника" : "участника"} на ${raidData.id}-${raidData.raid}`);
             const [, [raidEvent]] = await RaidEvent.update(update, {
                 where: { id: raidData.id },
                 returning: ["id", "channelId", "inChannelMessageId", "joined", "hotJoined", "alt", "messageId", "raid", "difficulty"],
@@ -802,9 +817,8 @@ export default new Command({
             (await deferredReply) && interaction.editReply({ embeds: [embed] });
         }
         else if (subCommand === "исключить") {
-            const preFetch = getRaidDatabaseInfo(args.getInteger("id_рейда"), interaction);
+            const raidData = await getRaidDatabaseInfo(args.getInteger("id_рейда"), interaction);
             const kickableUser = args.getUser("участник", true);
-            const raidData = await preFetch;
             await RaidEvent.update({
                 joined: Sequelize.fn("array_remove", Sequelize.col("joined"), `${kickableUser.id}`),
                 hotJoined: Sequelize.fn("array_remove", Sequelize.col("hotJoined"), `${kickableUser.id}`),
@@ -830,28 +844,29 @@ export default new Command({
                     throw { errorType: UserErrors.RAID_NOT_FOUND };
                 updatePrivateRaidMessage({ raidEvent });
                 updateRaidMessage(raidEvent, interaction);
-                const embed = new EmbedBuilder().setColor(colors.success).setTitle("Пользователь исключен"), inChnEmbed = new EmbedBuilder()
-                    .setColor(colors.warning)
-                    .setTitle("Пользователь был исключен с рейда")
-                    .setTimestamp()
-                    .setFooter({ text: `Исключитель: ${raidData.creator === interaction.user.id ? "Создатель рейда" : "Администратор"}` });
-                if (raidData.joined.includes(kickableUser.id)) {
-                    raidData.joined.splice(raidData.joined.indexOf(kickableUser.id), 1);
-                    inChnEmbed.setDescription(`${nameCleaner(interaction.guild.members.cache.get(kickableUser.id).displayName)} исключен будучи участником рейда`);
-                }
-                if (raidData.alt.includes(kickableUser.id)) {
-                    raidData.alt.splice(raidData.alt.indexOf(kickableUser.id), 1);
-                    inChnEmbed.setDescription(`${nameCleaner(interaction.guild.members.cache.get(kickableUser.id).displayName)} исключен будучи возможным участником рейда`);
-                }
-                if (raidData.hotJoined.includes(kickableUser.id)) {
-                    raidData.hotJoined.splice(raidData.hotJoined.indexOf(kickableUser.id), 1);
-                    inChnEmbed.setDescription(`${nameCleaner(interaction.guild.members.cache.get(kickableUser.id).displayName)} исключен будучи заменой участников рейда`);
-                }
-                client.getCachedGuild().channels.cache.get(raidEvent.channelId).permissionOverwrites.delete(interaction.user.id);
+                const guild = interaction.guild || client.getCachedGuild();
+                const kickedUserDisplayName = nameCleaner((guild.members.cache.get(kickableUser.id) || (await guild.members.fetch(kickableUser.id))).displayName);
+                const embed = new EmbedBuilder()
+                    .setColor(colors.success)
+                    .setTitle(`Вы исключили ${escapeString(kickedUserDisplayName)} с рейда ${raidData.id}-${raidData.raid}`);
+                const inChnEmbed = new EmbedBuilder()
+                    .setColor(colors.error)
+                    .setAuthor({
+                    name: `${kickedUserDisplayName}: ${raidData.joined.includes(kickableUser.id)
+                        ? `[Участник]`
+                        : raidData.alt.includes(kickableUser.id)
+                            ? `[Возможный участник]`
+                            : raidData.hotJoined.includes(kickableUser.id)
+                                ? `[Запас]`
+                                : `[]`} → ❌`,
+                    iconURL: kickableUser.displayAvatarURL(),
+                })
+                    .setFooter({
+                    text: `Пользователь исключен ${raidData.creator === interaction.user.id ? "создателем рейда" : "администратором"}`,
+                });
                 const raidChn = client.getCachedGuild().channels.cache.get(raidData.channelId);
                 raidChn.send({ embeds: [inChnEmbed] });
                 raidChn.permissionOverwrites.delete(kickableUser.id);
-                embed.setDescription(`${nameCleaner(interaction.guild.members.cache.get(kickableUser.id).displayName)} был исключен с рейда ${raidData.id}-${raidData.raid}`);
                 (await deferredReply) && interaction.editReply({ embeds: [embed] });
             });
         }

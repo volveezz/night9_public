@@ -1,10 +1,8 @@
-import { EmbedBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, } from "discord.js";
+import { EmbedBuilder, ApplicationCommandOptionType } from "discord.js";
 import colors from "../../configs/colors.js";
 import { AuthData, UserActivityData } from "../../handlers/sequelize.js";
 import { Command } from "../../structures/command.js";
-import { SurveyAnswer } from "../../handlers/mongodb.js";
-import convertSeconds, { timer } from "../../functions/utilities.js";
-import { SurveyButtons } from "../../enums/Buttons.js";
+import convertSeconds from "../../functions/utilities.js";
 export default new Command({
     name: "scripts",
     description: "script system",
@@ -17,7 +15,7 @@ export default new Command({
             required: true,
         },
     ],
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
         const defferedReply = interaction.deferReply();
         const scriptId = interaction.options.getString("script", true).toLowerCase();
         switch (scriptId) {
@@ -51,50 +49,6 @@ export default new Command({
                     .join("\n")
                     .slice(0, 2048)}`);
                 return (await defferedReply) && interaction.editReply({ embeds: [msgEmbed, voiceEmbed] });
-            }
-            case "resendsurvey": {
-                const answersDatabase = (await SurveyAnswer.find({})).map((r) => r.discordId);
-                const guildMembers = client
-                    .getCachedMembers()
-                    .filter((v) => !v.user.bot && v.joinedTimestamp && v.joinedTimestamp < 1675987200000);
-                const notCompleted = guildMembers
-                    .map((v) => {
-                    if (!answersDatabase.includes(v.user.id)) {
-                        return v.user;
-                    }
-                    else {
-                        return undefined;
-                    }
-                })
-                    .filter((v) => v !== undefined);
-                const embed = new EmbedBuilder()
-                    .setColor(colors.default)
-                    .setTitle(`Предупреждение о скором завершении опроса`)
-                    .setDescription(`Ранее вы получили сообщение насчёт прохождения опроса, но так и не прошли его.\n\nЧерез несколько дней опрос завершится. Если Вы не успеете пройти обязательную часть опроса до 15 марта, то будете исключены с сервера, а если Вы были в клане, то и из клана.\n\nВсе решения об исключении будут приниматься индвидуально, но лучше не испытывать судьбу...`);
-                const initialComponents = [
-                    new ButtonBuilder().setCustomId(SurveyButtons.start).setLabel("Начать").setStyle(ButtonStyle.Primary),
-                ];
-                for await (const user of notCompleted) {
-                    user
-                        .send({ embeds: [embed], components: [{ type: ComponentType.ActionRow, components: initialComponents }] })
-                        .then((r) => console.debug(`Message was sent again to ${user?.username}`));
-                    await timer(1000);
-                }
-                return;
-            }
-            case "countsurvey": {
-                const count = await SurveyAnswer.countDocuments();
-                return (await defferedReply) && interaction.editReply({ content: `Total documents: ${count}` });
-            }
-            case "countresults": {
-                const results = new Array(19).fill(0).map(() => new Array(6).fill(0));
-                const surveyAnswers = await SurveyAnswer.find();
-                surveyAnswers.forEach((surveyAnswer) => {
-                    surveyAnswer.answers.forEach((answer) => {
-                        results[answer.questionIndex][answer.answerIndex]++;
-                    });
-                });
-                return console.log(results);
             }
             default:
                 (await defferedReply) && interaction.editReply("Base response");

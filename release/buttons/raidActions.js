@@ -9,6 +9,7 @@ import { RaidButtons } from "../enums/Buttons.js";
 import { Op, Sequelize } from "sequelize";
 import colors from "../configs/colors.js";
 import nameCleaner from "../functions/nameClearer.js";
+import { statusRoles } from "../configs/roles.js";
 async function actionMessageHandler({ interaction, raidEvent, target }) {
     const embed = new EmbedBuilder();
     const member = interaction.member;
@@ -84,7 +85,7 @@ async function joinedFromHotJoined(raidData) {
     member.send({ embeds: [privateMessageEmbed] });
     const updatedRaidData = await RaidEvent.findOne({ where: { id: raidData.id } });
     if (!updatedRaidData)
-        return;
+        return console.error(`[Error code: 1637]`, raidData);
     updatePrivateRaidMessage({ raidEvent: updatedRaidData });
     updateRaidMessage(updatedRaidData);
 }
@@ -165,7 +166,7 @@ export default {
         const member = interaction.member ||
             client.getCachedGuild().members.cache.get(interaction.user.id) ||
             (await client.getCachedGuild().members.fetch(interaction.user.id));
-        if (raidData.requiredRole && !member.roles.cache.has(raidData.requiredRole)) {
+        if (raidData.requiredRole && member.roles.cache.has(statusRoles.verified) && !member.roles.cache.has(raidData.requiredRole)) {
             throw { errorType: UserErrors.RAID_MISSING_DLC, errorData: [`<@&${raidData.requiredRole}>`] };
         }
         const userAlreadyInHotJoined = raidEvent.hotJoined.includes(interaction.user.id);

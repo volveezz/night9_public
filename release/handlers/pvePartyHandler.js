@@ -197,9 +197,10 @@ export async function pvePartyHandler(message) {
             permissionOverwrites: [
                 ...pvePartyChannel.permissionOverwrites.cache.toJSON(),
                 { allow: "Connect", id: pvePartyChannel.guild.roles.everyone },
+                { allow: "ManageChannels", id: message.author.id },
             ],
             reason: `Created by ${message.member?.displayName} request`,
-            userLimit: userLimit,
+            userLimit,
         });
     if (!voiceChannel)
         return messageErrorHandler("Ошибка во время создания голосового канала", "Попробуйте позже", message);

@@ -9,7 +9,7 @@ import { client } from "../index.js";
 import { AuthData, UserActivityData, RaidEvent } from "../handlers/sequelize.js";
 import { RaidButtons } from "../enums/Buttons.js";
 import { completedPhases } from "./activityCompletionChecker.js";
-import convertSeconds from "./utilities.js";
+import convertSeconds, { escapeString } from "./utilities.js";
 const pgcrIds = new Set();
 export async function logClientDmMessages(member, text, id, interaction) {
     const dmLogChannel = interaction ? null : client.getCachedGuild().channels.cache.get(ids.dmMsgsChnId);
@@ -119,7 +119,7 @@ export async function activityReporter(pgcrId) {
                 completedUsers.delete(key);
             }
             embed.addFields({
-                name: value.bungieName,
+                name: escapeString(value.bungieName),
                 value: `${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
                     ? `\nВ ${response.activityDetails.mode === 4 ? "рейде" : response.activityDetails.mode === 82 ? "подземелье" : "активности"}: **${convertSeconds(value.timeInActivity)}**`
                     : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
@@ -131,7 +131,7 @@ export async function activityReporter(pgcrId) {
         });
         completedUsers.forEach((value, _key) => {
             embed.addFields({
-                name: "❌" + value.bungieName,
+                name: "❌" + escapeString(value.bungieName),
                 value: `${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
                     ? `\nВ ${response.activityDetails.mode === 4 ? "рейде" : response.activityDetails.mode === 82 ? "подземелье" : "активности"}: **${convertSeconds(value.timeInActivity)}**`
                     : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
@@ -175,6 +175,8 @@ export async function activityReporter(pgcrId) {
                             previousEncounterEndTime = preciseStoredEncounterTime.end;
                         }
                     });
+                    if (completedPhases.size != completedPhasesForUser.length)
+                        console.debug(`[Error code: 1639] PGCR: ${pgcrId}\n`, Array.from(completedPhases.entries()), completedPhasesForUser);
                     completedPhases.delete(bungieId);
                 }
             });
@@ -205,6 +207,8 @@ export async function activityReporter(pgcrId) {
                 });
                 if (encountersData.length >= 1) {
                     try {
+                        if (encountersData.length < 2)
+                            console.debug(`[Error code: 1638] PGCR: ${pgcrId}\n`, encountersData);
                         embed.addFields([
                             {
                                 name: "Затраченное время на этапы",

@@ -81,14 +81,14 @@ export default new Command({
                     e.setTitle(null).spliceFields(0, 25);
                 }
                 else {
-                    await interaction.followUp({ embeds: [e], ephemeral: true });
+                    (await deferredReply) && (await interaction.followUp({ embeds: [e], ephemeral: true }));
                     e.spliceFields(0, 25);
                 }
             }
         }
         if (isRemovalSystem) {
             let lastMemberIndex = mergedMembers.length - 1;
-            async function memberParser(memberIndex) {
+            function memberParser(memberIndex) {
                 const destinyUser = mergedMembers[memberIndex];
                 const memberDbData = clanMembers.find((clanMember) => clanMember.bungieId === mergedMembers[memberIndex].bungieId);
                 const lastMember = {
@@ -167,7 +167,7 @@ export default new Command({
                 ];
                 return { removalEmbed, components, lastMember, index: memberIndex };
             }
-            const { components, removalEmbed } = await memberParser(lastMemberIndex);
+            const { components, removalEmbed } = memberParser(lastMemberIndex);
             await deferredReply;
             const removalMessage = await interaction.followUp({ embeds: [removalEmbed], components });
             const collector = removalMessage.channel.createMessageComponentCollector({
@@ -176,23 +176,21 @@ export default new Command({
                 filter: (btn) => btn.user.id === interaction.user.id,
                 time: 60 * 60 * 1000,
             });
+            const dbData = await AuthData.findOne({
+                where: { discordId: interaction.user.id },
+                attributes: ["accessToken"],
+            });
+            if (!dbData)
+                throw { errorType: UserErrors.DB_USER_NOT_FOUND };
             collector.on("collect", async (button) => {
-                const buttonDeferredReply = button.deferUpdate();
-                const { customId } = button;
-                var dbData = null;
-                if (!button.member || !button.member.permissions.has("Administrator"))
+                const { customId, member } = button;
+                if (!member || !member.permissions.has("Administrator"))
                     throw { errorType: UserErrors.MISSING_PERMISSIONS };
-                const { lastMember, index: memberIndex } = await memberParser(lastMemberIndex);
+                const { lastMember, index: memberIndex } = memberParser(lastMemberIndex);
                 if (lastMemberIndex !== memberIndex)
                     return;
-                if (customId !== "clanManagment_previous" && customId !== "clanManagment_next") {
-                    dbData = await AuthData.findOne({
-                        where: { discordId: interaction.user.id },
-                        attributes: ["accessToken"],
-                    });
-                    if (!dbData)
-                        throw { errorType: UserErrors.DB_USER_NOT_FOUND };
-                }
+                const buttonDeferredReply = button.deferUpdate();
+                const managmentEmbed = new EmbedBuilder();
                 if (customId === "clanManagment_previous" || customId === "clanManagment_next") {
                     lastMemberIndex = lastMemberIndex + (customId === "clanManagment_previous" ? -1 : 1);
                 }
@@ -280,16 +278,21 @@ export default new Command({
                     const result = (await query.json());
                     if (result.ErrorCode === 1) {
                         mergedMembers[memberIndex].rank = lastMember.rank;
-                        button.followUp({ ephemeral: true, content: `**${lastMember.bungieName}** был понижен до ${lastMember.rank} ранга` });
+                        managmentEmbed.setColor(colors.serious).setTitle(`${lastMember.bungieName} был повышен до ${lastMember.rank} ранга`);
+                        button.followUp({ ephemeral: true, embeds: [managmentEmbed] });
                     }
                     else {
+                        managmentEmbed
+                            .setColor(colors.error)
+                            .setTitle(`Произошла ошибка во время понижения **${lastMember.bungieName}** до ${lastMember.rank} ранга`);
                         button.followUp({
                             ephemeral: true,
-                            content: `Произошла ошибка во время понижения **${lastMember.bungieName}** до ${lastMember.rank} ранга`,
+                            embeds: [managmentEmbed],
                         });
                     }
                 }
                 else if (customId === "clanManagment_promote") {
+                    managmentEmbed.setColor(colors.invisible).setTitle(`${lastMember.bungieName} был повышен до ${lastMember.rank} ранга`);
                     const query = (await fetch(`https://www.bungie.net/Platform/GroupV2/4123712/Members/${lastMember.membershipType}/${lastMember.bungieId}/SetMembershipType/${++lastMember.rank}/`, {
                         method: "POST",
                         headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${dbData.accessToken}` },
@@ -297,12 +300,15 @@ export default new Command({
                     const result = (await query.json());
                     if (result.ErrorCode === 1) {
                         mergedMembers[memberIndex].rank = lastMember.rank;
-                        button.followUp({ ephemeral: true, content: `**${lastMember.bungieName}** был повышен до ${lastMember.rank} ранга` });
+                        button.followUp({ ephemeral: true, embeds: [managmentEmbed] });
                     }
                     else {
+                        managmentEmbed
+                            .setColor(colors.error)
+                            .setTitle(`Произошла ошибка во время повышения ${lastMember.bungieName} до ${lastMember.rank} ранга`);
                         button.followUp({
                             ephemeral: true,
-                            content: `Произошла ошибка во время повышения **${lastMember.bungieName}** до ${lastMember.rank} ранга`,
+                            embeds: [managmentEmbed],
                         });
                     }
                 }

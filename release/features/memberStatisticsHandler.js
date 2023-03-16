@@ -574,10 +574,7 @@ export default new Feature({
                     }
                     if (member.roles.cache.has(statusRoles.clanmember) ||
                         (userDatabaseData.UserActivityData &&
-                            (userDatabaseData.UserActivityData.voice > 0 ||
-                                userDatabaseData.UserActivityData.messages > 0 ||
-                                userDatabaseData.UserActivityData.raids > 0 ||
-                                userDatabaseData.UserActivityData.dungeons > 0))) {
+                            (userDatabaseData.UserActivityData.voice > 120 || userDatabaseData.UserActivityData.messages > 5))) {
                         if (randomValue > 50)
                             destinyUserStatisticsRolesChecker(userDatabaseData, member, autoRoleData);
                         if ((randomValue < 7 || randomValue > 93) && userDatabaseData.roleCategoriesBits & NightRoleCategory.Stats)

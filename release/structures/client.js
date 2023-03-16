@@ -15,6 +15,7 @@ export class ExtendedClient extends Client {
     activities = [
         { name: "🔁 Hunting for loot", type: ActivityType.Listening, url: undefined },
         { name: "🔁 Fighting the Darkness", type: ActivityType.Playing, url: undefined },
+        { name: "🔁 Dancing with Witness", type: ActivityType.Playing, url: undefined },
         { name: "🔁 Protecting the Last City", type: ActivityType.Competing, url: undefined },
         { name: "🔁 Fighting the Vex", type: ActivityType.Watching, url: undefined },
         {
@@ -129,10 +130,12 @@ export class ExtendedClient extends Client {
                     return console.error(`[Error code: 1137] Event file not valid`, { filePath });
                 this.on(event.event, event.run);
             });
-            const featureFiles = getFiles(join(__dirname, "release/features"));
-            featureFiles.forEach(async (filePath) => {
-                this.importFile(`../features/${filePath}`).then((f) => f.execute({ client: this }));
-            });
+            if (process.env.DEV_BUILD !== "dev") {
+                const featureFiles = getFiles(join(__dirname, "release/features"));
+                featureFiles.forEach(async (filePath) => {
+                    this.importFile(`../features/${filePath}`).then((f) => f.execute({ client: this }));
+                });
+            }
             const buttonFiles = getFiles(join(__dirname, "release/buttons/"));
             buttonFiles.forEach(async (filePath) => {
                 const button = await this.importFile(`../buttons/${filePath}`);
@@ -152,7 +155,6 @@ export class ExtendedClient extends Client {
                 this.registerCommands({ global: true, commands: globalCommands });
                 this.registerCommands({ global: false, commands: guildCommands });
             });
-            import("../handlers/mongodb.js");
             setTimeout(() => {
                 raidMilestones();
             }, 30 * 1000);

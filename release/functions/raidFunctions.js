@@ -12,7 +12,7 @@ import { fetchRequest } from "./fetchRequest.js";
 import { raidAnnounceSet } from "../commands/raid.js";
 import { RaidNames } from "../enums/Raids.js";
 import nameCleaner from "./nameClearer.js";
-import { getRandomGIF } from "./utilities.js";
+import { escapeString, getRandomGIF } from "./utilities.js";
 const modifierHashesArray = [1123720291, 1783825372, 782039530, 2006149364, 197794292, 3307318061];
 export function getRaidData(raid, difficulty = 1) {
     switch (raid) {
@@ -161,7 +161,7 @@ export async function updateRaidMessage(raidDbData, interaction) {
             return console.error(`[Error code: 1219] Error during updateRaidMessage`, { msg });
     }
     const embed = EmbedBuilder.from(msg.embeds[0]);
-    const clearMemberName = (id) => nameCleaner(client.getCachedMembers().get(id)?.displayName || "неизвестный пользователь");
+    const clearMemberName = (id) => nameCleaner(client.getCachedMembers().get(id)?.displayName || "неизвестный пользователь", true);
     const joined = raidDbData.joined && raidDbData.joined.length >= 1
         ? raidDbData.joined
             .map((data, index) => {
@@ -242,7 +242,8 @@ export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) 
     const raidModifiersArray = [];
     const raidDataChallanges = destinyRaidsChallenges[raidData.raid];
     const embed = EmbedBuilder.from(inChnMsg.embeds[0]);
-    if (!raidMilestone) {
+    if (!raidMilestone ||
+        raidMilestone.activities[raidMilestone?.activities.length > 1 ? (difficulty === 1 ? 0 : 1) : 0]?.modifierHashes === undefined) {
         embed.data.fields[0].name = `**Испытания рейда**`;
         embed.data.fields[0].value = `⁣　⁣*отсутствуют*`;
         return inChnMsg.edit({ embeds: [embed] });
@@ -299,23 +300,21 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
             return null;
     }
     const inChnMsgPromise = client.getCachedGuild().channels.cache.get(raidEvent.channelId).messages.fetch(raidEvent.inChannelMessageId);
-    const guildMembers = client.getCachedMembers();
-    const getDiscordMember = (discordId) => guildMembers.get(discordId);
-    async function raidUserDataManager(userId) {
-        const raidUserData = completedRaidsData.get(userId);
-        const member = getDiscordMember(userId);
+    async function raidUserDataManager(discordId) {
+        const raidUserData = completedRaidsData.get(discordId);
+        const member = client.getCachedMembers().get(discordId);
         if (!raidUserData) {
             if (!retry && member?.roles.cache.has(statusRoles.verified)) {
                 setTimeout(() => updatePrivateRaidMessage({ raidEvent, retry: true }), 60 * 1000 * 5);
             }
             if (member?.roles.cache.has(statusRoles.verified)) {
-                return `⁣　<@${userId}> не закеширован`;
+                return `⁣　<@${discordId}> не закеширован`;
             }
             else if (!member) {
-                return `⁣　<@${userId}> не найден на сервере`;
+                return `⁣　<@${discordId}> не найден на сервере`;
             }
             else {
-                return `⁣　<@${userId}> не зарегистрирован`;
+                return `⁣　<@${discordId}> не зарегистрирован`;
             }
         }
         const raidClears = [];
@@ -333,9 +332,7 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
             raidClears.push(`${raidUserData.gos} СС`);
         if (raidUserData.lw > 0)
             raidClears.push(`${raidUserData.lw} ПЖ`);
-        return `⁣　${raidClears.length > 0
-            ? `**${nameCleaner(member?.displayName || member?.user.username || "неизвестный пользователь")}** завершил: ${raidClears.join(", ")}`
-            : `**${nameCleaner(member?.displayName || member?.user.username || "неизвестный пользователь")}** не проходил ранее рейды`}`;
+        return `**${escapeString(nameCleaner(member?.displayName || member?.user.username || "неизвестный пользователь"))}** ${raidClears.length > 0 ? `завершил: ${raidClears.join(", ")}` : `не проходил ранее рейды`}`;
     }
     const joined = raidEvent.joined.map(async (userId) => raidUserDataManager(userId));
     const hotJoined = raidEvent.hotJoined.map(async (userId) => raidUserDataManager(userId));

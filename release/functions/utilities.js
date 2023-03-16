@@ -50,3 +50,7 @@ export async function getRandomGIF(prompt) {
         console.error(`[Error code: 1600] Giphy error`, error);
     }
 }
+export function escapeString(str) {
+    const specialChars = /[`*~_]/g;
+    return str.replace(specialChars, "\\$&");
+}

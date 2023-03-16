@@ -2,7 +2,8 @@ import { ButtonBuilder, ButtonStyle, ChannelType, ComponentType, EmbedBuilder } 
 import { guildId, ids } from "../configs/ids.js";
 import { client } from "../index.js";
 import colors from "../configs/colors.js";
-const dmChn = client.guilds.cache.get(guildId)?.channels.cache.get(ids.dmMsgsChnId);
+import { escapeString } from "./utilities.js";
+const dmChannel = (client.getCachedGuild() || client.guilds.cache.get(guildId))?.channels.cache.get(ids.dmMsgsChnId);
 export async function dmHandler(message) {
     if (message.channel.type !== ChannelType.DM)
         return;
@@ -15,7 +16,7 @@ export async function dmHandler(message) {
         .includes(false)) {
         return;
     }
-    const member = client.guilds.cache.get(guildId)?.members.cache.get(message.author.id);
+    const member = client.getCachedMembers().get(message.author.id) || (await client.getCachedGuild().members.fetch(message.author.id));
     const embed = new EmbedBuilder()
         .setColor(colors.success)
         .setTitle("Получено новое сообщение")
@@ -26,7 +27,7 @@ export async function dmHandler(message) {
         .setFooter({ text: `UId: ${message.author.id} | MId: ${message.id}` })
         .setTimestamp();
     if (message.cleanContent.length > 0) {
-        embed.setDescription(message.cleanContent || "nothing");
+        embed.setDescription(escapeString(message.cleanContent) || "nothing");
     }
     if (message.attachments && message.attachments.size && message.attachments.size > 0) {
         embed.addFields([
@@ -34,7 +35,7 @@ export async function dmHandler(message) {
                 name: "Вложения",
                 value: message.attachments
                     .map((att) => {
-                    att.url;
+                    return att.url;
                 })
                     .join("\n"),
             },
@@ -52,7 +53,7 @@ export async function dmHandler(message) {
             },
         ]);
     }
-    (await dmChn).send({
+    dmChannel.send({
         embeds: [embed],
         components: [
             {

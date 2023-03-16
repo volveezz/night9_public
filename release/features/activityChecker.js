@@ -12,7 +12,7 @@ export default new Feature({
         setInterval(async () => {
             if (apiStatus.status !== 1)
                 return;
-            const dbNotFiltred = await AuthData.findAll({
+            const unfilteredDatabase = await AuthData.findAll({
                 where: {
                     [Op.and]: {
                         discordId: {
@@ -23,7 +23,7 @@ export default new Feature({
                 },
                 attributes: ["discordId", "bungieId", "displayName", "platform", "accessToken"],
             });
-            const dbNotFoundUsers = dbNotFiltred
+            const dbNotFoundUsers = unfilteredDatabase
                 .filter((data) => !client.getCachedMembers().has(data.discordId))
                 .map((d) => {
                 return `[Error code: 1008] ${d.displayName}/${d.discordId} not found on server`;
@@ -31,21 +31,21 @@ export default new Feature({
             dbNotFoundUsers.length > 0 && process.env.DEV_BUILD !== "dev"
                 ? (await client.getCachedGuild().fetch(), console.error("[Error code: 1005]", dbNotFoundUsers))
                 : [];
-            const db_plain = dbNotFiltred.filter((data) => client.getCachedMembers().has(data.discordId));
-            if (!db_plain)
-                return console.error(`[Error code: 1006] DB is not avaliable`, db_plain);
-            for (let i = 0; i < db_plain.length; i++) {
+            const databaseData = unfilteredDatabase.filter((data) => client.getCachedMembers().has(data.discordId));
+            if (!databaseData)
+                return console.error(`[Error code: 1006] DB is not avaliable`, databaseData);
+            for (let i = 0; i < databaseData.length; i++) {
                 const randomValue = Math.floor(Math.random() * 100);
-                const db_row = db_plain[i];
-                const member = client.getCachedMembers().get(db_row.discordId);
+                const databaseUser = databaseData[i];
+                const member = client.getCachedMembers().get(databaseUser.discordId);
                 if (!member) {
                     await client.getCachedGuild().fetch();
-                    return console.error("[activityChecker]", "[Error code: 1007]", db_row.displayName);
+                    return console.error("[activityChecker]", "[Error code: 1007]", databaseUser.displayName);
                 }
                 if (randomValue > 50)
-                    destinyActivityChecker(db_row, member, 4, 3);
+                    destinyActivityChecker(databaseUser, member, 4, 3);
                 if (randomValue < 50)
-                    destinyActivityChecker(db_row, member, 82, 3);
+                    destinyActivityChecker(databaseUser, member, 82, 3);
                 await timer(250);
             }
         }, 1000 * 70);
