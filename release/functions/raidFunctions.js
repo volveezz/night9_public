@@ -332,7 +332,7 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
             raidClears.push(`${raidUserData.gos} СС`);
         if (raidUserData.lw > 0)
             raidClears.push(`${raidUserData.lw} ПЖ`);
-        return `**${escapeString(nameCleaner(member?.displayName || member?.user.username || "неизвестный пользователь"))}** ${raidClears.length > 0 ? `завершил: ${raidClears.join(", ")}` : `не проходил ранее рейды`}`;
+        return `⁣　**${escapeString(nameCleaner(member?.displayName || member?.user.username || "неизвестный пользователь"))}** ${raidClears.length > 0 ? `завершил: ${raidClears.join(", ")}` : `не проходил ранее рейды`}`;
     }
     const joined = raidEvent.joined.map(async (userId) => raidUserDataManager(userId));
     const hotJoined = raidEvent.hotJoined.map(async (userId) => raidUserDataManager(userId));
