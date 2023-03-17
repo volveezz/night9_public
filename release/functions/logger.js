@@ -176,7 +176,7 @@ export async function activityReporter(pgcrId) {
                         }
                     });
                     if (completedPhases.size != completedPhasesForUser.length)
-                        console.debug(`[Error code: 1639] PGCR: ${pgcrId}\n`, Array.from(completedPhases.entries()), completedPhasesForUser);
+                        console.debug(`[Error code: 1639] PGCR: ${pgcrId}\n`, JSON.stringify(Array.from(completedPhases.entries())), completedPhasesForUser);
                     completedPhases.delete(bungieId);
                 }
             });

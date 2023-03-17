@@ -12,6 +12,7 @@ export default new Event("guildMemberAdd", (member) => {
         .setColor(colors.default)
         .setAuthor({
         name: "Присоединился новый участник",
+        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086264591706771488/3600-icon-join.png",
     })
         .setFooter({ text: String(`Id: ` + member.id) })
         .setDescription(`<@${member.id}> ${member.user.username}#${member.user.discriminator}`)

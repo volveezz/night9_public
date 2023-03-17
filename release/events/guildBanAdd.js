@@ -2,15 +2,16 @@ import { EmbedBuilder } from "discord.js";
 import { ids } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
+import colors from "../configs/colors.js";
 const guildMemberChannel = client.channels.cache.get(ids.guildMemberChnId);
 export default new Event("guildBanAdd", async (member) => {
-    const joinedDate = Math.round(member.guild.members.cache.get(member.user.id)?.joinedTimestamp / 1000);
+    const joinedDate = Math.floor(member.guild.members.cache.get(member.user.id)?.joinedTimestamp / 1000);
     const embed = new EmbedBuilder()
         .setAuthor({
         name: `${member.user.username} был забанен`,
         iconURL: member.user.displayAvatarURL(),
     })
-        .setColor("Red")
+        .setColor(colors.error)
         .setFooter({ text: `Id: ${member.user.id}` })
         .addFields([
         {

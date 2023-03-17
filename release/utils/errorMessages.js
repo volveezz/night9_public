@@ -11,12 +11,18 @@ function errorMessages(errorType, ...rest) {
                     ? [
                         new EmbedBuilder()
                             .setColor(colors.error)
-                            .setTitle(`Ошибка. Пользователь не зарегистрирован`)
+                            .setAuthor({
+                            iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086268847948042300/6426-error.png",
+                            name: `Ошибка. Пользователь не зарегистрирован`,
+                        })
                             .setDescription(`Функционал станет доступен сразу после его регистрации`),
                     ]
                     : [
                         new EmbedBuilder()
-                            .setTitle("Ошибка. Доступно после регистрации")
+                            .setAuthor({
+                            iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086268847948042300/6426-error.png",
+                            name: "Ошибка. Доступно после регистрации",
+                        })
                             .setDescription("Для регистрации нажмите на кнопку ниже или введите `/init`")
                             .setColor(colors.error),
                     ],
@@ -42,7 +48,10 @@ function errorMessages(errorType, ...rest) {
             return {
                 embeds: [
                     new EmbedBuilder()
-                        .setTitle("Ошибка. Рейд не найден")
+                        .setAuthor({
+                        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086268847948042300/6426-error.png",
+                        name: "Ошибка. Рейд не найден",
+                    })
                         .setDescription("Это критическая ошибка. Администрация была оповещена")
                         .setColor(colors.error),
                 ],
@@ -51,45 +60,68 @@ function errorMessages(errorType, ...rest) {
             return {
                 embeds: [
                     new EmbedBuilder()
-                        .setTitle("Ошибка. Недостаточно прав")
+                        .setAuthor({
+                        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086268847948042300/6426-error.png",
+                        name: "Ошибка. Недостаточно прав",
+                    })
                         .setDescription("Недостаточно прав для управления рейдом. Такие права всегда есть у администрации и текущего создателя рейда")
                         .setColor(colors.error),
                 ],
             };
         case UserErrors.RAID_ALREADY_JOINED:
-            return { embeds: [new EmbedBuilder().setTitle("Вы уже записаны на этот рейд").setColor("DarkRed")] };
-        case UserErrors.RAID_BLACKLISTED:
             return {
                 embeds: [
                     new EmbedBuilder()
-                        .setTitle("Ошибка. Вы находитесь в черном списке")
-                        .setDescription("Вы были добавлены в черный список этого рейда. Вступление возможно лишь в другую группу участников, пример:\n> Вы были добавлены в ЧС **участников рейда** -> запись как **возможный участник** остается доступной")
-                        .setColor(colors.error),
+                        .setAuthor({
+                        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086268847948042300/6426-error.png",
+                        name: "Вы уже записаны на этот рейд",
+                    })
+                        .setColor("DarkRed"),
                 ],
             };
         case UserErrors.MEMBER_NOT_FOUND:
             return {
                 embeds: [
                     new EmbedBuilder()
-                        .setTitle("Ошибка. Вы не были найдены на сервере")
+                        .setAuthor({
+                        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086268847948042300/6426-error.png",
+                        name: "Ошибка. Вы не были найдены на сервере",
+                    })
                         .setDescription("Попробуйте позже\nЭта ошибка возникает лишь в случае вашего выхода с сервера или нестабильной работой серверов Discord")
                         .setColor(colors.error),
                 ],
             };
         case UserErrors.WRONG_ID:
             return {
-                embeds: [new EmbedBuilder().setTitle("Ошибка. Проверьте правильность введенного Id").setColor(colors.error)],
+                embeds: [
+                    new EmbedBuilder()
+                        .setAuthor({
+                        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086268847948042300/6426-error.png",
+                        name: "Ошибка. Проверьте правильность введенного Id",
+                    })
+                        .setColor(colors.error),
+                ],
             };
         case UserErrors.WRONG_HEX:
             return {
-                embeds: [new EmbedBuilder().setTitle("Ошибка. Проверьте правильность введенного HEX-кода").setColor(colors.error)],
+                embeds: [
+                    new EmbedBuilder()
+                        .setAuthor({
+                        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086268847948042300/6426-error.png",
+                        name: "Ошибка. Проверьте правильность введенного HEX-кода",
+                    })
+                        .setColor(colors.error),
+                ],
             };
         case UserErrors.RAID_MISSING_DATA_FOR_CLEARS:
             return {
                 embeds: [
                     new EmbedBuilder()
                         .setColor(colors.warning)
-                        .setTitle(`Ошибка. Нет данных по завершенным вами рейдов`)
+                        .setAuthor({
+                        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086268847948042300/6426-error.png",
+                        name: `Ошибка. Нет данных по завершенным вами рейдов`,
+                    })
                         .setDescription(`Убедитесь в статусе регистрации или подождите несколько минут\nЗакрытые рейды проверяются только у участников клана или у пользователей, которые проявляют какой-либо актив на сервере`),
                 ],
             };
@@ -100,26 +132,57 @@ function errorMessages(errorType, ...rest) {
                 embeds: [
                     new EmbedBuilder()
                         .setColor(colors.warning)
-                        .setTitle(`Ошибка`)
+                        .setAuthor({
+                        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086268847948042300/6426-error.png",
+                        name: "Ошибка. Недостаточно закрытий рейда",
+                    })
                         .setDescription(`Для записи на этот рейд необходимо ${raidRequirement} закрытий этого рейда, но у вас ${userClears}`),
                 ],
             };
         case UserErrors.MISSING_PERMISSIONS:
-            return { embeds: [new EmbedBuilder().setColor(colors.warning).setTitle(`Ошибка. Недостаточно прав`)] };
+            return {
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(colors.warning)
+                        .setAuthor({
+                        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086268847948042300/6426-error.png",
+                        name: `Ошибка. Недостаточно прав`,
+                    }),
+                ],
+            };
         case UserErrors.RAID_TIME_ERROR:
-            return { embeds: [new EmbedBuilder().setColor(colors.warning).setTitle("Ошибка. Проверьте корректность времени")] };
+            return {
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(colors.warning)
+                        .setAuthor({
+                        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086268847948042300/6426-error.png",
+                        name: "Ошибка. Проверьте корректность времени",
+                    }),
+                ],
+            };
         case UserErrors.RAID_MISSING_DLC:
             return {
                 embeds: [
                     new EmbedBuilder()
                         .setColor(colors.serious)
-                        .setTitle(`Ошибка. Нет необходимого DLC`)
+                        .setAuthor({
+                        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086268847948042300/6426-error.png",
+                        name: `Ошибка. Нет необходимого DLC`,
+                    })
                         .setDescription(`Для записи на этот рейд необходимо дополнение ${rest[0]}`),
                 ],
             };
         default:
             return {
-                embeds: [new EmbedBuilder().setColor(colors.warning).setTitle(`Произошла критическая ошибка. Сообщите администрации`)],
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(colors.warning)
+                        .setAuthor({
+                        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086268847948042300/6426-error.png",
+                        name: "Произошла критическая ошибка. Сообщите администрации",
+                    }),
+                ],
             };
     }
 }

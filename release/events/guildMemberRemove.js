@@ -10,7 +10,10 @@ export default new Event("guildMemberRemove", (member) => {
     if (member.guild.bans.cache.has(member.id))
         return;
     const embed = new EmbedBuilder()
-        .setAuthor({ name: "Участник покинул сервер", iconURL: member.displayAvatarURL() })
+        .setAuthor({
+        name: "Участник покинул сервер",
+        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086264590767243294/6498-icon-leave.png",
+    })
         .setColor(colors.error)
         .addFields([
         { name: `Пользователь`, value: `${member.displayName}/${member}`, inline: true },

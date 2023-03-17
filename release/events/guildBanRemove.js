@@ -2,10 +2,11 @@ import { EmbedBuilder } from "discord.js";
 import { ids } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
+import colors from "../configs/colors.js";
 const guildMemberChannel = client.channels.cache.get(ids.guildMemberChnId);
 export default new Event("guildBanRemove", (member) => {
     const embed = new EmbedBuilder()
-        .setColor("Green")
+        .setColor(colors.success)
         .setAuthor({
         name: `${member.user.username} разбанен`,
         iconURL: member.user.displayAvatarURL(),

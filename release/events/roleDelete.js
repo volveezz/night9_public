@@ -7,7 +7,10 @@ const guildChannel = client.channels.cache.get(ids.guildChnId);
 export default new Event("roleDelete", (role) => {
     const embed = new EmbedBuilder()
         .setColor(colors.kicked)
-        .setAuthor({ name: "Роль удалена" })
+        .setAuthor({
+        name: "Роль удалена",
+        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086267623534231705/3125-icon-modshield.png",
+    })
         .setDescription(`Удаленная роль \`${role.name}\` (${role.id})`)
         .addFields([
         {

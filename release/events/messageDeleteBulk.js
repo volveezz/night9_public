@@ -5,7 +5,12 @@ import { Event } from "../structures/event.js";
 const messageChannel = client.channels.cache.get(ids.messagesChnId);
 export default new Event("messageDeleteBulk", (messages) => {
     const messagesArray = messages.reverse();
-    const embed = new EmbedBuilder().setColor("DarkRed").setAuthor({ name: "Группа сообщений удалена" });
+    const embed = new EmbedBuilder()
+        .setColor("DarkRed")
+        .setAuthor({
+        name: "Группа сообщений удалена",
+        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086264381832179742/1984-icon-delete.png",
+    });
     for (let i = 0; i < messagesArray.size && i < 24; i++) {
         const m = messagesArray.at(i);
         embed.addFields([

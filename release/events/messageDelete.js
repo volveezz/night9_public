@@ -12,7 +12,10 @@ export default new Event("messageDelete", (message) => {
         return;
     const embed = new EmbedBuilder()
         .setColor("DarkRed")
-        .setAuthor({ name: "Сообщение удалено" })
+        .setAuthor({
+        name: "Сообщение удалено",
+        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086264381832179742/1984-icon-delete.png",
+    })
         .setFooter({ text: `MsgId: ${message.id}` })
         .setTimestamp()
         .addFields([

@@ -7,7 +7,10 @@ const guildChannel = client.channels.cache.get(ids.guildChnId);
 export default new Event("roleCreate", (role) => {
     const embed = new EmbedBuilder()
         .setColor(colors.default)
-        .setAuthor({ name: "Роль была создана" })
+        .setAuthor({
+        name: "Роль была создана",
+        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086267623534231705/3125-icon-modshield.png",
+    })
         .setFooter({ text: `RoleId: ${role.id}` })
         .addFields([
         { name: "Роль", value: `<@&${role.id}>`, inline: true },

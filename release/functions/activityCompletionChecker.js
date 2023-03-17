@@ -43,7 +43,6 @@ export async function clanOnlineMemberActivityChecker() {
                         return console.error(`[Error code: 1438] No authorization data for user ${membershipId}`, raidMilestoneHash, activeCharacter);
                     if (!raidMilestoneHash)
                         return console.error(`[Error code: 1440] No raid milestone data for user ${authData.bungieId}\n${activeCharacter.currentActivityHash} - ${raidMilestoneHash}\n`, activeCharacter.currentActivityHash, activeCharacter.currentActivityModeHash, activeCharacter.dateActivityStarted, activeCharacter.currentActivityModeHashes, activeCharacter.currentActivityModeType, activeCharacter.currentActivityModeTypes);
-                    completedPhases.delete(membershipId);
                     activityCompletionChecker({
                         accessToken: authData.accessToken,
                         bungieId: membershipId,
@@ -54,7 +53,7 @@ export async function clanOnlineMemberActivityChecker() {
                     });
                 }
             }
-            await timer(5000);
+            await timer(4000);
         }
     }, 60 * 1000 * 8);
 }
