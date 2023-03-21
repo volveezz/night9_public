@@ -8,6 +8,7 @@ import { activityRoles, raidRoles, statisticsRoles, titleCategory, triumphsCateg
 import { completedRaidsData, longOffline, userTimezones } from "../../features/memberStatisticsHandler.js";
 import convertSeconds from "../../functions/utilities.js";
 import NightRoleCategory from "../../enums/RoleCategory.js";
+import icons from "../../configs/icons.js";
 export default new Command({
     name: "db",
     description: "Database",
@@ -138,7 +139,7 @@ export default new Command({
         const id = args.getString("id") ? (args.getString("id") === "me" ? member.id : args.getString("id", true)) : [];
         switch (subcommand) {
             case "select": {
-                const middle = client.uptime;
+                const benchmarkStart = client.uptime;
                 const request = await AuthData.findOne({
                     attributes: ["discordId", "bungieId", "platform", "clan", "displayName", "refreshToken", "membershipId", "timezone"],
                     where: { [Op.or]: [{ discordId: id }, { bungieId: id }] },
@@ -146,45 +147,45 @@ export default new Command({
                 });
                 if (!request || !request.discordId)
                     throw { name: "Запись не найдена" };
-                const after = client.uptime;
+                const benchmarkEnd = client.uptime;
                 const raidClears = completedRaidsData.get(request.discordId);
                 const embed = new EmbedBuilder()
                     .setColor(colors.default)
                     .setFooter({
-                    text: `Query took ${after - middle}ms`,
+                    text: `Запрос занял: ${benchmarkEnd - benchmarkStart}мс`,
                 })
                     .setDescription(`> ${(userTimezones.get(request.discordId) ?? "no cached TZ").toString()}/${request.timezone} <@${request.discordId}>${raidClears ? ` - ${Object.values(raidClears)}` : ""}`)
                     .addFields([
                     {
-                        name: "bungieId",
+                        name: "BungieId",
                         value: `${request.platform}/${request.bungieId}`,
                         inline: true,
                     },
-                    { name: "clan", value: request.clan ? "Участник клана" : "Вне клана", inline: true },
+                    { name: "Clan", value: request.clan ? "Участник клана" : "Вне клана", inline: true },
                     {
-                        name: "displayName",
+                        name: "DisplayName",
                         value: request.displayName,
                         inline: true,
                     },
                     {
-                        name: "membershipId",
+                        name: "MembershipId",
                         value: `[${request.membershipId}](https://www.bungie.net/7/ru/User/Profile/254/${request.membershipId})`,
                         inline: true,
                     },
                     {
-                        name: "nameChangeStatus",
+                        name: "NameChangeStatus",
                         value: request.displayName.startsWith("⁣") ? "disabled" : "enabled",
                         inline: true,
                     },
                     {
-                        name: "refreshToken",
-                        value: request.refreshToken && request.refreshToken.length > 35 ? "cached" : `${request.refreshToken?.length.toString()}`,
+                        name: "RefreshToken",
+                        value: request.refreshToken && request.refreshToken.length > 35 ? "Cached" : `${request.refreshToken?.length}`,
                         inline: true,
                     },
                 ]);
                 if (request.UserActivityData && request.UserActivityData.messages >= 0) {
                     embed.addFields([
-                        { name: "Сообщений отправлено", value: request.UserActivityData.messages.toString(), inline: true },
+                        { name: "Сообщений отправлено", value: `${request.UserActivityData.messages}`, inline: true },
                         {
                             name: "Времени в голосовых",
                             value: `${convertSeconds(request.UserActivityData.voice)}`,
@@ -192,13 +193,13 @@ export default new Command({
                         },
                         {
                             name: "Пройдено данжей/рейдов с сокланами",
-                            value: request.UserActivityData.dungeons.toString() + "/" + request.UserActivityData.raids.toString(),
+                            value: `${request.UserActivityData.dungeons}/${request.UserActivityData.raids}`,
                             inline: true,
                         },
                     ]);
                 }
                 if (longOffline.has(request.discordId))
-                    embed.addFields([{ name: "longOffline", value: "included", inline: true }]);
+                    embed.addFields([{ name: "LongOffline", value: "Включен", inline: true }]);
                 (await deferredReply) && interaction.editReply({ embeds: [embed] });
                 if (userTimezones.get(request.discordId) === undefined && request.timezone !== undefined && request.timezone !== null)
                     userTimezones.set(request.discordId, request.timezone);
@@ -208,8 +209,9 @@ export default new Command({
                 const request = await AuthData.destroy({
                     where: { [Op.or]: [{ discordId: id }, { bungieId: id }] },
                 });
-                const embed = new EmbedBuilder().setColor(colors.default).setAuthor({
+                const embed = new EmbedBuilder().setColor(colors.success).setAuthor({
                     name: `${request === 1 ? `Успех. Удалено ${request} строк` : `Удалено ${request} строк`}`,
+                    iconURL: icons.success,
                 });
                 (await deferredReply) && interaction.editReply({ embeds: [embed] });
                 return;
@@ -250,27 +252,27 @@ export default new Command({
                 const unique = args.getInteger("unique") ?? -99;
                 if (!CachedDestinyRecordDefinition[hash])
                     throw { name: "Триумф под таким хешем не найден", description: `Hash: ${hash}` };
-                const db_query = roleId !== null
+                const databaseRoleData = roleId !== null
                     ? await AutoRoleData.findOne({
                         where: { roleId: roleId },
                     })
                     : null;
                 const title = CachedDestinyRecordDefinition[hash].titleInfo.hasTitle;
                 const guildableTitle = title ? (CachedDestinyRecordDefinition[hash].titleInfo.gildingTrackingRecordHash ? true : false) : false;
-                let title_name = title
+                let titleName = title
                     ? guildableTitle
                         ? "⚜️" + CachedDestinyRecordDefinition[hash].titleInfo.titlesByGender.Male
                         : CachedDestinyRecordDefinition[hash].titleInfo.titlesByGender.Male
                     : CachedDestinyRecordDefinition[hash].displayProperties.name;
-                const category = db_query
-                    ? db_query.category
+                const category = databaseRoleData
+                    ? databaseRoleData.category
                     : title
                         ? NightRoleCategory.Titles
                         : args.getInteger("category") ?? NightRoleCategory.Triumphs;
                 const embed = new EmbedBuilder().setColor(colors.default);
-                if (db_query) {
+                if (databaseRoleData) {
                     embed.setTitle(`Дополнение существующей авто-роли`);
-                    embed.setDescription(`Добавление условия ${hash} к <@&${db_query.roleId}>`);
+                    embed.setDescription(`Добавление условия ${hash} к <@&${databaseRoleData.roleId}>`);
                 }
                 else {
                     embed.setTitle(`Создание авто-роли`);
@@ -278,16 +280,16 @@ export default new Command({
                 if (CachedDestinyRecordDefinition[hash].displayProperties.hasIcon) {
                     embed.setThumbnail(`https://www.bungie.net${CachedDestinyRecordDefinition[hash].displayProperties.icon}`);
                 }
-                if (title_name) {
+                if (titleName) {
                     embed.addFields({
                         name: "Название",
-                        value: title_name,
+                        value: titleName,
                         inline: true,
                     });
                 }
                 embed.addFields({
                     name: "Категория",
-                    value: String(db_query?.category ?? category ?? NightRoleCategory.Titles),
+                    value: String(databaseRoleData?.category ?? category ?? NightRoleCategory.Titles),
                     inline: true,
                 });
                 if (unique && unique >= 1) {
@@ -305,7 +307,7 @@ export default new Command({
                         .setCustomId("db_roles_add_change_name")
                         .setLabel("Изменить название")
                         .setStyle(ButtonStyle.Secondary)
-                        .setDisabled(db_query?.roleId ? true : false),
+                        .setDisabled(databaseRoleData?.roleId ? true : false),
                     new ButtonBuilder().setCustomId("db_roles_add_cancel").setLabel("Отменить").setStyle(ButtonStyle.Danger),
                 ];
                 await deferredReply;
@@ -332,9 +334,9 @@ export default new Command({
                     }
                     else if (collected.customId === "db_roles_add_confirm") {
                         let role, embed, gildedRoles = [];
-                        if (!db_query?.roleId) {
+                        if (!databaseRoleData?.roleId) {
                             role = await interaction.guild.roles.create({
-                                name: guildableTitle ? title_name.slice(1) : title_name,
+                                name: guildableTitle ? titleName.slice(1) : titleName,
                                 reason: "Creating auto-role",
                                 color: colors.default,
                                 position: interaction.guild.roles.cache.get(category === NightRoleCategory.Activity
@@ -349,7 +351,7 @@ export default new Command({
                             });
                             if (guildableTitle) {
                                 gildedRoles.push((await interaction.guild.roles.create({
-                                    name: title_name + " 1",
+                                    name: titleName + " 1",
                                     reason: "Creating guildable auto-role",
                                     position: role.position,
                                     color: "#ffb300",
@@ -357,9 +359,9 @@ export default new Command({
                             }
                         }
                         else {
-                            role = member.guild.roles.cache.get(String(db_query.roleId));
+                            role = member.guild.roles.cache.get(String(databaseRoleData.roleId));
                         }
-                        if (!db_query) {
+                        if (!databaseRoleData) {
                             try {
                                 if (guildableTitle) {
                                     await AutoRoleData.create({
@@ -402,7 +404,7 @@ export default new Command({
                             await AutoRoleData.update({
                                 triumphRequirement: hash,
                             }, {
-                                where: { roleId: db_query.roleId },
+                                where: { roleId: databaseRoleData.roleId },
                             });
                             embed = new EmbedBuilder()
                                 .setColor(colors.success)
@@ -427,7 +429,7 @@ export default new Command({
                             interaction.fetchReply().then(async (m) => {
                                 const embed = m.embeds[0];
                                 embed.fields[0].value = `${msg.cleanContent}`;
-                                title_name = guildableTitle ? "⚜️" + msg.cleanContent : msg.cleanContent;
+                                titleName = guildableTitle ? "⚜️" + msg.cleanContent : msg.cleanContent;
                                 (await deferredReply) && interaction.editReply({ embeds: [embed] });
                             });
                         });
@@ -487,7 +489,7 @@ export default new Command({
                 }
                 await t.commit();
                 if (query) {
-                    const embed = new EmbedBuilder().setColor("Green").setTitle(`Удалена ${query} авто-роль`);
+                    const embed = new EmbedBuilder().setColor(colors.success).setTitle(`Удалена ${query} авто-роль`);
                     const fetchedRole = selectQuery ? interaction.guild.roles.cache.get(String(selectQuery.roleId)) : undefined;
                     selectQuery
                         ? embed.addFields({

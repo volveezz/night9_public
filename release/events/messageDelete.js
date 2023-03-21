@@ -2,6 +2,7 @@ import { EmbedBuilder } from "discord.js";
 import { ids } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
+import colors from "../configs/colors.js";
 const messageChannel = client.channels.cache.get(ids.messagesChnId);
 export default new Event("messageDelete", (message) => {
     if (message.system ||
@@ -11,7 +12,7 @@ export default new Event("messageDelete", (message) => {
         message.channelId === ids.messagesChnId)
         return;
     const embed = new EmbedBuilder()
-        .setColor("DarkRed")
+        .setColor(colors.error)
         .setAuthor({
         name: "Сообщение удалено",
         iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086264381832179742/1984-icon-delete.png",
@@ -34,11 +35,11 @@ export default new Event("messageDelete", (message) => {
         embed.addFields([
             {
                 name: "Текст",
-                value: `\`${message.content?.length > 1000 ? "слишком длинное сообщение" : message.content}\``,
+                value: `${message.content?.length > 1000 ? "слишком длинное сообщение" : message.content}`,
             },
         ]);
     if (message.embeds.length > 0)
-        embed.addFields([{ name: "Embed-вложения", value: `\`${message.embeds.length}\`` }]);
+        embed.addFields([{ name: "Embed-вложения", value: `${message.embeds.length}` }]);
     if (message.attachments.size !== 0) {
         const arrayAttachment = [];
         message.attachments.forEach((msgAttachment) => arrayAttachment.push(msgAttachment.url));

@@ -8,6 +8,7 @@ import { activityReceiver } from "../handlers/discordActivity.js";
 import { pvePartyHandler } from "../handlers/pvePartyHandler.js";
 import { Event } from "../structures/event.js";
 import { sendRegistrationLink } from "../functions/registration.js";
+import colors from "../configs/colors.js";
 export default new Event("messageCreate", async (message) => {
     try {
         if (!message.author || message.author.bot || message.system || !(message instanceof Message))
@@ -29,9 +30,9 @@ export default new Event("messageCreate", async (message) => {
     }
     catch (error) {
         const embed = new EmbedBuilder()
-            .setColor("Red")
-            .setTitle(error.name ?? "Произошла ошибка")
-            .setDescription((error.description ?? error.message) || null);
+            .setColor(colors.error)
+            .setTitle(error.name || "Произошла ошибка")
+            .setDescription(error.description || error.message || null);
         console.error(`[Error code: 1217] Got message error`, error, message.author.username);
         return message.reply({ embeds: [embed] }).then((m) => setTimeout(() => m.delete(), 5000));
     }

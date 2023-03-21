@@ -3,6 +3,7 @@ import colors from "../configs/colors.js";
 import { guildId } from "../configs/ids.js";
 import { activityRoles, classRoles, statisticsRoles, titleCategory, trialsRoles, triumphsCategory } from "../configs/roles.js";
 import { AuthData } from "../handlers/sequelize.js";
+import { timer } from "../functions/utilities.js";
 export default {
     name: "roleChannel",
     run: async ({ client, interaction }) => {
@@ -28,7 +29,7 @@ export default {
                     }, 1500);
                 });
                 const embed = new EmbedBuilder()
-                    .setColor("Green")
+                    .setColor(colors.success)
                     .setTitle(className === "disable"
                     ? "Вы отключили основной класс"
                     : `Вы установили ${className === "hunter"
@@ -71,31 +72,33 @@ export default {
                     }
                     if (roleStatus)
                         return;
+                    let rolesToRemove = [];
                     switch (categoryId) {
-                        case 1: {
-                            member.roles.remove([...statisticsRoles.allActive, ...statisticsRoles.allKd, statisticsRoles.category]);
-                            return;
-                        }
-                        case 2: {
-                            member.roles.remove([...trialsRoles.allKd, ...trialsRoles.allRoles, trialsRoles.category, trialsRoles.wintrader]);
-                            return;
-                        }
-                        case 4: {
-                            const topPos = guild.roles.cache.find((r) => r.id === titleCategory).position;
-                            const botPos = guild.roles.cache.find((r) => r.id === triumphsCategory).position;
-                            member.roles.remove(guild.roles.cache.filter((r) => r.position > botPos && r.position <= topPos));
-                            return;
-                        }
-                        case 8: {
-                            const topPos = guild.roles.cache.find((r) => r.id === triumphsCategory).position;
-                            const botPos = guild.roles.cache.find((r) => r.id === activityRoles.category).position;
-                            member.roles.remove(guild.roles.cache.filter((r) => r.position > botPos && r.position <= topPos));
-                            return;
-                        }
-                        case 16: {
-                            member.roles.remove([...activityRoles.allMessages, ...activityRoles.allVoice, activityRoles.category]);
-                            return;
-                        }
+                        case 1:
+                            rolesToRemove = [...statisticsRoles.allActive, ...statisticsRoles.allKd, statisticsRoles.category];
+                            break;
+                        case 2:
+                            rolesToRemove = [...trialsRoles.allKd, ...trialsRoles.allRoles, trialsRoles.category, trialsRoles.wintrader];
+                            break;
+                        case 4:
+                            const topPos4 = guild.roles.cache.find((r) => r.id === titleCategory).position;
+                            const botPos4 = guild.roles.cache.find((r) => r.id === triumphsCategory).position;
+                            rolesToRemove = Array.from(guild.roles.cache.filter((r) => r.position > botPos4 && r.position <= topPos4).map((r) => r.id));
+                            break;
+                        case 8:
+                            const topPos8 = guild.roles.cache.find((r) => r.id === triumphsCategory).position;
+                            const botPos8 = guild.roles.cache.find((r) => r.id === activityRoles.category).position;
+                            rolesToRemove = Array.from(guild.roles.cache.filter((r) => r.position > botPos8 && r.position <= topPos8).map((r) => r.id));
+                            break;
+                        case 16:
+                            rolesToRemove = [...activityRoles.allMessages, ...activityRoles.allVoice, activityRoles.category];
+                            break;
+                    }
+                    await member.roles.remove(rolesToRemove);
+                    await timer(2500);
+                    if ((await member.fetch()).roles.cache.hasAny(...rolesToRemove)) {
+                        console.error(`[Error code: 1643] Member had roles that should be removed so we removed them again\n${rolesToRemove}`);
+                        member.roles.remove(rolesToRemove);
                     }
                 }
                 return;

@@ -7,6 +7,7 @@ import { client } from "../index.js";
 import { fetchRequest } from "./fetchRequest.js";
 import colors from "../configs/colors.js";
 import { ClanButtons } from "../enums/Buttons.js";
+import { escapeString } from "./utilities.js";
 export default async function webHandler(code, state, res) {
     const json = await InitData.findOne({ where: { state: state } });
     if (!json || !json.discordId)
@@ -96,7 +97,7 @@ export default async function webHandler(code, state, res) {
             inline: true,
         }, {
             name: "BungieName",
-            value: displayName || "[Error code: 1216]",
+            value: `${escapeString(displayName)}`,
             inline: true,
         });
         const loggedEmbed = new EmbedBuilder()
@@ -108,7 +109,7 @@ export default async function webHandler(code, state, res) {
             inline: true,
         }, {
             name: "BungieName",
-            value: displayName || `[Error code: 1217]`,
+            value: `${escapeString(displayName)}`,
             inline: true,
         });
         if (clanResponse && clanResponse.results && clanResponse.results.length >= 1) {

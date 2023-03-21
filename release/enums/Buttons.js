@@ -60,3 +60,8 @@ export var TimezoneButtons;
 (function (TimezoneButtons) {
     TimezoneButtons["selectMenu"] = "tzEvent_selectmenu";
 })(TimezoneButtons || (TimezoneButtons = {}));
+export var AdminDMChannelButtons;
+(function (AdminDMChannelButtons) {
+    AdminDMChannelButtons["reply"] = "dmChnFunc_reply";
+    AdminDMChannelButtons["delete"] = "dmChnFunc_delete";
+})(AdminDMChannelButtons || (AdminDMChannelButtons = {}));

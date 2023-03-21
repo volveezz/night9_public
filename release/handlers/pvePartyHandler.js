@@ -4,6 +4,7 @@ import { dlcRoles } from "../configs/roles.js";
 import { bungieNames } from "../features/memberStatisticsHandler.js";
 import { CachedDestinyActivityDefinition } from "../functions/manifestHandler.js";
 import { client } from "../index.js";
+import colors from "../configs/colors.js";
 class activitySettings {
     name;
     description;
@@ -39,7 +40,7 @@ class activitySettings {
         this.lightLevel = activity?.activityLightLevel.toString() || null;
     }
 }
-class userSettings {
+class UserSettings {
     invite;
     ping;
     activity;
@@ -48,7 +49,7 @@ class userSettings {
     constructor() {
         this.ping = this.ping || null;
         this.activity = this.activity || null;
-        this.color = this.color || "#00A6FF";
+        this.color = this.color || colors.serious;
         this.activitySettings = this.activitySettings || null;
     }
 }
@@ -73,7 +74,7 @@ export async function pvePartyHandler(message) {
         invite: true,
         ping: null,
         activity: null,
-        color: "#00A6FF",
+        color: colors.serious,
         activitySettings: null,
     };
     stringArgs?.forEach((args) => {
@@ -144,7 +145,7 @@ export async function pvePartyHandler(message) {
         embed.setColor(userSettings.color);
     }
     catch (error) {
-        embed.setColor("#00A6FF");
+        embed.setColor(colors.error);
         message.channel
             .send(`Ошибка. Не удалось установить ваш цвет: \`${userSettings.color}\``)
             .then((m) => setTimeout(() => m.delete(), 5000));
@@ -248,9 +249,11 @@ export async function pvePartyVoiceChatHandler(channelId, member, state) {
         });
     }
     const embed = EmbedBuilder.from(createdChannel.message.embeds[0]);
-    embed.data.title
-        ? embed.setTitle(embed.data.title.replace(/\d+/, (state === "join" ? parseInt(embed.data.title) - 1 : parseInt(embed.data.title) + 1).toString()))
-        : "";
+    if (embed.data.title) {
+        const joinedCount = parseInt(embed.data.title);
+        const updatedCount = state === "join" ? joinedCount + 1 : joinedCount - 1;
+        embed.setTitle(embed.data.title.replace(/\d+/, `${updatedCount > 0 ? updatedCount : 0}`));
+    }
     const joinedUsersFieldIndex = embed.data.fields?.findIndex((v) => v.name.startsWith("Состав группы"));
     const joinedUsersUpdatedFieldValue = createdChannel.joined
         .map((id, i) => {
@@ -273,7 +276,7 @@ export async function pvePartyVoiceChatHandler(channelId, member, state) {
     }));
 }
 async function messageErrorHandler(name, description, message) {
-    const errorEmbed = new EmbedBuilder().setColor("Red").setTitle(name).setDescription(description);
+    const errorEmbed = new EmbedBuilder().setColor(colors.error).setTitle(name).setDescription(description);
     const m = await message.channel.send({ embeds: [errorEmbed] });
     setTimeout(() => {
         m.delete();

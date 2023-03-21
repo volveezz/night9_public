@@ -225,7 +225,10 @@ export async function updateRaidMessage(raidDbData, interaction) {
     else {
         embed?.spliceFields(findK("Возможно"), findK("Возможно") !== -1 ? 1 : 0);
     }
-    if (interaction instanceof ButtonInteraction) {
+    if (!interaction) {
+        return embed;
+    }
+    else if (interaction instanceof ButtonInteraction) {
         await interaction.message.edit({ embeds: [embed] });
     }
     else {
@@ -409,13 +412,17 @@ export function timeConverter(str, timezoneOffset = 3) {
     return Math.round(date.getTime() / 1000);
 }
 export async function raidAnnounceSystem(raidData) {
-    if (process.env.DEV_BUILD === "dev")
+    if (process.env.DEV_BUILD === "dev") {
         return;
-    if (!raidAnnounceSet.has(raidData.id)) {
-        raidAnnounceSet.add(raidData.id);
-        const time = raidData.time - Math.trunc(new Date().getTime() / 1000);
-        if (time <= 60 * 60 * 24)
-            setTimeout(() => raidAnnounce(raidData), (time - 60 * 15) * 1000);
+    }
+    if (raidAnnounceSet.has(raidData.id)) {
+        return;
+    }
+    raidAnnounceSet.add(raidData.id);
+    const timeUntilRaid = raidData.time - Math.floor(Date.now() / 1000);
+    const timeUntilAnnouncement = timeUntilRaid - 60 * 15;
+    if (timeUntilAnnouncement > 0) {
+        setTimeout(() => raidAnnounce(raidData), timeUntilAnnouncement * 1000);
     }
 }
 async function raidAnnounce(oldRaidData) {
@@ -425,7 +432,7 @@ async function raidAnnounce(oldRaidData) {
     const raidInfo = getRaidData(raidData.raid, raidData.difficulty);
     const guild = (client.getCachedGuild() || client.guilds.cache.get(guildId) || (await client.guilds.fetch(guildId)));
     const raidMembers = raidData.joined.map(async (userId) => {
-        return guild.members.cache.get(userId) ?? (await guild.members.fetch(userId));
+        return guild.members.cache.get(userId) || (await guild.members.fetch(userId));
     });
     const raidMembersNames = (await Promise.all(raidMembers))
         .sort((a) => (a.id === raidData.creator ? 1 : 0))

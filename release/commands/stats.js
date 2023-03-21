@@ -6,6 +6,7 @@ import { fetchRequest } from "../functions/fetchRequest.js";
 import { StatsButton } from "../enums/Buttons.js";
 import UserErrors from "../enums/UserErrors.js";
 import colors from "../configs/colors.js";
+import convertSeconds from "../functions/utilities.js";
 export default new Command({
     name: "информация",
     nameLocalizations: {
@@ -64,18 +65,10 @@ export default new Command({
             new ButtonBuilder().setCustomId(StatsButton.pinnacle).setLabel("Доступная сверхмощка").setStyle(ButtonStyle.Secondary),
         ];
         if (parsedData.UserActivityData) {
-            const vcTime = new Date(parsedData.UserActivityData.voice * 1000)
-                .toISOString()
-                .substring(8, 19)
-                .replace("T", "д ")
-                .replace(":", "ч ")
-                .replace(":", "м ") + "с";
-            const vcTimeArr = vcTime.split("");
-            vcTimeArr[1] = String(parseInt(vcTimeArr[1]) - 1);
             embed.addFields([
                 {
                     name: "Статистика на сервере",
-                    value: `Отправлено сообщений: ${parsedData.UserActivityData.messages}\nВ голосовых каналах: ${vcTimeArr.join("")}`,
+                    value: `Отправлено сообщений: ${parsedData.UserActivityData.messages}\nВ голосовых каналах: ${convertSeconds(parsedData.UserActivityData.voice)}`,
                     inline: true,
                 },
                 {
@@ -108,12 +101,7 @@ export default new Command({
                     : character.classHash === 2271682572
                         ? "<:warlock:995496471526920232>"
                         : "<:titan:995496472722284596>";
-                const days = Math.trunc(parseInt(character.minutesPlayedTotal) / 60 / 24);
-                const hours = Math.trunc(parseInt(character.minutesPlayedTotal) / 60 - days * 24);
-                const mins = Math.trunc(parseInt(character.minutesPlayedTotal) - (days * 24 * 60 + hours * 60));
-                characterDataArray.push(`${classEmoji}**${CachedDestinyRaceDefinition[character.raceHash].genderedRaceNamesByGenderHash[character.genderHash]}** ${character.light} силы - последний онлайн <t:${Math.trunc(new Date(character.dateLastPlayed).getTime() / 1000)}:R>\n${character.minutesPlayedThisSession}м за последнюю сессию (${String(`${days > 0 ? ` ${days}д ` : ""} ${hours > 0 ? ` ${hours}ч` : ``}${mins > 0 ? ` ${mins}м ` : " "} за всё время`)
-                    .trim()
-                    .replace(/\s+/g, " ")})`);
+                characterDataArray.push(`${classEmoji}**${CachedDestinyRaceDefinition[character.raceHash].genderedRaceNamesByGenderHash[character.genderHash]}** ${character.light} силы - последний онлайн <t:${Math.floor(new Date(character.dateLastPlayed).getTime() / 1000)}:R>\n${convertSeconds((parseInt(character.minutesPlayedThisSession) || 0) * 60)} за последнюю сессию (${convertSeconds((parseInt(character.minutesPlayedTotal) || 0) * 60)})`);
                 fieldUrls.push(`${classEmoji}[Braytech](https://bray.tech/${parsedData.platform}/${parsedData.bungieId}/${character.characterId}/)`);
             }
             embed.spliceFields(0, 1, { name: "Ссылки", value: fieldUrls.join(", ") });

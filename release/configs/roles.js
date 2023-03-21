@@ -337,6 +337,34 @@ const devTrialsRoles = {
     ],
     wintrader: "1007814171473231957",
 };
+const releaseGuardianRankRoles = {
+    allRoles: [
+        "1087546354278092830",
+        "1087546338784329809",
+        "1087546323143774221",
+        "1087546303581528145",
+        "1087546284468097054",
+        "1087546270014513162",
+        "1087546256961835028",
+        "1087546243678490624",
+        "1087546232043470960",
+        "1087546218680426598",
+        "1087546206953164841",
+    ],
+    ranks: [
+        { roleId: "1087546206953164841", rank: 1 },
+        { roleId: "1087546218680426598", rank: 2 },
+        { roleId: "1087546232043470960", rank: 3 },
+        { roleId: "1087546243678490624", rank: 4 },
+        { roleId: "1087546256961835028", rank: 5 },
+        { roleId: "1087546270014513162", rank: 6 },
+        { roleId: "1087546284468097054", rank: 7 },
+        { roleId: "1087546303581528145", rank: 8 },
+        { roleId: "1087546323143774221", rank: 9 },
+        { roleId: "1087546338784329809", rank: 10 },
+        { roleId: "1087546354278092830", rank: 11 },
+    ],
+};
 export const statusRoles = process.env.DEV_BUILD !== "dev" ? releaseStatusRoles : devStatusRoles;
 export const seasonalRoles = process.env.DEV_BUILD !== "dev" ? releaseSeasonalRoles : devSeasonalRoles;
 export const dlcRoles = process.env.DEV_BUILD !== "dev" ? releaseDLCRoles : devDLCRoles;
@@ -349,3 +377,4 @@ export const activityRoles = process.env.DEV_BUILD !== "dev" ? releaseActivityRo
 export const titleCategory = process.env.DEV_BUILD !== "dev" ? releaseTitleCategory : devTitleCategory;
 export const trialsRoles = process.env.DEV_BUILD !== "dev" ? releaseTrialsRoles : devTrialsRoles;
 export const dungeonMasterRole = process.env.DEV_BUILD !== "dev" ? "1012474229448507526" : "1078853339984449546";
+export const guardianRankRoles = process.env.DEV_BUILD !== "dev" ? releaseGuardianRankRoles : releaseGuardianRankRoles;

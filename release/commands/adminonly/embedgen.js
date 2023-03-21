@@ -8,6 +8,7 @@ import { ClanButtons, RegisterButtons } from "../../enums/Buttons.js";
 import { isSnowflake, timer } from "../../functions/utilities.js";
 import { dungeonsTriumphHashes, roleRequirements } from "../../configs/roleRequirements.js";
 import NightRoleCategory from "../../enums/RoleCategory.js";
+import { addButtonComponentsToMessage } from "../../functions/addButtonsToMessage.js";
 export default new Command({
     name: "embedgen",
     description: "Embed generator",
@@ -300,6 +301,44 @@ export default new Command({
                     ];
                     interaction.reply({ content: "Success", ephemeral: true });
                     return interaction.channel.send({ embeds: [embed], components });
+                }
+                case "godmsg1": {
+                    const components = [
+                        new ButtonBuilder()
+                            .setCustomId(`godEvent_customRoleColor`)
+                            .setLabel("Установить свой цвет ника")
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
+                            .setCustomId(`godEvent_customRoleName`)
+                            .setLabel("Установить свое название роли")
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
+                            .setCustomId(`godEvent_getInvite`)
+                            .setLabel("Приглашение на альфа-сервер")
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
+                            .setCustomId(`godEvent_achatAccess`)
+                            .setLabel("Получить доступ к а-чату")
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
+                            .setCustomId(`godEvent_achatVoiceAccess`)
+                            .setLabel("Доступ к голосовому а-чату")
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
+                            .setCustomId(`godEvent_manifestAccess`)
+                            .setLabel("Канал с обновлениями базы данных игры")
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
+                            .setCustomId(`godEvent_vchatAccess`)
+                            .setLabel("Логи голосовых каналов")
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder().setCustomId(`godEvent_sortraids`).setLabel(`Отсортировка рейдов`).setStyle(ButtonStyle.Secondary),
+                    ];
+                    const embed = new EmbedBuilder()
+                        .setColor("Gold")
+                        .setDescription(`Hex-код для установки собственного цвета роли можно найти [на этом сайте](https://htmlcolorcodes.com/)`);
+                    interaction.channel.send({ embeds: [embed], components: await addButtonComponentsToMessage(components) });
+                    return;
                 }
                 case "leavedclanmsg": {
                     const components = [

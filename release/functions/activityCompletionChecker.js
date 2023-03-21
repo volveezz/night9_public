@@ -74,7 +74,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                     clearInterval(interval);
                     currentlyRuning.delete(uniqueId);
                     activityCompletionCurrentProfiles.delete(bungieId);
-                    console.error(`[Error code: 1611] Checker stopped for ${platform}/${bungieId}/${characterId} becouse of continuous errors`, response);
+                    console.error(`[Error code: 1611] Checker stopped for ${platform}/${bungieId}/${characterId} becouse of continuous errors\n`);
                 }
                 isErrorHappen = true;
                 console.error(`[Error code: 1630] Error during checking character of (${platform}/${bungieId}/${characterId}) inside checkActivityHash function`);
@@ -84,14 +84,14 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                 });
                 if (authData && authData.accessToken)
                     accessToken = authData.accessToken;
-                return null;
+                return;
             }
             if (!response.activities?.data) {
                 clearInterval(interval);
                 currentlyRuning.delete(uniqueId);
                 activityCompletionCurrentProfiles.delete(bungieId);
                 console.debug(`DEBUG 17001 Exit from checkActivityHash due of not found character data`);
-                return null;
+                return;
             }
             const characterData = response.activities.data;
             const currentActivityHash = characterData.currentActivityHash;

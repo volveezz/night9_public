@@ -57,7 +57,7 @@ export default new Command({
                 .delete(id)
                 .then(async (resp) => {
                 const embed = new EmbedBuilder()
-                    .setColor("Green")
+                    .setColor(colors.success)
                     .setTitle(`Global command ${resp?.name} was deleted`)
                     .setFooter({ text: `Id: ${resp?.id}` });
                 if (resp?.description) {
@@ -78,7 +78,7 @@ export default new Command({
                         ?.commands.delete(id)
                         .then(async (resp) => {
                         const embed = new EmbedBuilder()
-                            .setColor("Green")
+                            .setColor(colors.success)
                             .setTitle(`Guild command ${resp?.name} was deleted`)
                             .setFooter({ text: `Id: ${resp?.id}` });
                         if (resp?.description) {

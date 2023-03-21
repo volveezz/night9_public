@@ -148,6 +148,7 @@ export async function activityReporter(pgcrId) {
             if (response.activityDetails.mode === 82 && (clanMembersInRaid < 1 || (membersMembershipIds.length > 1 && dbData.length <= 1)))
                 return;
             const preciseEncountersTime = new Map();
+            console.debug(`[Error code: 1639] PGCR: ${pgcrId}\n`, JSON.stringify(Array.from(completedPhases.entries())));
             membersMembershipIds.forEach((bungieId, i1) => {
                 if (completedPhases.has(bungieId)) {
                     const completedPhasesForUser = completedPhases.get(bungieId);
@@ -175,8 +176,6 @@ export async function activityReporter(pgcrId) {
                             previousEncounterEndTime = preciseStoredEncounterTime.end;
                         }
                     });
-                    if (completedPhases.size != completedPhasesForUser.length)
-                        console.debug(`[Error code: 1639] PGCR: ${pgcrId}\n`, JSON.stringify(Array.from(completedPhases.entries())), completedPhasesForUser);
                     completedPhases.delete(bungieId);
                 }
             });
@@ -205,6 +204,7 @@ export async function activityReporter(pgcrId) {
                     }
                     encountersData.push(encounterData);
                 });
+                console.debug(`[Error code: 1642] PGCR: ${pgcrId}\n`, JSON.stringify(Array.from(encountersData.entries())));
                 if (encountersData.length >= 1) {
                     try {
                         if (encountersData.length < 2)
@@ -300,7 +300,7 @@ export async function updateClanRolesWithLogging(result, join) {
                 .then((m) => m.roles.remove([statusRoles.kicked, statusRoles.newbie, statusRoles.member]));
             embed
                 .setAuthor({
-                name: `${member.displayName} вступил в клан`,
+                name: `${escapeString(member.displayName)} вступил в клан`,
                 iconURL: member.displayAvatarURL(),
             })
                 .setColor(colors.success);
@@ -309,7 +309,7 @@ export async function updateClanRolesWithLogging(result, join) {
             member.roles.set(member.roles.cache.has(statusRoles.verified) ? [statusRoles.kicked, statusRoles.verified] : [statusRoles.kicked], "Member left clan");
             embed
                 .setAuthor({
-                name: `${member.displayName} покинул клан`,
+                name: `${escapeString(member.displayName)} покинул клан`,
                 iconURL: member.displayAvatarURL(),
             })
                 .setColor(colors.kicked);

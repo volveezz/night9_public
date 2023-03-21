@@ -5,6 +5,8 @@ import colors from "../../configs/colors.js";
 import UserErrors from "../../enums/UserErrors.js";
 import { AuthData } from "../../handlers/sequelize.js";
 import { Command } from "../../structures/command.js";
+import icons from "../../configs/icons.js";
+import { isSnowflake } from "../../functions/utilities.js";
 export default new Command({
     name: "auth",
     description: "Refresh the authorization data for a selected user",
@@ -18,19 +20,16 @@ export default new Command({
         },
     ],
     run: async ({ interaction }) => {
-        const deferredInteraction = interaction.deferReply({ ephemeral: true });
-        const id = (interaction.options.getString("id") === "me"
+        const deferredReply = interaction.deferReply({ ephemeral: true });
+        const id = interaction.options.getString("id") === "me"
             ? interaction.user.id
-            : interaction.options.getString("id"));
-        try {
-            BigInt(id);
-        }
-        catch (error) {
+            : interaction.options.getString("id", true);
+        if (!isSnowflake(id)) {
             throw { errorType: UserErrors.WRONG_ID };
         }
         const data = await AuthData.findOne({
             where: { [Op.or]: [{ discordId: id }, { bungieId: id }] },
-            attributes: ["refreshToken"],
+            attributes: ["displayName", "refreshToken"],
         });
         if (!data)
             throw { errorType: UserErrors.DB_USER_NOT_FOUND };
@@ -61,11 +60,16 @@ export default new Command({
                     membershipId: token.membership_id,
                 },
             });
-            const embed = new EmbedBuilder()
-                .setColor(colors.default)
-                .setFooter({ text: `Id: ${id}` })
-                .setTitle(`MembershipId: ${token.membership_id} обновлен`);
-            (await deferredInteraction) && interaction.editReply({ embeds: [embed] });
+            const embed = new EmbedBuilder().setFooter({ text: `MembershipId: ${token.membership_id}` });
+            if (id != null && token.membership_id != null) {
+                embed.setColor(colors.success).setAuthor({ name: `${data.displayName} был обновлен`, iconURL: icons.success });
+            }
+            else {
+                embed
+                    .setColor(colors.error)
+                    .setAuthor({ name: `Произошла ошибка во время обновления токена ${data.displayName}`, iconURL: icons.error });
+            }
+            (await deferredReply) && interaction.editReply({ embeds: [embed] });
         }
         else {
             throw { name: `${id} not updated` };

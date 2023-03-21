@@ -9,7 +9,7 @@ const guildMemberChannel = client.channels.cache.get(ids.guildMemberChnId);
 export default new Event("guildMemberAdd", (member) => {
     welcomeMessage(member);
     const embed = new EmbedBuilder()
-        .setColor(colors.default)
+        .setColor(colors.success)
         .setAuthor({
         name: "Присоединился новый участник",
         iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086264591706771488/3600-icon-join.png",

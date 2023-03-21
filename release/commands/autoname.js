@@ -31,8 +31,16 @@ export default new Command({
             {
                 type: ComponentType.ActionRow,
                 components: [
-                    new ButtonBuilder().setCustomId(AutonameButtons.enable).setLabel("Включить").setStyle(ButtonStyle.Success).setDisabled(!nameStatus),
-                    new ButtonBuilder().setCustomId(AutonameButtons.disable).setLabel("Отключить").setStyle(ButtonStyle.Danger).setDisabled(nameStatus),
+                    new ButtonBuilder()
+                        .setCustomId(AutonameButtons.enable)
+                        .setLabel("Включить")
+                        .setStyle(ButtonStyle.Success)
+                        .setDisabled(!nameStatus),
+                    new ButtonBuilder()
+                        .setCustomId(AutonameButtons.disable)
+                        .setLabel("Отключить")
+                        .setStyle(ButtonStyle.Danger)
+                        .setDisabled(nameStatus),
                 ],
             },
         ];
@@ -47,13 +55,13 @@ export default new Command({
                 throw { name: "Ваш ник слишком короткий" };
             if (dbInfo.displayName.startsWith("⁣") && nameStatus) {
                 dbInfo.update({ displayName: dbInfo.displayName.replace("⁣", "") }).then(async (result) => {
-                    embed.setColor("Green").setTitle("Вы включили автоматическую смену ника");
+                    embed.setColor(colors.success).setTitle("Вы включили автоматическую смену ника");
                     interaction.editReply({ embeds: [embed], components: [] });
                 });
             }
             else if (!dbInfo.displayName.startsWith("⁣") && !nameStatus) {
                 dbInfo.update({ displayName: "⁣" + dbInfo.displayName }).then(async (result) => {
-                    embed.setColor("Green").setTitle("Вы отключили автоматическую смену ника");
+                    embed.setColor(colors.success).setTitle("Вы отключили автоматическую смену ника");
                     interaction.editReply({ embeds: [embed], components: [] });
                 });
             }

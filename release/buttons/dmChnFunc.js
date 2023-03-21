@@ -5,9 +5,12 @@ import { logClientDmMessages } from "../functions/logger.js";
 import nameCleaner from "../functions/nameClearer.js";
 import { descriptionFormatter } from "../functions/utilities.js";
 import { ids } from "../configs/ids.js";
+import { AdminDMChannelButtons } from "../enums/Buttons.js";
 export default {
     name: "dmChnFunc",
     run: async ({ client, interaction }) => {
+        if (interaction.customId !== AdminDMChannelButtons.delete && interaction.customId !== AdminDMChannelButtons.reply)
+            return;
         const buttonId = interaction.customId;
         const messageId = interaction.message.embeds[0].footer.text.split(" | MId: ").pop();
         const userId = interaction.message.embeds[0].footer.text.split(" | MId: ").shift().split("UId: ").pop();
@@ -16,7 +19,7 @@ export default {
         if (!replyMember)
             throw { name: "[dmChnFunc error] User not found", userId, errorType: UserErrors.MEMBER_NOT_FOUND };
         switch (buttonId) {
-            case "dmChnFunc_reply": {
+            case AdminDMChannelButtons.reply: {
                 const embed = new EmbedBuilder()
                     .setColor(colors.default)
                     .setTitle("Введите текст сообщения для ответа")
@@ -26,7 +29,7 @@ export default {
                 });
                 interaction.reply({ embeds: [embed] });
                 const collector = channel.createMessageCollector({
-                    filter: (m) => m.author.id === interaction.member.id,
+                    filter: (m) => m.author.id === interaction.user.id,
                     time: 60 * 1000 * 5,
                     max: 1,
                 });
@@ -52,13 +55,13 @@ export default {
                     }
                     logClientDmMessages(replyMember, contentText, (await replyMsg).id, interaction);
                 });
-                collector.on("end", (collected, reason) => {
+                collector.on("end", (_, reason) => {
                     if (reason === "canceled")
                         interaction.deleteReply();
                 });
                 return;
             }
-            case "dmChnFunc_delete": {
+            case AdminDMChannelButtons.delete: {
                 interaction.deferUpdate();
                 const user = client.users.cache.get(userId) || (await client.users.fetch(userId));
                 const DMChannel = user.dmChannel || (await user.createDM());

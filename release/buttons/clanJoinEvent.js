@@ -8,7 +8,7 @@ export default {
     name: "clanJoinEvent",
     run: async ({ client, interaction: chatInteraction, modalSubmit }) => {
         const interaction = modalSubmit || chatInteraction;
-        const member = client.getCachedMembers().get(interaction.user.id);
+        const member = client.getCachedMembers().get(interaction.user.id) || (await client.getCachedGuild().members.fetch(interaction.user.id));
         if (!member)
             throw { errorType: UserErrors.MEMBER_NOT_FOUND };
         if (chatInteraction) {

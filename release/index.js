@@ -11,7 +11,7 @@ client.rest.on("rateLimited", (rateLimit) => {
 process.on("uncaughtException", (error, origin) => {
     console.error(`uncaughtException at top level`, origin === "uncaughtException" ? error : origin);
 });
-process.on("unhandledRejection", (error, a) => {
+process.on("unhandledRejection", (error) => {
     if (error.code === "ECONNRESET")
         return console.error(`[Error code: 1060] ${error.code} ${error.name}`);
     if (error.code === "EPROTO")

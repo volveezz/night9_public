@@ -1,4 +1,4 @@
-import { EmbedBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, } from "discord.js";
+import { EmbedBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, } from "discord.js";
 import { Command } from "../structures/command.js";
 import { database, RaidEvent } from "../handlers/sequelize.js";
 import { completedRaidsData, userTimezones } from "../features/memberStatisticsHandler.js";
@@ -12,13 +12,15 @@ import { RaidNames } from "../enums/Raids.js";
 import nameCleaner from "../functions/nameClearer.js";
 import { descriptionFormatter, escapeString } from "../functions/utilities.js";
 import { schedule } from "node-cron";
+import { addButtonComponentsToMessage } from "../functions/addButtonsToMessage.js";
+import raidsGuide from "../configs/raidguide.json" assert { type: "json" };
 export const raidAnnounceSet = new Set();
 setTimeout(() => {
     RaidEvent.findAll({
         where: {
             [Op.and]: [
                 { time: { [Op.gt]: Math.trunc(new Date().getTime() / 1000) } },
-                { time: { [Op.lt]: Math.trunc(Math.trunc(new Date().getTime() / 1000) + 24 * 60 * 60) } },
+                { time: { [Op.lte]: Math.trunc(Math.trunc(new Date().getTime() / 1000) + 25 * 60 * 60) } },
             ],
         },
     }).then((RaidEvent) => RaidEvent.forEach((raidData) => raidAnnounceSystem(raidData)));
@@ -28,7 +30,7 @@ schedule("0 23 * * *", () => {
         where: {
             [Op.and]: [
                 { time: { [Op.gt]: Math.trunc(new Date().getTime() / 1000) } },
-                { time: { [Op.lt]: Math.trunc(Math.trunc(new Date().getTime() / 1000) + 24 * 60 * 60) } },
+                { time: { [Op.lte]: Math.trunc(Math.trunc(new Date().getTime() / 1000) + 25 * 60 * 60) } },
             ],
         },
     }).then((RaidEvent) => RaidEvent.forEach((raidData) => raidAnnounceSystem(raidData)));
@@ -393,11 +395,12 @@ export default new Command({
             ];
             const content = `Открыт набор в рейд: ${raidData.raidName} ${raidData.requiredRole !== null ? `<@&${raidData.requiredRole}>` : member.guild.roles.everyone}`;
             const raidChannel = guild.channels.cache.get(ids.raidChnId) || (await guild.channels.fetch(ids.raidChnId));
+            const additionalPosition = guild.channels.cache.get(ids.raidChnCategoryId)?.children?.cache.size || 1;
             member.guild.channels
                 .create({
                 name: `🔥｜${raidDb.id}-${raidData.channelName}`,
                 parent: ids.raidChnCategoryId,
-                position: raidChannel.rawPosition + 2,
+                position: raidChannel.rawPosition + additionalPosition,
                 permissionOverwrites: [
                     {
                         deny: "ViewChannel",
@@ -418,26 +421,24 @@ export default new Command({
                     { name: "⁣", value: `**Испытания этой недели**\n　*на одном из этапов*\n\n**Модификаторы рейда**\n　*если есть..*` },
                 ]);
                 const components = [
-                    {
-                        type: ComponentType.ActionRow,
-                        components: [
-                            new ButtonBuilder()
-                                .setCustomId(RaidButtons.notify)
-                                .setLabel("Оповестить участников")
-                                .setStyle(ButtonStyle.Secondary),
-                            new ButtonBuilder()
-                                .setCustomId(RaidButtons.transfer)
-                                .setLabel("Переместить участников в рейд-войс")
-                                .setStyle(ButtonStyle.Secondary),
-                            new ButtonBuilder().setCustomId(RaidButtons.unlock).setLabel("Закрыть набор").setStyle(ButtonStyle.Danger),
-                            new ButtonBuilder().setCustomId(RaidButtons.delete).setLabel("Удалить набор").setStyle(ButtonStyle.Danger),
-                            new ButtonBuilder().setCustomId(RaidButtons.resend).setLabel("Обновить сообщение").setStyle(ButtonStyle.Secondary),
-                        ],
-                    },
+                    new ButtonBuilder().setCustomId(RaidButtons.notify).setLabel("Оповестить участников").setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder()
+                        .setCustomId(RaidButtons.transfer)
+                        .setLabel("Переместить участников в рейд-войс")
+                        .setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder().setCustomId(RaidButtons.unlock).setLabel("Закрыть набор").setStyle(ButtonStyle.Danger),
+                    new ButtonBuilder().setCustomId(RaidButtons.delete).setLabel("Удалить набор").setStyle(ButtonStyle.Danger),
+                    new ButtonBuilder().setCustomId(RaidButtons.resend).setLabel("Обновить сообщение").setStyle(ButtonStyle.Secondary),
                 ];
+                if (raidData.raid in raidsGuide) {
+                    components.push(new ButtonBuilder()
+                        .setCustomId(`raidGuide_${raidData.raid}`)
+                        .setLabel("Инструкция по рейду")
+                        .setStyle(ButtonStyle.Primary));
+                }
                 const inChnMsg = privateRaidChannel.send({
                     embeds: [premiumEmbed],
-                    components,
+                    components: await addButtonComponentsToMessage(components),
                 });
                 const embed = new EmbedBuilder()
                     .setTitle(`Рейд: ${raidData.raidName}${reqClears >= 1 ? ` от ${reqClears} закрыт${reqClears === 1 ? "ия" : "ий"}` : ""}`)
@@ -474,12 +475,7 @@ export default new Command({
                 const msg = raidChannel.send({
                     content,
                     embeds: [embed],
-                    components: [
-                        {
-                            type: ComponentType.ActionRow,
-                            components: mainComponents,
-                        },
-                    ],
+                    components: await addButtonComponentsToMessage(mainComponents),
                 });
                 const insertedRaidData = await RaidEvent.update({
                     channelId: privateRaidChannel.id,

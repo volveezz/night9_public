@@ -3,6 +3,7 @@ import { AuthData } from "../handlers/sequelize.js";
 import { Command } from "../structures/command.js";
 import { CachedDestinyActivityDefinition } from "../functions/manifestHandler.js";
 import { fetchRequest } from "../functions/fetchRequest.js";
+import colors from "../configs/colors.js";
 export default new Command({
     name: "закрытия_рейдов",
     nameLocalizations: {
@@ -114,7 +115,7 @@ export default new Command({
             });
         }));
         const embed = new EmbedBuilder()
-            .setColor("Green")
+            .setColor(colors.success)
             .setTitle(interaction instanceof ChatInputCommandInteraction && interaction.options.getBoolean("все_активности") === true
             ? "Статистика закрытх активностей по классам"
             : "Статистка закрытых рейдов по классам")

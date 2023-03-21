@@ -2,12 +2,11 @@ import { EmbedBuilder } from "discord.js";
 import { ids } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
+import colors from "../configs/colors.js";
 const messageChannel = client.channels.cache.get(ids.messagesChnId);
 export default new Event("messageDeleteBulk", (messages) => {
     const messagesArray = messages.reverse();
-    const embed = new EmbedBuilder()
-        .setColor("DarkRed")
-        .setAuthor({
+    const embed = new EmbedBuilder().setColor(colors.error).setAuthor({
         name: "Группа сообщений удалена",
         iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086264381832179742/1984-icon-delete.png",
     });

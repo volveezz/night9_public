@@ -13,5 +13,6 @@ var UserErrors;
     UserErrors["MISSING_PERMISSIONS"] = "MISSING_PERMISSIONS";
     UserErrors["RAID_TIME_ERROR"] = "RAID_TIME_ERROR";
     UserErrors["RAID_MISSING_DLC"] = "RAID_MISSING_DLC";
+    UserErrors["RAID_GUIDE_NOT_FOUND"] = "RAID_GUIDE_NOT_FOUND";
 })(UserErrors || (UserErrors = {}));
 export default UserErrors;

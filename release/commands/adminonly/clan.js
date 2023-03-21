@@ -5,6 +5,8 @@ import { fetchRequest } from "../../functions/fetchRequest.js";
 import { Command } from "../../structures/command.js";
 import { ClanButtons } from "../../enums/Buttons.js";
 import UserErrors from "../../enums/UserErrors.js";
+import icons from "../../configs/icons.js";
+import { addButtonComponentsToMessage } from "../../functions/addButtonsToMessage.js";
 export default new Command({
     name: "clan",
     description: "Clan management",
@@ -134,42 +136,41 @@ export default new Command({
                     removalEmbed.setAuthor({ name: `Не на сервере / ${lastMember.bungieName}` });
                 }
                 const components = [
-                    {
-                        type: ComponentType.ActionRow,
-                        components: [
-                            new ButtonBuilder()
-                                .setCustomId("clanManagment_previous")
-                                .setDisabled(memberIndex <= 0 ? true : false)
-                                .setLabel("Предыдущий")
-                                .setStyle(ButtonStyle.Secondary),
-                            new ButtonBuilder()
-                                .setCustomId("clanManagment_demote")
-                                .setDisabled(lastMember.rank > 1 && lastMember.rank < 4 ? false : true)
-                                .setLabel("Понизить")
-                                .setStyle(ButtonStyle.Danger),
-                            new ButtonBuilder()
-                                .setCustomId("clanManagment_promote")
-                                .setDisabled(lastMember.rank >= 1 && lastMember.rank < 3 ? false : true)
-                                .setLabel("Повысить")
-                                .setStyle(ButtonStyle.Success),
-                            new ButtonBuilder()
-                                .setCustomId("clanManagment_kick")
-                                .setLabel("Исключить")
-                                .setDisabled(lastMember.rank >= 1 && lastMember.rank < 4 ? false : true)
-                                .setStyle(ButtonStyle.Danger),
-                            new ButtonBuilder()
-                                .setCustomId("clanManagment_next")
-                                .setDisabled(memberIndex >= mergedMembers.length - 1 ? true : false)
-                                .setLabel("Следующий")
-                                .setStyle(ButtonStyle.Secondary),
-                        ],
-                    },
+                    new ButtonBuilder()
+                        .setCustomId("clanManagment_previous")
+                        .setDisabled(memberIndex <= 0 ? true : false)
+                        .setLabel("Предыдущий")
+                        .setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder()
+                        .setCustomId("clanManagment_demote")
+                        .setDisabled(lastMember.rank > 1 && lastMember.rank < 4 ? false : true)
+                        .setLabel("Понизить")
+                        .setStyle(ButtonStyle.Danger),
+                    new ButtonBuilder()
+                        .setCustomId("clanManagment_promote")
+                        .setDisabled(lastMember.rank >= 1 && lastMember.rank < 3 ? false : true)
+                        .setLabel("Повысить")
+                        .setStyle(ButtonStyle.Success),
+                    new ButtonBuilder()
+                        .setCustomId("clanManagment_kick")
+                        .setLabel("Исключить")
+                        .setDisabled(lastMember.rank >= 1 && lastMember.rank < 4 ? false : true)
+                        .setStyle(ButtonStyle.Danger),
+                    new ButtonBuilder()
+                        .setCustomId("clanManagment_next")
+                        .setDisabled(memberIndex >= mergedMembers.length - 1 ? true : false)
+                        .setLabel("Следующий")
+                        .setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder().setCustomId("clanManagment_cancel").setLabel("Отменить").setStyle(ButtonStyle.Danger),
                 ];
                 return { removalEmbed, components, lastMember, index: memberIndex };
             }
             const { components, removalEmbed } = memberParser(lastMemberIndex);
             await deferredReply;
-            const removalMessage = await interaction.followUp({ embeds: [removalEmbed], components });
+            const removalMessage = await interaction.followUp({
+                embeds: [removalEmbed],
+                components: await addButtonComponentsToMessage(components),
+            });
             const collector = removalMessage.channel.createMessageComponentCollector({
                 message: removalMessage,
                 componentType: ComponentType.Button,
@@ -278,13 +279,16 @@ export default new Command({
                     const result = (await query.json());
                     if (result.ErrorCode === 1) {
                         mergedMembers[memberIndex].rank = lastMember.rank;
-                        managmentEmbed.setColor(colors.serious).setTitle(`${lastMember.bungieName} был повышен до ${lastMember.rank} ранга`);
+                        managmentEmbed
+                            .setColor(colors.success)
+                            .setAuthor({ name: `${lastMember.bungieName} был повышен до ${lastMember.rank} ранга`, iconURL: icons.success });
                         button.followUp({ ephemeral: true, embeds: [managmentEmbed] });
                     }
                     else {
-                        managmentEmbed
-                            .setColor(colors.error)
-                            .setTitle(`Произошла ошибка во время понижения **${lastMember.bungieName}** до ${lastMember.rank} ранга`);
+                        managmentEmbed.setColor(colors.error).setAuthor({
+                            name: `Произошла ошибка во время понижения **${lastMember.bungieName}** до ${lastMember.rank} ранга`,
+                            iconURL: icons.error,
+                        });
                         button.followUp({
                             ephemeral: true,
                             embeds: [managmentEmbed],
@@ -292,7 +296,9 @@ export default new Command({
                     }
                 }
                 else if (customId === "clanManagment_promote") {
-                    managmentEmbed.setColor(colors.invisible).setTitle(`${lastMember.bungieName} был повышен до ${lastMember.rank} ранга`);
+                    managmentEmbed
+                        .setColor(colors.success)
+                        .setAuthor({ name: `${lastMember.bungieName} был повышен до ${lastMember.rank} ранга`, iconURL: icons.success });
                     const query = (await fetch(`https://www.bungie.net/Platform/GroupV2/4123712/Members/${lastMember.membershipType}/${lastMember.bungieId}/SetMembershipType/${++lastMember.rank}/`, {
                         method: "POST",
                         headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${dbData.accessToken}` },
@@ -303,23 +309,29 @@ export default new Command({
                         button.followUp({ ephemeral: true, embeds: [managmentEmbed] });
                     }
                     else {
-                        managmentEmbed
-                            .setColor(colors.error)
-                            .setTitle(`Произошла ошибка во время повышения ${lastMember.bungieName} до ${lastMember.rank} ранга`);
+                        managmentEmbed.setColor(colors.error).setAuthor({
+                            name: `Произошла ошибка во время повышения ${lastMember.bungieName} до ${lastMember.rank} ранга`,
+                            iconURL: icons.error,
+                        });
                         button.followUp({
                             ephemeral: true,
                             embeds: [managmentEmbed],
                         });
                     }
                 }
-                const { removalEmbed, components, index } = await memberParser(lastMemberIndex);
+                else if (customId === "clanManagment_cancel") {
+                    collector.stop("Cancelled");
+                    removalMessage.delete();
+                    return;
+                }
+                const { removalEmbed, components, index } = memberParser(lastMemberIndex);
                 if ((lastMemberIndex !== index || memberIndex !== index) &&
                     customId !== "clanManagment_previous" &&
                     customId !== "clanManagment_next" &&
                     customId !== "clanManagment_kick")
                     return;
                 try {
-                    button.message.edit({ embeds: [removalEmbed], components });
+                    button.message.edit({ embeds: [removalEmbed], components: await addButtonComponentsToMessage(components) });
                 }
                 catch (error) {
                     console.error(`Error blyad`);

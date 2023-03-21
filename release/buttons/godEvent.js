@@ -1,15 +1,44 @@
-import { EmbedBuilder, Role, TextChannel, VoiceChannel } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder, Role, TextChannel, VoiceChannel } from "discord.js";
 import colors from "../configs/colors.js";
 import { guildId, ids } from "../configs/ids.js";
 import UserErrors from "../enums/UserErrors.js";
+import { RaidEvent } from "../handlers/sequelize.js";
+import { Op } from "sequelize";
+import { updateRaidMessage } from "../functions/raidFunctions.js";
+import { RaidButtons } from "../enums/Buttons.js";
+import { addButtonComponentsToMessage } from "../functions/addButtonsToMessage.js";
 export default {
     name: "godEvent",
     run: async ({ client, interaction }) => {
         const param = interaction.customId.split("_")[1];
         const member = (interaction.member ? interaction.member : client.guilds.cache.get(guildId)?.members.cache.get(interaction.user.id));
         const channel = interaction.channel;
-        const guild = interaction.guild;
+        const guild = interaction.guild || client.getCachedGuild();
         switch (param) {
+            case "sortraids": {
+                const currentRaids = (await RaidEvent.findAll({ where: { time: { [Op.gt]: Math.floor(new Date().getTime() / 1000) } } })).sort((a, b) => b.time - a.time);
+                if (currentRaids.length === 0) {
+                    throw { name: "Сейчас нет созданных рейдов" };
+                }
+                else if (currentRaids.length === 1) {
+                    throw { name: "Сейчас создан лишь один рейд" };
+                }
+                const raidChannel = (await guild.channels.fetch(ids.raidChnId));
+                const components = [
+                    new ButtonBuilder().setCustomId(RaidButtons.join).setLabel("Записаться").setStyle(ButtonStyle.Success),
+                    new ButtonBuilder().setCustomId(RaidButtons.leave).setLabel("Выйти").setStyle(ButtonStyle.Danger),
+                    new ButtonBuilder().setCustomId(RaidButtons.alt).setLabel("Возможно буду").setStyle(ButtonStyle.Secondary),
+                ];
+                for await (const raid of currentRaids) {
+                    const embed = await updateRaidMessage(raid);
+                    if (!embed)
+                        continue;
+                    await (raidChannel.messages.cache.get(raid.messageId) || (await raidChannel.messages.fetch(raid.messageId))).delete();
+                    const message = await raidChannel.send({ embeds: [embed], components: await addButtonComponentsToMessage(components) });
+                    await raid.update({ messageId: message.id });
+                }
+                return;
+            }
             case "customRoleColor":
                 {
                     const initialColor = member.roles.highest.color;
@@ -37,7 +66,7 @@ export default {
                         role.then((r) => {
                             const resultRole = r instanceof Role ? r : r.roles.highest;
                             const resultEmbed = new EmbedBuilder()
-                                .setColor("Green")
+                                .setColor(colors.success)
                                 .setTitle("Цвет роли был изменен")
                                 .setDescription(`**Предыдущий:** ${initialColor.toString(16).toUpperCase()}\n**Текущий:** ${resultRole.color
                                 .toString(16)
@@ -77,7 +106,7 @@ export default {
                         role.then((r) => {
                             const resultRole = r instanceof Role ? r : r.roles.highest;
                             const resultEmbed = new EmbedBuilder()
-                                .setColor("Green")
+                                .setColor(colors.success)
                                 .setTitle("Название роли было изменено")
                                 .setDescription(`${previousName ? `**Предыдущий:** ${previousName}\n` : ""}**Текущий:** ${resultRole.name}`);
                             interaction.editReply({ embeds: [resultEmbed] });

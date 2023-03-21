@@ -6,7 +6,7 @@ import { Event } from "../structures/event.js";
 const guildChannel = client.channels.cache.get(ids.guildChnId);
 export default new Event("roleCreate", (role) => {
     const embed = new EmbedBuilder()
-        .setColor(colors.default)
+        .setColor(colors.success)
         .setAuthor({
         name: "Роль была создана",
         iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086267623534231705/3125-icon-modshield.png",
