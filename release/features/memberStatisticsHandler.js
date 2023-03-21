@@ -62,7 +62,7 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
             addRoles.push(statusRoles.verified);
         try {
             const userGuardianRank = destinyProfileResponse.profile.data.currentGuardianRank;
-            const guardianRankRoleId = guardianRankRoles.ranks[userGuardianRank - 1].roleId;
+            const guardianRankRoleId = (guardianRankRoles.ranks[userGuardianRank - 1] || guardianRankRoles.ranks[0]).roleId;
             if (!memberRoles.has(guardianRankRoleId)) {
                 addRoles.push(guardianRankRoleId);
                 removeRoles.push(...guardianRankRoles.allRoles.filter((roleId) => roleId !== guardianRankRoleId));

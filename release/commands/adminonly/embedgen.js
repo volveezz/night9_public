@@ -277,30 +277,28 @@ export default new Command({
                         .setDescription("Приём в клан у нас полностью автоматизирован\nВыполните 3 простых условия ниже и Вы будете приняты в кратчайшие сроки\nПо любым вопросам пишите <@719557130188750920> или <@298353895258980362>")
                         .addFields([
                         {
-                            name: "<:one:1086265280650551326> Зарегистрируйтесь у кланового бота",
+                            name: "<:eine:1087575481647374416> Зарегистрируйтесь у кланового бота",
                             value: "Нажмите кнопку `Регистрация` ниже или введите `/init`",
                         },
                         {
-                            name: "<:two:1086265933380730900> Заполните форму на вступление в клан",
+                            name: "<:zwei:1087575495912206357> Заполните форму на вступление в клан",
                             value: "Сделать это можно нажав на кнопку `Форма на вступление`",
                         },
                         {
-                            name: "<:three:1086265929425502280> Вступите в клан",
+                            name: "<:drei:1087575479617331253> Вступите в клан",
                             value: "[Подайте заявку в клан](https://www.bungie.net/ru/ClanV2?groupid=4123712) или отправьте её себе сами нажав `Приглашение в клан`",
                         },
                     ]);
                     const components = [
-                        {
-                            type: ComponentType.ActionRow,
-                            components: [
-                                new ButtonBuilder().setCustomId(RegisterButtons.register).setLabel("Регистрация").setStyle(ButtonStyle.Success),
-                                new ButtonBuilder().setCustomId(ClanButtons.modal).setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
-                                new ButtonBuilder().setCustomId(ClanButtons.invite).setLabel("Приглашение в клан").setStyle(ButtonStyle.Secondary),
-                            ],
-                        },
+                        new ButtonBuilder().setCustomId(RegisterButtons.register).setLabel("Регистрация").setStyle(ButtonStyle.Success),
+                        new ButtonBuilder().setCustomId(ClanButtons.modal).setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder().setCustomId(ClanButtons.invite).setLabel("Приглашение в клан").setStyle(ButtonStyle.Secondary),
                     ];
                     interaction.reply({ content: "Success", ephemeral: true });
-                    return interaction.channel.send({ embeds: [embed], components });
+                    return interaction.channel.send({
+                        embeds: [embed],
+                        components: await addButtonComponentsToMessage(components),
+                    });
                 }
                 case "godmsg1": {
                     const components = [
