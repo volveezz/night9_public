@@ -5,7 +5,7 @@ import { RegisterButtons } from "../enums/Buttons.js";
 import UserErrors from "../enums/UserErrors.js";
 function errorMessages(errorType, ...rest) {
     switch (errorType) {
-        case UserErrors.DB_USER_NOT_FOUND:
+        case UserErrors.DB_USER_NOT_FOUND: {
             const isSelf = rest[0]?.isSelf;
             return {
                 embeds: isSelf === false
@@ -45,7 +45,8 @@ function errorMessages(errorType, ...rest) {
                         },
                     ],
             };
-        case UserErrors.RAID_NOT_FOUND:
+        }
+        case UserErrors.RAID_NOT_FOUND: {
             return {
                 embeds: [
                     new EmbedBuilder()
@@ -57,7 +58,8 @@ function errorMessages(errorType, ...rest) {
                         .setColor(colors.error),
                 ],
             };
-        case UserErrors.RAID_MISSING_PERMISSIONS:
+        }
+        case UserErrors.RAID_MISSING_PERMISSIONS: {
             return {
                 embeds: [
                     new EmbedBuilder()
@@ -69,7 +71,8 @@ function errorMessages(errorType, ...rest) {
                         .setColor(colors.error),
                 ],
             };
-        case UserErrors.RAID_ALREADY_JOINED:
+        }
+        case UserErrors.RAID_ALREADY_JOINED: {
             return {
                 embeds: [
                     new EmbedBuilder()
@@ -80,7 +83,8 @@ function errorMessages(errorType, ...rest) {
                         .setColor(colors.serious),
                 ],
             };
-        case UserErrors.MEMBER_NOT_FOUND:
+        }
+        case UserErrors.MEMBER_NOT_FOUND: {
             return {
                 embeds: [
                     new EmbedBuilder()
@@ -92,7 +96,8 @@ function errorMessages(errorType, ...rest) {
                         .setColor(colors.error),
                 ],
             };
-        case UserErrors.WRONG_ID:
+        }
+        case UserErrors.WRONG_ID: {
             return {
                 embeds: [
                     new EmbedBuilder()
@@ -103,7 +108,8 @@ function errorMessages(errorType, ...rest) {
                         .setColor(colors.warning),
                 ],
             };
-        case UserErrors.WRONG_HEX:
+        }
+        case UserErrors.WRONG_HEX: {
             return {
                 embeds: [
                     new EmbedBuilder()
@@ -114,7 +120,8 @@ function errorMessages(errorType, ...rest) {
                         .setColor(colors.warning),
                 ],
             };
-        case UserErrors.RAID_MISSING_DATA_FOR_CLEARS:
+        }
+        case UserErrors.RAID_MISSING_DATA_FOR_CLEARS: {
             return {
                 embeds: [
                     new EmbedBuilder()
@@ -126,13 +133,14 @@ function errorMessages(errorType, ...rest) {
                         .setDescription(`Убедитесь в статусе регистрации или подождите несколько минут\nЗакрытые рейды проверяются только у участников клана или у пользователей, которые проявляют какой-либо актив на сервере`),
                 ],
             };
-        case UserErrors.RAID_NOT_ENOUGH_CLEARS:
-            const userClears = rest[0];
-            const raidRequirement = rest[1];
+        }
+        case UserErrors.RAID_NOT_ENOUGH_CLEARS: {
+            const userClears = rest[0][0];
+            const raidRequirement = rest[0][1];
             return {
                 embeds: [
                     new EmbedBuilder()
-                        .setColor(colors.warning)
+                        .setColor(colors.error)
                         .setAuthor({
                         iconURL: icons.error,
                         name: "Ошибка. Недостаточно закрытий рейда",
@@ -140,7 +148,8 @@ function errorMessages(errorType, ...rest) {
                         .setDescription(`Для записи на этот рейд необходимо ${raidRequirement} закрытий этого рейда, но у вас ${userClears}`),
                 ],
             };
-        case UserErrors.MISSING_PERMISSIONS:
+        }
+        case UserErrors.MISSING_PERMISSIONS: {
             return {
                 embeds: [
                     new EmbedBuilder().setColor(colors.error).setAuthor({
@@ -149,7 +158,8 @@ function errorMessages(errorType, ...rest) {
                     }),
                 ],
             };
-        case UserErrors.RAID_TIME_ERROR:
+        }
+        case UserErrors.RAID_TIME_ERROR: {
             return {
                 embeds: [
                     new EmbedBuilder().setColor(colors.error).setAuthor({
@@ -158,7 +168,8 @@ function errorMessages(errorType, ...rest) {
                     }),
                 ],
             };
-        case UserErrors.RAID_MISSING_DLC:
+        }
+        case UserErrors.RAID_MISSING_DLC: {
             return {
                 embeds: [
                     new EmbedBuilder()
@@ -170,7 +181,8 @@ function errorMessages(errorType, ...rest) {
                         .setDescription(`Для записи на этот рейд необходимо дополнение ${rest[0]}`),
                 ],
             };
-        case UserErrors.RAID_GUIDE_NOT_FOUND:
+        }
+        case UserErrors.RAID_GUIDE_NOT_FOUND: {
             return {
                 embeds: [
                     new EmbedBuilder().setColor(colors.error).setAuthor({
@@ -179,7 +191,8 @@ function errorMessages(errorType, ...rest) {
                     }),
                 ],
             };
-        default:
+        }
+        default: {
             return {
                 embeds: [
                     new EmbedBuilder().setColor(colors.error).setAuthor({
@@ -188,6 +201,7 @@ function errorMessages(errorType, ...rest) {
                     }),
                 ],
             };
+        }
     }
 }
 export { errorMessages };
