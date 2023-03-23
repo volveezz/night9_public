@@ -1,10 +1,10 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import { ids } from "../configs/ids.js";
+import { escapeString } from "../functions/utilities.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-import { escapeString } from "../functions/utilities.js";
-const messageChannel = client.channels.cache.get(ids.messagesChnId);
+const messageChannel = client.getCachedTextChannel(ids.messagesChnId);
 export default new Event("messageUpdate", (oldMessage, newMessage) => {
     if (!oldMessage.content?.length || oldMessage.content === newMessage.content)
         return;

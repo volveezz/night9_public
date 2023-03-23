@@ -1,21 +1,22 @@
-import { ButtonBuilder, ButtonStyle, EmbedBuilder, Role, TextChannel, VoiceChannel } from "discord.js";
-import colors from "../configs/colors.js";
-import { guildId, ids } from "../configs/ids.js";
-import UserErrors from "../enums/UserErrors.js";
-import { RaidEvent } from "../handlers/sequelize.js";
+import { EmbedBuilder, Role, TextChannel, VoiceChannel } from "discord.js";
 import { Op } from "sequelize";
-import { updateRaidMessage } from "../functions/raidFunctions.js";
-import { RaidButtons } from "../enums/Buttons.js";
+import colors from "../configs/colors.js";
+import icons from "../configs/icons.js";
+import { ids } from "../configs/ids.js";
+import UserErrors from "../enums/UserErrors.js";
 import { addButtonComponentsToMessage } from "../functions/addButtonsToMessage.js";
+import { updateRaidMessage } from "../functions/raidFunctions.js";
+import { RaidEvent } from "../handlers/sequelize.js";
 export default {
     name: "godEvent",
     run: async ({ client, interaction }) => {
         const param = interaction.customId.split("_")[1];
-        const member = (interaction.member ? interaction.member : client.guilds.cache.get(guildId)?.members.cache.get(interaction.user.id));
-        const channel = interaction.channel;
+        const member = (interaction.member ? interaction.member : client.getCachedMembers().get(interaction.user.id));
+        const channel = client.getCachedTextChannel(interaction.channelId) || interaction.channel;
         const guild = interaction.guild || client.getCachedGuild();
         switch (param) {
             case "sortraids": {
+                const deferredReply = interaction.deferReply({ ephemeral: true });
                 const currentRaids = (await RaidEvent.findAll({ where: { time: { [Op.gt]: Math.floor(new Date().getTime() / 1000) } } })).sort((a, b) => b.time - a.time);
                 if (currentRaids.length === 0) {
                     throw { name: "Сейчас нет созданных рейдов" };
@@ -24,19 +25,19 @@ export default {
                     throw { name: "Сейчас создан лишь один рейд" };
                 }
                 const raidChannel = (await guild.channels.fetch(ids.raidChnId));
-                const components = [
-                    new ButtonBuilder().setCustomId(RaidButtons.join).setLabel("Записаться").setStyle(ButtonStyle.Success),
-                    new ButtonBuilder().setCustomId(RaidButtons.leave).setLabel("Выйти").setStyle(ButtonStyle.Danger),
-                    new ButtonBuilder().setCustomId(RaidButtons.alt).setLabel("Возможно буду").setStyle(ButtonStyle.Secondary),
-                ];
                 for await (const raid of currentRaids) {
-                    const embed = await updateRaidMessage(raid);
-                    if (!embed)
+                    const { embeds, components } = (await updateRaidMessage(raid));
+                    if (!embeds)
                         continue;
                     await (raidChannel.messages.cache.get(raid.messageId) || (await raidChannel.messages.fetch(raid.messageId))).delete();
-                    const message = await raidChannel.send({ embeds: [embed], components: await addButtonComponentsToMessage(components) });
+                    const message = await raidChannel.send({ embeds, components: await addButtonComponentsToMessage(components) });
                     await raid.update({ messageId: message.id });
                 }
+                await deferredReply;
+                const embed = new EmbedBuilder()
+                    .setAuthor({ name: `${currentRaids.length} рейдов отсортировано по времени`, iconURL: icons.success })
+                    .setColor(colors.success);
+                interaction.editReply({ embeds: [embed] });
                 return;
             }
             case "customRoleColor":

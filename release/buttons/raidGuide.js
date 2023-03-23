@@ -1,8 +1,8 @@
+import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
+import colors from "../configs/colors.js";
 import raidsGuide from "../configs/raidguide.json" assert { type: "json" };
 import UserErrors from "../enums/UserErrors.js";
-import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { addButtonComponentsToMessage } from "../functions/addButtonsToMessage.js";
-import colors from "../configs/colors.js";
 export default {
     name: "raidGuide",
     run: async ({ interaction }) => {

@@ -2,10 +2,10 @@ import { ButtonBuilder, ButtonStyle, ChannelType, ComponentType, EmbedBuilder, }
 import { Op } from "sequelize";
 import colors from "../configs/colors.js";
 import { guildId, ids } from "../configs/ids.js";
-import UserErrors from "../enums/UserErrors.js";
-import { RaidEvent } from "../handlers/sequelize.js";
 import { RaidAdditionalFunctional, RaidButtons } from "../enums/Buttons.js";
+import UserErrors from "../enums/UserErrors.js";
 import { getRandomGIF } from "../functions/utilities.js";
+import { RaidEvent } from "../handlers/sequelize.js";
 export default {
     name: "raidInChnButton",
     run: async ({ client, interaction }) => {
@@ -236,8 +236,7 @@ export default {
             (await deferredReply) && interaction.followUp({ ephemeral: true, embeds: [replyEmbed] });
         }
         else if (interaction.customId === RaidButtons.unlock) {
-            const raidChannel = client.getCachedGuild().channels.cache.get(ids.raidChnId) ||
-                (await client.getCachedGuild().channels.fetch(ids.raidChnId));
+            const raidChannel = client.getCachedTextChannel(ids.raidChnId) || (await client.getCachedGuild().channels.fetch(ids.raidChnId));
             const raidMsg = raidChannel.messages.cache.get(raidData.messageId) || (await raidChannel.messages.fetch(raidData.messageId));
             let status = "закрыли";
             async function raidButtonsUnlocker() {
@@ -261,7 +260,7 @@ export default {
                 const raidMessageButtonRows = raidMsg.components.map((actionRow) => {
                     const raidMessageButtons = actionRow.components.map((component) => {
                         if (component.type === ComponentType.Button) {
-                            if (component.label === "Записаться" || component.label === "Возможно буду") {
+                            if (component.customId === RaidButtons.join || component.customId === RaidButtons.alt) {
                                 return ButtonBuilder.from(component).setDisabled(!component.disabled);
                             }
                             else {
@@ -314,7 +313,7 @@ export default {
                 filter: (i) => i.user.id === interaction.user.id,
             });
             collector.on("collect", async (col) => {
-                if (col.customId === "raidAddFunc_delete_confirm") {
+                if (col.customId === RaidButtons.deleteConfirm) {
                     const destroy = await RaidEvent.destroy({ where: { id: raidData.id } });
                     if (destroy === 1) {
                         try {
@@ -325,7 +324,7 @@ export default {
                             e.code !== 10008 ? console.error(e) : console.error("[Error code: 1427] raidDeleteBtn unknown msg err");
                         }
                         try {
-                            await (await client.getCachedGuild().channels.cache.get(ids.raidChnId).messages.fetch(raidData.messageId))?.delete();
+                            await (await client.getCachedTextChannel(ids.raidChnId).messages.fetch(raidData.messageId))?.delete();
                         }
                         catch (e) {
                             console.error(`[Error code: 1424] Message during raid manual delete for raidId ${raidData.id} wasn't found`);
@@ -347,7 +346,7 @@ export default {
                             interaction.message.edit({ components: [] });
                     }
                 }
-                else if (col.customId === "raidAddFunc_delete_cancel") {
+                else if (col.customId === RaidButtons.deleteCancel) {
                     const canceledEmbed = new EmbedBuilder().setColor(colors.warning).setTitle("Удаление рейда отменено");
                     col.update({ components: [], embeds: [canceledEmbed] });
                 }

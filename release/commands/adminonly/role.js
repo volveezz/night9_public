@@ -1,7 +1,7 @@
 import { ApplicationCommandOptionType, EmbedBuilder, GuildMember } from "discord.js";
-import { Command } from "../../structures/command.js";
 import colors from "../../configs/colors.js";
 import { timer } from "../../functions/utilities.js";
+import { Command } from "../../structures/command.js";
 export default new Command({
     name: "role",
     description: "Удаление ролей у пользователей",

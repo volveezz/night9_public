@@ -1,9 +1,9 @@
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
-import { guildId, ids } from "../configs/ids.js";
-import { client } from "../index.js";
+import { ids } from "../configs/ids.js";
 import { PatchnoteButtons } from "../enums/Buttons.js";
-const channelOfGods = client.guilds.cache.get(guildId)?.channels.cache.get(ids.godChnId);
-const newsChannel = client.guilds.cache.get(guildId)?.channels.cache.get(ids.newsChnId);
+import { client } from "../index.js";
+const channelOfGods = client.getCachedTextChannel(ids.godChnId);
+const newsChannel = client.getCachedTextChannel(ids.newsChnId);
 export default {
     name: "patchnoteEvent",
     run: async ({ interaction }) => {

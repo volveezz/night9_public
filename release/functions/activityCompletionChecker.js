@@ -1,11 +1,11 @@
-import { AuthData } from "../handlers/sequelize.js";
-import { fetchRequest } from "./fetchRequest.js";
-import { getRaidData } from "./raidFunctions.js";
 import { clanOnline } from "../features/memberStatisticsHandler.js";
+import { AuthData } from "../handlers/sequelize.js";
+import { apiStatus } from "../structures/apiStatus.js";
+import { fetchRequest } from "./fetchRequest.js";
+import { CachedDestinyActivityDefinition } from "./manifestHandler.js";
+import { getRaidData } from "./raidFunctions.js";
 import raidMilestoneHashes from "./raidMilestones.js";
 import { timer } from "./utilities.js";
-import { CachedDestinyActivityDefinition } from "./manifestHandler.js";
-import { apiStatus } from "../structures/apiStatus.js";
 export const activityCompletionCurrentProfiles = new Map();
 export const completedPhases = new Map();
 const currentlyRuning = new Map();
@@ -42,7 +42,7 @@ export async function clanOnlineMemberActivityChecker() {
                     if (!authData)
                         return console.error(`[Error code: 1438] No authorization data for user ${membershipId}`, raidMilestoneHash, activeCharacter);
                     if (!raidMilestoneHash)
-                        return console.error(`[Error code: 1440] No raid milestone data for user ${authData.bungieId}\n${activeCharacter.currentActivityHash} - ${raidMilestoneHash}\n`, activeCharacter.currentActivityHash, activeCharacter.currentActivityModeHash, activeCharacter.dateActivityStarted, activeCharacter.currentActivityModeHashes, activeCharacter.currentActivityModeType, activeCharacter.currentActivityModeTypes);
+                        return console.error(`[Error code: 1440] No raid milestone data for user ${authData.bungieId}\n${activeCharacter.currentActivityHash} - ${raidMilestoneHash}\n`, JSON.parse(activeCharacter.toString()));
                     activityCompletionChecker({
                         accessToken: authData.accessToken,
                         bungieId: membershipId,
@@ -118,7 +118,14 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
             console.error(`[Error code: 1636]`, error);
         }
     }
-    interval = setInterval(() => checkActivityHash(), 50000);
+    interval = setInterval(() => {
+        if (currentlyRuning.has(uniqueId)) {
+            checkActivityHash();
+        }
+        else {
+            clearInterval(interval);
+        }
+    }, 50000);
     currentlyRuning.set(uniqueId, interval);
     async function characterMilestonesChecker(response) {
         const characterMilestones = response.progressions.data.milestones;
@@ -129,6 +136,8 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                 for (const milestineIndex in updatedMilestone.activities) {
                     const cachedMilestoneActivity = cachedMilestone.activities[milestineIndex];
                     const updatedMilestoneActivity = updatedMilestone.activities[milestineIndex];
+                    if (!cachedMilestoneActivity || !updatedMilestoneActivity || !updatedMilestoneActivity.phases)
+                        return console.error(`[Error code: 1645]`, cachedMilestoneActivity, updatedMilestoneActivity);
                     for (const phaseIndexString in updatedMilestoneActivity.phases) {
                         const phaseIndex = parseInt(phaseIndexString);
                         const cachedMilestonePhase = cachedMilestoneActivity.phases[phaseIndex];
@@ -143,10 +152,12 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                                         end: -1,
                                     },
                                 ];
-                                let phase = alreadyCompletedPhases.find((ph) => ph.phase === updatedMilestoneActivity.phases[phaseIndex].phaseHash);
+                                let phase = alreadyCompletedPhases[alreadyCompletedPhases.length - 1];
                                 if (phase) {
                                     phase.end = new Date().getTime();
-                                    alreadyCompletedPhases.splice(alreadyCompletedPhases.findIndex((ph) => ph.phase === updatedMilestoneActivity.phases[phaseIndex].phaseHash), 1, { ...phase });
+                                    alreadyCompletedPhases.splice(alreadyCompletedPhases.length > 0 ? alreadyCompletedPhases.length - 1 : 0, 1, {
+                                        ...phase,
+                                    });
                                     if (updatedMilestoneActivity.phases[phaseIndex + 1] !== undefined &&
                                         updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash !== undefined) {
                                         alreadyCompletedPhases.push({

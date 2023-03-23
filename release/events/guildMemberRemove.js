@@ -1,11 +1,11 @@
 import { EmbedBuilder } from "discord.js";
+import colors from "../configs/colors.js";
 import { ids } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
+import { AuthData, LeavedUsersData, database } from "../handlers/sequelize.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-import { AuthData, LeavedUsersData, database } from "../handlers/sequelize.js";
-import colors from "../configs/colors.js";
-const guildMemberChannel = client.channels.cache.get(ids.guildMemberChnId);
+const guildMemberChannel = client.getCachedTextChannel(ids.guildMemberChnId);
 export default new Event("guildMemberRemove", (member) => {
     if (member.guild.bans.cache.has(member.id))
         return;

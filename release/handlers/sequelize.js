@@ -1,4 +1,4 @@
-import { Sequelize, Model, DataTypes } from "sequelize";
+import { DataTypes, Model, Sequelize } from "sequelize";
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: "postgres",
     ssl: true,
@@ -117,4 +117,4 @@ RaidEvent.init({
         values: ["1", "2", "3"],
     },
 }, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
-export { sequelize as database, AuthData, InitData, LeavedUsersData, AutoRoleData, UserActivityData, RaidEvent };
+export { AuthData, AutoRoleData, InitData, LeavedUsersData, RaidEvent, UserActivityData, sequelize as database };

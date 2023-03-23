@@ -1,17 +1,22 @@
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
+import icons from "../configs/icons.js";
+import { AutonameButtons } from "../enums/Buttons.js";
 import UserErrors from "../enums/UserErrors.js";
 import { AuthData } from "../handlers/sequelize.js";
 import { Command } from "../structures/command.js";
-import { AutonameButtons } from "../enums/Buttons.js";
 export default new Command({
     name: "autoname",
+    nameLocalizations: { "en-GB": "autonick", "en-US": "autonick" },
     description: "Управление автоматической сменой установкой своего ника",
-    descriptionLocalizations: { "en-US": "Control your autoname system" },
+    descriptionLocalizations: {
+        "en-US": "Enables or disables automatic nickname change",
+        "en-GB": "Enables or disables automatic nickname change",
+    },
     run: async ({ interaction }) => {
         const embed = new EmbedBuilder().setColor(colors.serious).setAuthor({
             name: "Идет обработка...",
-            iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1061566114787754004/volve_luchsii_lider.gif",
+            iconURL: icons.loading,
         });
         const reply = interaction.reply({ embeds: [embed], ephemeral: true });
         const dbInfo = await AuthData.findByPk(interaction.user.id);

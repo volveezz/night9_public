@@ -1,11 +1,11 @@
-import { ButtonBuilder, EmbedBuilder, ButtonStyle } from "discord.js";
-import { AuthData } from "../handlers/sequelize.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
+import colors from "../configs/colors.js";
+import { StatsButton } from "../enums/Buttons.js";
+import UserErrors from "../enums/UserErrors.js";
+import { addButtonComponentsToMessage } from "../functions/addButtonsToMessage.js";
 import { fetchRequest } from "../functions/fetchRequest.js";
 import { CachedDestinyMilestoneDefinition, CachedDestinyProgressionDefinition } from "../functions/manifestHandler.js";
-import UserErrors from "../enums/UserErrors.js";
-import colors from "../configs/colors.js";
-import { addButtonComponentsToMessage } from "../functions/addButtonsToMessage.js";
-import { StatsButton } from "../enums/Buttons.js";
+import { AuthData } from "../handlers/sequelize.js";
 export default {
     name: "statsEvent",
     async run({ interaction }) {

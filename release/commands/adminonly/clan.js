@@ -1,12 +1,12 @@
 import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, } from "discord.js";
-import { AuthData, UserActivityData } from "../../handlers/sequelize.js";
 import colors from "../../configs/colors.js";
-import { fetchRequest } from "../../functions/fetchRequest.js";
-import { Command } from "../../structures/command.js";
+import icons from "../../configs/icons.js";
 import { ClanButtons } from "../../enums/Buttons.js";
 import UserErrors from "../../enums/UserErrors.js";
-import icons from "../../configs/icons.js";
 import { addButtonComponentsToMessage } from "../../functions/addButtonsToMessage.js";
+import { fetchRequest } from "../../functions/fetchRequest.js";
+import { AuthData, UserActivityData } from "../../handlers/sequelize.js";
+import { Command } from "../../structures/command.js";
 export default new Command({
     name: "clan",
     description: "Clan management",

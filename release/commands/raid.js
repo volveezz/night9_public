@@ -1,19 +1,19 @@
-import { EmbedBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, } from "discord.js";
-import { Command } from "../structures/command.js";
-import { database, RaidEvent } from "../handlers/sequelize.js";
-import { completedRaidsData, userTimezones } from "../features/memberStatisticsHandler.js";
-import { ids, guildId } from "../configs/ids.js";
+import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder, } from "discord.js";
+import { schedule } from "node-cron";
 import { Op, Sequelize } from "sequelize";
 import colors from "../configs/colors.js";
-import UserErrors from "../enums/UserErrors.js";
-import { RaidButtons } from "../enums/Buttons.js";
-import { getRaidData, getRaidDatabaseInfo, raidAnnounceSystem, raidChallenges, timeConverter, updatePrivateRaidMessage, updateRaidMessage, } from "../functions/raidFunctions.js";
-import { RaidNames } from "../enums/Raids.js";
-import nameCleaner from "../functions/nameClearer.js";
-import { descriptionFormatter, escapeString } from "../functions/utilities.js";
-import { schedule } from "node-cron";
-import { addButtonComponentsToMessage } from "../functions/addButtonsToMessage.js";
+import { guildId, ids } from "../configs/ids.js";
 import raidsGuide from "../configs/raidguide.json" assert { type: "json" };
+import { RaidButtons } from "../enums/Buttons.js";
+import { RaidNames } from "../enums/Raids.js";
+import UserErrors from "../enums/UserErrors.js";
+import { completedRaidsData, userTimezones } from "../features/memberStatisticsHandler.js";
+import { addButtonComponentsToMessage } from "../functions/addButtonsToMessage.js";
+import nameCleaner from "../functions/nameClearer.js";
+import { getRaidData, getRaidDatabaseInfo, raidAnnounceSystem, raidChallenges, timeConverter, updatePrivateRaidMessage, updateRaidMessage, } from "../functions/raidFunctions.js";
+import { descriptionFormatter, escapeString } from "../functions/utilities.js";
+import { RaidEvent, database } from "../handlers/sequelize.js";
+import { Command } from "../structures/command.js";
 export const raidAnnounceSet = new Set();
 setTimeout(() => {
     RaidEvent.findAll({
@@ -39,58 +39,59 @@ export default new Command({
     name: "рейд",
     nameLocalizations: {
         "en-US": "raid",
+        "en-GB": "raid",
     },
     description: "Создание и управление наборами на рейды",
-    descriptionLocalizations: { "en-US": "Raid creation and management" },
+    descriptionLocalizations: { "en-US": "Raid creation and management", "en-GB": "Raid creation and management" },
     options: [
         {
             type: ApplicationCommandOptionType.Subcommand,
             name: "создать",
-            nameLocalizations: { "en-US": "create" },
+            nameLocalizations: { "en-US": "create", "en-GB": "create" },
             description: "Создание набора на рейд",
-            descriptionLocalizations: { "en-US": "Create raid LFG" },
+            descriptionLocalizations: { "en-US": "Create raid LFG", "en-GB": "Create raid LFG" },
             options: [
                 {
                     type: ApplicationCommandOptionType.String,
                     name: "рейд",
-                    nameLocalizations: { "en-US": "raid" },
+                    nameLocalizations: { "en-US": "raid", "en-GB": "raid" },
                     description: "Укажите рейд",
-                    descriptionLocalizations: { "en-US": "Specify the raid" },
+                    descriptionLocalizations: { "en-US": "Specify the raid", "en-GB": "Specify the raid" },
                     required: true,
                     choices: [
                         {
                             name: "Источник кошмаров",
-                            nameLocalizations: { "en-US": "Root of Nightmares" },
+                            nameLocalizations: { "en-US": "Root of Nightmares", "en-GB": "Root of Nightmares" },
                             value: "ron",
                         },
                         {
                             name: "Гибель короля",
-                            nameLocalizations: { "en-US": "King's Fall" },
+                            nameLocalizations: { "en-US": "King's Fall", "en-GB": "King's Fall" },
                             value: "kf",
                         },
                         {
                             name: "Клятва послушника",
-                            nameLocalizations: { "en-US": "Vow of the Disciple" },
+                            nameLocalizations: { "en-US": "Vow of the Disciple", "en-GB": "Vow of the Disciple" },
                             value: "votd",
                         },
                         {
                             name: "Хрустальный чертог",
-                            nameLocalizations: { "en-US": "Vault of Glass" },
+                            nameLocalizations: { "en-US": "Vault of Glass", "en-GB": "Vault of Glass" },
                             value: "vog",
                         },
                         {
                             name: "Склеп Глубокого камня",
-                            nameLocalizations: { "en-US": "Deep Stone Crypt" },
+                            nameLocalizations: { "en-US": "Deep Stone Crypt", "en-GB": "Deep Stone Crypt" },
                             value: "dsc",
                         },
                         {
                             name: "Сад спасения",
-                            nameLocalizations: { "en-US": "Garden of Salvation" },
+                            nameLocalizations: { "en-US": "Garden of Salvation", "en-GB": "Garden of Salvation" },
                             value: "gos",
                         },
                         {
                             name: "Последнее желание",
-                            nameLocalizations: { "en-US": "Last Wish" },
+                            nameLocalizations: { "en-US": "Last Wish", "en-GB": "Last Wish" },
                             value: "lw",
                         },
                     ],
@@ -98,18 +99,24 @@ export default new Command({
                 {
                     type: ApplicationCommandOptionType.String,
                     name: "время",
-                    nameLocalizations: { "en-US": "time" },
+                    nameLocalizations: { "en-US": "time", "en-GB": "time" },
                     description: "Укажите время старта. Формат: ЧАС:МИНУТА ДЕНЬ/МЕСЯЦ",
-                    descriptionLocalizations: { "en-US": "Specify the start time in the format: HH:mm dd/MM" },
+                    descriptionLocalizations: {
+                        "en-US": "Specify the start time in the format: HH:mm dd/MM",
+                        "en-GB": "Specify the start time in the format: HH:mm dd/MM",
+                    },
                     autocomplete: true,
                     required: true,
                 },
                 {
                     type: ApplicationCommandOptionType.String,
                     name: "описание",
-                    nameLocalizations: { "en-US": "description" },
+                    nameLocalizations: { "en-US": "description", "en-GB": "description" },
                     description: "Укажите описание набора. Вы можете указать здесь что угодно. Знаки для разметки: \\n \\*",
-                    descriptionLocalizations: { "en-US": "Provide a description. You can specify anything here. Markdown symbols: \\n \\*" },
+                    descriptionLocalizations: {
+                        "en-US": "Provide a description. You can specify anything here. Markdown symbols: \\n \\*",
+                        "en-GB": "Provide a description. You can specify anything here. Markdown symbols: \\n \\*",
+                    },
                     maxLength: 1000,
                 },
                 {
@@ -117,18 +124,21 @@ export default new Command({
                     minValue: 1,
                     maxValue: 2,
                     name: "сложность",
-                    nameLocalizations: { "en-US": "difficulty" },
+                    nameLocalizations: { "en-US": "difficulty", "en-GB": "difficulty" },
                     description: "Укажите сложность рейда. По умолч.: нормальный",
-                    descriptionLocalizations: { "en-US": "Specify raid difficulty. Default: normal" },
+                    descriptionLocalizations: {
+                        "en-US": "Specify raid difficulty. Default: normal",
+                        "en-GB": "Specify raid difficulty. Default: normal",
+                    },
                     choices: [
                         {
                             name: "Нормальный",
-                            nameLocalizations: { "en-US": "Normal" },
+                            nameLocalizations: { "en-US": "Normal", "en-GB": "Normal" },
                             value: 1,
                         },
                         {
                             name: "Мастер",
-                            nameLocalizations: { "en-US": "Master" },
+                            nameLocalizations: { "en-US": "Master", "en-GB": "Master" },
                             value: 2,
                         },
                     ],
@@ -138,69 +148,78 @@ export default new Command({
                     minValue: 0,
                     maxValue: 1000,
                     name: "требуемых_закрытий",
-                    nameLocalizations: { "en-US": "clears_requirement" },
+                    nameLocalizations: { "en-US": "clears_requirement", "en-GB": "clears_requirement" },
                     description: "Укажите минимальное количество закрытий этого рейда для записи",
-                    descriptionLocalizations: { "en-US": "Specify minimum number of completions of this raid for join" },
+                    descriptionLocalizations: {
+                        "en-US": "Specify minimum number of completions of this raid for join",
+                        "en-GB": "Specify minimum number of completions of this raid for join",
+                    },
                 },
             ],
         },
         {
             type: ApplicationCommandOptionType.Subcommand,
             name: "изменить",
-            nameLocalizations: { "en-US": "edit" },
+            nameLocalizations: { "en-US": "edit", "en-GB": "edit" },
             description: "Изменение созданного набора",
-            descriptionLocalizations: { "en-US": "Modify existing raid" },
+            descriptionLocalizations: { "en-US": "Modify existing raid", "en-GB": "Modify existing raid" },
             options: [
                 {
                     type: ApplicationCommandOptionType.Integer,
                     min_value: 1,
                     max_value: 100,
                     name: "id_рейда",
-                    nameLocalizations: { "en-US": "raid_id" },
+                    nameLocalizations: { "en-US": "raid_id", "en-GB": "raid_id" },
                     autocomplete: true,
                     description: "Укажите Id редактируемого рейда",
-                    descriptionLocalizations: { "en-US": "Specify the raid id of modified raid" },
+                    descriptionLocalizations: {
+                        "en-US": "Specify the raid id of modified raid",
+                        "en-GB": "Specify the raid id of modified raid",
+                    },
                 },
                 {
                     type: ApplicationCommandOptionType.String,
                     name: "новый_рейд",
-                    nameLocalizations: { "en-US": "new_raid" },
+                    nameLocalizations: { "en-US": "new_raid", "en-GB": "new_raid" },
                     description: "Если вы хотите изменить рейд набора - укажите новый",
-                    descriptionLocalizations: { "en-US": "Specify new raid if you want to change it" },
+                    descriptionLocalizations: {
+                        "en-US": "Specify new raid if you want to change it",
+                        "en-GB": "Specify new raid if you want to change it",
+                    },
                     choices: [
                         {
                             name: "Источник кошмаров",
-                            nameLocalizations: { "en-US": "Root of Nightmares" },
+                            nameLocalizations: { "en-US": "Root of Nightmares", "en-GB": "Root of Nightmares" },
                             value: "ron",
                         },
                         {
                             name: "Гибель короля",
-                            nameLocalizations: { "en-US": "King's Fall" },
+                            nameLocalizations: { "en-US": "King's Fall", "en-GB": "King's Fall" },
                             value: "kf",
                         },
                         {
                             name: "Клятва послушника",
-                            nameLocalizations: { "en-US": "Vow of the Disciple" },
+                            nameLocalizations: { "en-US": "Vow of the Disciple", "en-GB": "Vow of the Disciple" },
                             value: "votd",
                         },
                         {
                             name: "Хрустальный чертог",
-                            nameLocalizations: { "en-US": "Vault of Glass" },
+                            nameLocalizations: { "en-US": "Vault of Glass", "en-GB": "Vault of Glass" },
                             value: "vog",
                         },
                         {
                             name: "Склеп Глубокого камня",
-                            nameLocalizations: { "en-US": "Deep Stone Crypt" },
+                            nameLocalizations: { "en-US": "Deep Stone Crypt", "en-GB": "Deep Stone Crypt" },
                             value: "dsc",
                         },
                         {
                             name: "Сад спасения",
-                            nameLocalizations: { "en-US": "Garden of Salvation" },
+                            nameLocalizations: { "en-US": "Garden of Salvation", "en-GB": "Garden of Salvation" },
                             value: "gos",
                         },
                         {
                             name: "Последнее желание",
-                            nameLocalizations: { "en-US": "Last Wish" },
+                            nameLocalizations: { "en-US": "Last Wish", "en-GB": "Last Wish" },
                             value: "lw",
                         },
                     ],
@@ -208,25 +227,29 @@ export default new Command({
                 {
                     type: ApplicationCommandOptionType.String,
                     name: "новое_время",
-                    nameLocalizations: { "en-US": "new_time" },
+                    nameLocalizations: { "en-US": "new_time", "en-GB": "new_time" },
                     autocomplete: true,
                     description: "Укажите измененное время старта. Формат: ЧАС:МИНУТА ДЕНЬ/МЕСЯЦ",
-                    descriptionLocalizations: { "en-US": "Specify changed LFG start time in format: HH:mm dd/MM" },
+                    descriptionLocalizations: {
+                        "en-US": "Specify changed LFG start time in format: HH:mm dd/MM",
+                        "en-GB": "Specify changed LFG start time in format: HH:mm dd/MM",
+                    },
                 },
                 {
                     type: ApplicationCommandOptionType.User,
                     name: "новый_создатель",
-                    nameLocalizations: { "en-US": "new_creator" },
+                    nameLocalizations: { "en-US": "new_creator", "en-GB": "new_creator" },
                     description: "Укажите нового создателя рейда",
-                    descriptionLocalizations: { "en-US": "Specify new LFG creator" },
+                    descriptionLocalizations: { "en-US": "Specify new LFG creator", "en-GB": "Specify new LFG creator" },
                 },
                 {
                     type: ApplicationCommandOptionType.String,
                     name: "новое_описание",
-                    nameLocalizations: { "en-US": "new_description" },
+                    nameLocalizations: { "en-US": "new_description", "en-GB": "new_description" },
                     description: "Укажите измененное описание. Вы можете указать здесь что угодно. Знаки для разметки: \\n \\*",
                     descriptionLocalizations: {
                         "en-US": "Specify new LFG description. You can write anything here. Formatting symbols: \\n \\*",
+                        "en-GB": "Specify new LFG description. You can write anything here. Formatting symbols: \\n \\*",
                     },
                 },
                 {
@@ -234,18 +257,21 @@ export default new Command({
                     name: "новая_сложность",
                     minValue: 1,
                     maxValue: 2,
-                    nameLocalizations: { "en-US": "new_difficulty" },
+                    nameLocalizations: { "en-US": "new_difficulty", "en-GB": "new_difficulty" },
                     description: "Укажите сложность рейда. По умолч.: нормальный",
-                    descriptionLocalizations: { "en-US": "Specify raid difficulty. Default: normal" },
+                    descriptionLocalizations: {
+                        "en-US": "Specify raid difficulty. Default: normal",
+                        "en-GB": "Specify raid difficulty. Default: normal",
+                    },
                     choices: [
                         {
                             name: "Нормальный",
-                            nameLocalizations: { "en-US": "Normal" },
+                            nameLocalizations: { "en-US": "Normal", "en-GB": "Normal" },
                             value: 1,
                         },
                         {
                             name: "Мастер",
-                            nameLocalizations: { "en-US": "Master" },
+                            nameLocalizations: { "en-US": "Master", "en-GB": "Master" },
                             value: 2,
                         },
                     ],
@@ -256,8 +282,11 @@ export default new Command({
                     maxValue: 1000,
                     name: "новое_требование_закрытий",
                     description: "Укажите новое минимальное количество закрытий этого рейда для записи",
-                    descriptionLocalizations: { "en-US": "Specify raid clears requirement of this raid for joining LFG" },
-                    nameLocalizations: { "en-US": "new_clears_requirement" },
+                    descriptionLocalizations: {
+                        "en-US": "Specify raid clears requirement of this raid for joining LFG",
+                        "en-GB": "Specify raid clears requirement of this raid for joining LFG",
+                    },
+                    nameLocalizations: { "en-US": "new_clears_requirement", "en-GB": "new_clears_requirement" },
                 },
                 {
                     type: ApplicationCommandOptionType.Boolean,
@@ -269,50 +298,56 @@ export default new Command({
         {
             type: ApplicationCommandOptionType.Subcommand,
             name: "добавить",
-            nameLocalizations: { "en-US": "add" },
+            nameLocalizations: { "en-US": "add", "en-GB": "add" },
             description: "Добавление участника на набор",
-            descriptionLocalizations: { "en-US": "Add user to LFG" },
+            descriptionLocalizations: { "en-US": "Add user to LFG", "en-GB": "Add user to LFG" },
             options: [
                 {
                     type: ApplicationCommandOptionType.User,
                     name: "участник",
-                    nameLocalizations: { "en-US": "user" },
+                    nameLocalizations: { "en-US": "user", "en-GB": "user" },
                     description: "Укажите добавляемого участника",
-                    descriptionLocalizations: { "en-US": "Specify the user" },
+                    descriptionLocalizations: { "en-US": "Specify the user", "en-GB": "Specify the user" },
                     required: true,
                 },
                 {
                     type: ApplicationCommandOptionType.Boolean,
                     name: "альтернатива",
-                    nameLocalizations: { "en-US": "isalt" },
+                    nameLocalizations: { "en-US": "isalt", "en-GB": "isalt" },
                     description: "Укажите группу добавляемого участника",
-                    descriptionLocalizations: { "en-US": "Specify if user should be added as alternative" },
+                    descriptionLocalizations: {
+                        "en-US": "Specify if user should be added as alternative",
+                        "en-GB": "Specify if user should be added as alternative",
+                    },
                 },
                 {
                     type: ApplicationCommandOptionType.Integer,
                     min_value: 1,
                     max_value: 100,
                     name: "id_рейда",
-                    nameLocalizations: { "en-US": "raid_id" },
+                    nameLocalizations: { "en-US": "raid_id", "en-GB": "raid_id" },
                     autocomplete: true,
                     description: "Укажите Id рейда, на который добавляем участника",
-                    descriptionLocalizations: { "en-US": "Specify the raid id of the raid you are adding the user to" },
+                    descriptionLocalizations: {
+                        "en-US": "Specify the raid id of the raid you are adding the user to",
+                        "en-GB": "Specify the raid id of the raid you are adding the user to",
+                    },
                 },
             ],
         },
         {
             type: ApplicationCommandOptionType.Subcommand,
             name: "исключить",
-            nameLocalizations: { "en-US": "kick" },
+            nameLocalizations: { "en-US": "kick", "en-GB": "kick" },
             description: "Исключение участника из набора",
-            descriptionLocalizations: { "en-US": "Kick user from LFG" },
+            descriptionLocalizations: { "en-US": "Kick user from LFG", "en-GB": "Kick user from LFG" },
             options: [
                 {
                     type: ApplicationCommandOptionType.User,
                     name: "участник",
-                    nameLocalizations: { "en-US": "user" },
+                    nameLocalizations: { "en-US": "user", "en-GB": "user" },
                     description: "Укажите исключаемого участника",
-                    descriptionLocalizations: { "en-US": "Specify user to kick" },
+                    descriptionLocalizations: { "en-US": "Specify user to kick", "en-GB": "Specify user to kick" },
                     required: true,
                 },
                 {
@@ -320,29 +355,35 @@ export default new Command({
                     min_value: 1,
                     max_value: 100,
                     name: "id_рейда",
-                    nameLocalizations: { "en-US": "raid_id" },
+                    nameLocalizations: { "en-US": "raid_id", "en-GB": "raid_id" },
                     autocomplete: true,
                     description: "Укажите Id рейда, из которого исключаем участника",
-                    descriptionLocalizations: { "en-US": "Specify the raid id of the raid from which you are kicking the user" },
+                    descriptionLocalizations: {
+                        "en-US": "Specify the raid id of the raid from which you are kicking the user",
+                        "en-GB": "Specify the raid id of the raid from which you are kicking the user",
+                    },
                 },
             ],
         },
         {
             type: ApplicationCommandOptionType.Subcommand,
             name: "удалить",
-            nameLocalizations: { "en-US": "delete" },
+            nameLocalizations: { "en-US": "delete", "en-GB": "delete" },
             description: "Удаление/отмена созданного набора",
-            descriptionLocalizations: { "en-US": "Delete/cancel LFG" },
+            descriptionLocalizations: { "en-US": "Delete/cancel LFG", "en-GB": "Delete/cancel LFG" },
             options: [
                 {
                     type: ApplicationCommandOptionType.Integer,
                     min_value: 1,
                     max_value: 100,
                     name: "id_рейда",
-                    nameLocalizations: { "en-US": "raid_id" },
+                    nameLocalizations: { "en-US": "raid_id", "en-GB": "raid_id" },
                     autocomplete: true,
                     description: "Укажите Id удаляемого рейда",
-                    descriptionLocalizations: { "en-US": "Specify the raid id of the raid you are deletting" },
+                    descriptionLocalizations: {
+                        "en-US": "Specify the raid id of the raid you are deletting",
+                        "en-GB": "Specify the raid id of the raid you are deletting",
+                    },
                 },
             ],
         },
@@ -506,7 +547,7 @@ export default new Command({
             const raidInfo = getRaidData((newRaid || raidData.raid), newDifficulty ?? raidData.difficulty);
             const { time, requiredClears: reqClears, messageId: msgId } = raidData;
             const changes = [];
-            const raidMessage = await client.getCachedGuild().channels.cache.get(ids.raidChnId).messages.fetch(msgId);
+            const raidMessage = await client.getCachedTextChannel(ids.raidChnId).messages.fetch(msgId);
             const raidEmbed = EmbedBuilder.from(raidMessage?.embeds[0]);
             const t = await database.transaction();
             const changesForChannel = [];
@@ -534,12 +575,9 @@ export default new Command({
                         transaction: t,
                     });
                     if (raidInfo.raid !== RaidNames.ron)
-                        raidChallenges(raidInfo, client.getCachedGuild().channels.cache.get(raidData.channelId).messages.cache.get(raidData.inChannelMessageId) ??
-                            (await client.getCachedGuild().channels.cache.get(raidData.channelId).messages.fetch(raidData.inChannelMessageId)), raidData.time, newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : raidData.difficulty);
-                    client
-                        .getCachedGuild()
-                        .channels.cache.get(raidData.channelId)
-                        .edit({ name: `🔥｜${raidData.id}-${raidInfo.channelName}` });
+                        raidChallenges(raidInfo, client.getCachedTextChannel(raidData.channelId).messages.cache.get(raidData.inChannelMessageId) ??
+                            (await client.getCachedTextChannel(raidData.channelId).messages.fetch(raidData.inChannelMessageId)), raidData.time, newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : raidData.difficulty);
+                    client.getCachedTextChannel(raidData.channelId).edit({ name: `🔥｜${raidData.id}-${raidInfo.channelName}` });
                 }
                 if (newDifficulty !== null && raidInfo.maxDifficulty >= newDifficulty) {
                     changesForChannel.push({
@@ -642,7 +680,7 @@ export default new Command({
             }
             if (newRaidLeader !== null) {
                 if (!newRaidLeader.bot) {
-                    const raidChn = client.getCachedGuild().channels.cache.get(raidData.channelId);
+                    const raidChn = client.getCachedTextChannel(raidData.channelId);
                     const raidLeaderName = nameCleaner(interaction.guild.members.cache.get(newRaidLeader.id).displayName);
                     raidChn.permissionOverwrites.edit(raidData.creator, { ManageMessages: null, MentionEveryone: null });
                     raidChn.permissionOverwrites.edit(newRaidLeader.id, {
@@ -697,8 +735,7 @@ export default new Command({
                     text: `Изменение ${raidData.creator === interaction.user.id ? "создателем рейда" : "администратором"}`,
                 });
                 editedEmbedReplyInChn.addFields(changesForChannel);
-                !isSilent &&
-                    client.getCachedGuild().channels.cache.get(raidData.channelId).send({ embeds: [editedEmbedReplyInChn] });
+                !isSilent && client.getCachedTextChannel(raidData.channelId).send({ embeds: [editedEmbedReplyInChn] });
             }
             else {
                 await t.rollback();
@@ -749,7 +786,7 @@ export default new Command({
             const userAlreadyAlt = raidData.alt.includes(addedUser.id);
             const userTarget = args.getBoolean("альтернатива") === true
                 ? "alt"
-                : raidData.joined.length >= 6 && !userAlreadyInHotJoined
+                : raidData.joined.length >= 6 && !userAlreadyInHotJoined && !userAlreadyJoined
                     ? "hotJoined"
                     : "joined";
             const embedReply = new EmbedBuilder();
@@ -803,7 +840,7 @@ export default new Command({
                 where: { id: raidData.id },
                 returning: ["id", "channelId", "inChannelMessageId", "joined", "hotJoined", "alt", "messageId", "raid", "difficulty"],
             });
-            const raidChn = client.getCachedGuild().channels.cache.get(raidData.channelId);
+            const raidChn = client.getCachedTextChannel(raidData.channelId);
             raidChn.send({ embeds: [embedReply] });
             raidChn.permissionOverwrites.create(addedUser.id, {
                 ViewChannel: true,
@@ -860,7 +897,7 @@ export default new Command({
                     .setFooter({
                     text: `Пользователь исключен ${raidData.creator === interaction.user.id ? "создателем рейда" : "администратором"}`,
                 });
-                const raidChn = client.getCachedGuild().channels.cache.get(raidData.channelId);
+                const raidChn = client.getCachedTextChannel(raidData.channelId);
                 raidChn.send({ embeds: [inChnEmbed] });
                 raidChn.permissionOverwrites.delete(kickableUser.id);
                 (await deferredReply) && interaction.editReply({ embeds: [embed] });

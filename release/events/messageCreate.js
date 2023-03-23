@@ -1,14 +1,14 @@
 import { EmbedBuilder, Message } from "discord.js";
+import colors from "../configs/colors.js";
 import { ids } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
 import { adminDmChnManager } from "../functions/adminDmManager.js";
 import { dmHandler } from "../functions/dmHandler.js";
 import { patchnoteGenerator } from "../functions/patchnoteGenerator.js";
+import { sendRegistrationLink } from "../functions/registration.js";
 import { activityReceiver } from "../handlers/discordActivity.js";
 import { pvePartyHandler } from "../handlers/pvePartyHandler.js";
 import { Event } from "../structures/event.js";
-import { sendRegistrationLink } from "../functions/registration.js";
-import colors from "../configs/colors.js";
 export default new Event("messageCreate", async (message) => {
     try {
         if (!message.author || message.author.bot || message.system || !(message instanceof Message))

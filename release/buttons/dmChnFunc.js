@@ -1,11 +1,11 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
+import { ids } from "../configs/ids.js";
+import { AdminDMChannelButtons } from "../enums/Buttons.js";
 import UserErrors from "../enums/UserErrors.js";
 import { logClientDmMessages } from "../functions/logger.js";
 import nameCleaner from "../functions/nameClearer.js";
 import { descriptionFormatter } from "../functions/utilities.js";
-import { ids } from "../configs/ids.js";
-import { AdminDMChannelButtons } from "../enums/Buttons.js";
 export default {
     name: "dmChnFunc",
     run: async ({ client, interaction }) => {

@@ -1,10 +1,10 @@
 import { ActivityType, Client, Collection, GatewayIntentBits, Partials, } from "discord.js";
-import { resolve, join } from "path";
-import getFiles from "../handlers/fileReader.js";
+import { join, resolve } from "path";
 import { guildId } from "../configs/ids.js";
+import { clanOnlineMemberActivityChecker } from "../functions/activityCompletionChecker.js";
 import { raidMilestones } from "../functions/raidMilestones.js";
 import convertSeconds from "../functions/utilities.js";
-import { clanOnlineMemberActivityChecker } from "../functions/activityCompletionChecker.js";
+import getFiles from "../handlers/fileReader.js";
 const __dirname = resolve();
 export class ExtendedClient extends Client {
     commands = new Collection();
@@ -66,6 +66,9 @@ export class ExtendedClient extends Client {
     }
     getCachedMembers() {
         return (this.guild || this.guilds.cache.get(guildId)).members.cache;
+    }
+    getCachedTextChannel(id) {
+        return (this.guild || this.guilds.cache.get(guildId)).channels.cache.get(id);
     }
     async importFile(filePath) {
         return (await import(filePath))?.default;

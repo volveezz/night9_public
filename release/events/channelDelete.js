@@ -3,7 +3,7 @@ import { ids } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import colors from "../configs/colors.js";
-const guildChannel = client.channels.cache.get(ids.guildChnId);
+const guildChannel = client.getCachedTextChannel(ids.guildChnId);
 export default new Event("channelDelete", (channel) => {
     const embed = new EmbedBuilder().setColor(colors.error).setAuthor({
         name: "Канал удален",

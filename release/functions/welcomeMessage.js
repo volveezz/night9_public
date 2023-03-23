@@ -3,8 +3,8 @@ import { clan } from "../configs/channels.js";
 import colors from "../configs/colors.js";
 import { guildId } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
-import { AuthData } from "../handlers/sequelize.js";
 import { ClanButtons, RegisterButtons } from "../enums/Buttons.js";
+import { AuthData } from "../handlers/sequelize.js";
 import { escapeString } from "./utilities.js";
 export default function welcomeMessage(member) {
     member.roles

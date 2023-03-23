@@ -1,19 +1,23 @@
-import { ButtonBuilder, EmbedBuilder, ChatInputCommandInteraction, ButtonStyle, ComponentType, ApplicationCommandType, } from "discord.js";
-import { Command } from "../structures/command.js";
-import { AuthData, UserActivityData } from "../handlers/sequelize.js";
-import { CachedDestinyRaceDefinition } from "../functions/manifestHandler.js";
-import { fetchRequest } from "../functions/fetchRequest.js";
+import { ApplicationCommandType, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType, EmbedBuilder, } from "discord.js";
+import colors from "../configs/colors.js";
 import { StatsButton } from "../enums/Buttons.js";
 import UserErrors from "../enums/UserErrors.js";
-import colors from "../configs/colors.js";
+import { fetchRequest } from "../functions/fetchRequest.js";
+import { CachedDestinyRaceDefinition } from "../functions/manifestHandler.js";
 import convertSeconds from "../functions/utilities.js";
+import { AuthData, UserActivityData } from "../handlers/sequelize.js";
+import { Command } from "../structures/command.js";
 export default new Command({
     name: "информация",
     nameLocalizations: {
         "en-US": "information",
+        "en-GB": "information",
     },
     description: "Подробная информация и статистика аккаунта",
-    descriptionLocalizations: { "en-US": "Detailed information and statistic about the account" },
+    descriptionLocalizations: {
+        "en-US": "Detailed information and statistic about the account",
+        "en-GB": "Detailed information and statistic about the account",
+    },
     userContextMenu: {
         name: "Информация",
         type: ApplicationCommandType.User,

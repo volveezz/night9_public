@@ -1,10 +1,10 @@
-import { AuthData } from "../handlers/sequelize.js";
 import { Op } from "sequelize";
-import { longOffline } from "./memberStatisticsHandler.js";
-import { Feature } from "../structures/feature.js";
-import { apiStatus } from "../structures/apiStatus.js";
 import { destinyActivityChecker } from "../functions/activitiesChecker.js";
 import { timer } from "../functions/utilities.js";
+import { AuthData } from "../handlers/sequelize.js";
+import { apiStatus } from "../structures/apiStatus.js";
+import { Feature } from "../structures/feature.js";
+import { longOffline } from "./memberStatisticsHandler.js";
 export default new Feature({
     execute: async ({ client }) => {
         if (process.env.DEV_BUILD === "dev")
@@ -28,9 +28,8 @@ export default new Feature({
                 .map((d) => {
                 return `[Error code: 1008] ${d.displayName}/${d.discordId} not found on server`;
             });
-            dbNotFoundUsers.length > 0 && process.env.DEV_BUILD !== "dev"
-                ? (await client.getCachedGuild().fetch(), console.error("[Error code: 1005]", dbNotFoundUsers))
-                : [];
+            if (dbNotFoundUsers.length > 0 && process.env.DEV_BUILD !== "dev")
+                await client.getCachedGuild().fetch(), console.error("[Error code: 1005]", dbNotFoundUsers);
             const databaseData = unfilteredDatabase.filter((data) => client.getCachedMembers().has(data.discordId));
             if (!databaseData)
                 return console.error(`[Error code: 1006] DB is not avaliable`, databaseData);

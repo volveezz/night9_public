@@ -15,7 +15,7 @@ export async function fetchRequest(cleanUrl, authorizationData) {
         if (status === 522)
             return console.error(`[Error code: 1117] Timed out error`);
         if (status >= 400 && status <= 599)
-            return console.error(`[Error code: 1228] ${status} web error code`, e);
+            return console.error(`[Error code: 1228] ${status} web error code`, e.toString());
         console.error(`[Error code: 1064] ${status} statusCode\n`, e.stack);
         return undefined;
     });

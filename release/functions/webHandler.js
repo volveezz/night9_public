@@ -1,12 +1,12 @@
-import { ButtonBuilder, EmbedBuilder, ComponentType, ButtonStyle } from "discord.js";
+import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import fetch from "node-fetch";
+import colors from "../configs/colors.js";
 import { ids } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
-import fetch from "node-fetch";
+import { ClanButtons } from "../enums/Buttons.js";
 import { AuthData, InitData, UserActivityData } from "../handlers/sequelize.js";
 import { client } from "../index.js";
 import { fetchRequest } from "./fetchRequest.js";
-import colors from "../configs/colors.js";
-import { ClanButtons } from "../enums/Buttons.js";
 import { escapeString } from "./utilities.js";
 export default async function webHandler(code, state, res) {
     const json = await InitData.findOne({ where: { state: state } });
@@ -117,7 +117,7 @@ export default async function webHandler(code, state, res) {
             loggedEmbed.addFields([{ name: "Текущий клан", value: `${clanResponse.results[0].group.name}`, inline: true }]);
         }
         try {
-            client.getCachedGuild().channels.cache.get(ids.botChnId).send({ embeds: [loggedEmbed] });
+            client.getCachedTextChannel(ids.botChnId).send({ embeds: [loggedEmbed] });
         }
         catch (error) {
             console.error(`[Error code: 1236] Failed to send log message for ${displayName}`);

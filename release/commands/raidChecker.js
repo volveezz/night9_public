@@ -1,32 +1,34 @@
 import { ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, UserContextMenuCommandInteraction } from "discord.js";
+import colors from "../configs/colors.js";
+import { fetchRequest } from "../functions/fetchRequest.js";
+import { CachedDestinyActivityDefinition } from "../functions/manifestHandler.js";
 import { AuthData } from "../handlers/sequelize.js";
 import { Command } from "../structures/command.js";
-import { CachedDestinyActivityDefinition } from "../functions/manifestHandler.js";
-import { fetchRequest } from "../functions/fetchRequest.js";
-import colors from "../configs/colors.js";
 export default new Command({
     name: "закрытия_рейдов",
     nameLocalizations: {
         "en-US": "raid_checker",
+        "en-GB": "raid_checker",
     },
     description: "Статистика закрытых рейдов на каждом классе",
     descriptionLocalizations: {
         "en-US": "Statistics of completed raid on each character",
+        "en-GB": "Statistics of completed raid on each character",
     },
     options: [
         {
             type: ApplicationCommandOptionType.User,
             name: "пользователь",
-            nameLocalizations: { "en-US": "user" },
+            nameLocalizations: { "en-US": "user", "en-GB": "user" },
             description: "Укажите искомого пользователя",
-            descriptionLocalizations: { "en-US": "Select the user" },
+            descriptionLocalizations: { "en-US": "Select the user", "en-GB": "Select the user" },
         },
         {
             type: ApplicationCommandOptionType.Boolean,
             name: "все_активности",
-            nameLocalizations: { "en-US": "all_activities" },
+            nameLocalizations: { "en-US": "all_activities", "en-GB": "all_activities" },
             description: "Проверить все пройденные активности",
-            descriptionLocalizations: { "en-US": "Check all completed activities" },
+            descriptionLocalizations: { "en-US": "Check all completed activities", "en-GB": "Check all completed activities" },
         },
     ],
     run: async ({ interaction }) => {

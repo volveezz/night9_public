@@ -1,16 +1,18 @@
-import { ButtonInteraction, EmbedBuilder, ChannelType, ButtonBuilder, ButtonStyle, ComponentType, } from "discord.js";
-import { client } from "../index.js";
+import { ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, ComponentType, EmbedBuilder, } from "discord.js";
+import { raidAnnounceSet } from "../commands/raid.js";
 import colors from "../configs/colors.js";
 import destinyRaidsChallenges from "../configs/destinyRaidsChallenges.js";
 import { guildId, ids } from "../configs/ids.js";
 import { dlcRoles, statusRoles } from "../configs/roles.js";
+import { RaidButtons } from "../enums/Buttons.js";
+import { RaidNames } from "../enums/Raids.js";
 import UserErrors from "../enums/UserErrors.js";
 import { completedRaidsData } from "../features/memberStatisticsHandler.js";
 import { RaidEvent } from "../handlers/sequelize.js";
-import { CachedDestinyActivityModifierDefinition } from "./manifestHandler.js";
+import { client } from "../index.js";
+import { addButtonComponentsToMessage } from "./addButtonsToMessage.js";
 import { fetchRequest } from "./fetchRequest.js";
-import { raidAnnounceSet } from "../commands/raid.js";
-import { RaidNames } from "../enums/Raids.js";
+import { CachedDestinyActivityModifierDefinition } from "./manifestHandler.js";
 import nameCleaner from "./nameClearer.js";
 import { escapeString, getRandomGIF } from "./utilities.js";
 const modifierHashesArray = [1123720291, 1783825372, 782039530, 2006149364, 197794292, 3307318061];
@@ -148,17 +150,18 @@ export async function getRaidDatabaseInfo(raidId, interaction) {
     }
 }
 export async function updateRaidMessage(raidDbData, interaction) {
-    let msg = client.getCachedGuild().channels.cache.get(ids.raidChnId).messages.cache.get(raidDbData.messageId) ||
-        (await client.getCachedGuild().channels.cache.get(ids.raidChnId).messages.fetch(raidDbData.messageId));
+    let msg = client.getCachedTextChannel(ids.raidChnId).messages.cache.get(raidDbData.messageId) ||
+        (await client.getCachedTextChannel(ids.raidChnId).messages.fetch(raidDbData.messageId));
+    let components = [];
     if (!msg || !msg.embeds || !msg.embeds[0]) {
         try {
             msg = await (await (interaction?.guild || client.getCachedGuild()).channels.fetch(ids.raidChnId)).messages.fetch(raidDbData.messageId);
         }
         catch (error) {
-            return console.error(`[Error code: 1037] Error during updateRaidMessage`, { msg });
+            return console.error(`[Error code: 1037] Error during updateRaidMessage`, msg);
         }
         if (!msg)
-            return console.error(`[Error code: 1219] Error during updateRaidMessage`, { msg });
+            return console.error(`[Error code: 1219] Error during updateRaidMessage`, msg);
     }
     const embed = EmbedBuilder.from(msg.embeds[0]);
     const clearMemberName = (id) => nameCleaner(client.getCachedMembers().get(id)?.displayName || "неизвестный пользователь", true);
@@ -177,10 +180,24 @@ export async function updateRaidMessage(raidDbData, interaction) {
         : "Никого";
     const alt = raidDbData.alt && raidDbData.alt.length >= 1 ? raidDbData.alt.map((data) => clearMemberName(data)).join(", ") : "Никого";
     if (raidDbData.joined.length && raidDbData.joined.length === 6) {
-        embed.setColor(null);
+        embed.setColor(colors.invisible);
+        components = msg.components[0].components.map((button) => {
+            const btn = ButtonBuilder.from(button);
+            if (button.customId === RaidButtons.join) {
+                btn.setLabel("В запас").setStyle(ButtonStyle.Primary);
+            }
+            return btn;
+        });
     }
-    else if (embed.data.color === undefined) {
+    else if (embed.data.color == null || embed.data.color === 2829617) {
         embed.setColor(getRaidData(raidDbData.raid, raidDbData.difficulty).raidColor);
+        components = msg.components[0].components.map((button) => {
+            const btn = ButtonBuilder.from(button);
+            if (button.customId === RaidButtons.join) {
+                btn.setLabel("Записаться").setStyle(ButtonStyle.Success);
+            }
+            return btn;
+        });
     }
     const isDescription = embed.data.fields?.findIndex((d) => d.name.startsWith("Описание")) ? 1 : 0;
     const findK = (k) => {
@@ -225,14 +242,14 @@ export async function updateRaidMessage(raidDbData, interaction) {
     else {
         embed?.spliceFields(findK("Возможно"), findK("Возможно") !== -1 ? 1 : 0);
     }
-    if (!interaction) {
-        return embed;
-    }
-    else if (interaction instanceof ButtonInteraction) {
-        await interaction.message.edit({ embeds: [embed] });
+    if (!interaction)
+        return { embeds: [embed], components };
+    const edits = components.length === 0 ? { embeds: [embed] } : { embeds: [embed], components: await addButtonComponentsToMessage(components) };
+    if (interaction instanceof ButtonInteraction) {
+        await interaction.message.edit(edits);
     }
     else {
-        await msg.edit({ embeds: [embed] });
+        await msg.edit(edits);
     }
 }
 export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) {
@@ -302,7 +319,7 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
         if (!raidEvent)
             return null;
     }
-    const inChnMsgPromise = client.getCachedGuild().channels.cache.get(raidEvent.channelId).messages.fetch(raidEvent.inChannelMessageId);
+    const inChnMsgPromise = client.getCachedTextChannel(raidEvent.channelId).messages.fetch(raidEvent.inChannelMessageId);
     async function raidUserDataManager(discordId) {
         const raidUserData = completedRaidsData.get(discordId);
         const member = client.getCachedMembers().get(discordId);

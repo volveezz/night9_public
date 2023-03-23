@@ -1,8 +1,8 @@
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
-import UserErrors from "../enums/UserErrors.js";
 import colors from "../configs/colors.js";
-import { RegisterButtons } from "../enums/Buttons.js";
 import icons from "../configs/icons.js";
+import { RegisterButtons } from "../enums/Buttons.js";
+import UserErrors from "../enums/UserErrors.js";
 function errorMessages(errorType, ...rest) {
     switch (errorType) {
         case UserErrors.DB_USER_NOT_FOUND:

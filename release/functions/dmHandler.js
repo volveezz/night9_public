@@ -1,7 +1,7 @@
 import { ButtonBuilder, ButtonStyle, ChannelType, ComponentType, EmbedBuilder } from "discord.js";
+import colors from "../configs/colors.js";
 import { guildId, ids } from "../configs/ids.js";
 import { client } from "../index.js";
-import colors from "../configs/colors.js";
 import { escapeString } from "./utilities.js";
 const dmChannel = (client.getCachedGuild() || client.guilds.cache.get(guildId))?.channels.cache.get(ids.dmMsgsChnId);
 export async function dmHandler(message) {

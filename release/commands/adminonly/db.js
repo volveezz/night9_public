@@ -1,14 +1,14 @@
-import { EmbedBuilder, ButtonStyle, ApplicationCommandOptionType, ButtonBuilder, ComponentType, } from "discord.js";
-import { AuthData, database, UserActivityData, AutoRoleData } from "../../handlers/sequelize.js";
+import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, } from "discord.js";
 import { Op } from "sequelize";
-import { Command } from "../../structures/command.js";
 import colors from "../../configs/colors.js";
-import { CachedDestinyRecordDefinition } from "../../functions/manifestHandler.js";
-import { activityRoles, raidRoles, statisticsRoles, titleCategory, triumphsCategory } from "../../configs/roles.js";
-import { completedRaidsData, longOffline, userTimezones } from "../../features/memberStatisticsHandler.js";
-import convertSeconds from "../../functions/utilities.js";
-import NightRoleCategory from "../../enums/RoleCategory.js";
 import icons from "../../configs/icons.js";
+import { activityRoles, raidRoles, statisticsRoles, titleCategory, triumphsCategory } from "../../configs/roles.js";
+import NightRoleCategory from "../../enums/RoleCategory.js";
+import { completedRaidsData, longOffline, userTimezones } from "../../features/memberStatisticsHandler.js";
+import { CachedDestinyRecordDefinition } from "../../functions/manifestHandler.js";
+import convertSeconds from "../../functions/utilities.js";
+import { AuthData, AutoRoleData, UserActivityData, database } from "../../handlers/sequelize.js";
+import { Command } from "../../structures/command.js";
 export default new Command({
     name: "db",
     description: "Database",
@@ -17,7 +17,7 @@ export default new Command({
         {
             type: ApplicationCommandOptionType.Subcommand,
             name: "select",
-            nameLocalizations: { "en-US": "get" },
+            nameLocalizations: { "en-US": "get", "en-GB": "get" },
             description: "SELECT",
             options: [
                 {

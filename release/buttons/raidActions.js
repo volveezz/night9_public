@@ -1,15 +1,17 @@
 import { EmbedBuilder } from "discord.js";
-import { guildId, ids, ownerId } from "../configs/ids.js";
-import { RaidEvent } from "../handlers/sequelize.js";
-import { completedRaidsData } from "../features/memberStatisticsHandler.js";
-import { client } from "../index.js";
-import UserErrors from "../enums/UserErrors.js";
-import { updateRaidMessage, updatePrivateRaidMessage, getRaidData } from "../functions/raidFunctions.js";
-import { RaidButtons } from "../enums/Buttons.js";
 import { Op, Sequelize } from "sequelize";
 import colors from "../configs/colors.js";
-import nameCleaner from "../functions/nameClearer.js";
+import icons from "../configs/icons.js";
+import { ids, ownerId } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
+import { RaidButtons } from "../enums/Buttons.js";
+import UserErrors from "../enums/UserErrors.js";
+import { completedRaidsData } from "../features/memberStatisticsHandler.js";
+import { addButtonComponentsToMessage } from "../functions/addButtonsToMessage.js";
+import nameCleaner from "../functions/nameClearer.js";
+import { getRaidData, updatePrivateRaidMessage, updateRaidMessage } from "../functions/raidFunctions.js";
+import { RaidEvent } from "../handlers/sequelize.js";
+import { client } from "../index.js";
 async function actionMessageHandler({ interaction, raidEvent, target }) {
     const embed = new EmbedBuilder();
     const member = interaction.member;
@@ -55,39 +57,43 @@ async function actionMessageHandler({ interaction, raidEvent, target }) {
                     .setAuthor({ name: `${displayName}: проник на рейд\n<@${ownerId}>`, iconURL: member.displayAvatarURL() });
         }
     }
-    client.getCachedGuild().channels.cache.get(raidEvent.channelId).send({ embeds: [embed] });
+    client.getCachedTextChannel(raidEvent.channelId).send({ embeds: [embed] });
 }
 async function joinedFromHotJoined(raidData) {
     const newRaidJoined = raidData.hotJoined.shift();
     const member = client.getCachedMembers().get(newRaidJoined);
     if (!member)
-        throw { errorType: UserErrors.MEMBER_NOT_FOUND };
-    await raidData.update({
+        return console.error(`[Error code: 1647]`, raidData);
+    const [_, [updatedRaidData]] = await RaidEvent.update({
         joined: Sequelize.fn("array_append", Sequelize.col("joined"), `${newRaidJoined}`),
         hotJoined: Sequelize.fn("array_remove", Sequelize.col("hotJoined"), `${newRaidJoined}`),
         alt: Sequelize.fn("array_remove", Sequelize.col("alt"), `${newRaidJoined}`),
-    }, { where: { id: raidData.id } });
-    const embed = new EmbedBuilder().setColor(colors.serious).setAuthor({
-        name: `СИСТЕМА: ${nameCleaner(member.displayName)}: [Запас] → [Участник]`,
-        iconURL: member.displayAvatarURL(),
+    }, {
+        where: { id: raidData.id },
+        returning: ["id", "messageId", "channelId", "inChannelMessageId", "joined", "hotJoined", "alt", "raid", "difficulty"],
     });
-    client.getCachedGuild().channels.cache.get(raidData.channelId).send({ embeds: [embed] });
-    const privateMessageEmbed = new EmbedBuilder()
+    const embed = new EmbedBuilder()
         .setColor(colors.serious)
-        .setTitle(`Вы были автоматически записаны на рейд ${raidData.id}-${raidData.raid}`)
-        .addFields({
-        name: `Число записанных участников`,
-        value: `Участников: ${raidData.joined.length}${raidData.hotJoined.length > 0 ? `\nВ запасе: ${raidData.hotJoined.length}` : ""}${raidData.alt.length > 0 ? `\nВозможно будут: ${raidData.alt.length}` : ""}`,
-    }, { name: `Начало рейда: <t:${raidData.time}:R>`, value: `<t:${raidData.time}>`, inline: true }, {
-        name: `Ссылки:`,
-        value: `[Перейти к набору](https://discord.com/channels/${guildId}/${ids.raidChnId}/${raidData.messageId})\n[Перейти в канал рейда](https://discord.com/channels/${guildId}/${raidData.channelId})`,
+        .setAuthor({
+        name: `${nameCleaner(member.displayName)}: [Запас] → [Участник]`,
+        iconURL: member.displayAvatarURL(),
+    })
+        .setFooter({
+        text: `Пользователь перезаписан системой`,
     });
-    member.send({ embeds: [privateMessageEmbed] });
-    const updatedRaidData = await RaidEvent.findOne({ where: { id: raidData.id } });
+    client.getCachedTextChannel(updatedRaidData.channelId).send({ embeds: [embed] });
+    const { embeds, components } = (await updateRaidMessage(updatedRaidData));
+    (await client.getCachedTextChannel(ids.raidChnId).messages.fetch(updatedRaidData.messageId)).edit({
+        embeds,
+        components: await addButtonComponentsToMessage(components),
+    });
+    embeds[0]
+        .setColor(colors.serious)
+        .setAuthor({ name: `Вы были автоматически записаны на рейд ${raidData.id}-${raidData.raid}`, iconURL: icons.notify });
+    member.send({ embeds: [embeds[0]] });
     if (!updatedRaidData)
-        return console.error(`[Error code: 1637]`, raidData);
-    updatePrivateRaidMessage({ raidEvent: updatedRaidData });
-    updateRaidMessage(updatedRaidData);
+        return console.error(`[Error code: 1637]`, updatedRaidData);
+    await updatePrivateRaidMessage({ raidEvent: updatedRaidData });
 }
 export default {
     name: "raidButton",
@@ -123,7 +129,7 @@ export default {
                     throw { errorType: UserErrors.RAID_NOT_FOUND };
                 updatePrivateRaidMessage({ raidEvent });
                 updateRaidMessage(raidEvent, interaction);
-                client.getCachedGuild().channels.cache.get(raidEvent.channelId).permissionOverwrites.delete(interaction.user.id);
+                client.getCachedTextChannel(raidEvent.channelId).permissionOverwrites.delete(interaction.user.id);
                 raidDataBeforeLeave.then((r) => {
                     actionMessageHandler({
                         interaction,
@@ -211,7 +217,7 @@ export default {
             raidEvent,
             target: userAlreadyInHotJoined ? "hotJoined" : userAlreadyJoined ? "joined" : userAlreadyAlt ? "alt" : "",
         });
-        client.getCachedGuild().channels.cache.get(raidEvent.channelId).permissionOverwrites.create(interaction.user.id, {
+        client.getCachedTextChannel(raidEvent.channelId).permissionOverwrites.create(interaction.user.id, {
             ViewChannel: true,
         });
         if (userAlreadyJoined &&

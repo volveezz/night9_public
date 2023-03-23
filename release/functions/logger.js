@@ -1,18 +1,18 @@
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { Op } from "sequelize";
+import colors from "../configs/colors.js";
 import { ids } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
-import { CachedDestinyActivityDefinition } from "./manifestHandler.js";
-import { Op } from "sequelize";
-import { fetchRequest } from "./fetchRequest.js";
-import colors from "../configs/colors.js";
-import { client } from "../index.js";
-import { AuthData, UserActivityData, RaidEvent } from "../handlers/sequelize.js";
 import { RaidButtons } from "../enums/Buttons.js";
+import { AuthData, RaidEvent, UserActivityData } from "../handlers/sequelize.js";
+import { client } from "../index.js";
 import { completedPhases } from "./activityCompletionChecker.js";
+import { fetchRequest } from "./fetchRequest.js";
+import { CachedDestinyActivityDefinition } from "./manifestHandler.js";
 import convertSeconds, { escapeString } from "./utilities.js";
 const pgcrIds = new Set();
 export async function logClientDmMessages(member, text, id, interaction) {
-    const dmLogChannel = interaction ? null : client.getCachedGuild().channels.cache.get(ids.dmMsgsChnId);
+    const dmLogChannel = interaction ? null : client.getCachedTextChannel(ids.dmMsgsChnId);
     const embed = new EmbedBuilder()
         .setColor(colors.success)
         .setTitle("Отправлено сообщение")
@@ -229,7 +229,7 @@ export async function activityReporter(pgcrId) {
                 }
                 preciseEncountersTime.clear();
             }
-            const msg = client.getCachedGuild().channels.cache.get(ids.activityChnId).send({ embeds: [embed] });
+            const msg = client.getCachedTextChannel(ids.activityChnId).send({ embeds: [embed] });
             const currentTime = Math.trunc(new Date().getTime() / 1000);
             dbData.forEach(async (dbMemberData) => {
                 if (response.activityDetails.mode === 82 && clanMembersInRaid > 1)
@@ -284,7 +284,7 @@ export function logRegistrationLinkRequest(state, user, rowCreated) {
         { name: "State", value: state, inline: true },
         { name: "Впервые", value: `${rowCreated}`, inline: true },
     ]);
-    client.getCachedGuild().channels.cache.get(ids.botChnId).send({ embeds: [embed] });
+    client.getCachedTextChannel(ids.botChnId).send({ embeds: [embed] });
 }
 export async function updateClanRolesWithLogging(result, join) {
     const member = client.getCachedGuild().members.cache.get(result.discordId);
@@ -331,5 +331,5 @@ export async function updateClanRolesWithLogging(result, join) {
                 .setColor(colors.kicked);
         }
     }
-    client.getCachedGuild().channels.cache.get(ids.clanChnId).send({ embeds: [embed] });
+    client.getCachedTextChannel(ids.clanChnId).send({ embeds: [embed] });
 }

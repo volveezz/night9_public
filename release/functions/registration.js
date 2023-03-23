@@ -1,4 +1,4 @@
-import { Message, EmbedBuilder } from "discord.js";
+import { EmbedBuilder, Message } from "discord.js";
 import colors from "../configs/colors.js";
 import { AuthData, InitData } from "../handlers/sequelize.js";
 import { logRegistrationLinkRequest } from "./logger.js";

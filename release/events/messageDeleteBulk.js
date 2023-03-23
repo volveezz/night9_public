@@ -1,9 +1,9 @@
 import { EmbedBuilder } from "discord.js";
+import colors from "../configs/colors.js";
 import { ids } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-import colors from "../configs/colors.js";
-const messageChannel = client.channels.cache.get(ids.messagesChnId);
+const messageChannel = client.getCachedTextChannel(ids.messagesChnId);
 export default new Event("messageDeleteBulk", (messages) => {
     const messagesArray = messages.reverse();
     const embed = new EmbedBuilder().setColor(colors.error).setAuthor({

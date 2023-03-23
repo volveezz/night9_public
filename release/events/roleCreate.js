@@ -3,7 +3,7 @@ import colors from "../configs/colors.js";
 import { ids } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-const guildChannel = client.channels.cache.get(ids.guildChnId);
+const guildChannel = client.getCachedTextChannel(ids.guildChnId);
 export default new Event("roleCreate", (role) => {
     const embed = new EmbedBuilder()
         .setColor(colors.success)

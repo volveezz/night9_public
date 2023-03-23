@@ -2,10 +2,10 @@ import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import { ids } from "../configs/ids.js";
 import welcomeMessage from "../functions/welcomeMessage.js";
-import { LeavedUsersData, database, AuthData } from "../handlers/sequelize.js";
+import { AuthData, LeavedUsersData, database } from "../handlers/sequelize.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-const guildMemberChannel = client.channels.cache.get(ids.guildMemberChnId);
+const guildMemberChannel = client.getCachedTextChannel(ids.guildMemberChnId);
 export default new Event("guildMemberAdd", (member) => {
     welcomeMessage(member);
     const embed = new EmbedBuilder()

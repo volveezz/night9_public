@@ -1,11 +1,11 @@
 import { ComponentType, EmbedBuilder, StringSelectMenuBuilder } from "discord.js";
 import colors from "../configs/colors.js";
-import { Command } from "../structures/command.js";
 import { TimezoneButtons } from "../enums/Buttons.js";
+import { Command } from "../structures/command.js";
 export default new Command({
     name: "timezone",
     description: "Укажите свой часовой пояс",
-    descriptionLocalizations: { "en-US": "Choose your timezone" },
+    descriptionLocalizations: { "en-US": "Choose your timezone", "en-GB": "Choose your timezone" },
     global: true,
     run: async ({ interaction }) => {
         const embed = new EmbedBuilder()

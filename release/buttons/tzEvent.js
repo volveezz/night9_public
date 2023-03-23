@@ -1,8 +1,8 @@
 import { EmbedBuilder } from "discord.js";
-import { AuthData } from "../handlers/sequelize.js";
 import colors from "../configs/colors.js";
-import nameCleaner from "../functions/nameClearer.js";
 import { userTimezones } from "../features/memberStatisticsHandler.js";
+import nameCleaner from "../functions/nameClearer.js";
+import { AuthData } from "../handlers/sequelize.js";
 export default {
     name: "tzEvent",
     run: async ({ client, selectMenu: interaction }) => {

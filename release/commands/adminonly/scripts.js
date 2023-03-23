@@ -1,8 +1,8 @@
-import { EmbedBuilder, ApplicationCommandOptionType } from "discord.js";
+import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
+import convertSeconds from "../../functions/utilities.js";
 import { AuthData, UserActivityData } from "../../handlers/sequelize.js";
 import { Command } from "../../structures/command.js";
-import convertSeconds from "../../functions/utilities.js";
 export default new Command({
     name: "scripts",
     description: "script system",
@@ -19,6 +19,13 @@ export default new Command({
         const defferedReply = interaction.deferReply();
         const scriptId = interaction.options.getString("script", true).toLowerCase();
         switch (scriptId) {
+            case "scr": {
+                const embed = new EmbedBuilder().setColor(colors.invisible).setTitle("Title");
+                await defferedReply;
+                const msg = await interaction.followUp({ embeds: [embed] });
+                console.debug(msg.embeds[0].color);
+                return;
+            }
             case "activitytop": {
                 const dbData = (await AuthData.findAll({ include: UserActivityData, attributes: ["displayName", "discordId"] })).filter((v) => v.UserActivityData && (v.UserActivityData.messages > 0 || v.UserActivityData.voice > 0));
                 const messageTop = dbData

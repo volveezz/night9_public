@@ -1,12 +1,12 @@
 import { EmbedBuilder } from "discord.js";
+import colors from "../configs/colors.js";
 import { ids } from "../configs/ids.js";
+import convertSeconds from "../functions/utilities.js";
 import { activityReceiver } from "../handlers/discordActivity.js";
 import { createdChannelsMap, pvePartyVoiceChatHandler } from "../handlers/pvePartyHandler.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-import colors from "../configs/colors.js";
-import convertSeconds from "../functions/utilities.js";
-const voiceChannel = client.channels.cache.get(ids.voiceChnId);
+const voiceChannel = client.getCachedTextChannel(ids.voiceChnId);
 const voiceUsers = new Map();
 export default new Event("voiceStateUpdate", (oldState, newState) => {
     const embed = new EmbedBuilder().setColor(colors.success).setTimestamp();

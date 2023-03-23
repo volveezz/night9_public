@@ -1,12 +1,12 @@
-import fetch from "node-fetch";
-import { database, AuthData, LeavedUsersData } from "../handlers/sequelize.js";
-import { Feature } from "../structures/feature.js";
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import fetch from "node-fetch";
 import colors from "../configs/colors.js";
-import { RegisterButtons } from "../enums/Buttons.js";
-import { client } from "../index.js";
-import nameCleaner from "../functions/nameClearer.js";
 import { statusRoles } from "../configs/roles.js";
+import { RegisterButtons } from "../enums/Buttons.js";
+import nameCleaner from "../functions/nameClearer.js";
+import { AuthData, LeavedUsersData, database } from "../handlers/sequelize.js";
+import { client } from "../index.js";
+import { Feature } from "../structures/feature.js";
 const BUNGIE_TOKEN_URL = "https://www.bungie.net/Platform/App/OAuth/Token/";
 async function bungieGrantRequest(row, table, t, retry = false) {
     const form = new URLSearchParams(Object.entries({
@@ -66,7 +66,7 @@ async function bungieGrantRequest(row, table, t, retry = false) {
                         }
                         user.send({ embeds: [embed], components }).catch(async (e) => {
                             if (e.code === 50007) {
-                                const botChannel = client.getCachedGuild().channels.cache.get("677552181154676758") ||
+                                const botChannel = client.getCachedTextChannel("677552181154676758") ||
                                     (await client.getCachedGuild().channels.fetch("677552181154676758"));
                                 embed.setAuthor({
                                     name: `${nameCleaner(user.displayName ? user.displayName : user.user?.username || user.username)}`,

@@ -1,10 +1,10 @@
 import { forbiddenRaidIds, ownerId } from "../configs/ids.js";
 import { activityRoles, raidRoles, statusRoles, trialsRoles } from "../configs/roles.js";
-import { userCharactersId, completedRaidsData } from "../features/memberStatisticsHandler.js";
+import { completedRaidsData, userCharactersId } from "../features/memberStatisticsHandler.js";
 import { apiStatus } from "../structures/apiStatus.js";
+import { fetchRequest } from "./fetchRequest.js";
 import { activityReporter } from "./logger.js";
 import { setUserCharacters } from "./setUserCharacters.js";
-import { fetchRequest } from "./fetchRequest.js";
 const cachedKDData = new Map();
 export async function destinyActivityChecker(authData, member, mode, count = 250) {
     if (apiStatus.status !== 1)
@@ -97,6 +97,7 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                         counts.vog += 1;
                         break;
                     case 1681562271:
+                    case 3022541210:
                         counts.vogMaster += 1;
                         break;
                     case 2122313384:

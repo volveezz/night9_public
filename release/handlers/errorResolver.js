@@ -1,7 +1,7 @@
 import { EmbedBuilder } from "discord.js";
-import { errorMessages } from "../utils/errorMessages.js";
-import UserErrors from "../enums/UserErrors.js";
 import colors from "../configs/colors.js";
+import UserErrors from "../enums/UserErrors.js";
+import { errorMessages } from "../utils/errorMessages.js";
 function errorResolver({ name, description, errorType, errorData }) {
     const type = errorType;
     if (errorType && UserErrors[type] !== undefined) {

@@ -1,42 +1,59 @@
 import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, } from "discord.js";
-import { Command } from "../structures/command.js";
-import { AuthData } from "../handlers/sequelize.js";
+import colors from "../configs/colors.js";
+import icons from "../configs/icons.js";
 import UserErrors from "../enums/UserErrors.js";
 import { fetchRequest } from "../functions/fetchRequest.js";
-import colors from "../configs/colors.js";
 import { CachedDestinyActivityDefinition } from "../functions/manifestHandler.js";
-import timerConverter from "../functions/utilities.js";
-import { client } from "../index.js";
 import nameCleaner from "../functions/nameClearer.js";
+import timerConverter from "../functions/utilities.js";
+import { AuthData } from "../handlers/sequelize.js";
+import { client } from "../index.js";
+import { Command } from "../structures/command.js";
 export default new Command({
     name: "закрытия",
-    nameLocalizations: { "en-US": "completions" },
+    nameLocalizations: { "en-US": "completions", "en-GB": "completions" },
     description: "Проверьте статистику всех активностей в выбранной категории",
-    descriptionLocalizations: { "en-US": "Check statistic of all activities in the selected category" },
+    descriptionLocalizations: {
+        "en-US": "Check statistic of all activities in the selected category",
+        "en-GB": "Check statistic of all activities in the selected category",
+    },
     options: [
         {
             name: "категория",
-            nameLocalizations: { "en-US": "category" },
+            nameLocalizations: { "en-US": "category", "en-GB": "category" },
             description: "Укажите категорию проверяемых активностей",
             descriptionLocalizations: {
                 "en-US": "Choose category for checking",
+                "en-GB": "Choose category for checking",
             },
             type: ApplicationCommandOptionType.String,
             choices: [
-                { name: "рейды", value: `${4}`, nameLocalizations: { "en-US": "raids" } },
-                { name: "подземелья", value: `${82}`, nameLocalizations: { "en-US": "dungeons" } },
-                { name: "налеты", value: `${18}`, nameLocalizations: { "en-US": "strikes" } },
-                { name: "патруль", value: `${6}`, nameLocalizations: { "en-US": "patrol" } },
-                { name: "сюжет", value: `${2}`, nameLocalizations: { "en-US": "story" } },
+                { name: "рейды", value: `${4}`, nameLocalizations: { "en-US": "raids", "en-GB": "raids" } },
+                {
+                    name: "подземелья",
+                    value: `${82}`,
+                    nameLocalizations: { "en-US": "dungeons", "en-GB": "dungeons" },
+                },
+                {
+                    name: "налеты",
+                    value: `${18}`,
+                    nameLocalizations: { "en-US": "strikes", "en-GB": "strikes" },
+                },
+                { name: "патруль", value: `${6}`, nameLocalizations: { "en-US": "patrol", "en-GB": "patrol" } },
+                { name: "сюжет", value: `${2}`, nameLocalizations: { "en-US": "story", "en-GB": "story" } },
             ],
         },
     ],
     messageContextMenu: {
         name: "Закрытия рейдов",
-        nameLocalizations: { "en-US": "Raid completions" },
+        nameLocalizations: { "en-US": "Raid completions", "en-GB": "Raid completions" },
         type: ApplicationCommandType.Message,
     },
-    userContextMenu: { name: "Закрытия рейдов", nameLocalizations: { "en-US": "Raid completions" }, type: ApplicationCommandType.User },
+    userContextMenu: {
+        name: "Закрытия рейдов",
+        nameLocalizations: { "en-US": "Raid completions", "en-GB": "Raid completions" },
+        type: ApplicationCommandType.User,
+    },
     run: async ({ args, interaction: slashInteraction, userMenuInteraction, messageMenuInteraction }) => {
         const interaction = messageMenuInteraction || userMenuInteraction || slashInteraction;
         const deferredInteraction = interaction.deferReply({ ephemeral: true });
@@ -55,7 +72,7 @@ export default new Command({
         const characterIdList = (await fetchRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken)).characters.map((characterData) => characterData.characterId);
         const embed = new EmbedBuilder().setColor(colors.serious).setAuthor({
             name: `Идет обработка ${characterIdList.length} персонажей...`,
-            iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1061566114787754004/volve_luchsii_lider.gif",
+            iconURL: icons.loading,
         });
         (await deferredInteraction) && interaction.editReply({ embeds: [embed] });
         async function getCompletedActivties() {

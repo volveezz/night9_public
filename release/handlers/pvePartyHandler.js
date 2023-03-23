@@ -1,10 +1,10 @@
 import { ButtonBuilder, ButtonStyle, ChannelType, ComponentType, EmbedBuilder, } from "discord.js";
+import colors from "../configs/colors.js";
 import { guildId, ids } from "../configs/ids.js";
 import { dlcRoles } from "../configs/roles.js";
 import { bungieNames } from "../features/memberStatisticsHandler.js";
 import { CachedDestinyActivityDefinition } from "../functions/manifestHandler.js";
 import { client } from "../index.js";
-import colors from "../configs/colors.js";
 class activitySettings {
     name;
     description;
