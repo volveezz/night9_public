@@ -19,8 +19,8 @@ setTimeout(() => {
     RaidEvent.findAll({
         where: {
             [Op.and]: [
-                { time: { [Op.gt]: Math.trunc(new Date().getTime() / 1000) } },
-                { time: { [Op.lte]: Math.trunc(Math.trunc(new Date().getTime() / 1000) + 25 * 60 * 60) } },
+                { time: { [Op.gt]: Math.trunc(Date.now() / 1000) } },
+                { time: { [Op.lte]: Math.trunc(Math.trunc(Date.now() / 1000) + 25 * 60 * 60) } },
             ],
         },
     }).then((RaidEvent) => RaidEvent.forEach((raidData) => raidAnnounceSystem(raidData)));
@@ -29,8 +29,8 @@ schedule("0 23 * * *", () => {
     RaidEvent.findAll({
         where: {
             [Op.and]: [
-                { time: { [Op.gt]: Math.trunc(new Date().getTime() / 1000) } },
-                { time: { [Op.lte]: Math.trunc(Math.trunc(new Date().getTime() / 1000) + 25 * 60 * 60) } },
+                { time: { [Op.gt]: Math.trunc(Date.now() / 1000) } },
+                { time: { [Op.lte]: Math.trunc(Math.trunc(Date.now() / 1000) + 25 * 60 * 60) } },
             ],
         },
     }).then((RaidEvent) => RaidEvent.forEach((raidData) => raidAnnounceSystem(raidData)));
@@ -405,7 +405,7 @@ export default new Command({
             const reqClears = args.getInteger("требуемых_закрытий") ?? 0;
             const raidData = getRaidData(raid, difficulty);
             const parsedTime = timeConverter(time, userTimezones.get(interaction.user.id));
-            if (parsedTime <= Math.trunc(new Date().getTime() / 1000)) {
+            if (parsedTime <= Math.trunc(Date.now() / 1000)) {
                 throw {
                     name: "Ошибка. Указанное время в прошлом",
                     description: `Вы указали время <t:${parsedTime}>, <t:${parsedTime}:R>, но время начала обязательно должно быть в будущем\n\nВремя указывается по часовому поясу, указанному с помощью \`/timezone\`\n**Пример:**\n> 20:00 15/9`,
@@ -654,7 +654,7 @@ export default new Command({
                         description: `Вы указали время <t:${changedTime}>, <t:${changedTime}:R>...`,
                     };
                 }
-                else if (changedTime > Math.round(new Date().getTime() / 1000)) {
+                else if (changedTime > Math.round(Date.now() / 1000)) {
                     const timeFieldIndex = raidEmbed.data.fields?.findIndex((field) => field.name.startsWith("Начало"));
                     if (timeFieldIndex && timeFieldIndex !== -1) {
                         raidEmbed.spliceFields(timeFieldIndex, 1, {

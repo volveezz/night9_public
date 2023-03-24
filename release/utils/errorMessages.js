@@ -145,7 +145,7 @@ function errorMessages(errorType, ...rest) {
                         iconURL: icons.error,
                         name: "Ошибка. Недостаточно закрытий рейда",
                     })
-                        .setDescription(`Для записи на этот рейд необходимо ${raidRequirement} закрытий этого рейда, но у вас ${userClears}`),
+                        .setDescription(`Для записи на этот рейд необходимо ${raidRequirement} закрытий этого рейда, а у вас ${userClears}`),
                 ],
             };
         }

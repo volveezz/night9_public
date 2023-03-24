@@ -464,7 +464,7 @@ async function raidAnnounce(oldRaidData) {
         .setTitle("Уведомление о скором рейде")
         .setThumbnail(raidInfo?.raidBanner ?? null)
         .setTimestamp(raidData.time * 1000)
-        .setDescription(`Рейд [${raidData.id}-${raidData.raid}](https://discord.com/channels/${guildId}/${ids.raidChnId}/${raidData.messageId}) начнется в течение ${Math.trunc((raidData.time - Math.trunc(new Date().getTime() / 1000)) / 60)} минут!`)
+        .setDescription(`Рейд [${raidData.id}-${raidData.raid}](https://discord.com/channels/${guildId}/${ids.raidChnId}/${raidData.messageId}) начнется в течение ${Math.trunc((raidData.time - Math.trunc(Date.now() / 1000)) / 60)} минут!`)
         .addFields([
         {
             name: "Состав группы:",

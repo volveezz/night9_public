@@ -14,7 +14,7 @@ export default new Event("voiceStateUpdate", (oldState, newState) => {
         if (createdChannelsMap.has(newState.channelId))
             pvePartyVoiceChatHandler(newState.channelId, newState.member, "join");
         voiceUsers.set(newState.member.id, {
-            joinTimestamp: new Date().getTime(),
+            joinTimestamp: Date.now(),
         });
         embed
             .setAuthor({
@@ -52,7 +52,7 @@ export default new Event("voiceStateUpdate", (oldState, newState) => {
             },
         ]);
         if (getTimestamp) {
-            const difference = Math.trunc((new Date().getTime() - getTimestamp) / 1000);
+            const difference = Math.trunc((Date.now() - getTimestamp) / 1000);
             embed.addFields([
                 {
                     name: "Времени в голосовых",

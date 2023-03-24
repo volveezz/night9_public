@@ -9,7 +9,7 @@ const cachedKDData = new Map();
 export async function destinyActivityChecker(authData, member, mode, count = 250) {
     if (apiStatus.status !== 1)
         return;
-    const activityAvaliableTime = new Date().getTime() - 1000 * 60 * 20;
+    const activityAvaliableTime = Date.now() - 1000 * 60 * 20;
     const { platform, bungieId, accessToken } = authData;
     const userCharactersArray = userCharactersId.get(member.id);
     if (!userCharactersArray) {

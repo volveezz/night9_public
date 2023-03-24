@@ -230,7 +230,7 @@ export async function activityReporter(pgcrId) {
                 preciseEncountersTime.clear();
             }
             const msg = client.getCachedTextChannel(ids.activityChnId).send({ embeds: [embed] });
-            const currentTime = Math.trunc(new Date().getTime() / 1000);
+            const currentTime = Math.trunc(Date.now() / 1000);
             dbData.forEach(async (dbMemberData) => {
                 if (response.activityDetails.mode === 82 && clanMembersInRaid > 1)
                     return UserActivityData.increment("dungeons", { by: 1, where: { discordId: dbMemberData.discordId } });

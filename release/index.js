@@ -1,7 +1,10 @@
+import cookieParser from "cookie-parser";
 import "dotenv/config";
 import express from "express";
 import { join, resolve } from "path";
+import * as storage from "./functions/storage.js";
 import webHandler from "./functions/webHandler.js";
+import { getOAuthTokens, getOAuthUrl, getUserData, updateMetadata } from "./handlers/linkedRoles.js";
 import { ExtendedClient } from "./structures/client.js";
 export const client = new ExtendedClient();
 await client.start();
@@ -29,6 +32,7 @@ process.on("unhandledRejection", (error) => {
 const app = express();
 const port = process.env.PORT || 3000;
 const __dirname = resolve();
+app.use(cookieParser(process.env.COOKIE_SECRET));
 app.get("/", async (req, res) => {
     if (req.query.code &&
         parseInt(req.query.code.length?.toString() || "0") > 20 &&
@@ -38,6 +42,36 @@ app.get("/", async (req, res) => {
     }
     else
         res.status(404).end();
+});
+app.get("/verify", async (req, res) => {
+    const { url, state } = getOAuthUrl();
+    res.cookie("clientState", state, { maxAge: 1000 * 60 * 5, signed: true });
+    res.redirect(url);
+});
+app.get("/callback", async (req, res) => {
+    try {
+        const code = req.query["code"];
+        const discordState = req.query["state"];
+        const { clientState } = req.signedCookies;
+        if (clientState !== discordState) {
+            console.error(`State verification failed.`);
+            return res.sendStatus(403);
+        }
+        const tokens = (await getOAuthTokens(code));
+        const meData = (await getUserData(tokens));
+        const userId = meData.user.id;
+        await storage.storeDiscordTokens(userId, {
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token,
+            expires_at: Date.now() + tokens.expires_in * 1000,
+        });
+        await updateMetadata(userId);
+        res.send("You did it!  Now go back to Discord.");
+    }
+    catch (e) {
+        console.error(e);
+        res.sendStatus(500);
+    }
 });
 app.use(express.static(join(__dirname, "public")));
 app.listen(port);

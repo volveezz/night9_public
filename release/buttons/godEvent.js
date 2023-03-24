@@ -17,7 +17,7 @@ export default {
         switch (param) {
             case "sortraids": {
                 const deferredReply = interaction.deferReply({ ephemeral: true });
-                const currentRaids = (await RaidEvent.findAll({ where: { time: { [Op.gt]: Math.floor(new Date().getTime() / 1000) } } })).sort((a, b) => b.time - a.time);
+                const currentRaids = (await RaidEvent.findAll({ where: { time: { [Op.gt]: Math.floor(Date.now() / 1000) } } })).sort((a, b) => b.time - a.time);
                 if (currentRaids.length === 0) {
                     throw { name: "Сейчас нет созданных рейдов" };
                 }

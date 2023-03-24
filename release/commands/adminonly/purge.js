@@ -45,7 +45,7 @@ export default new Command({
             const fetched = await interaction.channel.messages.fetch({ limit: msgs }).then((response) => {
                 return response
                     .filter((message) => message.author.id === user.id)
-                    .filter((msg) => msg.createdTimestamp > new Date().getTime() - 60 * 1000 * 60 * 24 * 14);
+                    .filter((msg) => msg.createdTimestamp > Date.now() - 60 * 1000 * 60 * 24 * 14);
             });
             interaction.channel
                 .bulkDelete(fetched)
@@ -66,7 +66,7 @@ export default new Command({
         }
         else {
             const msgArray = await interaction.channel.messages.fetch({ limit: msgs }).then((m) => {
-                return m.filter((msg) => msg.createdTimestamp > new Date().getTime() - 60 * 1000 * 60 * 24 * 14);
+                return m.filter((msg) => msg.createdTimestamp > Date.now() - 60 * 1000 * 60 * 24 * 14);
             });
             interaction.channel
                 .bulkDelete(msgArray)

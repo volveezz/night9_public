@@ -56,7 +56,7 @@ async function destinyUserStatisticsRolesChecker({ platform, discordId, bungieId
             bungieNames.set(discordId, `${destinyProfileResponse.profile.data.userInfo.bungieGlobalDisplayName ??
                 destinyProfileResponse.profile.data.userInfo.displayName}#${bungieCode}`);
         }
-        if (new Date().getTime() - new Date(destinyProfileResponse.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60 * 2)
+        if (Date.now() - new Date(destinyProfileResponse.profile.data.dateLastPlayed).getTime() > 1000 * 60 * 60 * 2)
             longOffline.add(member.id);
         if (!memberRoles.has(statusRoles.verified))
             addRoles.push(statusRoles.verified);
@@ -416,7 +416,7 @@ async function destinyClanManagmentSystem(bungie_array) {
                     if (!member)
                         return console.error(`[Error code: 1087] Member not found ${memberAuthData.discordId}/${memberAuthData.displayName}`);
                     for (const step of clanJoinDateRoles.roles) {
-                        if (step.days <= Math.trunc((new Date().getTime() - new Date(result.joinDate).getTime()) / 1000 / 60 / 60 / 24)) {
+                        if (step.days <= Math.trunc((Date.now() - new Date(result.joinDate).getTime()) / 1000 / 60 / 60 / 24)) {
                             if (!member.roles.cache.has(step.roleId)) {
                                 try {
                                     if (!member.roles.cache.has(triumphsCategory))

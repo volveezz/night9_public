@@ -59,7 +59,7 @@ export async function clanOnlineMemberActivityChecker() {
 }
 export async function activityCompletionChecker({ accessToken, bungieId, characterId, id, platform, raid, discordId, }) {
     const milestoneHash = typeof raid === "string" ? getRaidData(raid).milestoneHash : raid;
-    let startTime = new Date().getTime();
+    let startTime = Date.now();
     let interval;
     let previousActivityHash;
     let uniqueId = id || Math.floor(Math.random() * (1000 - 101 + 1)) + 101;
@@ -154,7 +154,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                                 ];
                                 let phase = alreadyCompletedPhases[alreadyCompletedPhases.length - 1];
                                 if (phase) {
-                                    phase.end = new Date().getTime();
+                                    phase.end = Date.now();
                                     alreadyCompletedPhases.splice(alreadyCompletedPhases.length > 0 ? alreadyCompletedPhases.length - 1 : 0, 1, {
                                         ...phase,
                                     });

@@ -95,12 +95,12 @@ export default {
                             return;
                         storedMilestones.push({
                             milestoneHash: milestone.milestoneHash,
-                            endDate: new Date(milestone.endDate || new Date().getTime()).getTime(),
+                            endDate: new Date(milestone.endDate || Date.now()).getTime(),
                             rewards: milestone.rewards,
                         });
                     });
                     const embed = new EmbedBuilder().setColor(colors.success).setFooter({ text: `Id: ${id}` });
-                    const curDate = new Date().getTime();
+                    const curDate = Date.now();
                     storedMilestones.forEach((mile) => {
                         if (curDate > mile.endDate)
                             return;

@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
+import { ApplicationCommandOptionType, ApplicationRoleConnectionMetadataType, EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
 import convertSeconds from "../../functions/utilities.js";
 import { AuthData, UserActivityData } from "../../handlers/sequelize.js";
@@ -15,15 +15,41 @@ export default new Command({
             required: true,
         },
     ],
-    run: async ({ interaction }) => {
+    run: async ({ client, interaction }) => {
         const defferedReply = interaction.deferReply();
         const scriptId = interaction.options.getString("script", true).toLowerCase();
         switch (scriptId) {
             case "scr": {
-                const embed = new EmbedBuilder().setColor(colors.invisible).setTitle("Title");
-                await defferedReply;
-                const msg = await interaction.followUp({ embeds: [embed] });
-                console.debug(msg.embeds[0].color);
+                const url = `https://discord.com/api/v10/applications/${client.user.id}/role-connections/metadata`;
+                const body = [
+                    {
+                        key: "accountlinked",
+                        name: "Привяжите аккаунт Discord",
+                        name_localizations: { "en-GB": "Connect your Discord account", "en-US": "Connect your Discord account" },
+                        description: "Привяжите аккаунт Destiny к Discord",
+                        description_localizations: {
+                            "en-GB": "Connect your Destiny account to Discord",
+                            "en-US": "Connect your Destiny account to Discord",
+                        },
+                        type: ApplicationRoleConnectionMetadataType.BooleanEqual,
+                    },
+                ];
+                const response = await fetch(url, {
+                    method: "PUT",
+                    body: JSON.stringify(body),
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bot ${process.env.TOKEN}`,
+                    },
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data);
+                }
+                else {
+                    const data = await response.text();
+                    console.log(data);
+                }
                 return;
             }
             case "activitytop": {
