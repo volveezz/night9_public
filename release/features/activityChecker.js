@@ -45,6 +45,8 @@ export default new Feature({
                     destinyActivityChecker(databaseUser, member, 4, 3);
                 if (randomValue < 50)
                     destinyActivityChecker(databaseUser, member, 82, 3);
+                if (randomValue < 70)
+                    destinyActivityChecker(databaseUser, member, 2, 3);
                 await timer(250);
             }
         }, 1000 * 70);

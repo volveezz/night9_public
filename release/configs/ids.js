@@ -47,5 +47,9 @@ export const forbiddenRaidIds = [
     2693136604, 2693136603, 2812525063, 2693136605, 2693136600, 3089205900, 2449714930, 1685065161, 2164432138, 287649202, 2164432138,
     287649202, 1875726950,
 ];
+export const checkedStoryActivities = [
+    3755529435,
+    3083261666,
+];
 export const ids = process.env.DEV_BUILD !== "dev" ? releaseIds : devIds;
 export const guildId = process.env.DEV_BUILD !== "dev" ? "604967226243809302" : "1007814171267707001";

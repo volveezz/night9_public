@@ -1,4 +1,4 @@
-import { forbiddenRaidIds, ownerId } from "../configs/ids.js";
+import { checkedStoryActivities, forbiddenRaidIds, ownerId } from "../configs/ids.js";
 import { activityRoles, raidRoles, statusRoles, trialsRoles } from "../configs/roles.js";
 import { completedRaidsData, userCharactersId } from "../features/memberStatisticsHandler.js";
 import { apiStatus } from "../structures/apiStatus.js";
@@ -33,7 +33,12 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                     return console.error(`[Error code: 1018] Response error for ${bungieId} during checking ${mode} mode`);
                 if (response.activities?.length > 0) {
                     await Promise.all(response.activities.map((activity) => {
-                        if ((mode === 82 || mode === 4) && activity.values.completed.basic.value) {
+                        const activityMode = activity.activityDetails.mode;
+                        if ((activityMode === 82 ||
+                            activityMode === 4 ||
+                            (activityMode === 2 &&
+                                checkedStoryActivities.includes(activity.activityDetails.referenceId))) &&
+                            activity.values.completed.basic.value) {
                             if (new Date(activity.period).getTime() + activity.values.activityDurationSeconds.basic.value * 1000 >
                                 activityAvaliableTime)
                                 activityReporter(activity.activityDetails.instanceId);

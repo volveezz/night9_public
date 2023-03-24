@@ -56,12 +56,16 @@ export async function activityReporter(pgcrId) {
             .setColor(colors.success)
             .setTimestamp(new Date(response.period))
             .setAuthor({
-            name: mode === 4 ? "Raid Report" : mode === 82 ? "Dungeon Report" : "Bungie PGCR",
+            name: mode === 4
+                ? "Raid Report"
+                : mode === 82
+                    ? "Dungeon Report"
+                    : "Braytech PGCR",
             url: mode === 4
                 ? `https://raid.report/pgcr/${pgcrId}`
                 : mode === 82
                     ? `https://dungeon.report/pgcr/${pgcrId}`
-                    : `https://www.bungie.net/ru/PGCR/${pgcrId}`,
+                    : `https://bray.tech/report/${pgcrId}`,
         })
             .setTitle(`${manifestData.displayProperties.name} - ${response.entries[0].values.activityDurationSeconds.basic.displayValue
             .replace("h", "ч")
@@ -73,7 +77,9 @@ export async function activityReporter(pgcrId) {
                 ? manifestData.displayProperties.highResIcon
                     ? `https://bungie.net${manifestData.displayProperties.highResIcon}`
                     : `https://bungie.net${manifestData.displayProperties.icon}`
-                : undefined,
+                : mode === 82
+                    ? "https://cdn.discordapp.com/attachments/679191036849029167/1088933600281501726/2.png"
+                    : undefined,
         })
             .setThumbnail(thumbnailUrl);
         const completedUsers = new Map();
@@ -111,17 +117,26 @@ export async function activityReporter(pgcrId) {
             });
         });
         const membersMembershipIds = Array.from(completedUsers.keys());
+        let completedUsersCount = 0;
+        let uncompletedUsersCount = 0;
         completedUsers.forEach((value, key) => {
             if (!value.completed) {
                 return;
             }
             else {
                 completedUsers.delete(key);
+                completedUsersCount++;
             }
+            if (completedUsersCount > 12)
+                return;
             embed.addFields({
                 name: escapeString(value.bungieName),
                 value: `${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
-                    ? `\nВ ${response.activityDetails.mode === 4 ? "рейде" : response.activityDetails.mode === 82 ? "подземелье" : "активности"}: **${convertSeconds(value.timeInActivity)}**`
+                    ? `\nВ ${mode === 4
+                        ? "рейде"
+                        : mode === 82
+                            ? "подземелье"
+                            : "задании"}: **${convertSeconds(value.timeInActivity)}**`
                     : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
                 inline: true,
             });
@@ -130,113 +145,127 @@ export async function activityReporter(pgcrId) {
             return a.name.localeCompare(b.name);
         });
         completedUsers.forEach((value, _key) => {
+            uncompletedUsersCount++;
+            if (uncompletedUsersCount > 12)
+                return;
             embed.addFields({
                 name: "❌" + escapeString(value.bungieName),
                 value: `${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
-                    ? `\nВ ${response.activityDetails.mode === 4 ? "рейде" : response.activityDetails.mode === 82 ? "подземелье" : "активности"}: **${convertSeconds(value.timeInActivity)}**`
+                    ? `\nВ ${mode === 4
+                        ? "рейде"
+                        : mode === 82
+                            ? "подземелье"
+                            : "задании"}: **${convertSeconds(value.timeInActivity)}**`
                     : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
                 inline: true,
             });
         });
         if (membersMembershipIds.length <= 0)
             return;
-        const dbData = await AuthData.findAll({ where: { bungieId: { [Op.any]: membersMembershipIds } } });
-        const clanMembersInRaid = dbData.filter((a) => a.clan).length;
-        if (dbData.length >= 1 && clanMembersInRaid >= 1) {
-            if (response.activityDetails.mode === 4 && dbData.length <= 1 && clanMembersInRaid <= 1)
+        const databaseData = await AuthData.findAll({ where: { bungieId: { [Op.any]: membersMembershipIds } } });
+        const clanMembersInActivity = databaseData.filter((a) => a.clan).length;
+        if (databaseData.length >= 1 && clanMembersInActivity >= 1) {
+            if (mode === 4 && clanMembersInActivity === 1)
                 return;
-            if (response.activityDetails.mode === 82 && (clanMembersInRaid < 1 || (membersMembershipIds.length > 1 && dbData.length <= 1)))
+            if (mode === 82 &&
+                databaseData.length < membersMembershipIds.length / 2 &&
+                clanMembersInActivity < databaseData.length / 2)
                 return;
-            const preciseEncountersTime = new Map();
+            if (mode === 2 &&
+                !((clanMembersInActivity === 1 && membersMembershipIds.length === 1) || clanMembersInActivity > 1))
+                return;
             console.debug(`[Error code: 1639] PGCR: ${pgcrId}\n`, JSON.stringify(Array.from(completedPhases.entries())));
-            membersMembershipIds.forEach((bungieId, i1) => {
-                if (completedPhases.has(bungieId)) {
-                    const completedPhasesForUser = completedPhases.get(bungieId);
-                    let previousEncounterEndTime = 0;
-                    completedPhasesForUser.forEach((completedPhase, i2) => {
-                        const { phase: phaseHash, start, end } = completedPhase;
-                        if (!preciseEncountersTime.has(phaseHash)) {
-                            preciseEncountersTime.set(phaseHash, completedPhase);
-                            previousEncounterEndTime = end;
-                        }
-                        else {
-                            const preciseStoredEncounterTime = preciseEncountersTime.get(phaseHash);
-                            if (start > 1 && start < preciseStoredEncounterTime.start && previousEncounterEndTime <= start) {
-                                preciseStoredEncounterTime.start = start;
+            if (mode === 4) {
+                const preciseEncountersTime = new Map();
+                membersMembershipIds.forEach((bungieId, i1) => {
+                    if (completedPhases.has(bungieId)) {
+                        const completedPhasesForUser = completedPhases.get(bungieId);
+                        let previousEncounterEndTime = 0;
+                        completedPhasesForUser.forEach((completedPhase, i2) => {
+                            const { phase: phaseHash, start, end } = completedPhase;
+                            if (!preciseEncountersTime.has(phaseHash)) {
+                                preciseEncountersTime.set(phaseHash, completedPhase);
+                                previousEncounterEndTime = end;
                             }
-                            if (end > 1 && end < preciseStoredEncounterTime.end && previousEncounterEndTime < end) {
-                                preciseStoredEncounterTime.end = end;
+                            else {
+                                const preciseStoredEncounterTime = preciseEncountersTime.get(phaseHash);
+                                if (start > 1 && start < preciseStoredEncounterTime.start && previousEncounterEndTime <= start) {
+                                    preciseStoredEncounterTime.start = start;
+                                }
+                                if (end > 1 && end < preciseStoredEncounterTime.end && previousEncounterEndTime < end) {
+                                    preciseStoredEncounterTime.end = end;
+                                }
+                                else if (end <= 1) {
+                                    const resolvedTime = completedPhasesForUser[i2 + 1]?.start || completedPhases.get(membersMembershipIds[i1 + 1])?.[i2 + 1]?.start;
+                                    if (resolvedTime && resolvedTime > 1)
+                                        preciseStoredEncounterTime.end = resolvedTime;
+                                }
+                                preciseEncountersTime.set(phaseHash, preciseStoredEncounterTime);
+                                previousEncounterEndTime = preciseStoredEncounterTime.end;
                             }
-                            else if (end <= 1) {
-                                const resolvedTime = completedPhasesForUser[i2 + 1]?.start || completedPhases.get(membersMembershipIds[i1 + 1])?.[i2 + 1]?.start;
-                                if (resolvedTime && resolvedTime > 1)
-                                    preciseStoredEncounterTime.end = resolvedTime;
-                            }
-                            preciseEncountersTime.set(phaseHash, preciseStoredEncounterTime);
-                            previousEncounterEndTime = preciseStoredEncounterTime.end;
-                        }
-                    });
-                    completedPhases.delete(bungieId);
-                }
-            });
-            if (preciseEncountersTime && preciseEncountersTime.size > 0) {
-                const encountersData = [];
-                const phasesArray = Array.from(preciseEncountersTime.values()).sort((a, b) => a.phaseIndex - b.phaseIndex);
-                phasesArray.forEach((encounterData, i) => {
-                    if (i === 0) {
-                        return encountersData.push({
-                            end: encounterData.end,
-                            phase: encounterData.phase,
-                            phaseIndex: encounterData.phaseIndex != 1 && response.activityWasStartedFromBeginning
-                                ? `1-${encounterData.phaseIndex}`
-                                : encounterData.phaseIndex,
-                            start: new Date(response.period).getTime(),
                         });
+                        completedPhases.delete(bungieId);
                     }
-                    else if (i === phasesArray.length - 1) {
-                        const activityEndTime = new Date(response.period).getTime() + response.entries[0].values.activityDurationSeconds.basic.value * 1000;
-                        return encountersData.push({
-                            end: encounterData.end > activityEndTime || encounterData.end <= 1 ? activityEndTime : encounterData.end,
-                            phase: encounterData.phase,
-                            phaseIndex: encounterData.phaseIndex,
-                            start: encounterData.start,
-                        });
-                    }
-                    encountersData.push(encounterData);
                 });
-                console.debug(`[Error code: 1642] PGCR: ${pgcrId}\n`, JSON.stringify(Array.from(encountersData.entries())));
-                if (encountersData.length >= 1) {
-                    try {
-                        if (encountersData.length < 2)
-                            console.debug(`[Error code: 1638] PGCR: ${pgcrId}\n`, encountersData);
-                        embed.addFields([
-                            {
-                                name: "Затраченное время на этапы",
-                                value: `${encountersData
-                                    .map((encounter) => {
-                                    return `⁣　⁣${encounter.phaseIndex}. <t:${Math.floor(encounter.start / 1000)}:t> — <t:${Math.floor(encounter.end / 1000)}:t>, **${convertSeconds(Math.floor((encounter.end - encounter.start) / 1000))}**`;
-                                })
-                                    .join("\n")}`,
-                            },
-                        ]);
+                if (preciseEncountersTime && preciseEncountersTime.size > 0) {
+                    const encountersData = [];
+                    const phasesArray = Array.from(preciseEncountersTime.values()).sort((a, b) => a.phaseIndex - b.phaseIndex);
+                    phasesArray.forEach((encounterData, i) => {
+                        if (i === 0) {
+                            return encountersData.push({
+                                end: encounterData.end,
+                                phase: encounterData.phase,
+                                phaseIndex: encounterData.phaseIndex != 1 && response.activityWasStartedFromBeginning
+                                    ? `1-${encounterData.phaseIndex}`
+                                    : encounterData.phaseIndex,
+                                start: new Date(response.period).getTime(),
+                            });
+                        }
+                        else if (i === phasesArray.length - 1) {
+                            const activityEndTime = new Date(response.period).getTime() + response.entries[0].values.activityDurationSeconds.basic.value * 1000;
+                            return encountersData.push({
+                                end: encounterData.end > activityEndTime || encounterData.end <= 1 ? activityEndTime : encounterData.end,
+                                phase: encounterData.phase,
+                                phaseIndex: encounterData.phaseIndex,
+                                start: encounterData.start,
+                            });
+                        }
+                        encountersData.push(encounterData);
+                    });
+                    console.debug(`[Error code: 1642] PGCR: ${pgcrId}\n`, JSON.stringify(Array.from(encountersData.entries())));
+                    if (encountersData.length >= 1) {
+                        try {
+                            if (encountersData.length < 2)
+                                console.debug(`[Error code: 1638] PGCR: ${pgcrId}\n`, encountersData);
+                            embed.addFields([
+                                {
+                                    name: "Затраченное время на этапы",
+                                    value: `${encountersData
+                                        .map((encounter) => {
+                                        return `⁣　⁣${encounter.phaseIndex}. <t:${Math.floor(encounter.start / 1000)}:t> — <t:${Math.floor(encounter.end / 1000)}:t>, **${convertSeconds(Math.floor((encounter.end - encounter.start) / 1000))}**`;
+                                    })
+                                        .join("\n")}`,
+                                },
+                            ]);
+                        }
+                        catch (error) {
+                            console.error(`[Error code: 1610] Error during adding fields to the raid result`, error);
+                        }
                     }
-                    catch (error) {
-                        console.error(`[Error code: 1610] Error during adding fields to the raid result`, error);
+                    else {
+                        console.error(`[Error code: 1613]`, encountersData, preciseEncountersTime, preciseEncountersTime.size);
                     }
+                    preciseEncountersTime.clear();
                 }
-                else {
-                    console.error(`[Error code: 1613]`, encountersData, preciseEncountersTime, preciseEncountersTime.size);
-                }
-                preciseEncountersTime.clear();
             }
             const msg = client.getCachedTextChannel(ids.activityChnId).send({ embeds: [embed] });
             const currentTime = Math.trunc(Date.now() / 1000);
-            dbData.forEach(async (dbMemberData) => {
-                if (response.activityDetails.mode === 82 && clanMembersInRaid > 1)
+            databaseData.forEach(async (dbMemberData) => {
+                if (mode === 82 && clanMembersInActivity > 1)
                     return UserActivityData.increment("dungeons", { by: 1, where: { discordId: dbMemberData.discordId } });
-                if (response.activityDetails.mode !== 4)
+                if (mode !== 4)
                     return;
-                if (dbMemberData.clan === true && clanMembersInRaid > 2)
+                if (dbMemberData.clan === true && clanMembersInActivity > 2)
                     UserActivityData.increment("raids", { by: 1, where: { discordId: dbMemberData.discordId } });
                 const dbRaidData = await RaidEvent.findAll({ where: { creator: dbMemberData.discordId } }).then((data) => {
                     for (let i = 0; i < data.length; i++) {
@@ -281,7 +310,7 @@ export function logRegistrationLinkRequest(state, user, rowCreated) {
     })
         .addFields([
         { name: "Пользователь", value: `<@${user.id}>`, inline: true },
-        { name: "State", value: state, inline: true },
+        { name: "State", value: `${state}`, inline: true },
         { name: "Впервые", value: `${rowCreated}`, inline: true },
     ]);
     client.getCachedTextChannel(ids.botChnId).send({ embeds: [embed] });
