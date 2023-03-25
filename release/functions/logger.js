@@ -99,7 +99,7 @@ export async function activityReporter(pgcrId) {
                     ? `https://bungie.net${manifestData.displayProperties.highResIcon}`
                     : `https://bungie.net${manifestData.displayProperties.icon}`
                 : mode === 82
-                    ? "https://cdn.discordapp.com/attachments/679191036849029167/1089152300775383150/dungeon.png"
+                    ? "https://cdn.discordapp.com/attachments/679191036849029167/1089153433543651408/dungeon.png"
                     : undefined,
         })
             .setThumbnail(thumbnailUrl);

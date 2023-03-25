@@ -65,7 +65,7 @@ export async function pvePartyHandler(message) {
         messageErrorHandler(`Ошибка числа участников`, "Число участников должно быть больше 1 и меньше 100", message);
         return;
     }
-    userMessageContent = userMessageContent.replace(/^\+\d+/, "").trim();
+    userMessageContent = userMessageContent.replace(/\+\s?\d{1,2}\s?/, "").trim();
     if (userMessageContent.length === 0) {
         messageErrorHandler("Ошибка названия", "Название набора обязательно", message);
         return;
