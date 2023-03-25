@@ -145,7 +145,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                         return console.error(`[Error code: 1645]`, cachedMilestoneActivity, updatedMilestoneActivity);
                     for (const phaseIndexString in updatedMilestoneActivity.phases) {
                         const phaseIndex = parseInt(phaseIndexString);
-                        if (!phaseIndex)
+                        if (phaseIndex == null)
                             return console.error(`[Error code: 1651]`, updatedMilestoneActivity);
                         const cachedMilestonePhase = cachedMilestoneActivity.phases[phaseIndex];
                         const updatedMilestonePhase = updatedMilestoneActivity.phases[phaseIndex];
