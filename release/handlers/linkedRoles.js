@@ -22,7 +22,6 @@ export async function getOAuthTokens(code) {
         code: code,
         redirect_uri: process.env.DISCORD_REDIRECT_URI,
     }));
-    console.log(form);
     const response = await fetch(url, {
         body: form,
         method: "POST",

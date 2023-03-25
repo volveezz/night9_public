@@ -37,9 +37,33 @@ export async function logClientDmMessages(member, text, id, interaction) {
     };
     interaction ? interaction.editReply(payload) : dmLogChannel.send(payload);
 }
+const hashToImageMap = {
+    2381413764: "https://images.contentstack.io/v3/assets/blte410e3b15535c144/bltd95f9a53ce953669/63ffd4b9a7d98e0267ed24eb/Fp_5gnkX0AULoRF.jpg",
+    1191701339: "https://images.contentstack.io/v3/assets/blte410e3b15535c144/bltd95f9a53ce953669/63ffd4b9a7d98e0267ed24eb/Fp_5gnkX0AULoRF.jpg",
+    2918919505: "https://images.contentstack.io/v3/assets/blte410e3b15535c144/bltd95f9a53ce953669/63ffd4b9a7d98e0267ed24eb/Fp_5gnkX0AULoRF.jpg",
+    3755529435: "https://cdn.discordapp.com/attachments/679191036849029167/1089133095820722176/season20_exotic_mission.png",
+    3083261666: "https://cdn.discordapp.com/attachments/679191036849029167/1089133095820722176/season20_exotic_mission.png",
+    700101128: "https://cdn.discordapp.com/attachments/679191036849029167/1089134183386984569/season_20_battleground_exeter.png",
+    2572988947: "https://cdn.discordapp.com/attachments/679191036849029167/1089134184016130088/season_20_battleground_turnabout.png",
+    1368255375: "https://cdn.discordapp.com/attachments/679191036849029167/1089134183747690516/season_20_battleground_bulkhead.png",
+};
 export async function activityReporter(pgcrId) {
     if (!pgcrIds.has(pgcrId)) {
         pgcrIds.add(pgcrId);
+        function getActivityImage(hash, manifestImage) {
+            const placeholderImage = "/img/theme/destiny/bgs/pgcrs/placeholder.jpg";
+            if (manifestImage === placeholderImage) {
+                if (hashToImageMap[hash]) {
+                    return hashToImageMap[hash];
+                }
+                else {
+                    return `https://bungie.net${placeholderImage}`;
+                }
+            }
+            else {
+                return `https://bungie.net${manifestImage}`;
+            }
+        }
         const response = await fetchRequest(`Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`).catch((e) => console.log(`[Error code: 1072] activityReporter error`, pgcrId, e, e.statusCode));
         if (!response.activityDetails) {
             console.error(`[PGCR Checker] [Error code: 1009]`, pgcrId, response);
@@ -48,10 +72,7 @@ export async function activityReporter(pgcrId) {
         const { mode, referenceId } = response.activityDetails;
         const manifestData = CachedDestinyActivityDefinition[referenceId];
         const footerText = `Активность была начата ${response.activityWasStartedFromBeginning ? "с начала" : "с сохранения"}`;
-        const thumbnailUrl = manifestData.pgcrImage === "/img/theme/destiny/bgs/pgcrs/placeholder.jpg" &&
-            [2381413764, 1191701339, 2918919505].includes(manifestData.hash)
-            ? "https://images.contentstack.io/v3/assets/blte410e3b15535c144/bltd95f9a53ce953669/63ffd4b9a7d98e0267ed24eb/Fp_5gnkX0AULoRF.jpg"
-            : `https://bungie.net${manifestData.pgcrImage}`;
+        const thumbnailUrl = getActivityImage(referenceId, manifestData.pgcrImage);
         const embed = new EmbedBuilder()
             .setColor(colors.success)
             .setTimestamp(new Date(response.period))
@@ -78,7 +99,7 @@ export async function activityReporter(pgcrId) {
                     ? `https://bungie.net${manifestData.displayProperties.highResIcon}`
                     : `https://bungie.net${manifestData.displayProperties.icon}`
                 : mode === 82
-                    ? "https://cdn.discordapp.com/attachments/679191036849029167/1088933600281501726/2.png"
+                    ? "https://cdn.discordapp.com/attachments/679191036849029167/1089152300775383150/dungeon.png"
                     : undefined,
         })
             .setThumbnail(thumbnailUrl);

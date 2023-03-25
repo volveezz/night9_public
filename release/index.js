@@ -66,7 +66,7 @@ app.get("/callback", async (req, res) => {
             expires_at: Date.now() + tokens.expires_in * 1000,
         });
         await updateMetadata(userId);
-        res.send("You did it!  Now go back to Discord.");
+        res.send(`<script>location.replace('index.html')</script>`);
     }
     catch (e) {
         console.error(e);

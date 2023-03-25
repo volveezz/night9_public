@@ -136,10 +136,17 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                 for (const milestineIndex in updatedMilestone.activities) {
                     const cachedMilestoneActivity = cachedMilestone.activities[milestineIndex];
                     const updatedMilestoneActivity = updatedMilestone.activities[milestineIndex];
-                    if (!cachedMilestoneActivity || !updatedMilestoneActivity || !updatedMilestoneActivity.phases)
+                    if (!cachedMilestoneActivity ||
+                        !cachedMilestoneActivity.phases ||
+                        !updatedMilestoneActivity ||
+                        !updatedMilestoneActivity.phases ||
+                        !updatedMilestoneActivity.phases[0] ||
+                        !updatedMilestoneActivity.phases[0].phaseHash)
                         return console.error(`[Error code: 1645]`, cachedMilestoneActivity, updatedMilestoneActivity);
                     for (const phaseIndexString in updatedMilestoneActivity.phases) {
                         const phaseIndex = parseInt(phaseIndexString);
+                        if (!phaseIndex)
+                            return console.error(`[Error code: 1651]`, updatedMilestoneActivity);
                         const cachedMilestonePhase = cachedMilestoneActivity.phases[phaseIndex];
                         const updatedMilestonePhase = updatedMilestoneActivity.phases[phaseIndex];
                         if (cachedMilestonePhase?.phaseHash === updatedMilestonePhase?.phaseHash) {

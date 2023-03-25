@@ -59,7 +59,8 @@ export async function pvePartyHandler(message) {
     if (!message.content.startsWith("+") || !message.member)
         return;
     let userMessageContent = message.cleanContent;
-    const userLimit = parseInt(userMessageContent) + 1;
+    const userLimitString = userMessageContent.replace(/\+\s+/, "");
+    const userLimit = parseInt(userLimitString) + 1;
     if (isNaN(userLimit) || userLimit <= 1 || userLimit > 99) {
         messageErrorHandler(`Ошибка числа участников`, "Число участников должно быть больше 1 и меньше 100", message);
         return;
@@ -251,7 +252,7 @@ export async function pvePartyVoiceChatHandler(channelId, member, state) {
     const embed = EmbedBuilder.from(createdChannel.message.embeds[0]);
     if (embed.data.title) {
         const joinedCount = parseInt(embed.data.title);
-        const updatedCount = state === "join" ? joinedCount + 1 : joinedCount - 1;
+        const updatedCount = state === "join" ? joinedCount - 1 : joinedCount + 1;
         embed.setTitle(embed.data.title.replace(/\d+/, `${updatedCount > 0 ? updatedCount : 0}`));
     }
     const joinedUsersFieldIndex = embed.data.fields?.findIndex((v) => v.name.startsWith("Состав группы"));
