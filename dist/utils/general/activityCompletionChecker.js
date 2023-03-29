@@ -101,6 +101,7 @@ async function fetchCharacterResponse(accessToken, bungieId, characterId, platfo
     }
 }
 export async function activityCompletionChecker({ accessToken, bungieId, characterId, id, platform, raid, discordId, }) {
+    console.debug(`STARTED activityCompletionChecker FOR ${platform}/${bungieId}`);
     const milestoneHash = typeof raid === "string" ? getRaidData(raid).milestoneHash : raid;
     let startTime = Date.now();
     let interval;
@@ -138,11 +139,13 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
         }
     }
     async function characterMilestonesChecker(response) {
+        console.debug(`STARTED characterMilestonesChecker FOR ${platform}/${bungieId}`);
         const characterMilestones = response.progressions.data.milestones;
         const updatedMilestone = characterMilestones[milestoneHash];
         if (activityCompletionCurrentProfiles.has(bungieId)) {
             const cachedMilestone = activityCompletionCurrentProfiles.get(bungieId);
             if (cachedMilestone !== updatedMilestone) {
+                console.debug(`STARTED ADVANCED CHECKER FOR ${platform}/${bungieId}`);
                 for (const milestineIndex in updatedMilestone.activities) {
                     const cachedMilestoneActivity = cachedMilestone.activities[milestineIndex];
                     const updatedMilestoneActivity = updatedMilestone.activities[milestineIndex];
