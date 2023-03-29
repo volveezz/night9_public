@@ -50,7 +50,7 @@ export async function clanOnlineMemberActivityChecker() {
             }
             await timer(4000);
         }
-    }, 60 * 1000 * 8);
+    }, 60 * 1000 * 3);
 }
 function findMostRecentCharacterId(characterActivities) {
     const characterIds = Object.keys(characterActivities);
@@ -106,13 +106,13 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
     let startTime = Date.now();
     let interval;
     let previousActivityHash;
-    let uniqueId = id || Math.floor(Math.random() * (1000 - 101 + 1)) + 101;
+    let uniqueId = id || Math.floor(Math.random() * 1000);
     async function checkActivityHash() {
         const response = await fetchCharacterResponse(accessToken, bungieId, characterId, platform);
         const characterData = response?.activities.data;
         const currentActivityHash = characterData?.currentActivityHash;
-        if (!response ||
-            !response.activities?.data ||
+        if (response == null ||
+            response.activities?.data == null ||
             currentActivityHash !== previousActivityHash ||
             currentActivityHash === 82913930 ||
             CachedDestinyActivityDefinition[currentActivityHash]?.activityTypeHash !== raidActivityModeHashes ||
@@ -132,7 +132,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
             if (previousActivityHash === undefined) {
                 previousActivityHash = currentActivityHash;
             }
-            characterMilestonesChecker(response);
+            await characterMilestonesChecker(response);
         }
         catch (error) {
             console.error(`[Error code: 1636]`, error);
@@ -149,12 +149,12 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                 for (const milestineIndex in updatedMilestone.activities) {
                     const cachedMilestoneActivity = cachedMilestone.activities[milestineIndex];
                     const updatedMilestoneActivity = updatedMilestone.activities[milestineIndex];
-                    if (!cachedMilestoneActivity ||
-                        !cachedMilestoneActivity.phases ||
-                        !updatedMilestoneActivity ||
-                        !updatedMilestoneActivity.phases ||
-                        !updatedMilestoneActivity.phases[0] ||
-                        !updatedMilestoneActivity.phases[0].phaseHash)
+                    if (cachedMilestoneActivity == null ||
+                        cachedMilestoneActivity.phases == null ||
+                        updatedMilestoneActivity == null ||
+                        updatedMilestoneActivity.phases == null ||
+                        updatedMilestoneActivity.phases[0] == null ||
+                        updatedMilestoneActivity.phases[0].phaseHash == null)
                         return console.error(`[Error code: 1645]`, cachedMilestoneActivity, updatedMilestoneActivity);
                     for (const phaseIndexString in updatedMilestoneActivity.phases) {
                         const phaseIndex = parseInt(phaseIndexString);
@@ -173,35 +173,33 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                                     },
                                 ];
                                 let phase = alreadyCompletedPhases[alreadyCompletedPhases.length - 1];
-                                if (phase) {
-                                    phase.end = Date.now();
-                                    alreadyCompletedPhases.splice(alreadyCompletedPhases.length > 0 ? alreadyCompletedPhases.length - 1 : 0, 1, {
-                                        ...phase,
-                                    });
-                                    if (updatedMilestoneActivity.phases[phaseIndex + 1] !== undefined &&
-                                        updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash !== undefined) {
-                                        const imsertedPhaseIndex = alreadyCompletedPhases.findIndex((phase) => phase.phaseIndex === phaseIndex + 1);
-                                        const phaseData = {
-                                            phase: updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash,
-                                            phaseIndex: phaseIndex + 2,
-                                            start: phase.end,
-                                            end: -1,
-                                        };
-                                        if (imsertedPhaseIndex === -1) {
-                                            alreadyCompletedPhases.push(phaseData);
-                                        }
-                                        else {
-                                            alreadyCompletedPhases.splice(imsertedPhaseIndex, 1, {
-                                                ...phaseData,
-                                            });
-                                        }
+                                phase.end = Date.now();
+                                alreadyCompletedPhases.splice(alreadyCompletedPhases.length > 0 ? alreadyCompletedPhases.length - 1 : 0, 1, {
+                                    ...phase,
+                                });
+                                if (updatedMilestoneActivity.phases[phaseIndex + 1] != null &&
+                                    updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash != null) {
+                                    const imsertedPhaseIndex = alreadyCompletedPhases.findIndex((phase) => phase.phaseIndex === phaseIndex + 1);
+                                    const phaseData = {
+                                        phase: updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash,
+                                        phaseIndex: phaseIndex + 2,
+                                        start: phase.end,
+                                        end: -1,
+                                    };
+                                    if (imsertedPhaseIndex === -1) {
+                                        alreadyCompletedPhases.push(phaseData);
                                     }
                                     else {
-                                        currentlyRunning.delete(uniqueId);
+                                        alreadyCompletedPhases.splice(imsertedPhaseIndex, 1, {
+                                            ...phaseData,
+                                        });
                                     }
-                                    completedPhases.set(bungieId, alreadyCompletedPhases);
-                                    break;
                                 }
+                                else {
+                                    currentlyRunning.delete(uniqueId);
+                                }
+                                completedPhases.set(bungieId, alreadyCompletedPhases);
+                                break;
                             }
                         }
                         else if (!cachedMilestone || !updatedMilestone) {
@@ -213,9 +211,10 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
         }
         activityCompletionCurrentProfiles.set(bungieId, updatedMilestone);
     }
-    interval = setInterval(() => {
+    interval = setInterval(async () => {
+        console.log(uniqueId, currentlyRunning.has(uniqueId));
         if (currentlyRunning.has(uniqueId)) {
-            checkActivityHash();
+            await checkActivityHash();
         }
         else {
             clearInterval(interval);
