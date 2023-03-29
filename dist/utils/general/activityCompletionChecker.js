@@ -113,10 +113,11 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
         const currentActivityHash = characterData?.currentActivityHash;
         if (response == null ||
             response.activities?.data == null ||
-            currentActivityHash !== previousActivityHash ||
+            (currentActivityHash !== previousActivityHash && previousActivityHash !== undefined) ||
             currentActivityHash === 82913930 ||
             CachedDestinyActivityDefinition[currentActivityHash]?.activityTypeHash !== raidActivityModeHashes ||
             (discordId && !clanOnline.has(discordId))) {
+            console.debug(`Interval cleared`);
             clearInterval(interval);
             currentlyRunning.delete(uniqueId);
             activityCompletionCurrentProfiles.delete(bungieId);
