@@ -1,1 +1,1 @@
-web: node ./release/index.js
+web: node ./dist/index.js

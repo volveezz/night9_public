@@ -1,16 +1,16 @@
 {
 	"name": "nightfuture",
-	"version": "2.6.1.2",
+	"version": "2.7.0",
 	"engines": {
 		"node": "18.14.2"
 	},
 	"type": "module",
 	"description": "Discord bot developed for Night 9, a Destiny 2 clan Discord server",
-	"main": "./release/index.js",
+	"main": "./dist/index.js",
 	"scripts": {
-		"start": "node ./release/index.js",
+		"start": "node ./dist/index.js",
 		"prepush": "npx tsc --watch",
-		"dev": "concurrently \"npx tsc --watch\" \"nodemon -q ./release/index.js\""
+		"dev": "concurrently \"npx tsc --watch\" \"nodemon -q ./dist/index.js\""
 	},
 	"author": "Volve",
 	"license": "ISC",
