@@ -111,7 +111,8 @@ async function logActivityCompletion(pgcrId) {
                 misc: miscArray,
             });
         });
-        const membersMembershipIds = Array.from(completedUsers.keys());
+        const membersMembershipIds = [...new Set(Array.from(completedUsers.keys()))];
+        console.debug(`DEBUG memberships Ids`, membersMembershipIds);
         let completedUsersCount = 0;
         let uncompletedUsersCount = 0;
         completedUsers.forEach((value, key) => {

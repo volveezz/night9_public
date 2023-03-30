@@ -1,3 +1,4 @@
+import { AdminDMChannelButtons } from "configs/Buttons.js";
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
 import { ids } from "../../configs/ids.js";
@@ -22,8 +23,8 @@ export async function logClientDmMessages(member, text, id, interaction) {
             {
                 type: ComponentType.ActionRow,
                 components: [
-                    new ButtonBuilder().setCustomId("dmChnFunc_reply").setLabel("Ответить").setStyle(ButtonStyle.Success),
-                    new ButtonBuilder().setCustomId("dmChnFunc_delete").setLabel("Удалить сообщение").setStyle(ButtonStyle.Danger),
+                    new ButtonBuilder().setCustomId(AdminDMChannelButtons.reply).setLabel("Ответить").setStyle(ButtonStyle.Success),
+                    new ButtonBuilder().setCustomId(AdminDMChannelButtons.delete).setLabel("Удалить сообщение").setStyle(ButtonStyle.Danger),
                 ],
             },
         ],

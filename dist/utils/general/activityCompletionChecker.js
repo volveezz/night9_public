@@ -73,7 +73,7 @@ async function fetchCharacterResponse(accessToken, bungieId, characterId, platfo
     try {
         const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`, {
             accessToken,
-        });
+        }).catch((e) => console.error(`[Error code: 1654]`, e));
         if (response == null)
             console.error(`[Error code: 1653] Got error upon checking ${platform}/${bungieId}`);
         return response;
@@ -175,12 +175,13 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                                         end: -1,
                                     },
                                 ];
-                                console.debug(`FOUND UPDATED PHASE DATA FOR ${platform}/${bungieId}/${characterId}`, alreadyCompletedPhases, updatedMilestoneActivity);
+                                console.debug(`FOUND UPDATED PHASE DATA FOR ${platform}/${bungieId}/${characterId}`, alreadyCompletedPhases, updatedMilestoneActivity.phases);
                                 let phase = alreadyCompletedPhases[alreadyCompletedPhases.length - 1];
                                 phase.end = Date.now();
                                 alreadyCompletedPhases.splice(alreadyCompletedPhases.length > 0 ? alreadyCompletedPhases.length - 1 : 0, 1, {
                                     ...phase,
                                 });
+                                console.debug(`UPDATED END TIME FOR PREVIOUS PHASE DATA`, alreadyCompletedPhases);
                                 if (updatedMilestoneActivity.phases[phaseIndex + 1] != null &&
                                     updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash != null) {
                                     const imsertedPhaseIndex = alreadyCompletedPhases.findIndex((phase) => phase.phaseIndex === phaseIndex + 1);
