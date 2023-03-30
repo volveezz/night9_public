@@ -74,6 +74,8 @@ async function fetchCharacterResponse(accessToken, bungieId, characterId, platfo
         const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`, {
             accessToken,
         });
+        if (response == null)
+            console.error(`[Error code: 1653] Got error upon checking ${platform}/${bungieId}`);
         return response;
     }
     catch (error) {
@@ -173,6 +175,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                                         end: -1,
                                     },
                                 ];
+                                console.debug(`FOUND UPDATED PHASE DATA FOR ${platform}/${bungieId}/${characterId}`, alreadyCompletedPhases, updatedMilestoneActivity);
                                 let phase = alreadyCompletedPhases[alreadyCompletedPhases.length - 1];
                                 phase.end = Date.now();
                                 alreadyCompletedPhases.splice(alreadyCompletedPhases.length > 0 ? alreadyCompletedPhases.length - 1 : 0, 1, {
@@ -213,7 +216,6 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
         activityCompletionCurrentProfiles.set(bungieId, updatedMilestone);
     }
     interval = setInterval(async () => {
-        console.log(uniqueId, currentlyRunning.has(uniqueId));
         if (currentlyRunning.has(uniqueId)) {
             await checkActivityHash();
         }
