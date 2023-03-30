@@ -191,13 +191,17 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                                         start: phase.end,
                                         end: -1,
                                     };
-                                    if (insertedPhaseIndex === -1) {
+                                    if (insertedPhaseIndex == -1) {
+                                        console.debug(`VALUES BEFORE ADDING - ${phaseIndex}/${insertedPhaseIndex}`, phaseData, alreadyCompletedPhases);
                                         alreadyCompletedPhases.push(phaseData);
+                                        console.debug(`NEW VALUE WAS ADDED`, phaseData, alreadyCompletedPhases);
                                     }
                                     else {
+                                        console.debug(`VALUES ARE GOING TO BE EDITED - ${phaseIndex}/${insertedPhaseIndex}`, phaseData, alreadyCompletedPhases);
                                         alreadyCompletedPhases.splice(insertedPhaseIndex, 1, {
                                             ...phaseData,
                                         });
+                                        console.debug(`VALUES WERE UPDATED - ${phaseIndex}/${insertedPhaseIndex}`, phaseData, alreadyCompletedPhases);
                                     }
                                     console.debug(`ADDED NEW VALUE INTO PHASES ARRAY`, alreadyCompletedPhases);
                                 }
