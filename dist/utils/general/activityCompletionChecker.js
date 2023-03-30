@@ -50,7 +50,7 @@ export async function clanOnlineMemberActivityChecker() {
             }
             await timer(4000);
         }
-    }, 60 * 1000 * 3);
+    }, 60 * 1000 * 8);
 }
 function findMostRecentCharacterId(characterActivities) {
     const characterIds = Object.keys(characterActivities);
@@ -184,26 +184,28 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                                 console.debug(`UPDATED END TIME FOR PREVIOUS PHASE DATA`, alreadyCompletedPhases);
                                 if (updatedMilestoneActivity.phases[phaseIndex + 1] != null &&
                                     updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash != null) {
-                                    const imsertedPhaseIndex = alreadyCompletedPhases.findIndex((phase) => phase.phaseIndex === phaseIndex + 1);
+                                    const insertedPhaseIndex = alreadyCompletedPhases.findIndex((phase) => phase.phaseIndex === phaseIndex + 1);
                                     const phaseData = {
                                         phase: updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash,
                                         phaseIndex: phaseIndex + 2,
                                         start: phase.end,
                                         end: -1,
                                     };
-                                    if (imsertedPhaseIndex === -1) {
+                                    if (insertedPhaseIndex === -1) {
                                         alreadyCompletedPhases.push(phaseData);
                                     }
                                     else {
-                                        alreadyCompletedPhases.splice(imsertedPhaseIndex, 1, {
+                                        alreadyCompletedPhases.splice(insertedPhaseIndex, 1, {
                                             ...phaseData,
                                         });
                                     }
+                                    console.debug(`ADDED NEW VALUE INTO PHASES ARRAY`, alreadyCompletedPhases);
                                 }
                                 else {
                                     currentlyRunning.delete(uniqueId);
                                 }
                                 completedPhases.set(bungieId, alreadyCompletedPhases);
+                                console.debug(`CURRENT VALUES FOR USER ${bungieId}`, completedPhases.get(bungieId));
                                 break;
                             }
                         }
