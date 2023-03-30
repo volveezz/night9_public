@@ -1,5 +1,5 @@
-import { AdminDMChannelButtons } from "configs/Buttons.js";
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { AdminDMChannelButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import { ids } from "../../configs/ids.js";
 import { statusRoles } from "../../configs/roles.js";
