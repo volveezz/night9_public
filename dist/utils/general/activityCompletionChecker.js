@@ -184,14 +184,14 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                                 console.debug(`UPDATED END TIME FOR PREVIOUS PHASE DATA`, alreadyCompletedPhases);
                                 if (updatedMilestoneActivity.phases[phaseIndex + 1] != null &&
                                     updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash != null) {
-                                    const insertedPhaseIndex = alreadyCompletedPhases.findIndex((phase) => phase.phaseIndex === phaseIndex + 1);
+                                    const insertedPhaseIndex = alreadyCompletedPhases.findIndex((phase) => phase.phaseIndex === phaseIndex + 2);
                                     const phaseData = {
                                         phase: updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash,
                                         phaseIndex: phaseIndex + 2,
                                         start: phase.end,
                                         end: -1,
                                     };
-                                    if (insertedPhaseIndex == -1) {
+                                    if (insertedPhaseIndex === -1) {
                                         console.debug(`VALUES BEFORE ADDING - ${phaseIndex}/${insertedPhaseIndex}`, phaseData, alreadyCompletedPhases);
                                         alreadyCompletedPhases.push(phaseData);
                                         console.debug(`NEW VALUE WAS ADDED`, phaseData, alreadyCompletedPhases);

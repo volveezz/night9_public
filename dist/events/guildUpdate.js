@@ -37,6 +37,20 @@ export default new Event("guildUpdate", async (oldGuild, newGuild) => {
     const newGuildEntries = Object.entries(newGuild);
     for (const [key, value] of oldGuildEntries) {
         if (newGuildEntries.find(([k, v]) => k === key && v !== value)) {
+            if (key === "features") {
+                try {
+                    const beforeChanges = value.filter((v) => newGuild[key].has(v));
+                    const afterChanges = newGuild[key].filter((v) => !value.has(v));
+                    guildChanges.push({
+                        name: `Features обновлены`,
+                        value: `${beforeChanges.join(", ")} → ${afterChanges.join(", ")}`,
+                    });
+                }
+                catch (e) {
+                    console.error(`[Error code: 1655]`, e);
+                }
+                continue;
+            }
             guildChanges.push({
                 name: `${key} обновлено`,
                 value: `${value} → ${newGuild[key]}`,
