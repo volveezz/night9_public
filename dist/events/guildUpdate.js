@@ -39,8 +39,8 @@ export default new Event("guildUpdate", async (oldGuild, newGuild) => {
         if (newGuildEntries.find(([k, v]) => k === key && v !== value)) {
             if (key === "features") {
                 try {
-                    const beforeChanges = value.filter((v) => newGuild[key].has(v));
-                    const afterChanges = newGuild[key].filter((v) => !value.has(v));
+                    const beforeChanges = value.filter((v) => newGuild[key].includes(v));
+                    const afterChanges = newGuild[key].filter((v) => !value.includes(v));
                     guildChanges.push({
                         name: `Features обновлены`,
                         value: `${beforeChanges.join(", ")} → ${afterChanges.join(", ")}`,

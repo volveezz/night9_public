@@ -74,8 +74,10 @@ async function fetchCharacterResponse(accessToken, bungieId, characterId, platfo
         const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`, {
             accessToken,
         }).catch((e) => console.error(`[Error code: 1654]`, e));
-        if (response == null)
+        if (response == null) {
             console.error(`[Error code: 1653] Got error upon checking ${platform}/${bungieId}`);
+            throw { response };
+        }
         return response;
     }
     catch (error) {

@@ -428,51 +428,43 @@ export function timeConverter(str, timezoneOffset = 3) {
     if (!isNaN(+str) && str.length === 10)
         return +str;
     if (str.length > 20) {
-        const parts = str.split(/[ ,г.]/);
+        const parts = str.replace(/\s+/g, " ").split(/[ ,г.]/);
         if (parts.length <= 1)
             throw { errorType: UserErrors.RAID_TIME_ERROR };
         const day = parseInt(parts[2]);
         const month = new Date().getMonth();
         const time = parts.pop().split(":");
         const hours = parseInt(time[0]);
-        const minutes = parseInt(time[1]) || 0;
+        const minutes = parseInt(time[1]) ?? 0;
         const date = new Date();
-        date.setDate(day);
-        date.setMonth(month);
-        date.setHours(hours);
-        date.setMinutes(minutes);
-        date.setSeconds(0);
-        date.setMilliseconds(0);
+        date.setMonth(month, day);
+        date.setHours(hours, minutes, 0, 0);
         date.setTime(date.getTime() - timezoneOffset * 60 * 60 * 1000);
         if (date < new Date())
             date.setDate(date.getDate() + 1);
         return Math.round(date.getTime() / 1000);
     }
     const date = new Date();
-    const parts = str.split(" ");
+    const parts = str.replace(/\s+/, " ").split(" ");
     for (let part of parts) {
         const datePart = part.match(/\d+[\.\/]\d+/);
         const timePart = part.match(/\d+:\d+/);
         if (datePart) {
             const [day, month] = datePart[0].split(/[\.\/]/);
-            date.setMonth(parseInt(month) - 1);
-            date.setDate(parseInt(day));
+            date.setMonth(parseInt(month) - 1, parseInt(day) ?? new Date().getDate());
         }
         else if (timePart) {
             const [hours, minutes] = timePart[0].split(":");
-            date.setHours(parseInt(hours));
-            date.setMinutes(parseInt(minutes) || 0);
+            date.setHours(parseInt(hours), parseInt(minutes) ?? 0);
         }
         else {
             const hour = parseInt(part);
             if (hour) {
-                date.setHours(hour);
-                date.setMinutes(0);
+                date.setHours(hour, 0);
             }
         }
     }
-    date.setSeconds(0);
-    date.setMilliseconds(0);
+    date.setSeconds(0, 0);
     date.setTime(date.getTime() - timezoneOffset * 60 * 60 * 1000);
     if (date < new Date())
         date.setDate(date.getDate() + 1);
@@ -480,6 +472,10 @@ export function timeConverter(str, timezoneOffset = 3) {
 }
 export async function raidAnnounceSystem(raidData) {
     if (process.env.DEV_BUILD === "dev") {
+        return;
+    }
+    if (raidData.time >= 2147483647) {
+        console.error(`[Error code: 1656] Received too big number (${raidData.time}) for raidAnnounce of ${raidData.id}`, raidData);
         return;
     }
     if (raidAnnounceSet.has(raidData.id)) {

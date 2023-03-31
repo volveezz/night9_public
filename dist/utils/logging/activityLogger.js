@@ -161,9 +161,7 @@ async function logActivityCompletion(pgcrId) {
         const databaseData = await AuthData.findAll({ where: { bungieId: { [Op.any]: membersMembershipIds } } });
         const clanMembersInActivity = databaseData.filter((a) => a.clan).length;
         if (databaseData.length >= 1 && clanMembersInActivity >= 1) {
-            if (mode === 4 && clanMembersInActivity === 1)
-                return;
-            if (mode === 82 &&
+            if ((mode === 82 || mode === 4) &&
                 (databaseData.length < membersMembershipIds.length / 2 || clanMembersInActivity < databaseData.length / 2))
                 return;
             if (mode === 2 &&
