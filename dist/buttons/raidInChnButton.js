@@ -290,7 +290,7 @@ export default {
             interaction.reply({ embeds: [resEmbed], ephemeral: true });
         }
         else if (interaction.customId === RaidButtons.delete) {
-            await interaction.deferUpdate();
+            const deferredReply = interaction.deferReply({ ephemeral: true });
             const embed = new EmbedBuilder().setColor(colors.warning).setTitle(`Подтвердите удаление рейда ${raidData.id}-${raidData.raid}`);
             const components = [
                 {
@@ -301,13 +301,13 @@ export default {
                     ],
                 },
             ];
-            const msg = await interaction.followUp({
-                ephemeral: true,
+            await deferredReply;
+            const message = await interaction.editReply({
                 embeds: [embed],
                 components,
             });
             const collector = interaction.channel.createMessageComponentCollector({
-                message: msg,
+                message,
                 time: 60 * 1000,
                 max: 1,
                 filter: (i) => i.user.id === interaction.user.id,
@@ -353,7 +353,7 @@ export default {
             });
             collector.on("end", async (r, reason) => {
                 if (reason === "time") {
-                    embed.setTitle(`Время для удаления вышло. Повторите снова`).setColor("DarkButNotBlack");
+                    embed.setTitle(`Время для удаления вышло. Повторите снова`).setColor(colors.invisible);
                     interaction.editReply({ components: [], embeds: [embed] });
                 }
             });

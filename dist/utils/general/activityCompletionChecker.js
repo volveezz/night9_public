@@ -142,7 +142,6 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
         }
     }
     async function characterMilestonesChecker(response) {
-        console.debug(`STARTED characterMilestonesChecker FOR ${platform}/${bungieId}`);
         const characterMilestones = response.progressions.data.milestones;
         const updatedMilestone = characterMilestones[milestoneHash];
         if (activityCompletionCurrentProfiles.has(bungieId)) {
@@ -192,7 +191,6 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                                         end: -1,
                                     };
                                     if (insertedPhaseIndex === -1) {
-                                        console.debug(`VALUES BEFORE ADDING - ${phaseIndex}/${insertedPhaseIndex}`, phaseData, alreadyCompletedPhases);
                                         alreadyCompletedPhases.push(phaseData);
                                         console.debug(`NEW VALUE WAS ADDED`, phaseData, alreadyCompletedPhases);
                                     }
@@ -203,13 +201,11 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                                         });
                                         console.debug(`VALUES WERE UPDATED - ${phaseIndex}/${insertedPhaseIndex}`, phaseData, alreadyCompletedPhases);
                                     }
-                                    console.debug(`ADDED NEW VALUE INTO PHASES ARRAY`, alreadyCompletedPhases);
                                 }
                                 else {
                                     currentlyRunning.delete(uniqueId);
                                 }
                                 completedPhases.set(bungieId, alreadyCompletedPhases);
-                                console.debug(`CURRENT VALUES FOR USER ${bungieId}`, completedPhases.get(bungieId));
                                 break;
                             }
                         }

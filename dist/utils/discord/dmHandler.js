@@ -1,4 +1,5 @@
 import { ButtonBuilder, ButtonStyle, ChannelType, ComponentType, EmbedBuilder } from "discord.js";
+import { AdminDMChannelButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import { guildId, ids } from "../../configs/ids.js";
 import { client } from "../../index.js";
@@ -59,7 +60,7 @@ export async function dmHandler(message) {
         components: [
             {
                 type: ComponentType.ActionRow,
-                components: [new ButtonBuilder().setCustomId("dmChnFunc_reply").setLabel("Ответить").setStyle(ButtonStyle.Success)],
+                components: [new ButtonBuilder().setCustomId(AdminDMChannelButtons.reply).setLabel("Ответить").setStyle(ButtonStyle.Success)],
             },
         ],
     });
