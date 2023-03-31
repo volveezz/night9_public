@@ -75,10 +75,9 @@ async function fetchCharacterResponse(accessToken, bungieId, characterId, platfo
             accessToken,
         }).catch((e) => console.error(`[Error code: 1654]`, e));
         if (response == null) {
-            console.error(`[Error code: 1653] Got error upon checking ${platform}/${bungieId}`);
-            throw { response };
+            throw { name: `[Error code: 1653] Got error upon checking ${platform}/${bungieId}` };
         }
-        return response;
+        return [response, null];
     }
     catch (error) {
         console.error(`[Error code: 1636]`, error);
@@ -87,20 +86,15 @@ async function fetchCharacterResponse(accessToken, bungieId, characterId, platfo
             attributes: ["accessToken"],
         });
         if (authData && authData.accessToken) {
-            accessToken = authData.accessToken;
-            try {
-                const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`, {
-                    accessToken,
-                });
-                return response;
-            }
-            catch (retryError) {
-                console.error(`[Error code: 1636] Retry failed`, retryError);
-                return null;
-            }
+            console.debug(`ACCESSTOKEN WAS UPDATED FOR ${bungieId}`);
+            const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`, {
+                accessToken: authData.accessToken,
+            });
+            return [response, authData.accessToken];
         }
         else {
-            return null;
+            console.error(`[Error code: 1657] No accessToken for ${bungieId}`);
+            return [null, null];
         }
     }
 }
@@ -111,8 +105,11 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
     let interval;
     let previousActivityHash;
     let uniqueId = id || Math.floor(Math.random() * 1000);
+    let currentAccessToken = accessToken;
     async function checkActivityHash() {
-        const response = await fetchCharacterResponse(accessToken, bungieId, characterId, platform);
+        const [response, refreshedAccessToken] = await fetchCharacterResponse(currentAccessToken, bungieId, characterId, platform);
+        if (refreshedAccessToken != null)
+            currentAccessToken = refreshedAccessToken;
         const characterData = response?.activities.data;
         const currentActivityHash = characterData?.currentActivityHash;
         if (response == null ||
@@ -128,6 +125,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
             const cachedData = completedPhases.get(bungieId);
             setTimeout(() => {
                 if (completedPhases.get(bungieId) === cachedData && !activityCompletionCurrentProfiles.has(bungieId)) {
+                    console.debug(`Data for ${bungieId} was deleted`);
                     completedPhases.delete(bungieId);
                 }
             }, 60 * 1000 * 30);
