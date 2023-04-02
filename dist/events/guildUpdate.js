@@ -39,8 +39,10 @@ export default new Event("guildUpdate", async (oldGuild, newGuild) => {
         if (newGuildEntries.find(([k, v]) => k === key && v !== value)) {
             if (key === "features") {
                 try {
-                    const beforeChanges = value.filter((v) => newGuild[key].includes(v));
+                    const beforeChanges = value.filter((v) => !newGuild[key].includes(v));
                     const afterChanges = newGuild[key].filter((v) => !value.includes(v));
+                    if ((beforeChanges.length === 0 && afterChanges.length === 0) || (!beforeChanges && !afterChanges))
+                        continue;
                     guildChanges.push({
                         name: `Features обновлены`,
                         value: `${beforeChanges.join(", ")} → ${afterChanges.join(", ")}`,
@@ -48,6 +50,17 @@ export default new Event("guildUpdate", async (oldGuild, newGuild) => {
                 }
                 catch (e) {
                     console.error(`[Error code: 1655]`, e);
+                }
+                continue;
+            }
+            else if (key === "systemChannelFlags") {
+                try {
+                    const systemObject = JSON.stringify(value);
+                    const systemObjectUpdated = JSON.stringify(newGuild[key]);
+                    guildChanges.push({ name: "systemChannelFlags обновлены", value: `${systemObject} → ${systemObjectUpdated}` });
+                }
+                catch (error) {
+                    console.error(`[Error code: 1658]`, error);
                 }
                 continue;
             }

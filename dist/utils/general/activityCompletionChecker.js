@@ -69,6 +69,9 @@ function isRaidActivity(activeCharacter) {
             CachedDestinyActivityDefinition[activeCharacter.currentActivityHash]?.activityTypeHash === raidActivityModeHashes) ||
         false);
 }
+function areAllPhasesComplete(phases) {
+    return phases.every((phase) => phase.complete);
+}
 async function fetchCharacterResponse(accessToken, bungieId, characterId, platform) {
     try {
         const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`, {
@@ -117,6 +120,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
             (currentActivityHash !== previousActivityHash && previousActivityHash !== undefined) ||
             currentActivityHash === 82913930 ||
             CachedDestinyActivityDefinition[currentActivityHash]?.activityTypeHash !== raidActivityModeHashes ||
+            response.progressions.data.milestones[milestoneHash].activities[0].phases ||
             (discordId && !clanOnline.has(discordId))) {
             console.debug(`Interval cleared`);
             clearInterval(interval);
@@ -125,7 +129,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
             const cachedData = completedPhases.get(bungieId);
             setTimeout(() => {
                 if (completedPhases.get(bungieId) === cachedData && !activityCompletionCurrentProfiles.has(bungieId)) {
-                    console.debug(`Data for ${bungieId} was deleted`);
+                    console.debug(`Data for ${platform}/${bungieId}/${characterId} was deleted`);
                     completedPhases.delete(bungieId);
                 }
             }, 60 * 1000 * 30);
@@ -134,6 +138,14 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
         try {
             if (previousActivityHash === undefined) {
                 previousActivityHash = currentActivityHash;
+                const updatedMilestoneActivity = response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash);
+                if (updatedMilestoneActivity && areAllPhasesComplete(updatedMilestoneActivity.phases)) {
+                    console.debug(`All phases are already complete for ${platform}/${bungieId}/${characterId}`);
+                    clearInterval(interval);
+                    currentlyRunning.delete(uniqueId);
+                    activityCompletionCurrentProfiles.delete(bungieId);
+                    return null;
+                }
             }
             await characterMilestonesChecker(response);
         }
@@ -147,70 +159,68 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
         if (activityCompletionCurrentProfiles.has(bungieId)) {
             const cachedMilestone = activityCompletionCurrentProfiles.get(bungieId);
             if (cachedMilestone !== updatedMilestone) {
-                for (const milestineIndex in updatedMilestone.activities) {
-                    const cachedMilestoneActivity = cachedMilestone.activities[milestineIndex];
-                    const updatedMilestoneActivity = updatedMilestone.activities[milestineIndex];
-                    if (cachedMilestoneActivity == null ||
-                        cachedMilestoneActivity.phases == null ||
-                        updatedMilestoneActivity == null ||
-                        updatedMilestoneActivity.phases == null ||
-                        updatedMilestoneActivity.phases[0] == null ||
-                        updatedMilestoneActivity.phases[0].phaseHash == null)
-                        return console.error(`[Error code: 1645]`, cachedMilestoneActivity, updatedMilestoneActivity);
-                    for (const phaseIndexString in updatedMilestoneActivity.phases) {
-                        const phaseIndex = parseInt(phaseIndexString);
-                        if (phaseIndex == null)
-                            return console.error(`[Error code: 1651]`, updatedMilestoneActivity);
-                        const cachedMilestonePhase = cachedMilestoneActivity.phases[phaseIndex];
-                        const updatedMilestonePhase = updatedMilestoneActivity.phases[phaseIndex];
-                        if (cachedMilestonePhase?.phaseHash === updatedMilestonePhase?.phaseHash) {
-                            if (cachedMilestonePhase.complete !== updatedMilestonePhase.complete) {
-                                let alreadyCompletedPhases = completedPhases.get(bungieId) || [
-                                    {
-                                        phase: updatedMilestoneActivity.phases[phaseIndex].phaseHash,
-                                        phaseIndex: phaseIndex + 1,
-                                        start: startTime,
-                                        end: -1,
-                                    },
-                                ];
-                                console.debug(`FOUND UPDATED PHASE DATA FOR ${platform}/${bungieId}/${characterId}`, alreadyCompletedPhases, updatedMilestoneActivity.phases);
-                                let phase = alreadyCompletedPhases[alreadyCompletedPhases.length - 1];
-                                phase.end = Date.now();
-                                alreadyCompletedPhases.splice(alreadyCompletedPhases.length > 0 ? alreadyCompletedPhases.length - 1 : 0, 1, {
-                                    ...phase,
-                                });
-                                console.debug(`UPDATED END TIME FOR PREVIOUS PHASE DATA`, alreadyCompletedPhases);
-                                if (updatedMilestoneActivity.phases[phaseIndex + 1] != null &&
-                                    updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash != null) {
-                                    const insertedPhaseIndex = alreadyCompletedPhases.findIndex((phase) => phase.phaseIndex === phaseIndex + 2);
-                                    const phaseData = {
-                                        phase: updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash,
-                                        phaseIndex: phaseIndex + 2,
-                                        start: phase.end,
-                                        end: -1,
-                                    };
-                                    if (insertedPhaseIndex === -1) {
-                                        alreadyCompletedPhases.push(phaseData);
-                                        console.debug(`NEW VALUE WAS ADDED`, phaseData, alreadyCompletedPhases);
-                                    }
-                                    else {
-                                        console.debug(`VALUES ARE GOING TO BE EDITED - ${phaseIndex}/${insertedPhaseIndex}`, phaseData, alreadyCompletedPhases);
-                                        alreadyCompletedPhases.splice(insertedPhaseIndex, 1, {
-                                            ...phaseData,
-                                        });
-                                        console.debug(`VALUES WERE UPDATED - ${phaseIndex}/${insertedPhaseIndex}`, phaseData, alreadyCompletedPhases);
-                                    }
+                const cachedMilestoneActivity = cachedMilestone.activities.find((i) => i.activityHash === previousActivityHash);
+                const updatedMilestoneActivity = updatedMilestone.activities.find((i) => i.activityHash === previousActivityHash);
+                if (cachedMilestoneActivity == null ||
+                    cachedMilestoneActivity.phases == null ||
+                    updatedMilestoneActivity == null ||
+                    updatedMilestoneActivity.phases == null ||
+                    updatedMilestoneActivity.phases[0] == null ||
+                    updatedMilestoneActivity.phases[0].phaseHash == null)
+                    return console.error(`[Error code: 1645]`, cachedMilestoneActivity, updatedMilestoneActivity);
+                for (const phaseIndexString in updatedMilestoneActivity.phases) {
+                    const phaseIndex = parseInt(phaseIndexString);
+                    if (phaseIndex == null)
+                        return console.error(`[Error code: 1651]`, updatedMilestoneActivity);
+                    const cachedMilestonePhase = cachedMilestoneActivity.phases[phaseIndex];
+                    const updatedMilestonePhase = updatedMilestoneActivity.phases[phaseIndex];
+                    if (cachedMilestonePhase?.phaseHash === updatedMilestonePhase?.phaseHash) {
+                        if (cachedMilestonePhase.complete !== updatedMilestonePhase.complete && updatedMilestonePhase.complete === true) {
+                            let alreadyCompletedPhases = completedPhases.get(bungieId) || [
+                                {
+                                    phase: updatedMilestoneActivity.phases[phaseIndex].phaseHash,
+                                    phaseIndex: phaseIndex + 1,
+                                    start: startTime,
+                                    end: -1,
+                                },
+                            ];
+                            console.debug(`FOUND UPDATED PHASE DATA FOR ${platform}/${bungieId}/${characterId}`, alreadyCompletedPhases, updatedMilestoneActivity.phases);
+                            let phase = alreadyCompletedPhases[alreadyCompletedPhases.length - 1];
+                            phase.end = Date.now();
+                            alreadyCompletedPhases.splice(alreadyCompletedPhases.length > 0 ? alreadyCompletedPhases.length - 1 : 0, 1, {
+                                ...phase,
+                            });
+                            console.debug(`UPDATED END TIME FOR PREVIOUS PHASE DATA`, alreadyCompletedPhases);
+                            if (updatedMilestoneActivity.phases[phaseIndex + 1] != null &&
+                                updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash != null) {
+                                const insertedPhaseIndex = alreadyCompletedPhases.findIndex((phase) => phase.phaseIndex === phaseIndex + 2);
+                                const phaseData = {
+                                    phase: updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash,
+                                    phaseIndex: phaseIndex + 2,
+                                    start: phase.end,
+                                    end: -1,
+                                };
+                                if (insertedPhaseIndex === -1) {
+                                    alreadyCompletedPhases.push(phaseData);
+                                    console.debug(`NEW VALUE WAS ADDED`, phaseData, alreadyCompletedPhases);
                                 }
                                 else {
-                                    currentlyRunning.delete(uniqueId);
+                                    console.debug(`VALUES ARE GOING TO BE EDITED - ${phaseIndex}/${insertedPhaseIndex}`, phaseData, alreadyCompletedPhases);
+                                    alreadyCompletedPhases.splice(insertedPhaseIndex, 1, {
+                                        ...phaseData,
+                                    });
+                                    console.debug(`VALUES WERE UPDATED - ${phaseIndex}/${insertedPhaseIndex}`, phaseData, alreadyCompletedPhases);
                                 }
-                                completedPhases.set(bungieId, alreadyCompletedPhases);
-                                break;
                             }
+                            else {
+                                currentlyRunning.delete(uniqueId);
+                            }
+                            completedPhases.set(bungieId, alreadyCompletedPhases);
+                            break;
                         }
-                        else if (!cachedMilestone || !updatedMilestone) {
-                            console.error(`[Error code: 1218]`, cachedMilestone, updatedMilestone);
-                        }
+                    }
+                    else if (!cachedMilestone || !updatedMilestone) {
+                        console.error(`[Error code: 1218]`, cachedMilestone, updatedMilestone);
                     }
                 }
             }
