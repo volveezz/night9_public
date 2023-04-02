@@ -31,29 +31,40 @@ export default {
                     new ButtonBuilder().setCustomId(RaidButtons.leave).setLabel("Выйти").setStyle(ButtonStyle.Danger),
                     new ButtonBuilder().setCustomId(RaidButtons.alt).setLabel("Возможно буду").setStyle(ButtonStyle.Secondary),
                 ];
+                let sortedRaidCount = 0;
                 for await (const raid of currentRaids) {
-                    const { embeds, components } = (await updateRaidMessage(raid));
-                    if (!embeds)
-                        continue;
                     try {
-                        await (raidChannel.messages.cache.get(raid.messageId) || (await raidChannel.messages.fetch(raid.messageId))).delete();
+                        const message = await raidChannel.messages.fetch(raid.messageId);
+                        const { embeds, components } = (await updateRaidMessage(raid));
+                        if (!embeds)
+                            continue;
+                        await message.delete();
+                        const updatedRaidMessage = await raidChannel.send({
+                            embeds,
+                            components: await addButtonComponentsToMessage(components.length > 0 ? components : baseComponents),
+                        });
+                        await raid.update({ messageId: updatedRaidMessage.id });
+                        sortedRaidCount++;
                     }
                     catch (error) {
-                        await deferredReply;
-                        interaction.followUp({ content: `Ошибка. Похоже ${raid.id}-${raid.raid} был создан на другом сервере`, ephemeral: true });
-                        continue;
+                        if (error.code === 10008) {
+                            await deferredReply;
+                            interaction.followUp({
+                                content: `Ошибка. Похоже ${raid.id}-${raid.raid} был создан на другом сервере`,
+                                ephemeral: true,
+                            });
+                            continue;
+                        }
+                        else {
+                            throw error;
+                        }
                     }
-                    const message = await raidChannel.send({
-                        embeds,
-                        components: await addButtonComponentsToMessage(components.length > 0 ? components : baseComponents),
-                    });
-                    await raid.update({ messageId: message.id });
                 }
                 await deferredReply;
                 const embed = new EmbedBuilder()
-                    .setAuthor({ name: `${currentRaids.length} рейдов отсортировано по времени`, iconURL: icons.success })
+                    .setAuthor({ name: `${sortedRaidCount} рейдов отсортировано по времени`, iconURL: icons.success })
                     .setColor(colors.success);
-                interaction.editReply({ embeds: [embed] });
+                await interaction.editReply({ embeds: [embed] });
                 return;
             }
             case "customRoleColor":
