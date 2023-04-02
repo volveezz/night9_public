@@ -35,7 +35,14 @@ export default {
                     const { embeds, components } = (await updateRaidMessage(raid));
                     if (!embeds)
                         continue;
-                    await (raidChannel.messages.cache.get(raid.messageId) || (await raidChannel.messages.fetch(raid.messageId))).delete();
+                    try {
+                        await (raidChannel.messages.cache.get(raid.messageId) || (await raidChannel.messages.fetch(raid.messageId))).delete();
+                    }
+                    catch (error) {
+                        await deferredReply;
+                        interaction.followUp({ content: `Ошибка. Похоже ${raid.id}-${raid.raid} был создан на другом сервере`, ephemeral: true });
+                        continue;
+                    }
                     const message = await raidChannel.send({
                         embeds,
                         components: await addButtonComponentsToMessage(components.length > 0 ? components : baseComponents),

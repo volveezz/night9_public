@@ -147,7 +147,6 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
         if (activityCompletionCurrentProfiles.has(bungieId)) {
             const cachedMilestone = activityCompletionCurrentProfiles.get(bungieId);
             if (cachedMilestone !== updatedMilestone) {
-                console.debug(`STARTED ADVANCED CHECKER FOR ${platform}/${bungieId}`);
                 for (const milestineIndex in updatedMilestone.activities) {
                     const cachedMilestoneActivity = cachedMilestone.activities[milestineIndex];
                     const updatedMilestoneActivity = updatedMilestone.activities[milestineIndex];
