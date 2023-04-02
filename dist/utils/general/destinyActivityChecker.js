@@ -139,15 +139,15 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                         gos >= step.individualClears &&
                         lw >= step.individualClears) {
                         if (!member.roles.cache.has(step.roleId)) {
-                            member.roles.remove(raidRoles.allRoles.filter((r) => r !== step.roleId));
-                            setTimeout(() => member.roles.add(step.roleId), 1000);
+                            await member.roles.remove(raidRoles.allRoles.filter((r) => r !== step.roleId));
+                            setTimeout(async () => await member.roles.add(step.roleId), 1000);
                         }
                         break;
                     }
                     else if (totalClears >= step.totalClears) {
                         if (!member.roles.cache.has(step.roleId)) {
-                            member.roles.remove(raidRoles.allRoles.filter((r) => r !== step.roleId));
-                            setTimeout(() => member.roles.add(step.roleId), 1000);
+                            await member.roles.remove(raidRoles.allRoles.filter((r) => r !== step.roleId));
+                            setTimeout(async () => await member.roles.add(step.roleId), 1000);
                         }
                         break;
                     }
@@ -157,8 +157,8 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
         else if (mode === 84) {
             if (wtmatches >= 10 && member.id !== ownerId) {
                 if (!member.roles.cache.has(trialsRoles.wintrader)) {
-                    member.roles.remove(trialsRoles.allKd);
-                    setTimeout(() => member.roles.add(trialsRoles.wintrader), 1000);
+                    await member.roles.remove(trialsRoles.allKd);
+                    setTimeout(async () => await member.roles.add(trialsRoles.wintrader), 1000);
                 }
                 return;
             }
@@ -175,10 +175,10 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                     for (const step of trialsRoles.kd) {
                         if (kd >= step.kd) {
                             if (!member.roles.cache.has(trialsRoles.category))
-                                member.roles.add(trialsRoles.category);
+                                await member.roles.add(trialsRoles.category);
                             if (!member.roles.cache.has(step.roleId)) {
-                                member.roles.remove(trialsRoles.allKd.filter((r) => r !== step.roleId));
-                                setTimeout(() => member.roles.add(step.roleId), 1000);
+                                await member.roles.remove(trialsRoles.allKd.filter((r) => r !== step.roleId));
+                                setTimeout(async () => await member.roles.add(step.roleId), 1000);
                             }
                             break;
                         }

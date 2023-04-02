@@ -72,25 +72,23 @@ export default {
                         if (code.length > 9)
                             throw { errorType: UserErrors.WRONG_HEX };
                         const role = member.roles.highest.name.startsWith("◈")
-                            ? member.roles.highest.edit({ color: code }).catch((e) => {
+                            ? await member.roles.highest.edit({ color: code }).catch((e) => {
                                 throw { errorType: UserErrors.WRONG_HEX };
                             })
-                            : member.roles.add(await guild.roles
+                            : await member.roles.add(await guild.roles
                                 .create({ name: "◈", color: code, position: member.roles.highest.position + 1 })
                                 .catch((e) => {
                                 throw { errorType: UserErrors.WRONG_HEX };
                             }));
-                        role.then((r) => {
-                            const resultRole = r instanceof Role ? r : r.roles.highest;
-                            const resultEmbed = new EmbedBuilder()
-                                .setColor(colors.success)
-                                .setTitle("Цвет роли был изменен")
-                                .setDescription(`**Предыдущий:** ${initialColor.toString(16).toUpperCase()}\n**Текущий:** ${resultRole.color
-                                .toString(16)
-                                .toUpperCase()}`);
-                            interaction.editReply({ embeds: [resultEmbed] });
-                            return collector.stop("Completed");
-                        });
+                        const resultRole = role instanceof Role ? role : role.roles.highest;
+                        const resultEmbed = new EmbedBuilder()
+                            .setColor(colors.success)
+                            .setTitle("Цвет роли был изменен")
+                            .setDescription(`**Предыдущий:** ${initialColor.toString(16).toUpperCase()}\n**Текущий:** ${resultRole.color
+                            .toString(16)
+                            .toUpperCase()}`);
+                        interaction.editReply({ embeds: [resultEmbed] });
+                        return collector.stop("Completed");
                     });
                     collector.on("end", (_u, reason) => {
                         if (reason !== "time")
@@ -114,21 +112,19 @@ export default {
                         const previousName = member.roles.highest.name.startsWith("◈") ? member.roles.highest.name : undefined;
                         const name = m.cleanContent.trim();
                         const role = member.roles.highest.name.startsWith("◈")
-                            ? member.roles.highest.edit({ name: `◈ ${name}` }).catch((e) => {
+                            ? await member.roles.highest.edit({ name: `◈ ${name}` }).catch((e) => {
                                 throw { name: "Проверьте название роли" };
                             })
-                            : member.roles.add(await guild.roles.create({ name: `◈ ${name}`, position: member.roles.highest.position + 1 }).catch((e) => {
+                            : await member.roles.add(await guild.roles.create({ name: `◈ ${name}`, position: member.roles.highest.position + 1 }).catch((e) => {
                                 throw { name: "Проверьте название роли" };
                             }));
-                        role.then((r) => {
-                            const resultRole = r instanceof Role ? r : r.roles.highest;
-                            const resultEmbed = new EmbedBuilder()
-                                .setColor(colors.success)
-                                .setTitle("Название роли было изменено")
-                                .setDescription(`${previousName ? `**Предыдущий:** ${previousName}\n` : ""}**Текущий:** ${resultRole.name}`);
-                            interaction.editReply({ embeds: [resultEmbed] });
-                            return collector.stop("Completed");
-                        });
+                        const resultRole = role instanceof Role ? role : role.roles.highest;
+                        const resultEmbed = new EmbedBuilder()
+                            .setColor(colors.success)
+                            .setTitle("Название роли было изменено")
+                            .setDescription(`${previousName ? `**Предыдущий:** ${previousName}\n` : ""}**Текущий:** ${resultRole.name}`);
+                        interaction.editReply({ embeds: [resultEmbed] });
+                        return collector.stop("Completed");
                     });
                     collector.on("end", (_u, reason) => {
                         if (reason !== "time")
@@ -164,34 +160,34 @@ export default {
                 {
                     const colorName = interaction.customId.split("_")[2];
                     if (member.roles.highest.name === "⁣")
-                        member.roles.remove(member.roles.highest);
+                        await member.roles.remove(member.roles.highest);
                     switch (colorName) {
                         case "red": {
-                            member.roles.add("1033431078960103445");
+                            await member.roles.add("1033431078960103445");
                             break;
                         }
                         case "white": {
-                            member.roles.add("779024628034174986");
+                            await member.roles.add("779024628034174986");
                             break;
                         }
                         case "purple": {
-                            member.roles.add("779024608178208778");
+                            await member.roles.add("779024608178208778");
                             break;
                         }
                         case "brown": {
-                            member.roles.add("779024275873071105");
+                            await member.roles.add("779024275873071105");
                             break;
                         }
                         case "blue": {
-                            member.roles.add("779024192162234418");
+                            await member.roles.add("779024192162234418");
                             break;
                         }
                         case "orange": {
-                            member.roles.add("779024477723033630");
+                            await member.roles.add("779024477723033630");
                             break;
                         }
                         case "green": {
-                            member.roles.add("779024401823432755");
+                            await member.roles.add("779024401823432755");
                             break;
                         }
                     }

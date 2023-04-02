@@ -21,12 +21,10 @@ export default {
                     .map((r) => {
                     return r.id;
                 }))
-                    .then((_r) => {
+                    .then(async (_) => {
                     if (className === "disable")
                         return;
-                    setTimeout(() => {
-                        member.roles.add(classRoles.find((r) => r.className === className).id);
-                    }, 1500);
+                    await member.roles.add(classRoles.find((r) => r.className === className).id);
                 });
                 const embed = new EmbedBuilder()
                     .setColor(colors.success)
@@ -98,7 +96,7 @@ export default {
                     await timer(2500);
                     if ((await member.fetch()).roles.cache.hasAny(...rolesToRemove)) {
                         console.error(`[Error code: 1643] Member had roles that should be removed so we removed them again\n${rolesToRemove}`);
-                        member.roles.remove(rolesToRemove);
+                        await member.roles.remove(rolesToRemove);
                     }
                 }
                 return;

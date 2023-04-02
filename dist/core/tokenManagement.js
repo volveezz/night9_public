@@ -27,20 +27,19 @@ async function bungieGrantRequest(row, table, t, retry = false) {
     else {
         if (retry === false) {
             bungieGrantRequest(row, table, t, true);
-            console.error(`[Error code: 1420] For ${row.bungieId}`, request);
+            console.error(`[Error code: 1420] For ${row.bungieId}\n`, request);
         }
         else {
-            console.error(`[Error code: 1231] For ${row.bungieId}`, request);
+            console.error(`[Error code: 1231] For ${row.bungieId}\n`, request);
             if (request.error_description === "AuthorizationRecordRevoked") {
-                await (table === 1 ? AuthData : LeavedUsersData)
-                    .destroy({ where: { bungieId: row.bungieId }, transaction: t })
-                    .then((r) => console.log(`User (${row.bungieId}) was deleted in ${table === 1 ? "main table" : "secondary table"} becouse he revoked authToken`));
+                await (table === 1 ? AuthData : LeavedUsersData).destroy({ where: { bungieId: row.bungieId }, transaction: t });
+                console.log(`The user (${row.bungieId}) was deleted from the ${table === 1 ? "main table" : "secondary table"} because he revoked the authorization token`);
             }
             else if (request.error_description === "AuthorizationRecordExpired") {
                 if (table === 1) {
                     const { discordId } = (await AuthData.findOne({ where: { bungieId: row.bungieId }, attributes: ["discordId"] }));
                     await AuthData.destroy({ where: { bungieId: row.bungieId }, transaction: t }).then(async (r) => {
-                        console.log(`User (${row.bungieId}) was deleted in main table becouse his authToken has expired`);
+                        console.log(`The user (${row.bungieId}) was deleted from the main table because his authorization token expired`);
                         const embed = new EmbedBuilder()
                             .setColor(colors.warning)
                             .setTitle("Необходима повторная регистрация")
@@ -59,8 +58,8 @@ async function bungieGrantRequest(row, table, t, retry = false) {
                             (await client.users.fetch(discordId)) ||
                             (await client.getCachedGuild().members.fetch(discordId));
                         if (member) {
-                            member.roles.set([statusRoles.newbie]).catch((e) => {
-                                console.error(`[Error code: 1635] Got error during removal roles of ${member.displayName || member.user.username}`, e);
+                            await member.roles.set([statusRoles.newbie]).catch((e) => {
+                                console.error(`[Error code: 1635] An error occurred while deleting roles of ${member.displayName || member.user.username}\n`, e);
                             });
                         }
                         user.send({ embeds: [embed], components }).catch(async (e) => {
@@ -78,7 +77,7 @@ async function bungieGrantRequest(row, table, t, retry = false) {
                 }
                 else {
                     await LeavedUsersData.destroy({ where: { bungieId: row.bungieId }, transaction: t }).then((r) => {
-                        console.log(`User (${row.bungieId}) was deleted in secondary table becouse his authToken has expired`);
+                        console.log(`The user (${row.bungieId}) was deleted in the secondary table because his authorization token has expired`);
                     });
                 }
             }

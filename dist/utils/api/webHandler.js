@@ -134,9 +134,9 @@ export default async function webHandler(code, state, res) {
         if (!member.roles.cache.has(statusRoles.verified))
             givenRoles.push(statusRoles.verified);
         if (givenRoles.length > 0)
-            member.roles.add(givenRoles, "User registration").then((member) => {
+            await member.roles.add(givenRoles, "User registration").then(async (member) => {
                 if (member.roles.cache.has(statusRoles.newbie))
-                    member.roles.remove(statusRoles.newbie, "User registration");
+                    await member.roles.remove(statusRoles.newbie, "User registration");
             });
         if (!clanResponse || !clanResponse.results) {
             const component = new ButtonBuilder()

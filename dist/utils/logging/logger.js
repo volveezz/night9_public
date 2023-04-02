@@ -54,9 +54,7 @@ export async function updateClanRolesWithLogging(result, join) {
     ]);
     if (member) {
         if (join) {
-            member.roles
-                .add(statusRoles.clanmember, "Clan join")
-                .then((m) => m.roles.remove([statusRoles.kicked, statusRoles.newbie, statusRoles.member]));
+            await (await member.roles.add(statusRoles.clanmember, "Clan join")).roles.remove([statusRoles.kicked, statusRoles.newbie, statusRoles.member]);
             embed
                 .setAuthor({
                 name: `${escapeString(member.displayName)} вступил в клан`,
@@ -65,7 +63,7 @@ export async function updateClanRolesWithLogging(result, join) {
                 .setColor(colors.success);
         }
         else {
-            member.roles.set(member.roles.cache.has(statusRoles.verified) ? [statusRoles.kicked, statusRoles.verified] : [statusRoles.kicked], "Member left clan");
+            await member.roles.set(member.roles.cache.has(statusRoles.verified) ? [statusRoles.kicked, statusRoles.verified] : [statusRoles.kicked], "Member left clan");
             embed
                 .setAuthor({
                 name: `${escapeString(member.displayName)} покинул клан`,
@@ -90,5 +88,5 @@ export async function updateClanRolesWithLogging(result, join) {
                 .setColor(colors.kicked);
         }
     }
-    client.getCachedTextChannel(ids.clanChnId).send({ embeds: [embed] });
+    await client.getCachedTextChannel(ids.clanChnId).send({ embeds: [embed] });
 }

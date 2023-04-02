@@ -317,17 +317,15 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
             }
         }
         if (addRoles.length > 0) {
-            setTimeout(() => {
-                const rolesForGiving = addRoles
-                    .join()
-                    .split(",")
-                    .filter((r) => r.length > 10);
-                if (addRoles.filter((r) => r.length <= 10).length > 0)
-                    console.error(`[Error code: 1096] Error during giving roles [ ${addRoles} ] for ${member.displayName}`);
-                member.roles
-                    .add(rolesForGiving, "+Autorole")
-                    .catch((e) => console.error(`[Error code: 1097] [Autorole error]`, e, rolesForGiving));
-            }, removeRoles.length > 0 ? 4444 : 0);
+            const rolesForGiving = addRoles
+                .join()
+                .split(",")
+                .filter((r) => r.length > 10);
+            if (addRoles.filter((r) => r.length <= 10).length > 0)
+                console.error(`[Error code: 1096] Error during giving roles [ ${addRoles} ] for ${member.displayName}`);
+            await member.roles
+                .add(rolesForGiving, "Role(s) added by autorole system")
+                .catch((e) => console.error(`[Error code: 1097] [Autorole error]`, e, rolesForGiving));
         }
         if (removeRoles.length > 0) {
             const rolesForRemoving = removeRoles
@@ -336,8 +334,8 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                 .filter((r) => r.length > 10);
             if (rolesForRemoving.filter((r) => r.length <= 10).length > 0)
                 console.error(`[Error code: 1225] Error during removin roles [ ${rolesForRemoving} ] from ${member.displayName}`);
-            member.roles
-                .remove(rolesForRemoving, "-Autorole")
+            await member.roles
+                .remove(rolesForRemoving, "Role(s) removed by autorole system")
                 .catch((e) => console.error(`[Error code: 1226] Error during removing roles: ${rolesForRemoving}`));
         }
     }
@@ -419,10 +417,10 @@ async function manageClanMembers(bungie_array) {
                             if (!member.roles.cache.has(step.roleId)) {
                                 try {
                                     if (!member.roles.cache.has(triumphsCategory))
-                                        member.roles.add(triumphsCategory);
-                                    member.roles.add(step.roleId).catch((e) => console.error(`[Error code: 1239] Error catched`, { e }));
+                                        await member.roles.add(triumphsCategory);
+                                    await member.roles.add(step.roleId).catch((e) => console.error(`[Error code: 1239] Error catched`, { e }));
                                     setTimeout(async () => {
-                                        member.roles.remove(clanJoinDateRoles.allRoles.filter((r) => r !== step.roleId));
+                                        await member.roles.remove(clanJoinDateRoles.allRoles.filter((r) => r !== step.roleId));
                                     }, 1500);
                                 }
                                 catch (error) {
@@ -488,15 +486,15 @@ async function checkUserKDRatio({ platform, bungieId, accessToken }, member) {
         }
         if (!request.mergedAllCharacters.results.allPvP.allTime ||
             !request?.mergedAllCharacters?.results?.allPvP?.allTime?.killsDeathsRatio?.basic.value)
-            return member.roles.add([statisticsRoles.allKd[statisticsRoles.allKd.length - 1], statisticsRoles.category]);
+            return await member.roles.add([statisticsRoles.allKd[statisticsRoles.allKd.length - 1], statisticsRoles.category]);
         for (const step of statisticsRoles.kd) {
             if (step.kd <= request?.mergedAllCharacters?.results?.allPvP?.allTime?.killsDeathsRatio?.basic.value) {
                 const addedRoles = [];
                 if (!member.roles.cache.has(statisticsRoles.category))
                     addedRoles.push(statisticsRoles.category);
                 if (!member.roles.cache.has(step.roleId)) {
-                    member.roles.remove(statisticsRoles.allKd.filter((r) => r !== step.roleId)).then((success) => {
-                        setTimeout(() => member.roles.add([step.roleId, ...addedRoles]), 6000);
+                    await member.roles.remove(statisticsRoles.allKd.filter((r) => r !== step.roleId)).then(async (_) => {
+                        await member.roles.add([step.roleId, ...addedRoles]);
                     });
                 }
                 break;

@@ -41,7 +41,7 @@ export default new Command({
                 for (let n = 0; n < members.size; n++) {
                     const member = members.at(n);
                     i++;
-                    member.roles.remove(role.id, "Cleaning user role").catch((e) => {
+                    await member.roles.remove(role.id, "Cleaning user role").catch((e) => {
                         i--;
                         if (e.code !== 50013) {
                             console.error(`[Error code: 1436]`, e);
