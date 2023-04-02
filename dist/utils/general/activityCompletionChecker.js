@@ -120,7 +120,8 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
             (currentActivityHash !== previousActivityHash && previousActivityHash !== undefined) ||
             currentActivityHash === 82913930 ||
             CachedDestinyActivityDefinition[currentActivityHash]?.activityTypeHash !== raidActivityModeHashes ||
-            response.progressions.data.milestones[milestoneHash].activities[0].phases ||
+            (previousActivityHash !== undefined &&
+                !response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash)) ||
             (discordId && !clanOnline.has(discordId))) {
             console.debug(`Interval cleared`);
             clearInterval(interval);

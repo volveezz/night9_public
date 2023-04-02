@@ -57,6 +57,8 @@ export default new Event("guildUpdate", async (oldGuild, newGuild) => {
                 try {
                     const systemObject = JSON.stringify(value);
                     const systemObjectUpdated = JSON.stringify(newGuild[key]);
+                    if (systemObject == systemObjectUpdated)
+                        continue;
                     guildChanges.push({ name: "systemChannelFlags обновлены", value: `${systemObject} → ${systemObjectUpdated}` });
                 }
                 catch (error) {

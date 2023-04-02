@@ -6,6 +6,7 @@ import { client } from "../index.js";
 import { Command } from "../structures/command.js";
 import { fetchRequest } from "../utils/api/fetchRequest.js";
 import { CachedDestinyActivityDefinition } from "../utils/api/manifestHandler.js";
+import { convertSeconds } from "../utils/general/convertSeconds.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default new Command({
@@ -244,7 +245,7 @@ export default new Command({
             const activityTotal = filteredActivities.activityTotals[name];
             const result = [];
             if (activityCount.total > 0) {
-                result.push(`Завершено ${activityCount.completed} из ${activityCount.total}｜У: ${activityTotal.kills} С: ${activityTotal.deaths}｜${activityText.inActivity} ${timerConverter(activityTotal.timeSpent)}`);
+                result.push(`Завершено ${activityCount.completed} из ${activityCount.total}｜У: ${activityTotal.kills} С: ${activityTotal.deaths}｜${activityText.inActivity} ${convertSeconds(activityTotal.timeSpent)}`);
             }
             if (activityDate.firstClearInstanceId !== "0" ||
                 activityDate.lastClearInstanceId !== "0" ||
@@ -265,16 +266,16 @@ export default new Command({
                 const { fastestInstanceId, fastestCompleted, fastestCompletedInstanceId, fastest, slowest, slowestCompleted, slowestCompletedInstanceId, slowestInstanceId, } = activityTime;
                 const joiningText = [];
                 if (fastestInstanceId !== "0" && fastestInstanceId !== fastestCompletedInstanceId && fastest < fastestCompleted)
-                    joiningText.push(`${activityText.fastest} [${timerConverter(fastest)}](${activityText.link}${fastestInstanceId})`);
+                    joiningText.push(`${activityText.fastest} [${convertSeconds(fastest)}](${activityText.link}${fastestInstanceId})`);
                 if (fastestCompletedInstanceId !== "0")
-                    joiningText.push(`${activityText.fastestCompleted} [${timerConverter(fastestCompleted)}](${activityText.link}${fastestCompletedInstanceId})`);
+                    joiningText.push(`${activityText.fastestCompleted} [${convertSeconds(fastestCompleted)}](${activityText.link}${fastestCompletedInstanceId})`);
                 if (slowestInstanceId !== "0" &&
                     slowestInstanceId !== slowestCompletedInstanceId &&
                     fastestInstanceId !== slowestInstanceId &&
                     slowest > slowestCompleted)
-                    joiningText.push(`${fastestInstanceId !== "0" && fastestInstanceId !== fastestCompletedInstanceId && fastest < fastestCompleted ? "\n" : ""}${activityText.slowest} [${timerConverter(slowest)}](${activityText.link}${slowestInstanceId})`);
+                    joiningText.push(`${fastestInstanceId !== "0" && fastestInstanceId !== fastestCompletedInstanceId && fastest < fastestCompleted ? "\n" : ""}${activityText.slowest} [${convertSeconds(slowest)}](${activityText.link}${slowestInstanceId})`);
                 if (slowestCompletedInstanceId !== "0" && fastestCompletedInstanceId !== slowestCompletedInstanceId)
-                    joiningText.push(`${activityText.slowestCompleted} [${timerConverter(slowestCompleted)}](${activityText.link}${slowestCompletedInstanceId})`);
+                    joiningText.push(`${activityText.slowestCompleted} [${convertSeconds(slowestCompleted)}](${activityText.link}${slowestCompletedInstanceId})`);
                 result.push(joiningText.join("｜"));
             }
             const text = result.join("\n");
@@ -311,6 +312,3 @@ export default new Command({
         return;
     },
 });
-function timerConverter(timeSpent) {
-    throw new Error("Function not implemented.");
-}
