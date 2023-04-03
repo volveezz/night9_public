@@ -15,6 +15,7 @@ export default {
         const raidGuide = raidsGuide[raidName];
         if (!raidGuide) {
             console.error(`[Error code: 1641] ${interaction.user.username} used ${interaction.customId} and not found raidGuide data for it`);
+            await deferredReply;
             throw { errorType: UserErrors.RAID_GUIDE_NOT_FOUND };
         }
         if (interactionParts.length === 2) {

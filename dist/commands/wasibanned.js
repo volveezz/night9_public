@@ -18,6 +18,6 @@ export default new Command({
             }
             : { text: "Вы не в бане :)" };
         embed.setTitle(banned.text).setFooter({ text: `API Status: ${apiStatus.status} | Banned amount: ${longOffline.size}` });
-        interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], ephemeral: true });
     },
 });

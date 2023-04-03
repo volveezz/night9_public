@@ -98,7 +98,7 @@ async function joinedFromHotJoined(raidData) {
 export default {
     name: "raidButton",
     run: async ({ client, interaction }) => {
-        interaction.deferUpdate();
+        const deferredUpdate = interaction.deferUpdate();
         if (interaction.customId === RaidButtons.leave) {
             const raidDataBeforeLeave = RaidEvent.findOne({
                 where: { messageId: interaction.message.id },
@@ -173,6 +173,7 @@ export default {
             client.getCachedGuild().members.cache.get(interaction.user.id) ||
             (await client.getCachedGuild().members.fetch(interaction.user.id));
         if (raidData.requiredRole && member.roles.cache.has(statusRoles.verified) && !member.roles.cache.has(raidData.requiredRole)) {
+            await deferredUpdate;
             throw { errorType: UserErrors.RAID_MISSING_DLC, errorData: [`<@&${raidData.requiredRole}>`] };
         }
         const userAlreadyInHotJoined = raidEvent.hotJoined.includes(interaction.user.id);
@@ -191,18 +192,27 @@ export default {
         if (interaction.customId === RaidButtons.join) {
             if (raidEvent.requiredClears) {
                 const raidsCompletedByUser = completedRaidsData.get(interaction.user.id);
-                if (!raidsCompletedByUser)
+                if (!raidsCompletedByUser) {
+                    await deferredUpdate;
                     throw { errorType: UserErrors.RAID_MISSING_DATA_FOR_CLEARS };
+                }
                 const raidClears = raidsCompletedByUser[raidEvent.raid] + (raidsCompletedByUser[raidEvent.raid + "Master"] ?? 0);
-                if (raidEvent.requiredClears > raidClears)
+                if (raidEvent.requiredClears > raidClears) {
+                    await deferredUpdate;
                     throw { errorType: UserErrors.RAID_NOT_ENOUGH_CLEARS, errorData: [raidClears, raidEvent.requiredClears] };
+                }
             }
-            if (userAlreadyJoined)
+            if (userAlreadyJoined) {
+                await deferredUpdate;
                 throw { errorType: UserErrors.RAID_ALREADY_JOINED };
-            if (raidEvent.joined.length >= 6 && userAlreadyInHotJoined)
+            }
+            if (raidEvent.joined.length >= 6 && userAlreadyInHotJoined) {
+                await deferredUpdate;
                 throw { errorType: UserErrors.RAID_ALREADY_JOINED };
+            }
         }
         else if (userAlreadyAlt) {
+            await deferredUpdate;
             throw { errorType: UserErrors.RAID_ALREADY_JOINED };
         }
         update[userTarget] = Sequelize.fn("array_append", Sequelize.col(userTarget), interaction.user.id);
@@ -224,7 +234,7 @@ export default {
             interaction.customId === RaidButtons.alt &&
             raidEvent.joined.length === 5 &&
             raidEvent.hotJoined.length > 0) {
-            setTimeout(() => joinedFromHotJoined(raidEvent), 500);
+            setTimeout(async () => await joinedFromHotJoined(raidEvent), 500);
         }
         return;
     },
