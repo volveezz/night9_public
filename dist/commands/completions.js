@@ -44,11 +44,6 @@ export default new Command({
             ],
         },
     ],
-    messageContextMenu: {
-        name: "Закрытия рейдов",
-        nameLocalizations: { "en-US": "Raid completions", "en-GB": "Raid completions" },
-        type: ApplicationCommandType.Message,
-    },
     userContextMenu: {
         name: "Закрытия рейдов",
         nameLocalizations: { "en-US": "Raid completions", "en-GB": "Raid completions" },
@@ -56,25 +51,29 @@ export default new Command({
     },
     run: async ({ args, interaction: slashInteraction, userMenuInteraction, messageMenuInteraction }) => {
         const interaction = messageMenuInteraction || userMenuInteraction || slashInteraction;
-        const deferredInteraction = interaction.deferReply({ ephemeral: true });
+        const deferredReply = interaction.deferReply({ ephemeral: true });
         const category = parseInt(args?.getString("категория") || "") || 4;
         const targerMember = client
             .getCachedMembers()
             .get(interaction.isChatInputCommand()
             ? interaction.user.id
             : (interaction || interaction).targetId);
-        if (!targerMember)
+        if (!targerMember) {
+            await deferredReply;
             throw { errorType: UserErrors.MEMBER_NOT_FOUND };
+        }
         const authData = await AuthData.findByPk(targerMember.id);
-        if (!authData)
+        if (!authData) {
+            await deferredReply;
             throw { errorType: UserErrors.DB_USER_NOT_FOUND, errorData: { isSelf: interaction.user.id === targerMember.id } };
+        }
         const { platform, bungieId, accessToken } = authData;
         const characterIdList = (await fetchRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken)).characters.map((characterData) => characterData.characterId);
         const embed = new EmbedBuilder().setColor(colors.serious).setAuthor({
             name: `Идет обработка ${characterIdList.length} персонажей...`,
             iconURL: icons.loading,
         });
-        (await deferredInteraction) && interaction.editReply({ embeds: [embed] });
+        (await deferredReply) && interaction.editReply({ embeds: [embed] });
         async function getCompletedActivties() {
             let activities = [];
             let page = 0;

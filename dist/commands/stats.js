@@ -23,11 +23,6 @@ export default new Command({
         type: ApplicationCommandType.User,
         nameLocalizations: { "en-US": "Information", "en-GB": "Information" },
     },
-    messageContextMenu: {
-        name: "Информация",
-        type: ApplicationCommandType.Message,
-        nameLocalizations: { "en-US": "Information", "en-GB": "Information" },
-    },
     run: async ({ interaction: commandInteraction, userMenuInteraction: userInteraction, messageMenuInteraction: messageMenuInteraction, }) => {
         const interaction = messageMenuInteraction || userInteraction || commandInteraction;
         await interaction.deferReply({ ephemeral: true });
