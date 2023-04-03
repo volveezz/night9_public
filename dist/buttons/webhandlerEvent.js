@@ -3,22 +3,28 @@ import fetch from "node-fetch";
 import { Op } from "sequelize";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
+import icons from "../configs/icons.js";
 import { ownerId } from "../configs/ids.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default {
     name: "webhandlerEvent",
     run: async ({ interaction }) => {
         const deferredReply = interaction.deferReply({ ephemeral: true });
-        if (interaction.user.id === ownerId)
-            return deferredReply.then((v) => interaction.editReply({ content: "Вам нельзя вступать в клан" }));
+        if (interaction.user.id === ownerId) {
+            await deferredReply;
+            await interaction.editReply({ content: "Вам нельзя вступать в клан" });
+            return;
+        }
         const authData = await AuthData.findAll({
             attributes: ["clan", "bungieId", "platform", "accessToken"],
             where: {
                 [Op.or]: [{ discordId: interaction.user.id }, { discordId: ownerId }],
             },
         });
-        if (authData.length !== 2)
+        if (authData.length !== 2) {
+            await deferredReply;
             throw { errorType: UserErrors.DB_USER_NOT_FOUND };
+        }
         if (authData[0].discordId === ownerId) {
             var { clan: invitee_clan, bungieId: invitee_bungieId, platform: invitee_platform } = authData[1];
             var { accessToken: inviter_accessToken } = authData[0];
@@ -37,15 +43,15 @@ export default {
                 (await deferredReply) && interaction.editReply("Вы уже являетесь участником нашего клана :)");
                 return;
             }
-            const clanInviteRequest = await (await fetch(`https://www.bungie.net/platform/GroupV2/4123712/Members/IndividualInvite/${invitee_platform}/${invitee_bungieId}/`, {
+            const clanInviteRequest = (await (await fetch(`https://www.bungie.net/platform/GroupV2/4123712/Members/IndividualInvite/${invitee_platform}/${invitee_bungieId}/`, {
                 method: "POST",
                 headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${inviter_accessToken}` },
                 body: JSON.stringify({ description: "Автоматическое приглашение в клан Night 9" }),
-            })).json();
+            })).json());
             if (clanInviteRequest.ErrorCode === 1) {
                 const embed = new EmbedBuilder()
                     .setColor(colors.success)
-                    .setTitle("Приглашение было отправлено")
+                    .setAuthor({ name: "Приглашение было отправлено", iconURL: icons.success })
                     .setDescription(`Принять приглашение можно в игре или на [сайте Bungie](https://www.bungie.net/ru/ClanV2?groupId=4123712)`);
                 (await deferredReply) && interaction.editReply({ embeds: [embed] });
                 if (!interaction.channel?.isDMBased())
@@ -72,10 +78,10 @@ export default {
                 });
                 return;
             }
-            else if (clanInviteRequest.ErorCode === 695) {
+            else if (clanInviteRequest.ErrorCode === 695) {
                 const embed = new EmbedBuilder()
                     .setColor(colors.error)
-                    .setTitle("Ошибка")
+                    .setAuthor({ name: "Ошибка", iconURL: icons.error })
                     .setDescription(`На вашем аккаунте стоит запрет на получение приглашений в клан\nПопробуйте вступить вручную через [bungie.net](https://www.bungie.net/ru/ClanV2?groupid=4123712)`);
                 (await deferredReply) && interaction.editReply({ embeds: [embed] });
                 if (!interaction.channel?.isDMBased())
