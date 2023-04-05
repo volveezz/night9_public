@@ -125,8 +125,9 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
             activityCompletionCurrentProfiles.delete(bungieId);
             const cachedData = completedPhases.get(bungieId);
             setTimeout(() => {
-                if (completedPhases.get(bungieId) === cachedData && !activityCompletionCurrentProfiles.has(bungieId)) {
+                if (completedPhases.get(bungieId) === cachedData) {
                     completedPhases.delete(bungieId);
+                    console.debug(`VALUES OF ${platform}/${bungieId}/${characterId} WERE DELETED`);
                 }
             }, 60 * 1000 * 30);
             return null;
@@ -205,6 +206,12 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                             else {
                                 currentlyRunning.delete(uniqueId);
                                 activityCompletionCurrentProfiles.delete(bungieId);
+                                setTimeout(() => {
+                                    if (completedPhases.get(bungieId) === alreadyCompletedPhases) {
+                                        completedPhases.delete(bungieId);
+                                        console.debug(`VALUES OF ${platform}/${bungieId}/${characterId} WERE DELETED IN SECOND FUNCTION`);
+                                    }
+                                }, 60 * 1000 * 25);
                             }
                             completedPhases.set(bungieId, alreadyCompletedPhases);
                             break;

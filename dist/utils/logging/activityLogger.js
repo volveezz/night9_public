@@ -128,6 +128,72 @@ async function logActivityCompletion(pgcrId) {
                 !((clanMembersInActivity === 1 && membersMembershipIds.length === 1) || clanMembersInActivity > 1))
                 return;
             console.debug(`[Error code: 1639] PGCR: ${pgcrId}\n`, JSON.stringify(Array.from(completedPhases.entries())));
+            let completedUsersCount = 0;
+            let uncompletedUsersCount = 0;
+            completedUsers.forEach((value, key) => {
+                if (!value.completed) {
+                    return;
+                }
+                else {
+                    completedUsers.delete(key);
+                    completedUsersCount++;
+                }
+                if (completedUsersCount > 12)
+                    return;
+                try {
+                    const getFormattedRaidClears = () => {
+                        if (mode !== 4)
+                            return null;
+                        const databaseDataForUser = databaseData.find((data) => data.bungieId === value.bungieId);
+                        const totalRaidClearsForUser = databaseDataForUser ? completedRaidsData.get(databaseDataForUser.discordId) : null;
+                        const raidName = getRaidNameFromHash(referenceId);
+                        if (totalRaidClearsForUser) {
+                            const baseRaidName = raidName.endsWith("Master") ? raidName.replace("Master", "") : raidName;
+                            const masterRaidName = raidName.endsWith("Master") ? raidName : raidName + "Master";
+                            const baseClears = totalRaidClearsForUser[baseRaidName] || 0;
+                            const masterClears = totalRaidClearsForUser[masterRaidName] || 0;
+                            const baseClearsText = `**${baseClears}**`;
+                            const masterClearsText = masterClears > 0 ? ` (+**${masterClears}** на мастере)` : "";
+                            return baseClearsText + masterClearsText;
+                        }
+                        return null;
+                    };
+                    const raidClearsResult = getFormattedRaidClears();
+                    embed.addFields({
+                        name: escapeString(value.bungieName),
+                        value: `${raidClearsResult ? `Закрытий рейда: ${raidClearsResult}\n` : ""}${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
+                            ? `\nВ ${mode === 4
+                                ? "рейде"
+                                : mode === 82
+                                    ? "подземелье"
+                                    : "задании"}: **${convertSeconds(value.timeInActivity)}**`
+                            : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
+                        inline: true,
+                    });
+                }
+                catch (error) {
+                    console.error(`[Error code: 1671]`, error);
+                }
+            });
+            embed.data.fields = embed.data.fields?.sort((a, b) => {
+                return a.name.localeCompare(b.name);
+            });
+            completedUsers.forEach((value, _key) => {
+                uncompletedUsersCount++;
+                if (uncompletedUsersCount > 12)
+                    return;
+                embed.addFields({
+                    name: "❌" + escapeString(value.bungieName),
+                    value: `${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
+                        ? `\nВ ${mode === 4
+                            ? "рейде"
+                            : mode === 82
+                                ? "подземелье"
+                                : "задании"}: **${convertSeconds(value.timeInActivity)}**`
+                        : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
+                    inline: true,
+                });
+            });
             if (mode === 4) {
                 const preciseEncountersTime = new Map();
                 membersMembershipIds.forEach((bungieId, i1) => {
@@ -214,62 +280,6 @@ async function logActivityCompletion(pgcrId) {
                     preciseEncountersTime.clear();
                 }
             }
-            let completedUsersCount = 0;
-            let uncompletedUsersCount = 0;
-            completedUsers.forEach((value, key) => {
-                if (!value.completed) {
-                    return;
-                }
-                else {
-                    completedUsers.delete(key);
-                    completedUsersCount++;
-                }
-                if (completedUsersCount > 12)
-                    return;
-                try {
-                    const databaseDataForUser = mode === 4 ? databaseData.find((data) => data.bungieId === value.bungieId) : null;
-                    const totalRaidClearsForUser = databaseDataForUser ? completedRaidsData.get(databaseDataForUser.discordId) : null;
-                    const raidName = getRaidNameFromHash(referenceId);
-                    const raidClearsForUser = totalRaidClearsForUser
-                        ? raidName.endsWith("Master") && totalRaidClearsForUser[raidName] > 0
-                            ? `${totalRaidClearsForUser[raidName.replace("Master", "")] || 0} (+${totalRaidClearsForUser[raidName] || 0} на мастере)`
-                            : `${totalRaidClearsForUser[raidName] || 0}`
-                        : null;
-                    embed.addFields({
-                        name: escapeString(value.bungieName),
-                        value: `${raidClearsForUser ? `Закрытий рейда: ${raidClearsForUser}\n` : ""}${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
-                            ? `\nВ ${mode === 4
-                                ? "рейде"
-                                : mode === 82
-                                    ? "подземелье"
-                                    : "задании"}: **${convertSeconds(value.timeInActivity)}**`
-                            : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
-                        inline: true,
-                    });
-                }
-                catch (error) {
-                    console.error(`[Error code: 1671]`, error);
-                }
-            });
-            embed.data.fields = embed.data.fields?.sort((a, b) => {
-                return a.name.localeCompare(b.name);
-            });
-            completedUsers.forEach((value, _key) => {
-                uncompletedUsersCount++;
-                if (uncompletedUsersCount > 12)
-                    return;
-                embed.addFields({
-                    name: "❌" + escapeString(value.bungieName),
-                    value: `${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
-                        ? `\nВ ${mode === 4
-                            ? "рейде"
-                            : mode === 82
-                                ? "подземелье"
-                                : "задании"}: **${convertSeconds(value.timeInActivity)}**`
-                        : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
-                    inline: true,
-                });
-            });
             const msg = client.getCachedTextChannel(ids.activityChnId).send({ embeds: [embed] });
             const currentTime = Math.floor(Date.now() / 1000);
             databaseData.forEach(async (dbMemberData) => {
