@@ -156,7 +156,7 @@ export default async function webHandler(code, state, res) {
                 components: await addButtonComponentsToMessage([clanRequestComponent, timezoneComponent]),
             });
         }
-        else if (!clanResponse || !clanResponse.results || !(clanResponse?.results?.[0]?.group?.groupId === "4123712")) {
+        else if (clanResponse.results.length === 0 || !(clanResponse.results?.[0]?.group?.groupId === "4123712")) {
             embed.setDescription(embed.data.description
                 ? embed.data.description + `\n\nНажмите кнопку для получения приглашения в клан`
                 : `Нажмите кнопку для получения приглашения в клан`);
@@ -166,8 +166,7 @@ export default async function webHandler(code, state, res) {
             });
         }
         else {
-            console.error(`[Error code: 1670] ${clanResponse?.results}, ${clanResponse?.results?.length >= 1}, ${clanResponse?.results?.[0]?.group?.groupId !== "4123712"}`, clanResponse);
-            member.send({
+            await member.send({
                 embeds: [embed],
                 components: await addButtonComponentsToMessage(!(clanResponse?.results?.[0]?.group?.groupId === "4123712") ? [clanRequestComponent, timezoneComponent] : [timezoneComponent]),
             });
@@ -178,7 +177,7 @@ export default async function webHandler(code, state, res) {
             res.send(`<script>location.replace('error.html')</script>`);
         }
         catch (e) {
-            console.error(`[Error code: 1210]`, { e });
+            console.error(`[Error code: 1210]`, e);
         }
         return console.error(`[Error code: 1234] State: ${state} / Code:${code}`, { body }, { error });
     }
