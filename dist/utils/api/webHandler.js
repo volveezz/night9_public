@@ -138,10 +138,14 @@ export default async function webHandler(code, state, res) {
                 if (member.roles.cache.has(statusRoles.newbie))
                     await member.roles.remove(statusRoles.newbie, "User registration");
             });
-        const component = [
-            new ButtonBuilder().setCustomId(ClanButtons.invite).setLabel("Отправить приглашение").setStyle(ButtonStyle.Success),
-            new ButtonBuilder().setCustomId(TimezoneButtons.button).setLabel("Установить часовой пояс").setStyle(ButtonStyle.Secondary),
-        ];
+        const clanRequestComponent = new ButtonBuilder()
+            .setCustomId(ClanButtons.invite)
+            .setLabel("Отправить приглашение")
+            .setStyle(ButtonStyle.Success);
+        const timezoneComponent = new ButtonBuilder()
+            .setCustomId(TimezoneButtons.button)
+            .setLabel("Установить часовой пояс")
+            .setStyle(ButtonStyle.Secondary);
         if (!clanResponse || !clanResponse.results) {
             embed.setDescription(embed.data.description
                 ? embed.data.description +
@@ -149,7 +153,7 @@ export default async function webHandler(code, state, res) {
                 : `\n\nПроизошла ошибка во время обработки вашего клана. Скорее всего это связано с недоступностью API игры\n\nКнопка ниже служит для отправки приглашения в клан - она заработает как только сервера игры станут доступны`);
             await member.send({
                 embeds: [embed],
-                components: await addButtonComponentsToMessage(component),
+                components: await addButtonComponentsToMessage([clanRequestComponent, timezoneComponent]),
             });
         }
         else if (clanResponse &&
@@ -161,12 +165,14 @@ export default async function webHandler(code, state, res) {
                 : `Нажмите кнопку для получения приглашения в клан`);
             await member.send({
                 embeds: [embed],
-                components: await addButtonComponentsToMessage(component),
+                components: await addButtonComponentsToMessage([clanRequestComponent, timezoneComponent]),
             });
         }
         else {
+            console.error(`[Error code: 1670] ${clanResponse.results}, ${clanResponse.results.length >= 1}, ${clanResponse.results[0].group.groupId !== "4123712"}`, clanResponse);
             member.send({
                 embeds: [embed],
+                components: await addButtonComponentsToMessage(clanResponse.results[0].group.groupId !== "4123712" ? [clanRequestComponent, timezoneComponent] : [timezoneComponent]),
             });
         }
     }

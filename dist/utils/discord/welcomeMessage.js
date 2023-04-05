@@ -1,5 +1,5 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
-import { ClanButtons, RegisterButtons, TimezoneButtons } from "../../configs/Buttons.js";
+import { ClanButtons, RegisterButtons } from "../../configs/Buttons.js";
 import { clan } from "../../configs/channels.js";
 import colors from "../../configs/colors.js";
 import { guildId } from "../../configs/ids.js";
@@ -30,7 +30,6 @@ export default async function welcomeMessage(member) {
     const components = [
         new ButtonBuilder().setCustomId(RegisterButtons.register).setLabel("Регистрация").setStyle(ButtonStyle.Success),
         new ButtonBuilder().setCustomId(ClanButtons.modal).setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(TimezoneButtons.button).setLabel("Установить часовой пояс").setStyle(ButtonStyle.Secondary),
     ];
     const message = await member
         .send({
