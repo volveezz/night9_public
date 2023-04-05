@@ -1,10 +1,12 @@
-import { EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import fetch from "node-fetch";
 import { Op } from "sequelize";
+import { TimezoneButtons } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { ownerId } from "../configs/ids.js";
+import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default {
     name: "webhandlerEvent",
@@ -33,11 +35,15 @@ export default {
             var { clan: invitee_clan, bungieId: invitee_bungieId, platform: invitee_platform } = authData[0];
             var { accessToken: inviter_accessToken } = authData[1];
         }
+        const timezoneComponent = new ButtonBuilder()
+            .setCustomId(TimezoneButtons.button)
+            .setLabel("Установить часовой пояс")
+            .setStyle(ButtonStyle.Secondary);
         if (authData.length === 2) {
             if (invitee_clan === true) {
                 interaction.channel?.isDMBased()
                     ? interaction.channel?.messages.fetch(interaction.message.id).then(async (msg) => {
-                        msg.edit({ components: [] });
+                        msg.edit({ components: await addButtonComponentsToMessage([timezoneComponent]) });
                     })
                     : "";
                 (await deferredReply) && interaction.editReply("Вы уже являетесь участником нашего клана :)");
@@ -58,9 +64,9 @@ export default {
                     return;
                 interaction.channel?.messages
                     .fetch(interaction.message.id)
-                    .then((msg) => {
+                    .then(async (msg) => {
                     const reEmbed = EmbedBuilder.from(msg.embeds[0]).setDescription(null);
-                    msg.edit({ embeds: [reEmbed], components: [] });
+                    msg.edit({ embeds: [reEmbed], components: await addButtonComponentsToMessage([timezoneComponent]) });
                 })
                     .catch((err) => {
                     if (err.code !== 10008)
@@ -72,9 +78,9 @@ export default {
                 (await deferredReply) && interaction.editReply({ embeds: [embed] });
                 if (!interaction.channel?.isDMBased())
                     return;
-                interaction.channel?.messages.fetch(interaction.message.id).then((msg) => {
+                interaction.channel?.messages.fetch(interaction.message.id).then(async (msg) => {
                     const reEmbed = EmbedBuilder.from(msg.embeds[0]).setDescription(null);
-                    msg.edit({ components: [], embeds: [reEmbed] });
+                    msg.edit({ embeds: [reEmbed], components: await addButtonComponentsToMessage([timezoneComponent]) });
                 });
                 return;
             }
@@ -83,12 +89,13 @@ export default {
                     .setColor(colors.error)
                     .setAuthor({ name: "Ошибка", iconURL: icons.close })
                     .setDescription(`На вашем аккаунте стоит запрет на получение приглашений в клан\nПопробуйте вступить вручную через [bungie.net](https://www.bungie.net/ru/ClanV2?groupid=4123712)`);
-                (await deferredReply) && interaction.editReply({ embeds: [embed] });
+                (await deferredReply) &&
+                    interaction.editReply({ embeds: [embed], components: await addButtonComponentsToMessage([timezoneComponent]) });
                 if (!interaction.channel?.isDMBased())
                     return;
-                interaction.channel?.messages.fetch(interaction.message.id).then((msg) => {
+                interaction.channel?.messages.fetch(interaction.message.id).then(async (msg) => {
                     const reEmbed = EmbedBuilder.from(msg.embeds[0]).setDescription(null);
-                    msg.edit({ components: [], embeds: [reEmbed] });
+                    msg.edit({ embeds: [reEmbed], components: await addButtonComponentsToMessage([timezoneComponent]) });
                 });
                 return;
             }

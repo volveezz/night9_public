@@ -125,7 +125,6 @@ export class ExtendedClient extends Client {
         await Promise.all(commandReading);
         await this.registerCommands({ global: true, commands: globalCommands });
         await this.registerCommands({ global: false, commands: guildCommands });
-        console.log(`${commandFiles.length} commands loaded - ${globalCommands.length} global and ${guildCommands.length} guild`);
     }
     async loadEvents() {
         const eventFiles = getFiles(join(__dirname, "dist/events/"));
@@ -139,7 +138,6 @@ export class ExtendedClient extends Client {
             });
         });
         await Promise.all(eventPromises);
-        console.log(`${eventFiles.length} events loaded`);
     }
     async loadButtons() {
         const buttonFiles = getFiles(join(__dirname, "dist/buttons/"));
