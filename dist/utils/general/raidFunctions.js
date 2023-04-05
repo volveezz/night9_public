@@ -631,6 +631,7 @@ export function getRaidNameFromHash(activityHash) {
         case 1063970578:
             return "kf";
         case 2964135793:
+        case 3257594522:
             return "kfMaster";
         case 1441982566:
             return "votd";
