@@ -6,9 +6,10 @@ import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import { guildId, ids } from "../configs/ids.js";
 import raidsGuide from "../configs/raidguide.json" assert { type: "json" };
-import { completedRaidsData, userTimezones } from "../core/userStatisticsManagement.js";
+import { userTimezones } from "../core/userStatisticsManagement.js";
 import { Command } from "../structures/command.js";
 import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
+import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { getRaidData, getRaidDatabaseInfo, raidAnnounceSystem, raidChallenges, timeConverter, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
 import { descriptionFormatter, escapeString } from "../utils/general/utilities.js";
@@ -111,10 +112,10 @@ export default new Command({
                     type: ApplicationCommandOptionType.String,
                     name: "описание",
                     nameLocalizations: { "en-US": "description", "en-GB": "description" },
-                    description: "Укажите описание набора. Вы можете указать здесь что угодно. Знаки для разметки: \\n \\*",
+                    description: "Укажите описание набора. Вы можете указать здесь что угодно. Знаки для разметки: \\n \\* \\!",
                     descriptionLocalizations: {
-                        "en-US": "Provide a description. You can specify anything here. Markdown symbols: \\n \\*",
-                        "en-GB": "Provide a description. You can specify anything here. Markdown symbols: \\n \\*",
+                        "en-US": "Provide a description. You can specify anything here. Markdown symbols: \\n \\* \\!",
+                        "en-GB": "Provide a description. You can specify anything here. Markdown symbols: \\n \\* \\!",
                     },
                     maxLength: 1000,
                 },
@@ -245,10 +246,10 @@ export default new Command({
                     type: ApplicationCommandOptionType.String,
                     name: "новое_описание",
                     nameLocalizations: { "en-US": "new_description", "en-GB": "new_description" },
-                    description: "Укажите измененное описание. Вы можете указать здесь что угодно. Знаки для разметки: \\n \\*",
+                    description: "Укажите измененное описание. Вы можете указать здесь что угодно. Знаки для разметки: \\n \\* \\!",
                     descriptionLocalizations: {
-                        "en-US": "Specify new LFG description. You can write anything here. Formatting symbols: \\n \\*",
-                        "en-GB": "Specify new LFG description. You can write anything here. Formatting symbols: \\n \\*",
+                        "en-US": "Specify new LFG description. You can write anything here. Formatting symbols: \\n \\* \\!",
+                        "en-GB": "Specify new LFG description. You can write anything here. Formatting symbols: \\n \\* \\!",
                     },
                 },
                 {
@@ -501,7 +502,7 @@ export default new Command({
                     },
                     {
                         name: "Участник: 1/6",
-                        value: `⁣　1. **${nameCleaner(member.displayName)}**${raidClears
+                        value: `⁣　1. **${nameCleaner(member.displayName, true)}**${raidClears
                             ? ` — ${raidClears[raidData.raid]} закрыт${raidClears[raidData.raid] === 1 ? "ие" : "ий"}${raidClears[raidData.raid + "Master"] ? ` (+${raidClears[raidData.raid + "Master"]} на мастере)` : ""}`
                             : ""}`,
                     },
@@ -698,8 +699,8 @@ export default new Command({
                     changesForChannel.push({
                         name: "Создатель рейда",
                         value: raidData.creator === interaction.user.id
-                            ? `${nameCleaner(interaction.guild.members.cache.get(interaction.user.id).displayName)} передал права создателя рейда ${raidLeaderName}`
-                            : `Права создателя были переданы ${raidLeaderName}`,
+                            ? `${nameCleaner(interaction.guild.members.cache.get(interaction.user.id).displayName, true)} передал права создателя рейда ${escapeString(raidLeaderName)}`
+                            : `Права создателя были переданы ${escapeString(raidLeaderName)}`,
                     });
                     changes.push(`Создатель рейда был изменен`);
                     await RaidEvent.update({
@@ -731,10 +732,7 @@ export default new Command({
                     .setTitle(`Рейд ${raidData.id} был изменен`)
                     .setDescription(changes.join(`\n`) || "изменений нет");
                 (await deferredReply) && interaction.editReply({ embeds: [replyEmbed] });
-                const editedEmbedReplyInChn = new EmbedBuilder()
-                    .setColor(colors.default)
-                    .setTimestamp()
-                    .setFooter({
+                const editedEmbedReplyInChn = new EmbedBuilder().setColor(colors.default).setFooter({
                     text: `Изменение ${raidData.creator === interaction.user.id ? "создателем рейда" : "администратором"}`,
                 });
                 editedEmbedReplyInChn.addFields(changesForChannel);

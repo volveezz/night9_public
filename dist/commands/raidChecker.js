@@ -121,7 +121,6 @@ export default new Command({
             .setTitle(interaction instanceof ChatInputCommandInteraction && interaction.options.getBoolean("все_активности") === true
             ? "Статистика закрытх активностей по классам"
             : "Статистка закрытых рейдов по классам")
-            .setTimestamp()
             .setFooter({ text: "Удаленные персонажи не проверяются" });
         interaction instanceof UserContextMenuCommandInteraction
             ? embed.setAuthor({

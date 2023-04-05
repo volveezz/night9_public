@@ -1,7 +1,7 @@
 const colors = {
     default: "#CD1ECF",
     serious: "#0077C9",
-    warning: "#FFA500",
+    warning: "#ffca28",
     error: "#DC3545",
     success: "#28A745",
     kicked: "#704214",

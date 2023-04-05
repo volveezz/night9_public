@@ -1,13 +1,15 @@
 import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, } from "discord.js";
 import { Op } from "sequelize";
 import NightRoleCategory from "../../configs/RoleCategory.js";
+import UserErrors from "../../configs/UserErrors.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { activityRoles, raidRoles, statisticsRoles, titleCategory, triumphsCategory } from "../../configs/roles.js";
-import { completedRaidsData, longOffline, userTimezones } from "../../core/userStatisticsManagement.js";
+import { longOffline, userTimezones } from "../../core/userStatisticsManagement.js";
 import { Command } from "../../structures/command.js";
 import { CachedDestinyRecordDefinition } from "../../utils/api/manifestHandler.js";
 import { convertSeconds } from "../../utils/general/convertSeconds.js";
+import { completedRaidsData } from "../../utils/general/destinyActivityChecker.js";
 import { AuthData, AutoRoleData, UserActivityData, database } from "../../utils/persistence/sequelize.js";
 export default new Command({
     name: "db",
@@ -136,7 +138,7 @@ export default new Command({
         const member = interaction.member || client.getCachedMembers().get(interaction.user.id);
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const subcommand = args.getSubcommand();
-        const id = args.getString("id") ? (args.getString("id") === "me" ? member.id : args.getString("id", true)) : [];
+        const id = args.getString("id") ? (args.getString("id") === "me" ? member.id : args.getString("id", true)) : "";
         switch (subcommand) {
             case "select": {
                 const benchmarkStart = client.uptime;
@@ -145,8 +147,11 @@ export default new Command({
                     where: { [Op.or]: [{ discordId: id }, { bungieId: id }] },
                     include: UserActivityData,
                 });
-                if (!request || !request.discordId)
-                    throw { name: "Запись не найдена" };
+                if (!request || !request.discordId) {
+                    await deferredReply;
+                    const isSelf = id === interaction.user.id || id === "";
+                    throw { errorType: UserErrors.DB_USER_NOT_FOUND, errorData: { isSelf } };
+                }
                 const benchmarkEnd = client.uptime;
                 const raidClears = completedRaidsData.get(request.discordId);
                 const embed = new EmbedBuilder()

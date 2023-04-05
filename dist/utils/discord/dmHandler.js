@@ -26,8 +26,7 @@ export async function dmHandler(message) {
         name: `Отправитель: ${member.displayName}${member.user.username !== member.displayName ? ` (${member.user.username})` : ""}`,
         iconURL: message.author.displayAvatarURL(),
     })
-        .setFooter({ text: `UId: ${message.author.id} | MId: ${message.id}` })
-        .setTimestamp();
+        .setFooter({ text: `UId: ${message.author.id} | MId: ${message.id}` });
     if (message.cleanContent.length > 0) {
         embed.setDescription(escapeString(message.cleanContent) || "nothing");
     }

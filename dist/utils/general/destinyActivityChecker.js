@@ -1,10 +1,12 @@
 import { checkedStoryActivities, forbiddenRaidIds, ownerId } from "../../configs/ids.js";
 import { activityRoles, raidRoles, statusRoles, trialsRoles } from "../../configs/roles.js";
-import { completedRaidsData, userCharactersId } from "../../core/userStatisticsManagement.js";
+import { userCharactersId } from "../../core/userStatisticsManagement.js";
 import { apiStatus } from "../../structures/apiStatus.js";
 import { fetchRequest } from "../api/fetchRequest.js";
 import { logActivityCompletion } from "../logging/activityLogger.js";
+import { getRaidNameFromHash } from "./raidFunctions.js";
 import { setUserCharacters } from "./setUserCharacters.js";
+export const completedRaidsData = new Map();
 const cachedKDData = new Map();
 export async function destinyActivityChecker(authData, member, mode, count = 250) {
     if (apiStatus.status !== 1)
@@ -66,53 +68,9 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                 return;
             }
             const raidCounts = completedActivities.reduce((counts, activity) => {
-                switch (activity) {
-                    case 2381413764:
-                    case 1191701339:
-                        counts.ron += 1;
-                        break;
-                    case 2918919505:
-                        counts.ronMaster += 1;
-                        break;
-                    case 1374392663:
-                    case 1063970578:
-                        counts.kf += 1;
-                        break;
-                    case 2964135793:
-                        counts.kfMaster += 1;
-                        break;
-                    case 1441982566:
-                        counts.votd += 1;
-                        break;
-                    case 4217492330:
-                        counts.votdMaster += 1;
-                        break;
-                    case 910380154:
-                    case 3976949817:
-                        counts.dsc += 1;
-                        break;
-                    case 3458480158:
-                    case 2497200493:
-                    case 2659723068:
-                    case 3845997235:
-                        counts.gos += 1;
-                        break;
-                    case 3881495763:
-                    case 1485585878:
-                    case 3711931140:
-                        counts.vog += 1;
-                        break;
-                    case 1681562271:
-                    case 3022541210:
-                        counts.vogMaster += 1;
-                        break;
-                    case 2122313384:
-                    case 1661734046:
-                        counts.lw += 1;
-                        break;
-                    default:
-                        console.log(`[Error code: 1232] Found unknown raidId ${activity}`);
-                        break;
+                const raidName = getRaidNameFromHash(activity);
+                if (raidName !== "unknown") {
+                    counts[raidName] += 1;
                 }
                 return counts;
             }, { ron: 0, ronMaster: 0, kf: 0, kfMaster: 0, votd: 0, votdMaster: 0, dsc: 0, gos: 0, vog: 0, vogMaster: 0, lw: 0 });

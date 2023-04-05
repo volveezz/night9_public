@@ -11,7 +11,6 @@ import nameCleaner from "../utils/general/nameClearer.js";
 import { updateClanRolesWithLogging } from "../utils/logging/logger.js";
 import { AuthData, AutoRoleData, UserActivityData, database } from "../utils/persistence/sequelize.js";
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
-export const completedRaidsData = new Map();
 export const userCharactersId = new Map();
 export const longOffline = new Set();
 export const bungieNames = new Map();

@@ -19,6 +19,8 @@ export var RaidAdditionalFunctional;
 (function (RaidAdditionalFunctional) {
     RaidAdditionalFunctional["confirm"] = "raidAddFunc_notify_confirm";
     RaidAdditionalFunctional["edit"] = "raidAddFunc_notify_edit";
+    RaidAdditionalFunctional["modalEdit"] = "raidAddFunc_modal_edit";
+    RaidAdditionalFunctional["modalConfrim"] = "raidAddFunc_modal_confirm";
     RaidAdditionalFunctional["cancel"] = "raidAddFunc_notify_cancel";
 })(RaidAdditionalFunctional || (RaidAdditionalFunctional = {}));
 export var ClanButtons;
@@ -59,6 +61,7 @@ export var StatsButton;
 export var TimezoneButtons;
 (function (TimezoneButtons) {
     TimezoneButtons["selectMenu"] = "tzEvent_selectmenu";
+    TimezoneButtons["button"] = "timezoneButton";
 })(TimezoneButtons || (TimezoneButtons = {}));
 export var AdminDMChannelButtons;
 (function (AdminDMChannelButtons) {

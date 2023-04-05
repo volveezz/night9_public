@@ -13,7 +13,7 @@ function errorMessages(errorType, ...rest) {
                         new EmbedBuilder()
                             .setColor(colors.warning)
                             .setAuthor({
-                            iconURL: icons.notify,
+                            iconURL: icons.warning,
                             name: `Ошибка. Пользователь не зарегистрирован`,
                         })
                             .setDescription(`Функционал станет доступен сразу после его регистрации`),
@@ -54,7 +54,7 @@ function errorMessages(errorType, ...rest) {
                         iconURL: icons.error,
                         name: "Ошибка. Рейд не найден",
                     })
-                        .setDescription("Это критическая ошибка. Администрация была оповещена")
+                        .setDescription("Рейд, скорее всего, был удален")
                         .setColor(colors.error),
                 ],
             };
@@ -64,11 +64,11 @@ function errorMessages(errorType, ...rest) {
                 embeds: [
                     new EmbedBuilder()
                         .setAuthor({
-                        iconURL: icons.error,
+                        iconURL: icons.warning,
                         name: "Ошибка. Недостаточно прав",
                     })
-                        .setDescription("Недостаточно прав для управления рейдом. Такие права всегда есть у администрации и текущего создателя рейда")
-                        .setColor(colors.error),
+                        .setDescription("Права для управления рейдом есть у администрации и создателя рейда")
+                        .setColor(colors.warning),
                 ],
             };
         }
@@ -102,7 +102,7 @@ function errorMessages(errorType, ...rest) {
                 embeds: [
                     new EmbedBuilder()
                         .setAuthor({
-                        iconURL: icons.error,
+                        iconURL: icons.warning,
                         name: "Ошибка. Проверьте правильность введенного Id",
                     })
                         .setColor(colors.warning),
@@ -114,7 +114,7 @@ function errorMessages(errorType, ...rest) {
                 embeds: [
                     new EmbedBuilder()
                         .setAuthor({
-                        iconURL: icons.error,
+                        iconURL: icons.warning,
                         name: "Ошибка. Проверьте правильность введенного HEX-кода",
                     })
                         .setColor(colors.warning),
@@ -140,9 +140,9 @@ function errorMessages(errorType, ...rest) {
             return {
                 embeds: [
                     new EmbedBuilder()
-                        .setColor(colors.error)
+                        .setColor(colors.warning)
                         .setAuthor({
-                        iconURL: icons.error,
+                        iconURL: icons.warning,
                         name: "Ошибка. Недостаточно закрытий рейда",
                     })
                         .setDescription(`Для записи на этот рейд необходимо ${raidRequirement} закрытий этого рейда, а у вас ${userClears}`),
@@ -162,8 +162,8 @@ function errorMessages(errorType, ...rest) {
         case UserErrors.RAID_TIME_ERROR: {
             return {
                 embeds: [
-                    new EmbedBuilder().setColor(colors.error).setAuthor({
-                        iconURL: icons.error,
+                    new EmbedBuilder().setColor(colors.warning).setAuthor({
+                        iconURL: icons.warning,
                         name: "Ошибка. Проверьте корректность времени",
                     }),
                 ],
@@ -173,9 +173,9 @@ function errorMessages(errorType, ...rest) {
             return {
                 embeds: [
                     new EmbedBuilder()
-                        .setColor(colors.error)
+                        .setColor(colors.warning)
                         .setAuthor({
-                        iconURL: icons.error,
+                        iconURL: icons.warning,
                         name: `Ошибка. Нет необходимого DLC`,
                     })
                         .setDescription(`Для записи на этот рейд необходимо дополнение ${rest[0]}`),

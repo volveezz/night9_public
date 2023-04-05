@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, ApplicationRoleConnectionMetadataType, EmbedBuilder } from "discord.js";
+import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
 import { Command } from "../../structures/command.js";
 import { convertSeconds } from "../../utils/general/convertSeconds.js";
@@ -15,43 +15,10 @@ export default new Command({
             required: true,
         },
     ],
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
         const defferedReply = interaction.deferReply();
         const scriptId = interaction.options.getString("script", true).toLowerCase();
         switch (scriptId) {
-            case "scr": {
-                const url = `https://discord.com/api/v10/applications/${client.user.id}/role-connections/metadata`;
-                const body = [
-                    {
-                        key: "accountlinked",
-                        name: "Привяжите аккаунт Discord",
-                        name_localizations: { "en-GB": "Connect your Discord account", "en-US": "Connect your Discord account" },
-                        description: "Привяжите аккаунт Destiny к Discord",
-                        description_localizations: {
-                            "en-GB": "Connect your Destiny account to Discord",
-                            "en-US": "Connect your Destiny account to Discord",
-                        },
-                        type: ApplicationRoleConnectionMetadataType.BooleanEqual,
-                    },
-                ];
-                const response = await fetch(url, {
-                    method: "PUT",
-                    body: JSON.stringify(body),
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bot ${process.env.TOKEN}`,
-                    },
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log(data);
-                }
-                else {
-                    const data = await response.text();
-                    console.log(data);
-                }
-                return;
-            }
             case "activitytop": {
                 const dbData = (await AuthData.findAll({ include: UserActivityData, attributes: ["displayName", "discordId"] })).filter((v) => v.UserActivityData && (v.UserActivityData.messages > 0 || v.UserActivityData.voice > 0));
                 const messageTop = dbData

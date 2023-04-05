@@ -83,13 +83,11 @@ async function fetchCharacterResponse(accessToken, bungieId, characterId, platfo
         return [response, null];
     }
     catch (error) {
-        console.error(`[Error code: 1636]`, error);
         const authData = await AuthData.findOne({
             where: { bungieId },
             attributes: ["accessToken"],
         });
         if (authData && authData.accessToken) {
-            console.debug(`ACCESSTOKEN WAS UPDATED FOR ${bungieId}`);
             const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`, {
                 accessToken: authData.accessToken,
             });
@@ -102,7 +100,6 @@ async function fetchCharacterResponse(accessToken, bungieId, characterId, platfo
     }
 }
 export async function activityCompletionChecker({ accessToken, bungieId, characterId, id, platform, raid, discordId, }) {
-    console.debug(`STARTED activityCompletionChecker FOR ${platform}/${bungieId}`);
     const milestoneHash = typeof raid === "string" ? getRaidData(raid).milestoneHash : raid;
     let startTime = Date.now();
     let interval;
@@ -123,14 +120,12 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
             (previousActivityHash !== undefined &&
                 !response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash)) ||
             (discordId && !clanOnline.has(discordId))) {
-            console.debug(`Interval cleared`);
             clearInterval(interval);
             currentlyRunning.delete(uniqueId);
             activityCompletionCurrentProfiles.delete(bungieId);
             const cachedData = completedPhases.get(bungieId);
             setTimeout(() => {
                 if (completedPhases.get(bungieId) === cachedData && !activityCompletionCurrentProfiles.has(bungieId)) {
-                    console.debug(`Data for ${platform}/${bungieId}/${characterId} was deleted`);
                     completedPhases.delete(bungieId);
                 }
             }, 60 * 1000 * 30);
@@ -141,7 +136,6 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                 previousActivityHash = currentActivityHash;
                 const updatedMilestoneActivity = response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash);
                 if (updatedMilestoneActivity && areAllPhasesComplete(updatedMilestoneActivity.phases)) {
-                    console.debug(`All phases are already complete for ${platform}/${bungieId}/${characterId}`);
                     clearInterval(interval);
                     currentlyRunning.delete(uniqueId);
                     activityCompletionCurrentProfiles.delete(bungieId);
@@ -185,13 +179,11 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                                     end: -1,
                                 },
                             ];
-                            console.debug(`FOUND UPDATED PHASE DATA FOR ${platform}/${bungieId}/${characterId}`, alreadyCompletedPhases, updatedMilestoneActivity.phases);
                             let phase = alreadyCompletedPhases[alreadyCompletedPhases.length - 1];
                             phase.end = Date.now();
                             alreadyCompletedPhases.splice(alreadyCompletedPhases.length > 0 ? alreadyCompletedPhases.length - 1 : 0, 1, {
                                 ...phase,
                             });
-                            console.debug(`UPDATED END TIME FOR PREVIOUS PHASE DATA`, alreadyCompletedPhases);
                             if (updatedMilestoneActivity.phases[phaseIndex + 1] != null &&
                                 updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash != null) {
                                 const insertedPhaseIndex = alreadyCompletedPhases.findIndex((phase) => phase.phaseIndex === phaseIndex + 2);
@@ -203,18 +195,16 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                                 };
                                 if (insertedPhaseIndex === -1) {
                                     alreadyCompletedPhases.push(phaseData);
-                                    console.debug(`NEW VALUE WAS ADDED`, phaseData, alreadyCompletedPhases);
                                 }
                                 else {
-                                    console.debug(`VALUES ARE GOING TO BE EDITED - ${phaseIndex}/${insertedPhaseIndex}`, phaseData, alreadyCompletedPhases);
                                     alreadyCompletedPhases.splice(insertedPhaseIndex, 1, {
                                         ...phaseData,
                                     });
-                                    console.debug(`VALUES WERE UPDATED - ${phaseIndex}/${insertedPhaseIndex}`, phaseData, alreadyCompletedPhases);
                                 }
                             }
                             else {
                                 currentlyRunning.delete(uniqueId);
+                                activityCompletionCurrentProfiles.delete(bungieId);
                             }
                             completedPhases.set(bungieId, alreadyCompletedPhases);
                             break;

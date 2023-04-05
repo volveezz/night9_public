@@ -81,7 +81,7 @@ export default {
             else if (clanInviteRequest.ErrorCode === 695) {
                 const embed = new EmbedBuilder()
                     .setColor(colors.error)
-                    .setAuthor({ name: "Ошибка", iconURL: icons.error })
+                    .setAuthor({ name: "Ошибка", iconURL: icons.close })
                     .setDescription(`На вашем аккаунте стоит запрет на получение приглашений в клан\nПопробуйте вступить вручную через [bungie.net](https://www.bungie.net/ru/ClanV2?groupid=4123712)`);
                 (await deferredReply) && interaction.editReply({ embeds: [embed] });
                 if (!interaction.channel?.isDMBased())

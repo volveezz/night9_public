@@ -1,9 +1,10 @@
-import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { AdminDMChannelButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import { ids } from "../../configs/ids.js";
 import { statusRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
+import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
 import { escapeString } from "../general/utilities.js";
 export async function logClientDmMessages(member, text, id, interaction) {
     const dmLogChannel = interaction ? null : client.getCachedTextChannel(ids.dmMsgsChnId);
@@ -14,20 +15,15 @@ export async function logClientDmMessages(member, text, id, interaction) {
         name: `Отправлено: ${member.displayName || member.user.username}${member.user.username !== member.displayName ? ` (${member.user.username})` : ""}`,
         iconURL: member.displayAvatarURL(),
     })
-        .setTimestamp()
         .setDescription(text || "nothing")
         .setFooter({ text: `UId: ${member.id} | MId: ${id}` });
+    const components = [
+        new ButtonBuilder().setCustomId(AdminDMChannelButtons.reply).setLabel("Ответить").setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId(AdminDMChannelButtons.delete).setLabel("Удалить сообщение").setStyle(ButtonStyle.Danger),
+    ];
     const payload = {
         embeds: [embed],
-        components: [
-            {
-                type: ComponentType.ActionRow,
-                components: [
-                    new ButtonBuilder().setCustomId(AdminDMChannelButtons.reply).setLabel("Ответить").setStyle(ButtonStyle.Success),
-                    new ButtonBuilder().setCustomId(AdminDMChannelButtons.delete).setLabel("Удалить сообщение").setStyle(ButtonStyle.Danger),
-                ],
-            },
-        ],
+        components: await addButtonComponentsToMessage(components),
     };
     interaction ? interaction.editReply(payload) : dmLogChannel.send(payload);
 }
@@ -50,7 +46,7 @@ export async function updateClanRolesWithLogging(result, join) {
     const embed = new EmbedBuilder().addFields([
         { name: "Пользователь", value: `<@${result.discordId}>`, inline: true },
         { name: "BungieId", value: result.bungieId, inline: true },
-        { name: "Ник в игре", value: result.displayName, inline: true },
+        { name: "Ник в игре", value: `${escapeString(result.displayName)}`, inline: true },
     ]);
     if (member) {
         if (join) {

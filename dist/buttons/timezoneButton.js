@@ -2,13 +2,9 @@ import { EmbedBuilder, StringSelectMenuBuilder } from "discord.js";
 import { TimezoneButtons } from "../configs/Buttons.js";
 import { timezoneSelectMenuData } from "../configs/SelectMenuOptions.js";
 import colors from "../configs/colors.js";
-import { Command } from "../structures/command.js";
 import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
-export default new Command({
-    name: "timezone",
-    description: "Укажите свой часовой пояс",
-    descriptionLocalizations: { "en-US": "Choose your timezone", "en-GB": "Choose your timezone" },
-    global: true,
+export default {
+    name: "timezoneButton",
     run: async ({ interaction }) => {
         const embed = new EmbedBuilder()
             .setColor(colors.default)
@@ -26,4 +22,4 @@ export default new Command({
         });
         interaction.reply({ ephemeral: true, embeds: [embed], components: await addButtonComponentsToMessage([tzBlank]) });
     },
-});
+};

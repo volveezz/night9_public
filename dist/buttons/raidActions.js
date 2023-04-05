@@ -6,11 +6,11 @@ import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { ids, ownerId } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
-import { completedRaidsData } from "../core/userStatisticsManagement.js";
 import { client } from "../index.js";
 import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
+import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
-import { getRaidData, updatePrivateRaidMessage, updateRaidMessage } from "../utils/general/raidFunctions.js";
+import { checkRaidTimeConflicts, getRaidData, updatePrivateRaidMessage, updateRaidMessage } from "../utils/general/raidFunctions.js";
 import { RaidEvent } from "../utils/persistence/sequelize.js";
 async function actionMessageHandler({ interaction, raidEvent, target }) {
     const embed = new EmbedBuilder();
@@ -218,7 +218,7 @@ export default {
         update[userTarget] = Sequelize.fn("array_append", Sequelize.col(userTarget), interaction.user.id);
         [, [raidEvent]] = await RaidEvent.update(update, {
             where: { messageId: interaction.message.id },
-            returning: ["id", "channelId", "inChannelMessageId", "joined", "hotJoined", "alt", "messageId", "raid", "difficulty"],
+            returning: ["id", "channelId", "inChannelMessageId", "joined", "hotJoined", "alt", "messageId", "time", "raid", "difficulty"],
         });
         updatePrivateRaidMessage({ raidEvent });
         updateRaidMessage(raidEvent, interaction);
@@ -230,6 +230,9 @@ export default {
         client.getCachedTextChannel(raidEvent.channelId).permissionOverwrites.create(interaction.user.id, {
             ViewChannel: true,
         });
+        if (interaction.customId === RaidButtons.join) {
+            checkRaidTimeConflicts(interaction, raidEvent);
+        }
         if (userAlreadyJoined &&
             interaction.customId === RaidButtons.alt &&
             raidEvent.joined.length === 5 &&

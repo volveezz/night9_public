@@ -74,8 +74,7 @@ export default {
             modalSubmit.reply({ ephemeral: true, embeds: [replyEmbed], components });
             const loggedEmbed = new EmbedBuilder()
                 .setColor(colors.default)
-                .setAuthor({ name: `${member.displayName} заполнил форму на вступление в клан`, iconURL: member.displayAvatarURL() })
-                .setTimestamp();
+                .setAuthor({ name: `${member.displayName} заполнил форму на вступление в клан`, iconURL: member.displayAvatarURL() });
             modalSubmit.fields.fields.forEach((c) => {
                 if (!c.value)
                     return;

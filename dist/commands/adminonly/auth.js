@@ -25,14 +25,18 @@ export default new Command({
             ? interaction.user.id
             : interaction.options.getString("id", true);
         if (!isSnowflake(id)) {
+            await deferredReply;
             throw { errorType: UserErrors.WRONG_ID };
         }
         const data = await AuthData.findOne({
             where: { [Op.or]: [{ discordId: id }, { bungieId: id }] },
             attributes: ["displayName", "refreshToken"],
         });
-        if (!data)
-            throw { errorType: UserErrors.DB_USER_NOT_FOUND };
+        if (!data) {
+            await deferredReply;
+            const isSelf = id === interaction.user.id || id === "";
+            throw { errorType: UserErrors.DB_USER_NOT_FOUND, errorData: { isSelf } };
+        }
         try {
             const form = new URLSearchParams();
             form.append("grant_type", "refresh_token");
@@ -67,7 +71,7 @@ export default new Command({
             else {
                 embed
                     .setColor(colors.error)
-                    .setAuthor({ name: `Произошла ошибка во время обновления токена ${data.displayName}`, iconURL: icons.error });
+                    .setAuthor({ name: `Произошла ошибка во время обновления токена ${data.displayName}`, iconURL: icons.close });
             }
             (await deferredReply) && interaction.editReply({ embeds: [embed] });
         }

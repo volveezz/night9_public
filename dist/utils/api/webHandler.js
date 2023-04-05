@@ -1,10 +1,11 @@
-import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import fetch from "node-fetch";
-import { ClanButtons } from "../../configs/Buttons.js";
+import { ClanButtons, TimezoneButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import { ids } from "../../configs/ids.js";
 import { statusRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
+import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
 import { escapeString } from "../general/utilities.js";
 import { AuthData, InitData, UserActivityData } from "../persistence/sequelize.js";
 import { fetchRequest } from "./fetchRequest.js";
@@ -90,7 +91,6 @@ export default async function webHandler(code, state, res) {
             .setTitle("Вы зарегистрировались")
             .setDescription("Для удобства на сервере вы можете указать свой часовой пояс введя команду `/timezone`")
             .setColor(colors.success)
-            .setTimestamp()
             .addFields({
             name: "Bungie аккаунт",
             value: `[bungie.net](https://www.bungie.net/7/ru/User/Profile/254/${body.membership_id})`,
@@ -138,44 +138,30 @@ export default async function webHandler(code, state, res) {
                 if (member.roles.cache.has(statusRoles.newbie))
                     await member.roles.remove(statusRoles.newbie, "User registration");
             });
+        const component = [
+            new ButtonBuilder().setCustomId(ClanButtons.invite).setLabel("Отправить приглашение").setStyle(ButtonStyle.Success),
+            new ButtonBuilder().setCustomId(TimezoneButtons.button).setLabel("Установить часовой пояс").setStyle(ButtonStyle.Secondary),
+        ];
         if (!clanResponse || !clanResponse.results) {
-            const component = new ButtonBuilder()
-                .setCustomId(ClanButtons.invite)
-                .setLabel("Отправить приглашение")
-                .setStyle(ButtonStyle.Success);
             embed.setDescription(embed.data.description
                 ? embed.data.description +
                     `\n\nПроизошла ошибка во время обработки вашего клана. Скорее всего это связано с недоступностью API игры\n\nКнопка ниже служит для отправки приглашения в клан - она заработает как только сервера игры станут доступны`
                 : `\n\nПроизошла ошибка во время обработки вашего клана. Скорее всего это связано с недоступностью API игры\n\nКнопка ниже служит для отправки приглашения в клан - она заработает как только сервера игры станут доступны`);
-            member.send({
+            await member.send({
                 embeds: [embed],
-                components: [
-                    {
-                        type: ComponentType.ActionRow,
-                        components: [component],
-                    },
-                ],
+                components: await addButtonComponentsToMessage(component),
             });
         }
         else if (clanResponse &&
             clanResponse.results &&
             clanResponse.results.length >= 1 &&
             clanResponse.results[0].group.groupId !== "4123712") {
-            const component = new ButtonBuilder()
-                .setCustomId(ClanButtons.invite)
-                .setLabel("Отправить приглашение")
-                .setStyle(ButtonStyle.Success);
             embed.setDescription(embed.data.description
                 ? embed.data.description + `\n\nНажмите кнопку для получения приглашения в клан`
                 : `Нажмите кнопку для получения приглашения в клан`);
-            member.send({
+            await member.send({
                 embeds: [embed],
-                components: [
-                    {
-                        type: ComponentType.ActionRow,
-                        components: [component],
-                    },
-                ],
+                components: await addButtonComponentsToMessage(component),
             });
         }
         else {

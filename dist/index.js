@@ -11,8 +11,8 @@ await client.start();
 client.rest.on("rateLimited", (rateLimit) => {
     console.error(`Ratelimited for ${rateLimit.timeToReset} ms, route: ${rateLimit.route}${rateLimit.majorParameter ? `, parameter: ${rateLimit.majorParameter}` : ""}`);
 });
-process.on("uncaughtException", (error, origin) => {
-    console.error(`uncaughtException at top level`, origin === "uncaughtException" ? error : origin);
+process.on("uncaughtException", (error) => {
+    console.error(`uncaughtException at top level`, error);
 });
 process.on("unhandledRejection", (error) => {
     if (error.code === "ECONNRESET")
@@ -26,7 +26,7 @@ process.on("unhandledRejection", (error) => {
     if (error.code >= 400 && error.code <= 599)
         return console.error(`[Error code: 1215] ${error.code}`);
     if (error.code === 50035)
-        return console.error(`[Error code: 1243]`, error, JSON.parse(error.rawError));
+        return console.error(`[Error code: 1243]`, error, error.rawError);
     console.error(`unhandledRejection at top level`, { error });
 });
 const app = express();

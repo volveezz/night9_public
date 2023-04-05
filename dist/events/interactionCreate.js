@@ -27,14 +27,20 @@ export default new Event("interactionCreate", async (interaction) => {
         }
         command.run({ args: interaction.options, client, interaction }).catch(async (e) => {
             const { embeds, components } = errorResolver(e);
-            (interaction.replied || interaction.deferred
-                ? interaction.followUp({ embeds, components, ephemeral: true })
-                : interaction.reply({ embeds, components, ephemeral: true })).catch((err) => {
-                if (err.code === 40060)
-                    return interaction.followUp({ embeds, components, ephemeral: true });
-                console.error(`[Error code: 1200] Error on command reply`, err);
-            });
-            console.log(`[Error code: 1203] Error during executing command for ${interaction.member?.displayName ?? interaction.user.username}`, e);
+            try {
+                if (interaction.replied || interaction.deferred) {
+                    await interaction.followUp({ embeds, components, ephemeral: true });
+                }
+                else {
+                    await interaction.reply({ embeds, components, ephemeral: true });
+                }
+            }
+            catch (error) {
+                if (error.code === 40060)
+                    return await interaction.followUp({ embeds, components, ephemeral: true });
+                console.error(`[Error code: 1200] Unknown error on command reply`, error);
+            }
+            console.error(`[Error code: 1664] Error during execution of ${command.name} for ${client.getCachedMembers().get(interaction.user.id)?.displayName || interaction.user.username}\n`, e);
         });
     }
     else if (interaction.isButton() || interaction.isAnySelectMenu() || interaction.isModalSubmit()) {

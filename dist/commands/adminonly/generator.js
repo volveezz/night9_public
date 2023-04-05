@@ -98,7 +98,7 @@ export default new Command({
                     console.error(`[Error code: 1646] Error during handling embed message`, error);
                     const errorResponse = new EmbedBuilder().setColor(colors.error).setAuthor({
                         name: `Произошла ошибка во время ${messageId ? "редактирования" : "отправки"} сообщения`,
-                        iconURL: icons.error,
+                        iconURL: icons.close,
                     });
                     await deferredReply;
                     interaction.editReply({ embeds: [errorResponse] });

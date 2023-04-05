@@ -287,7 +287,7 @@ export default new Command({
                     else {
                         managmentEmbed.setColor(colors.error).setAuthor({
                             name: `Произошла ошибка во время понижения **${lastMember.bungieName}** до ${lastMember.rank} ранга`,
-                            iconURL: icons.error,
+                            iconURL: icons.close,
                         });
                         button.followUp({
                             ephemeral: true,
@@ -311,7 +311,7 @@ export default new Command({
                     else {
                         managmentEmbed.setColor(colors.error).setAuthor({
                             name: `Произошла ошибка во время повышения ${lastMember.bungieName} до ${lastMember.rank} ранга`,
-                            iconURL: icons.error,
+                            iconURL: icons.close,
                         });
                         button.followUp({
                             ephemeral: true,

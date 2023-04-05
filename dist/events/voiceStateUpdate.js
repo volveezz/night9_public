@@ -9,7 +9,7 @@ import { convertSeconds } from "../utils/general/convertSeconds.js";
 const voiceChannel = client.getCachedTextChannel(ids.voiceChnId);
 const voiceUsers = new Map();
 export default new Event("voiceStateUpdate", (oldState, newState) => {
-    const embed = new EmbedBuilder().setColor(colors.success).setTimestamp();
+    const embed = new EmbedBuilder().setColor(colors.success);
     if (!oldState.channelId && newState.channelId) {
         if (createdChannelsMap.has(newState.channelId))
             pvePartyVoiceChatHandler(newState.channelId, newState.member, "join");

@@ -49,7 +49,6 @@ export async function adminDmChnManager(message) {
                     name: `Пытались отправить: ${member.displayName || member.user.username}${member.user.username !== member.displayName ? ` (${member.user.username})` : ""}`,
                     iconURL: member.displayAvatarURL(),
                 })
-                    .setTimestamp()
                     .setDescription(msgContent || "nothing")
                     .setFooter({ text: `UId: ${member.id}` });
                 return message.channel.send({ embeds: [errorEmbed] });

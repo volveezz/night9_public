@@ -1,4 +1,4 @@
-import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { Op } from "sequelize";
 import { RaidButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
@@ -7,7 +7,10 @@ import { client } from "../../index.js";
 import { fetchRequest } from "../api/fetchRequest.js";
 import { CachedDestinyActivityDefinition } from "../api/manifestHandler.js";
 import { completedPhases } from "../general/activityCompletionChecker.js";
+import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
 import { convertSeconds } from "../general/convertSeconds.js";
+import { completedRaidsData } from "../general/destinyActivityChecker.js";
+import { getRaidNameFromHash, removeRaid } from "../general/raidFunctions.js";
 import { escapeString } from "../general/utilities.js";
 import { AuthData, RaidEvent, UserActivityData } from "../persistence/sequelize.js";
 const hashToImageMap = {
@@ -90,6 +93,7 @@ async function logActivityCompletion(pgcrId) {
             if (entry.extended?.weapons?.some((a) => a.referenceId === 3512014804) && !miscArray.some((a) => a.endsWith("**Люмина**")))
                 miscArray.push("<a:iamthebest:1084475253901774938>**Люмина**");
             completedUsers.set(entry.player.destinyUserInfo.membershipId, {
+                bungieId: entry.player.destinyUserInfo.membershipId,
                 bungieName: entry.player.destinyUserInfo.bungieGlobalDisplayName,
                 classHash: entry.values.completed.basic.value === 1
                     ? (entry.player.classHash === 671679327
@@ -112,49 +116,6 @@ async function logActivityCompletion(pgcrId) {
             });
         });
         const membersMembershipIds = [...new Set(Array.from(completedUsers.keys()))];
-        let completedUsersCount = 0;
-        let uncompletedUsersCount = 0;
-        completedUsers.forEach((value, key) => {
-            if (!value.completed) {
-                return;
-            }
-            else {
-                completedUsers.delete(key);
-                completedUsersCount++;
-            }
-            if (completedUsersCount > 12)
-                return;
-            embed.addFields({
-                name: escapeString(value.bungieName),
-                value: `${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
-                    ? `\nВ ${mode === 4
-                        ? "рейде"
-                        : mode === 82
-                            ? "подземелье"
-                            : "задании"}: **${convertSeconds(value.timeInActivity)}**`
-                    : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
-                inline: true,
-            });
-        });
-        embed.data.fields = embed.data.fields?.sort((a, b) => {
-            return a.name.localeCompare(b.name);
-        });
-        completedUsers.forEach((value, _key) => {
-            uncompletedUsersCount++;
-            if (uncompletedUsersCount > 12)
-                return;
-            embed.addFields({
-                name: "❌" + escapeString(value.bungieName),
-                value: `${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
-                    ? `\nВ ${mode === 4
-                        ? "рейде"
-                        : mode === 82
-                            ? "подземелье"
-                            : "задании"}: **${convertSeconds(value.timeInActivity)}**`
-                    : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
-                inline: true,
-            });
-        });
         if (membersMembershipIds.length <= 0)
             return;
         const databaseData = await AuthData.findAll({ where: { bungieId: { [Op.any]: membersMembershipIds } } });
@@ -253,8 +214,59 @@ async function logActivityCompletion(pgcrId) {
                     preciseEncountersTime.clear();
                 }
             }
+            let completedUsersCount = 0;
+            let uncompletedUsersCount = 0;
+            completedUsers.forEach((value, key) => {
+                if (!value.completed) {
+                    return;
+                }
+                else {
+                    completedUsers.delete(key);
+                    completedUsersCount++;
+                }
+                if (completedUsersCount > 12)
+                    return;
+                const databaseDataForUser = mode === 4 ? databaseData.find((data) => data.bungieId === value.bungieId) : null;
+                const totalRaidClearsForUser = databaseDataForUser ? completedRaidsData.get(databaseDataForUser.discordId) : null;
+                const raidName = getRaidNameFromHash(referenceId);
+                const raidClearsForUser = totalRaidClearsForUser
+                    ? raidName.endsWith("Master") && totalRaidClearsForUser[raidName] > 0
+                        ? `${totalRaidClearsForUser[raidName.replace("Master", "")] || 0} (+${totalRaidClearsForUser[raidName] || 0} на мастере)`
+                        : `${totalRaidClearsForUser[raidName] || 0}`
+                    : null;
+                embed.addFields({
+                    name: escapeString(value.bungieName),
+                    value: `${raidClearsForUser ? `Закрытий рейда: ${raidClearsForUser}\n` : ""}${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
+                        ? `\nВ ${mode === 4
+                            ? "рейде"
+                            : mode === 82
+                                ? "подземелье"
+                                : "задании"}: **${convertSeconds(value.timeInActivity)}**`
+                        : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
+                    inline: true,
+                });
+            });
+            embed.data.fields = embed.data.fields?.sort((a, b) => {
+                return a.name.localeCompare(b.name);
+            });
+            completedUsers.forEach((value, _key) => {
+                uncompletedUsersCount++;
+                if (uncompletedUsersCount > 12)
+                    return;
+                embed.addFields({
+                    name: "❌" + escapeString(value.bungieName),
+                    value: `${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
+                        ? `\nВ ${mode === 4
+                            ? "рейде"
+                            : mode === 82
+                                ? "подземелье"
+                                : "задании"}: **${convertSeconds(value.timeInActivity)}**`
+                        : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
+                    inline: true,
+                });
+            });
             const msg = client.getCachedTextChannel(ids.activityChnId).send({ embeds: [embed] });
-            const currentTime = Math.trunc(Date.now() / 1000);
+            const currentTime = Math.floor(Date.now() / 1000);
             databaseData.forEach(async (dbMemberData) => {
                 if (mode === 82 && clanMembersInActivity > 1)
                     return UserActivityData.increment("dungeons", { by: 1, where: { discordId: dbMemberData.discordId } });
@@ -262,35 +274,48 @@ async function logActivityCompletion(pgcrId) {
                     return;
                 if (dbMemberData.clan === true && clanMembersInActivity > 2)
                     UserActivityData.increment("raids", { by: 1, where: { discordId: dbMemberData.discordId } });
-                const dbRaidData = await RaidEvent.findAll({ where: { creator: dbMemberData.discordId } }).then((data) => {
-                    for (let i = 0; i < data.length; i++) {
-                        const row = data[i];
-                        if (row.time < currentTime)
-                            return row;
-                    }
+                const pastCreatedRaid = await RaidEvent.findOne({
+                    where: {
+                        creator: dbMemberData.discordId,
+                        time: {
+                            [Op.lt]: currentTime,
+                        },
+                    },
                 });
-                if (dbRaidData && dbRaidData.time < currentTime) {
-                    const resolvedMsg = await msg;
-                    const embed = new EmbedBuilder()
+                if (pastCreatedRaid && pastCreatedRaid.time < currentTime) {
+                    const resolvedMessage = await msg;
+                    const raidCompletionEmbed = new EmbedBuilder()
                         .setColor(colors.serious)
-                        .setFooter({ text: `RId: ${dbRaidData.id}` })
+                        .setFooter({ text: `RId: ${pastCreatedRaid.id}` })
                         .setTitle("Созданный вами рейд был завершен")
-                        .setDescription(`Вы создавали рейд ${dbRaidData.id}-${dbRaidData.raid} на <t:${dbRaidData.time}> и сейчас он был завершен.\nПодтвердите завершение рейда для удаления набора.\n\n[История активностей](https://discord.com/channels/${resolvedMsg.guildId + "/" + resolvedMsg.channelId + "/" + resolvedMsg.id})`);
-                    return (client.users.cache.get(dbRaidData.creator) ||
-                        client.getCachedMembers().get(dbRaidData.creator) ||
-                        (await client.users.fetch(dbRaidData.creator)))
+                        .setDescription(`Вы создавали рейд ${pastCreatedRaid.id}-${pastCreatedRaid.raid} на <t:${pastCreatedRaid.time}> и сейчас он был завершен\nПодтвердите завершение рейда для удаления набора\n\n[Результаты рейда](https://discord.com/channels/${resolvedMessage.guildId}/${resolvedMessage.channelId}/${resolvedMessage.id})`);
+                    const deleteRaidButton = new ButtonBuilder()
+                        .setCustomId(RaidButtons.delete)
+                        .setLabel("Удалить набор")
+                        .setStyle(ButtonStyle.Danger);
+                    const member = client.getCachedMembers().get(pastCreatedRaid.creator) ||
+                        (await client.getCachedGuild().members.fetch(pastCreatedRaid.creator));
+                    const raidCompletionNotification = await member
                         .send({
-                        embeds: [embed],
-                        components: [
-                            {
-                                type: ComponentType.ActionRow,
-                                components: [
-                                    new ButtonBuilder().setCustomId(RaidButtons.delete).setLabel("Удалить набор").setStyle(ButtonStyle.Danger),
-                                ],
-                            },
-                        ],
+                        embeds: [raidCompletionEmbed],
+                        components: await addButtonComponentsToMessage([deleteRaidButton]),
                     })
                         .catch((e) => console.error(`[Error code: 1071] acitvityReporter final error`, e));
+                    setTimeout(async () => {
+                        const isRaidStillExists = await RaidEvent.findOne({ where: { id: pastCreatedRaid.id }, attributes: ["time"] });
+                        if (isRaidStillExists && isRaidStillExists.time === pastCreatedRaid.time) {
+                            await removeRaid(pastCreatedRaid);
+                        }
+                        if (!raidCompletionNotification)
+                            return;
+                        const updatedMessage = await raidCompletionNotification.fetch();
+                        if (updatedMessage) {
+                            const updatedEmbed = EmbedBuilder.from(updatedMessage.embeds[0])
+                                .setTitle(`Рейд был завершен`)
+                                .setDescription(`Созданный вами рейд ${pastCreatedRaid.id}-${pastCreatedRaid.raid} на <t:${pastCreatedRaid.time}> был завершен и удален\n\n[Результаты рейда](https://discord.com/channels/${resolvedMessage.guildId}/${resolvedMessage.channelId}/${resolvedMessage.id})`);
+                            raidCompletionNotification.edit({ embeds: [updatedEmbed], components: [] });
+                        }
+                    }, 1000 * 60 * 30);
                 }
             });
         }

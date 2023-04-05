@@ -1,6 +1,7 @@
-import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { PatchnoteButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
+import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
 import { descriptionFormatter } from "../general/utilities.js";
 export async function patchnoteGenerator(message) {
     const { member, channel } = message;
@@ -15,20 +16,16 @@ export async function patchnoteGenerator(message) {
         embed = new EmbedBuilder().setColor(colors.default).setDescription(patchnoteMessage || "nothing");
     }
     const components = [
-        {
-            type: ComponentType.ActionRow,
-            components: [
-                new ButtonBuilder()
-                    .setCustomId(PatchnoteButtons.sendToGods)
-                    .setStyle(ButtonStyle.Primary)
-                    .setLabel("Опубликовать в премиум-чате"),
-                new ButtonBuilder().setCustomId(PatchnoteButtons.sendToPublic).setStyle(ButtonStyle.Success).setLabel("Опубликовать для всех"),
-                new ButtonBuilder().setCustomId(PatchnoteButtons.cancel).setStyle(ButtonStyle.Danger).setLabel("Отменить"),
-            ],
-        },
+        new ButtonBuilder().setCustomId(PatchnoteButtons.sendToGods).setStyle(ButtonStyle.Primary).setLabel("Опубликовать в премиум-чате"),
+        new ButtonBuilder().setCustomId(PatchnoteButtons.sendToPublic).setStyle(ButtonStyle.Success).setLabel("Опубликовать для всех"),
+        new ButtonBuilder().setCustomId(PatchnoteButtons.cancel).setStyle(ButtonStyle.Danger).setLabel("Отменить"),
     ];
     channel
-        .send({ embeds: embed ? [embed] : undefined, content: embed ? undefined : patchnoteMessage, components })
+        .send({
+        embeds: embed ? [embed] : undefined,
+        content: embed ? undefined : patchnoteMessage,
+        components: await addButtonComponentsToMessage(components),
+    })
         .then((_r) => {
         message.delete();
     });

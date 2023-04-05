@@ -1,20 +1,22 @@
 import { ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, ComponentType, EmbedBuilder, } from "discord.js";
+import { Op } from "sequelize";
 import { raidAnnounceSet } from "../../commands/raid.js";
 import { RaidButtons } from "../../configs/Buttons.js";
 import { RaidNames } from "../../configs/Raids.js";
 import UserErrors from "../../configs/UserErrors.js";
 import colors from "../../configs/colors.js";
 import destinyRaidsChallenges from "../../configs/destinyRaidsChallenges.js";
+import icons from "../../configs/icons.js";
 import { guildId, ids } from "../../configs/ids.js";
 import { dlcRoles, statusRoles } from "../../configs/roles.js";
-import { completedRaidsData } from "../../core/userStatisticsManagement.js";
 import { client } from "../../index.js";
 import { fetchRequest } from "../api/fetchRequest.js";
 import { CachedDestinyActivityModifierDefinition } from "../api/manifestHandler.js";
 import { RaidEvent } from "../persistence/sequelize.js";
 import { addButtonComponentsToMessage } from "./addButtonsToMessage.js";
+import { completedRaidsData } from "./destinyActivityChecker.js";
 import nameCleaner from "./nameClearer.js";
-import { escapeString, getRandomGIF } from "./utilities.js";
+import { escapeString, getRandomGIF, getRandomRaidGIF } from "./utilities.js";
 const blockedModifierHashesArray = [1123720291, 1783825372, 782039530, 2006149364, 197794292, 3307318061, 438106166];
 export function getRaidData(raid, difficulty = 1) {
     switch (raid) {
@@ -350,10 +352,10 @@ export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) 
         raidChallengesArray.length > 0
             ? `**Испытани${raidChallengesArray.length === 1 ? "е" : "я"} ${new Date(raidMilestone.endDate).getTime() > startTime * 1000 ? "этой" : "следующей"} недели**`
             : raidModifiersArray.length > 0
-                ? `**Модификатор${raidModifiersArray.length === 1 ? `` : `ы`} рейда:**`
+                ? `**Модификатор${raidModifiersArray.length === 1 ? `` : `ы`} рейда**`
                 : "Объявление";
     embed.data.fields[0].value = `${raidChallengesArray.join("\n")}${raidModifiersArray.length > 0
-        ? `${raidChallengesArray.length > 0 ? `\n\n**Модификатор${raidModifiersArray.length === 1 ? `` : `ы`} рейда:**` : ""}\n`
+        ? `${raidChallengesArray.length > 0 ? `\n\n**Модификатор${raidModifiersArray.length === 1 ? `` : `ы`} рейда**` : ""}\n`
         : ""}${raidModifiersArray.join("\n")}${raidChallengesArray.length === 0 && raidModifiersArray.length === 0
         ? "⁣　⁣Продается __утепленный__ гараж в восточном ГК. ***Дешево***. За подробностями в личку <@298353895258980362>, торопитесь!"
         : ""}`;
@@ -419,7 +421,6 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
         embed.spliceFields(2, 0, { name: "Закрытия рейдов у запасных участников", value: (await Promise.all(hotJoined)).join("\n") });
     if (raidEvent.alt.length > 0)
         embed.spliceFields(3, 0, { name: "Закрытия рейдов у возможных участников", value: (await Promise.all(alt)).join("\n") });
-    embed.setTimestamp();
     return inChnMsg.edit({ embeds: [embed] });
 }
 export function timeConverter(str, timezoneOffset = 3) {
@@ -501,7 +502,7 @@ async function raidAnnounce(oldRaidData) {
         .sort((a) => (a.id === raidData.creator ? 1 : 0))
         .map((member, index) => {
         const raidClears = completedRaidsData.get(member.id);
-        return `⁣　${index + 1}. **${nameCleaner(member.displayName)}**${raidClears
+        return `⁣　${index + 1}. **${nameCleaner(member.displayName, true)}**${raidClears
             ? ` — ${raidClears[raidData.raid]} закрытий${raidClears[raidData.raid + "Master"] ? ` (+${raidClears[raidData.raid + "Master"]} на мастере)` : ""}`
             : ""}`;
     });
@@ -518,7 +519,7 @@ async function raidAnnounce(oldRaidData) {
         },
     ]);
     try {
-        embed.setImage(await getRandomGIF("raid time"));
+        embed.setImage((await getRandomRaidGIF()) || (await getRandomGIF("raid time")));
     }
     catch (error) {
         console.error(`[Error code: 1631] Error during adding image to the notify message`, error);
@@ -527,15 +528,14 @@ async function raidAnnounce(oldRaidData) {
         .filter((chn) => chn.parentId === ids.raidChnCategoryId && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"))
         .reverse();
     const components = [];
-    for await (const [i, chn] of raidVoiceChannels) {
-        if (chn.type === ChannelType.GuildVoice &&
-            (chn.userLimit === 0 || chn.userLimit - 6 > chn?.members.size || chn?.members.has(raidData.creator))) {
+    for await (const [_, chn] of raidVoiceChannels) {
+        if (chn.userLimit === 0 || chn.userLimit - 6 > chn.members.size || chn.members.has(raidData.creator)) {
             const invite = await chn.createInvite({ reason: "Raid automatic invite", maxAge: 60 * 120 });
             invite
                 ? components.push(new ButtonBuilder({
                     style: ButtonStyle.Link,
                     url: invite.url,
-                    label: `Перейти ${chn?.members.has(raidData.creator) ? "к создателю рейда" : "в рейдовый канал"}`,
+                    label: `Перейти ${chn.members.has(raidData.creator) ? "к создателю рейда" : "в рейдовый канал"}`,
                 }))
                 : "";
             break;
@@ -552,4 +552,110 @@ async function raidAnnounce(oldRaidData) {
             ],
         });
     });
+}
+export async function checkRaidTimeConflicts(interaction, raidEvent) {
+    const member = client.getCachedMembers().get(interaction.user.id) || (await client.getCachedGuild().members.fetch(interaction.user.id));
+    const { time: targetRaidTime } = raidEvent;
+    const conflictingRaids = await RaidEvent.findAll({
+        where: {
+            time: targetRaidTime,
+            [Op.or]: [{ joined: { [Op.contains]: [member.id] } }, { hotJoined: { [Op.contains]: [member.id] } }],
+        },
+        attributes: ["id", "messageId", "joined", "hotJoined", "raid"],
+    });
+    if (conflictingRaids.length > 1) {
+        const userJoinedRaidsList = conflictingRaids
+            .sort((a, b) => a.id - b.id)
+            .map((raidData, i) => {
+            return `${i + 1}. [${raidData.id}-${raidData.raid}](https://discord.com/channels/${guildId}/${ids.raidChnId}/${raidData.messageId}) - ${raidData.joined.includes(member.id) ? "участником" : "запасным участником"}`;
+        })
+            .join("\n⁣　⁣");
+        const embed = new EmbedBuilder()
+            .setColor(colors.error)
+            .setAuthor({ name: `Вы записались на несколько рейдов в одно время`, iconURL: icons.error })
+            .setDescription(`Рейды, на которые вы записаны <t:${targetRaidTime}:R>:\n　${userJoinedRaidsList}`);
+        await member.send({ embeds: [embed] });
+    }
+}
+export async function removeRaid(raid, interaction) {
+    const deletionResult = await RaidEvent.destroy({ where: { id: raid.id }, limit: 1 });
+    const guild = client.getCachedGuild() || (await client.guilds.fetch(guildId));
+    const privateRaidChannel = guild.channels.cache.get(raid.channelId) || (await guild.channels.fetch(raid.channelId));
+    const mainRaidChannel = (guild.channels.cache.get(ids.raidChnId) || (await guild.channels.fetch(ids.raidChnId)));
+    const raidMessage = mainRaidChannel.messages.cache.get(raid.messageId) || (await mainRaidChannel.messages.fetch(raid.messageId));
+    const interactingMember = interaction
+        ? guild.members.cache.get(interaction.user.id) || (await guild.members.fetch(interaction.user.id))
+        : null;
+    if (deletionResult === 1) {
+        if (privateRaidChannel) {
+            const deletionReason = interaction
+                ? `${nameCleaner(interactingMember.displayName)} removed the raid using the button`
+                : `Raid ${raid.id} was deleted because it was completed`;
+            try {
+                await privateRaidChannel.delete(deletionReason);
+            }
+            catch (e) {
+                console.error(`[Error code: 1665]`, e);
+            }
+        }
+        try {
+            await raidMessage.delete();
+        }
+        catch (e) {
+            console.error(`[Error code: 1667]`, e);
+        }
+        if (interaction && interaction.channel && interaction.channel.isDMBased()) {
+            const successEmbed = new EmbedBuilder().setColor(colors.success).setTitle(`Рейд ${raid.id}-${raid.raid} удален`);
+            interaction.message.edit({ components: [], embeds: [successEmbed] });
+        }
+    }
+    else {
+        console.error(`[Error code: 1423] Error during raid removal ${raid.id}`, deletionResult, raid);
+        const errorEmbed = new EmbedBuilder()
+            .setColor("DarkGreen")
+            .setTitle(`Произошла ошибка во время удаления`)
+            .setDescription(`Удалено ${deletionResult} рейдов`);
+        if (interaction && interaction.channel && interaction.channel.isDMBased()) {
+            interaction.message.edit({ components: [], embeds: [errorEmbed] });
+        }
+    }
+}
+export function getRaidNameFromHash(activityHash) {
+    switch (activityHash) {
+        case 2381413764:
+        case 1191701339:
+            return "ron";
+        case 2918919505:
+            return "ronMaster";
+        case 1374392663:
+        case 1063970578:
+            return "kf";
+        case 2964135793:
+            return "kfMaster";
+        case 1441982566:
+            return "votd";
+        case 4217492330:
+            return "votdMaster";
+        case 910380154:
+        case 3976949817:
+            return "dsc";
+        case 3458480158:
+        case 2497200493:
+        case 2659723068:
+        case 3845997235:
+            return "gos";
+        case 3881495763:
+        case 1485585878:
+        case 3711931140:
+            return "vog";
+        case 1681562271:
+        case 3022541210:
+            return "vogMaster";
+        case 2122313384:
+        case 1661734046:
+            return "lw";
+        default:
+            console.log(`[Error code: 1669] Found unknown raidId ${activityHash}`);
+            return "unknown";
+    }
 }

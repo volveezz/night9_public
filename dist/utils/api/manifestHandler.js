@@ -2,11 +2,12 @@ import { fetchRequest } from "./fetchRequest.js";
 async function getManifest() {
     try {
         const manifest = await fetchRequest("Platform/Destiny2/Manifest/");
-        console.log("Manifest cached. Version:", manifest.version);
+        console.log(`Manifest cached. Version: ${manifest.version}`);
         return manifest;
     }
     catch (e) {
-        throw { name: "Manifest error", e };
+        console.error(`[Error code: 1662] Manifest error`, e);
+        throw e;
     }
 }
 async function getSpecificManifest(page) {
@@ -14,11 +15,10 @@ async function getSpecificManifest(page) {
         .then((manifest) => {
         return manifest;
     })
-        .catch((e) => console.error(`getSpecificManifest error`, page, e.statusCode));
+        .catch((e) => console.error(`[Error code: 1663] Manifest cacher error for ${page}\n`, e));
 }
-export const manifestData = await getManifest();
+const manifestData = await getManifest();
 export const CachedDestinyRecordDefinition = await getSpecificManifest("DestinyRecordDefinition");
-export const CachedDestinyMetricDefinition = await getSpecificManifest("DestinyMetricDefinition");
 export const CachedDestinyActivityModifierDefinition = await getSpecificManifest("DestinyActivityModifierDefinition");
 export const CachedDestinyActivityDefinition = await getSpecificManifest("DestinyActivityDefinition");
 export const CachedDestinyProgressionDefinition = await getSpecificManifest("DestinyProgressionDefinition");
