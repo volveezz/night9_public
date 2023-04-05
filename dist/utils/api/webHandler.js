@@ -156,10 +156,7 @@ export default async function webHandler(code, state, res) {
                 components: await addButtonComponentsToMessage([clanRequestComponent, timezoneComponent]),
             });
         }
-        else if (clanResponse &&
-            clanResponse.results &&
-            clanResponse.results.length >= 1 &&
-            clanResponse.results[0].group.groupId !== "4123712") {
+        else if (!clanResponse || !clanResponse.results || !(clanResponse?.results?.[0]?.group?.groupId === "4123712")) {
             embed.setDescription(embed.data.description
                 ? embed.data.description + `\n\nНажмите кнопку для получения приглашения в клан`
                 : `Нажмите кнопку для получения приглашения в клан`);
@@ -169,10 +166,10 @@ export default async function webHandler(code, state, res) {
             });
         }
         else {
-            console.error(`[Error code: 1670] ${clanResponse.results}, ${clanResponse.results.length >= 1}, ${clanResponse.results[0].group.groupId !== "4123712"}`, clanResponse);
+            console.error(`[Error code: 1670] ${clanResponse?.results}, ${clanResponse?.results?.length >= 1}, ${clanResponse?.results?.[0]?.group?.groupId !== "4123712"}`, clanResponse);
             member.send({
                 embeds: [embed],
-                components: await addButtonComponentsToMessage(clanResponse.results[0].group.groupId !== "4123712" ? [clanRequestComponent, timezoneComponent] : [timezoneComponent]),
+                components: await addButtonComponentsToMessage(!(clanResponse?.results?.[0]?.group?.groupId === "4123712") ? [clanRequestComponent, timezoneComponent] : [timezoneComponent]),
             });
         }
     }

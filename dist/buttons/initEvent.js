@@ -14,7 +14,7 @@ export default {
                 .setDescription(`Регистрация на нашем сервере нужна для работы множества функций сервера, включая, но не ограничиваясь:\n　${emoji}Возможностью проверки статистики ваших персонажей\n　${emoji}Возможностью вступления в клан не заходя в игру\n　${emoji}Возможностью создания и записи на наборы с статистикой из игры\n　${emoji}Возможностью удобно общаться на сервере - ваш ник в игре синхронизируется с ником Discord`);
             return (await deferredReply) && interaction.editReply({ embeds: [replyEmbed] });
         }
-        const embed = await sendRegistrationLink(interaction);
+        const embed = await sendRegistrationLink(interaction, deferredReply);
         return (await deferredReply) && interaction.editReply({ embeds: [embed] });
     },
 };

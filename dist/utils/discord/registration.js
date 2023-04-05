@@ -3,13 +3,14 @@ import colors from "../../configs/colors.js";
 import { logRegistrationLinkRequest } from "../logging/logger.js";
 import { AuthData, InitData } from "../persistence/sequelize.js";
 const emoji = "<:dot:1018321568218226788>";
-export async function sendRegistrationLink(interaction) {
+export async function sendRegistrationLink(interaction, deferredReply) {
     const user = interaction instanceof Message ? interaction.author : interaction.user;
     const userId = user.id;
     const checker = await AuthData.findOne({
         where: { discordId: userId },
     });
     if (checker !== null) {
+        await deferredReply;
         throw {
             name: "Вы уже зарегистрированы",
         };
