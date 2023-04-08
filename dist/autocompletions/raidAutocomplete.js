@@ -13,14 +13,14 @@ export default {
                     where: { creator: interaction.user.id },
                     attributes: ["id", "raid"],
                 });
-            interaction
+            return await interaction
                 .respond(raidData.map((data) => ({
                 name: String(data.id),
                 value: data.id,
             })))
                 .catch((e) => {
                 if (e.code !== 10062)
-                    console.error("[Error code: 1045]", e);
+                    return console.error("[Error code: 1045]", e);
             });
         }
         else if (option.name === "новое_время" || option.name === "время") {
@@ -35,12 +35,16 @@ export default {
                     hour: "2-digit",
                     minute: "2-digit",
                 });
-            interaction.respond([
+            return await interaction
+                .respond([
                 {
                     name,
                     value: pasrsedTime.toString(),
                 },
-            ]);
+            ])
+                .catch((e) => {
+                return console.error(`[Error code: 1681]`, e);
+            });
         }
     },
 };

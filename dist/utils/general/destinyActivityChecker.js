@@ -24,6 +24,8 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
         let kills = 0;
         let deaths = 0;
         let wtmatches = 0;
+        let isPreviousIsTraded = false;
+        let isWintrader = false;
         for await (const character of userCharactersArray) {
             let page = 0;
             await fetchAndProcessActivities();
@@ -49,9 +51,22 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                         }
                         else if (mode === 84) {
                             if (activity.values.completionReason.basic.value === 3) {
-                                wtmatches++;
-                                if (bungieId === "4611686018517009701")
-                                    console.log(`Found ununsual trials activity: ${activity.activityDetails.instanceId}`);
+                                if (isPreviousIsTraded === true) {
+                                    wtmatches++;
+                                    isWintrader = true;
+                                }
+                                else {
+                                    isPreviousIsTraded = true;
+                                }
+                            }
+                            else {
+                                if (isPreviousIsTraded === true) {
+                                    if (isWintrader) {
+                                        wtmatches++;
+                                        isPreviousIsTraded = false;
+                                        isWintrader = false;
+                                    }
+                                }
                             }
                             kills += activity.values.kills.basic.value;
                             deaths += activity.values.deaths.basic.value;
@@ -101,14 +116,14 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                         lw >= step.individualClears) {
                         if (!member.roles.cache.has(step.roleId)) {
                             await member.roles.remove(raidRoles.allRoles.filter((r) => r !== step.roleId));
-                            setTimeout(async () => await member.roles.add(step.roleId), 1000);
+                            await member.roles.add(step.roleId);
                         }
                         break;
                     }
                     else if (totalClears >= step.totalClears) {
                         if (!member.roles.cache.has(step.roleId)) {
                             await member.roles.remove(raidRoles.allRoles.filter((r) => r !== step.roleId));
-                            setTimeout(async () => await member.roles.add(step.roleId), 1000);
+                            await member.roles.add(step.roleId);
                         }
                         break;
                     }
@@ -139,7 +154,7 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                                 await member.roles.add(trialsRoles.category);
                             if (!member.roles.cache.has(step.roleId)) {
                                 await member.roles.remove(trialsRoles.allKd.filter((r) => r !== step.roleId));
-                                setTimeout(async () => await member.roles.add(step.roleId), 1000);
+                                await member.roles.add(step.roleId);
                             }
                             break;
                         }
