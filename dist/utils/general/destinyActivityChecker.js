@@ -48,8 +48,11 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                                 completedActivities.push(activity.activityDetails.referenceId);
                         }
                         else if (mode === 84) {
-                            if (activity.values.completionReason.basic.value === 3)
+                            if (activity.values.completionReason.basic.value === 3) {
                                 wtmatches++;
+                                if (bungieId === "4611686018517009701")
+                                    console.log(`Found ununsual trials activity: ${activity.activityDetails.instanceId}`);
+                            }
                             kills += activity.values.kills.basic.value;
                             deaths += activity.values.deaths.basic.value;
                         }
