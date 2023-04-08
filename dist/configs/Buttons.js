@@ -14,6 +14,8 @@ export var RaidButtons;
     RaidButtons["confirmNotify"] = "raidAddFunc_notify_confirm";
     RaidButtons["editNotify"] = "raidAddFunc_notify_edit";
     RaidButtons["notifyCancel"] = "raidAddFunc_notify_cancel";
+    RaidButtons["transitionCancel"] = "raidCreatorHandler_cancel";
+    RaidButtons["transitionDelete"] = "raidCreatorHandler_delete";
 })(RaidButtons || (RaidButtons = {}));
 export var RaidAdditionalFunctional;
 (function (RaidAdditionalFunctional) {
@@ -65,6 +67,6 @@ export var TimezoneButtons;
 })(TimezoneButtons || (TimezoneButtons = {}));
 export var AdminDMChannelButtons;
 (function (AdminDMChannelButtons) {
-    AdminDMChannelButtons["reply"] = "dmChnFunc_reply";
-    AdminDMChannelButtons["delete"] = "dmChnFunc_delete";
+    AdminDMChannelButtons["reply"] = "adminDMInteractionHandler_reply";
+    AdminDMChannelButtons["delete"] = "adminDMInteractionHandler_delete";
 })(AdminDMChannelButtons || (AdminDMChannelButtons = {}));

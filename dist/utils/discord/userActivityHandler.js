@@ -2,7 +2,7 @@ import { database, UserActivityData } from "../persistence/sequelize.js";
 const messageMap = new Map();
 const voiceMap = new Map();
 var countdown = null;
-export async function userActivityCacher({ userId, messageId, voiceTime }) {
+export async function cacheUserActivity({ userId, messageId, voiceTime }) {
     if (messageId) {
         const userMessages = messageMap.get(userId) ?? 0;
         messageMap.set(userId, userMessages + 1);

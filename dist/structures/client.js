@@ -30,6 +30,7 @@ export class ExtendedClient extends Client {
     constructor() {
         super({
             intents: [
+                GatewayIntentBits.GuildPresences,
                 GatewayIntentBits.Guilds,
                 GatewayIntentBits.GuildMembers,
                 GatewayIntentBits.GuildModeration,

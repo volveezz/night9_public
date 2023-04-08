@@ -18,6 +18,17 @@ import { completedRaidsData } from "./destinyActivityChecker.js";
 import nameCleaner from "./nameClearer.js";
 import { escapeString, getRandomGIF, getRandomRaidGIF } from "./utilities.js";
 const blockedModifierHashesArray = [1123720291, 1783825372, 782039530, 2006149364, 197794292, 3307318061, 438106166];
+export function generateRaidClearsText(clears = 0) {
+    const baseText = `**${clears}** закрыт`;
+    let ending = "ий";
+    if (clears === 1) {
+        ending = "ие";
+    }
+    else if (clears >= 2 && clears <= 4) {
+        ending = "ия";
+    }
+    return baseText + ending;
+}
 export function getRaidData(raid, difficulty = 1) {
     switch (raid) {
         case "ron":
@@ -172,7 +183,7 @@ export async function updateRaidMessage(raidDbData, interaction) {
             .map((data, index) => {
             const raidClears = completedRaidsData.get(data);
             return `⁣　${index + 1}. **${clearMemberName(data)}**${raidClears
-                ? ` — ${raidClears[raidDbData.raid]} закрыт${raidClears[raidDbData.raid] === 1 ? "ие" : "ий"}${raidClears[raidDbData.raid + "Master"] ? ` (+${raidClears[raidDbData.raid + "Master"]} на мастере)` : ""}`
+                ? ` — ${generateRaidClearsText(raidClears[raidDbData.raid])}${raidClears[raidDbData.raid + "Master"] ? ` (+**${raidClears[raidDbData.raid + "Master"]}** на мастере)` : ""}`
                 : ""}`;
         })
             .join("\n")
@@ -503,7 +514,7 @@ async function raidAnnounce(oldRaidData) {
         .map((member, index) => {
         const raidClears = completedRaidsData.get(member.id);
         return `⁣　${index + 1}. **${nameCleaner(member.displayName, true)}**${raidClears
-            ? ` — ${raidClears[raidData.raid]} закрытий${raidClears[raidData.raid + "Master"] ? ` (+${raidClears[raidData.raid + "Master"]} на мастере)` : ""}`
+            ? ` — ${generateRaidClearsText(raidClears[raidData.raid])}${raidClears[raidData.raid + "Master"] ? ` (+**${raidClears[raidData.raid + "Master"]}** на мастере)` : ""}`
             : ""}`;
     });
     const embed = new EmbedBuilder()
@@ -577,7 +588,7 @@ export async function checkRaidTimeConflicts(interaction, raidEvent) {
         await member.send({ embeds: [embed] });
     }
 }
-export async function removeRaid(raid, interaction) {
+export async function removeRaid(raid, interaction, requireMessageReply = true) {
     const deletionResult = await RaidEvent.destroy({ where: { id: raid.id }, limit: 1 });
     const guild = client.getCachedGuild() || (await client.guilds.fetch(guildId));
     const privateRaidChannel = guild.channels.cache.get(raid.channelId) || (await guild.channels.fetch(raid.channelId));
@@ -586,11 +597,17 @@ export async function removeRaid(raid, interaction) {
     const interactingMember = interaction
         ? guild.members.cache.get(interaction.user.id) || (await guild.members.fetch(interaction.user.id))
         : null;
+    const editMessageReply = async (embed) => {
+        if (!interaction || !interaction.channel || !interaction.channel.isDMBased() || !requireMessageReply)
+            return;
+        const message = interaction.message || (await interaction.fetchReply());
+        return await message.edit({ embeds: [embed], components: [] });
+    };
     if (deletionResult === 1) {
         if (privateRaidChannel) {
             const deletionReason = interaction
                 ? `${nameCleaner(interactingMember.displayName)} removed the raid using the button`
-                : `Raid ${raid.id} was deleted because it was completed`;
+                : `Raid ${raid.id} was deleted by system`;
             try {
                 await privateRaidChannel.delete(deletionReason);
             }
@@ -604,20 +621,20 @@ export async function removeRaid(raid, interaction) {
         catch (e) {
             console.error(`[Error code: 1667]`, e);
         }
-        if (interaction && interaction.channel && interaction.channel.isDMBased()) {
-            const successEmbed = new EmbedBuilder().setColor(colors.success).setTitle(`Рейд ${raid.id}-${raid.raid} удален`);
-            interaction.message.edit({ components: [], embeds: [successEmbed] });
-        }
+        if (!interaction)
+            return;
+        const successEmbed = new EmbedBuilder().setColor(colors.success).setTitle(`Рейд ${raid.id}-${raid.raid} удален`);
+        return await editMessageReply(successEmbed);
     }
     else {
         console.error(`[Error code: 1423] Error during raid removal ${raid.id}`, deletionResult, raid);
+        if (!interaction)
+            return;
         const errorEmbed = new EmbedBuilder()
             .setColor("DarkGreen")
             .setTitle(`Произошла ошибка во время удаления`)
             .setDescription(`Удалено ${deletionResult} рейдов`);
-        if (interaction && interaction.channel && interaction.channel.isDMBased()) {
-            interaction.message.edit({ components: [], embeds: [errorEmbed] });
-        }
+        return await editMessageReply(errorEmbed);
     }
 }
 export function getRaidNameFromHash(activityHash) {
@@ -636,6 +653,7 @@ export function getRaidNameFromHash(activityHash) {
         case 1441982566:
             return "votd";
         case 4217492330:
+        case 3889634515:
             return "votdMaster";
         case 910380154:
         case 3976949817:

@@ -5,9 +5,10 @@ import colors from "../configs/colors.js";
 import { ids } from "../configs/ids.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { descriptionFormatter } from "../utils/general/utilities.js";
-import { logClientDmMessages } from "../utils/logging/logger.js";
+import { sendDmLogMessage } from "../utils/logging/logger.js";
+export const workingCollectors = new Map();
 export default {
-    name: "dmChnFunc",
+    name: "adminDMInteractionHandler",
     run: async ({ client, interaction }) => {
         if (interaction.customId !== AdminDMChannelButtons.delete && interaction.customId !== AdminDMChannelButtons.reply)
             return;
@@ -17,7 +18,7 @@ export default {
         const replyMember = interaction.guild.members.cache.get(userId);
         const channel = (interaction.channel || (await client.getCachedGuild().channels.fetch(ids.dmMsgsChnId)));
         if (!replyMember)
-            throw { name: "[dmChnFunc error] User not found", userId, errorType: UserErrors.MEMBER_NOT_FOUND };
+            throw { name: "[adminDMInteractionHandler error] User not found", userId, errorType: UserErrors.MEMBER_NOT_FOUND };
         switch (buttonId) {
             case AdminDMChannelButtons.reply: {
                 const embed = new EmbedBuilder()
@@ -33,6 +34,7 @@ export default {
                     time: 60 * 1000 * 5,
                     max: 1,
                 });
+                workingCollectors.set(interaction.user.id, collector);
                 collector.on("collect", async (m) => {
                     m.delete();
                     if (m.cleanContent === "cancel")
@@ -53,11 +55,13 @@ export default {
                             reply: { messageReference: messageId, failIfNotExists: false },
                         });
                     }
-                    logClientDmMessages(replyMember, contentText, (await replyMsg).id, interaction);
+                    sendDmLogMessage(replyMember, contentText, (await replyMsg).id, interaction);
+                    workingCollectors.delete(interaction.user.id);
                 });
                 collector.on("end", (_, reason) => {
                     if (reason === "canceled")
                         interaction.deleteReply();
+                    workingCollectors.delete(interaction.user.id);
                 });
                 return;
             }
@@ -73,7 +77,7 @@ export default {
                     interaction.message.edit({ embeds: [embed], components: [] });
                 })
                     .catch((e) => {
-                    console.error(`[Error code: 1112] dmChnFunc delete msg error`, e);
+                    console.error(`[Error code: 1112] adminDMInteractionHandler delete msg error`, e);
                     throw { name: "Произошла ошибка во время удаления сообщения" };
                 });
                 return;

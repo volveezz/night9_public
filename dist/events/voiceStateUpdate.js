@@ -4,7 +4,7 @@ import { ids } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import { createdChannelsMap, pvePartyVoiceChatHandler } from "../utils/discord/pvePartyHandler.js";
-import { userActivityCacher } from "../utils/discord/userActivityHandler.js";
+import { cacheUserActivity } from "../utils/discord/userActivityHandler.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
 const voiceChannel = client.getCachedTextChannel(ids.voiceChnId);
 const voiceUsers = new Map();
@@ -61,7 +61,7 @@ export default new Event("voiceStateUpdate", (oldState, newState) => {
                 },
             ]);
             if (newState.guild.afkChannel?.id !== newState.channelId)
-                userActivityCacher({ userId: oldState.id, voiceTime: difference });
+                cacheUserActivity({ userId: oldState.id, voiceTime: difference });
         }
         voiceUsers.delete(oldState.member.id);
         return voiceChannel.send({ embeds: [embed] });

@@ -6,7 +6,7 @@ import { statusRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
 import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
 import { escapeString } from "../general/utilities.js";
-export async function logClientDmMessages(member, text, id, interaction) {
+export async function sendDmLogMessage(member, text, id, interaction) {
     const dmLogChannel = interaction ? null : client.getCachedTextChannel(ids.dmMsgsChnId);
     const embed = new EmbedBuilder()
         .setColor(colors.success)
@@ -27,7 +27,7 @@ export async function logClientDmMessages(member, text, id, interaction) {
     };
     interaction ? interaction.editReply(payload) : dmLogChannel.send(payload);
 }
-export function logRegistrationLinkRequest(state, user, rowCreated) {
+export function logUserRegistrationAttempt(state, user, isNewUser) {
     const embed = new EmbedBuilder()
         .setColor(colors.serious)
         .setAuthor({
@@ -37,7 +37,7 @@ export function logRegistrationLinkRequest(state, user, rowCreated) {
         .addFields([
         { name: "Пользователь", value: `<@${user.id}>`, inline: true },
         { name: "State", value: `${state}`, inline: true },
-        { name: "Впервые", value: `${rowCreated}`, inline: true },
+        { name: "Впервые", value: `${isNewUser}`, inline: true },
     ]);
     client.getCachedTextChannel(ids.botChnId).send({ embeds: [embed] });
 }

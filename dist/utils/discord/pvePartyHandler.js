@@ -55,7 +55,7 @@ class UserSettings {
 }
 export const createdChannelsMap = new Map();
 const pvePartyChannel = client.getCachedTextChannel(ids.pvePartyChnId);
-export async function pvePartyHandler(message) {
+export async function handlePveParty(message) {
     if (!message.content.startsWith("+") || !message.member)
         return;
     let userMessageContent = message.cleanContent;

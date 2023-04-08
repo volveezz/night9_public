@@ -11,7 +11,7 @@ import { Command } from "../structures/command.js";
 import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
-import { getRaidData, getRaidDatabaseInfo, raidAnnounceSystem, raidChallenges, timeConverter, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
+import { generateRaidClearsText, getRaidData, getRaidDatabaseInfo, raidAnnounceSystem, raidChallenges, timeConverter, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
 import { descriptionFormatter, escapeString } from "../utils/general/utilities.js";
 import { RaidEvent, database } from "../utils/persistence/sequelize.js";
 export const raidAnnounceSet = new Set();
@@ -503,7 +503,7 @@ export default new Command({
                     {
                         name: "Участник: 1/6",
                         value: `⁣　1. **${nameCleaner(member.displayName, true)}**${raidClears
-                            ? ` — ${raidClears[raidData.raid]} закрыт${raidClears[raidData.raid] === 1 ? "ие" : "ий"}${raidClears[raidData.raid + "Master"] ? ` (+${raidClears[raidData.raid + "Master"]} на мастере)` : ""}`
+                            ? ` — ${generateRaidClearsText(raidClears[raidData.raid])}${raidClears[raidData.raid + "Master"] ? ` (+**${raidClears[raidData.raid + "Master"]}** на мастере)` : ""}`
                             : ""}`,
                     },
                 ]);
@@ -684,10 +684,10 @@ export default new Command({
             }
             if (newRaidLeader !== null) {
                 if (!newRaidLeader.bot) {
-                    const raidChn = client.getCachedTextChannel(raidData.channelId);
-                    const raidLeaderName = nameCleaner(interaction.guild.members.cache.get(newRaidLeader.id).displayName);
-                    raidChn.permissionOverwrites.edit(raidData.creator, { ManageMessages: null, MentionEveryone: null });
-                    raidChn.permissionOverwrites.edit(newRaidLeader.id, {
+                    const raidPrivateChannel = client.getCachedTextChannel(raidData.channelId);
+                    const raidLeaderName = nameCleaner((interaction.guild || client.getCachedGuild()).members.cache.get(newRaidLeader.id).displayName);
+                    raidPrivateChannel.permissionOverwrites.edit(raidData.creator, { ManageMessages: null, MentionEveryone: null });
+                    raidPrivateChannel.permissionOverwrites.edit(newRaidLeader.id, {
                         ManageMessages: true,
                         MentionEveryone: true,
                         ViewChannel: true,

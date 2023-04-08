@@ -72,7 +72,7 @@ function isRaidActivity(activeCharacter) {
 function areAllPhasesComplete(phases) {
     return phases.every((phase) => phase.complete);
 }
-async function fetchCharacterResponse(accessToken, bungieId, characterId, platform) {
+async function fetchCharacterResponse({ accessToken, bungieId, characterId, platform, }) {
     try {
         const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`, {
             accessToken,
@@ -107,7 +107,12 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
     let uniqueId = id || Math.floor(Math.random() * 1000);
     let currentAccessToken = accessToken;
     async function checkActivityHash() {
-        const [response, refreshedAccessToken] = await fetchCharacterResponse(currentAccessToken, bungieId, characterId, platform);
+        const [response, refreshedAccessToken] = await fetchCharacterResponse({
+            accessToken: currentAccessToken,
+            bungieId,
+            characterId,
+            platform,
+        });
         if (refreshedAccessToken != null)
             currentAccessToken = refreshedAccessToken;
         const characterData = response?.activities.data;

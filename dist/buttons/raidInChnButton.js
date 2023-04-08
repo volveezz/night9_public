@@ -11,6 +11,50 @@ import nameCleaner from "../utils/general/nameClearer.js";
 import { removeRaid } from "../utils/general/raidFunctions.js";
 import { descriptionFormatter, getRandomRaidGIF } from "../utils/general/utilities.js";
 import { RaidEvent } from "../utils/persistence/sequelize.js";
+export async function handleDeleteRaid({ deferredUpdate, interaction, raidEvent, requireMessageReply, }) {
+    return new Promise(async (resolve) => {
+        const embed = new EmbedBuilder()
+            .setColor(colors.warning)
+            .setAuthor({ name: `Подтвердите удаление рейда ${raidEvent.id}-${raidEvent.raid}`, iconURL: icons.warning });
+        const components = [
+            new ButtonBuilder().setCustomId(RaidButtons.deleteConfirm).setLabel("Подтвердить").setStyle(ButtonStyle.Danger),
+            new ButtonBuilder().setCustomId(RaidButtons.deleteCancel).setLabel("Отменить").setStyle(ButtonStyle.Secondary),
+        ];
+        await deferredUpdate;
+        const message = await interaction.editReply({
+            embeds: [embed],
+            components: await addButtonComponentsToMessage(components),
+        });
+        const collector = interaction.channel.createMessageComponentCollector({
+            message,
+            time: 60 * 1000 * 2,
+            max: 1,
+            filter: (i) => i.user.id === interaction.user.id,
+        });
+        collector.on("collect", async (col) => {
+            if (col.customId === RaidButtons.deleteConfirm) {
+                await removeRaid(raidEvent, col, requireMessageReply).catch((e) => {
+                    console.error(`[Error code: 1676]`, e);
+                });
+                resolve(1);
+            }
+            else if (col.customId === RaidButtons.deleteCancel) {
+                const canceledEmbed = new EmbedBuilder().setColor(colors.invisible).setTitle("Удаление рейда отменено");
+                await col.update({ components: [], embeds: [canceledEmbed] });
+                resolve(2);
+            }
+        });
+        collector.on("end", async (_, reason) => {
+            if (reason === "time") {
+                if (requireMessageReply) {
+                    embed.setAuthor({ name: `Время для удаления вышло. Повторите снова`, iconURL: undefined }).setColor(colors.invisible);
+                    await interaction.editReply({ components: [], embeds: [embed] });
+                }
+                resolve(3);
+            }
+        });
+    });
+}
 export default {
     name: "raidInChnButton",
     run: async ({ client, interaction }) => {
@@ -397,39 +441,7 @@ export default {
             });
         }
         else if (interaction.customId === RaidButtons.delete) {
-            const embed = new EmbedBuilder()
-                .setColor(colors.warning)
-                .setAuthor({ name: `Подтвердите удаление рейда ${raidEvent.id}-${raidEvent.raid}`, iconURL: icons.warning });
-            const components = [
-                new ButtonBuilder().setCustomId(RaidButtons.deleteConfirm).setLabel("Подтвердить").setStyle(ButtonStyle.Danger),
-                new ButtonBuilder().setCustomId(RaidButtons.deleteCancel).setLabel("Отменить").setStyle(ButtonStyle.Secondary),
-            ];
-            await deferredUpdate;
-            const message = await interaction.editReply({
-                embeds: [embed],
-                components: await addButtonComponentsToMessage(components),
-            });
-            const collector = interaction.channel.createMessageComponentCollector({
-                message,
-                time: 60 * 1000 * 2,
-                max: 1,
-                filter: (i) => i.user.id === interaction.user.id,
-            });
-            collector.on("collect", async (col) => {
-                if (col.customId === RaidButtons.deleteConfirm) {
-                    await removeRaid(raidEvent, col);
-                }
-                else if (col.customId === RaidButtons.deleteCancel) {
-                    const canceledEmbed = new EmbedBuilder().setColor(colors.invisible).setTitle("Удаление рейда отменено");
-                    col.update({ components: [], embeds: [canceledEmbed] });
-                }
-            });
-            collector.on("end", async (_, reason) => {
-                if (reason === "time") {
-                    embed.setAuthor({ name: `Время для удаления вышло. Повторите снова`, iconURL: undefined }).setColor(colors.invisible);
-                    interaction.editReply({ components: [], embeds: [embed] });
-                }
-            });
+            return handleDeleteRaid({ deferredUpdate, interaction, raidEvent });
         }
         else if (interaction.customId === RaidButtons.resend) {
             return interaction.channel

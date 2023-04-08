@@ -72,7 +72,14 @@ export default new Command({
                 const embedCode = args.getString("embed_code", true);
                 const messageId = args.getString("message_id");
                 try {
-                    const embedJSON = JSON.parse(embedCode);
+                    let parsedJSON = JSON.parse(embedCode);
+                    let embedJSON;
+                    if (parsedJSON.embed && typeof parsedJSON.embed === "object") {
+                        embedJSON = parsedJSON.embed;
+                    }
+                    else {
+                        embedJSON = parsedJSON;
+                    }
                     const embed = EmbedBuilder.from(embedJSON);
                     const responseEmbed = new EmbedBuilder()
                         .setColor(colors.success)
@@ -82,13 +89,22 @@ export default new Command({
                         if (!message) {
                             throw { name: "Ошибка", description: "Редактируемое сообщение не найдено" };
                         }
-                        await message.edit({ embeds: [embed] });
+                        await message.edit({ content: parsedJSON.content, embeds: [embed] });
                         await deferredReply;
                         interaction.editReply({ embeds: [responseEmbed] });
                         return;
                     }
                     else {
-                        channel.send({ embeds: [embed] });
+                        try {
+                            await channel.send({ content: parsedJSON.content, embeds: [embed] });
+                        }
+                        catch (error) {
+                            throw {
+                                name: "Discord API Error",
+                                description: "An error occurred while sending the embed to Discord",
+                                details: error,
+                            };
+                        }
                         await deferredReply;
                         interaction.editReply({ embeds: [responseEmbed] });
                         return;

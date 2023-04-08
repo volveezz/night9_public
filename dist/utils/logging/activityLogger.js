@@ -130,6 +130,24 @@ async function logActivityCompletion(pgcrId) {
             console.debug(`[Error code: 1639] PGCR: ${pgcrId}\n`, JSON.stringify(Array.from(completedPhases.entries())));
             let completedUsersCount = 0;
             let uncompletedUsersCount = 0;
+            const raidName = mode === 4 ? getRaidNameFromHash(referenceId) : null;
+            const getFormattedRaidClearsForUser = (bungieId) => {
+                if (!raidName)
+                    return null;
+                const databaseDataForUser = databaseData.find((data) => data.bungieId === bungieId);
+                if (!databaseDataForUser)
+                    return null;
+                const totalRaidClearsForUser = completedRaidsData.get(databaseDataForUser.discordId);
+                if (!totalRaidClearsForUser)
+                    return null;
+                const baseRaidName = raidName.endsWith("Master") ? raidName.replace("Master", "") : raidName;
+                const masterRaidName = raidName.endsWith("Master") ? raidName : raidName + "Master";
+                const baseClears = totalRaidClearsForUser[baseRaidName] || 0;
+                const masterClears = totalRaidClearsForUser[masterRaidName] || 0;
+                const baseClearsText = `Закрытий: **${baseClears}**`;
+                const masterClearsText = masterClears > 0 ? `\n+**${masterClears}** на мастере` : "";
+                return baseClearsText + masterClearsText;
+            };
             completedUsers.forEach((value, key) => {
                 if (!value.completed) {
                     return;
@@ -141,27 +159,10 @@ async function logActivityCompletion(pgcrId) {
                 if (completedUsersCount > 12)
                     return;
                 try {
-                    const getFormattedRaidClears = () => {
-                        if (mode !== 4)
-                            return null;
-                        const databaseDataForUser = databaseData.find((data) => data.bungieId === value.bungieId);
-                        const totalRaidClearsForUser = databaseDataForUser ? completedRaidsData.get(databaseDataForUser.discordId) : null;
-                        const raidName = getRaidNameFromHash(referenceId);
-                        if (totalRaidClearsForUser) {
-                            const baseRaidName = raidName.endsWith("Master") ? raidName.replace("Master", "") : raidName;
-                            const masterRaidName = raidName.endsWith("Master") ? raidName : raidName + "Master";
-                            const baseClears = totalRaidClearsForUser[baseRaidName] || 0;
-                            const masterClears = totalRaidClearsForUser[masterRaidName] || 0;
-                            const baseClearsText = `**${baseClears}**`;
-                            const masterClearsText = masterClears > 0 ? ` (+**${masterClears}** на мастере)` : "";
-                            return baseClearsText + masterClearsText;
-                        }
-                        return null;
-                    };
-                    const raidClearsResult = getFormattedRaidClears();
+                    const raidClearsResult = getFormattedRaidClearsForUser(value.bungieId);
                     embed.addFields({
                         name: escapeString(value.bungieName),
-                        value: `${raidClearsResult ? `Закрытий рейда: ${raidClearsResult}\n` : ""}${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
+                        value: `${raidClearsResult ? `${raidClearsResult}\n` : ""}${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
                             ? `\nВ ${mode === 4
                                 ? "рейде"
                                 : mode === 82
@@ -182,9 +183,10 @@ async function logActivityCompletion(pgcrId) {
                 uncompletedUsersCount++;
                 if (uncompletedUsersCount > 12)
                     return;
+                const raidClearsResult = getFormattedRaidClearsForUser(value.bungieId);
                 embed.addFields({
                     name: "❌" + escapeString(value.bungieName),
-                    value: `${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
+                    value: `${raidClearsResult ? `${raidClearsResult}\n` : ""}${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
                         ? `\nВ ${mode === 4
                             ? "рейде"
                             : mode === 82

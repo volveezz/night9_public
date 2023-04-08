@@ -11,6 +11,7 @@ import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessa
 import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { checkRaidTimeConflicts, getRaidData, updatePrivateRaidMessage, updateRaidMessage } from "../utils/general/raidFunctions.js";
+import { handleRaidCreatorLeaving } from "../utils/general/raidFunctions/raidCreatorHandler.js";
 import { RaidEvent } from "../utils/persistence/sequelize.js";
 async function actionMessageHandler({ interaction, raidEvent, target }) {
     const embed = new EmbedBuilder();
@@ -121,7 +122,18 @@ export default {
                         },
                     ],
                 },
-                returning: ["id", "messageId", "channelId", "inChannelMessageId", "joined", "hotJoined", "alt", "raid", "difficulty"],
+                returning: [
+                    "id",
+                    "messageId",
+                    "creator",
+                    "channelId",
+                    "inChannelMessageId",
+                    "joined",
+                    "hotJoined",
+                    "alt",
+                    "raid",
+                    "difficulty",
+                ],
             }).then(([rowsUpdated, [raidEvent]]) => {
                 if (!rowsUpdated)
                     return;
@@ -147,6 +159,9 @@ export default {
                     if (raidEvent.joined.length === 5 && raidEvent.hotJoined.length > 0)
                         setTimeout(() => joinedFromHotJoined(raidEvent), 500);
                 });
+                if (raidEvent.creator === interaction.user.id) {
+                    handleRaidCreatorLeaving(raidEvent, raidEvent.creator);
+                }
             });
         }
         let raidEvent = await RaidEvent.findOne({

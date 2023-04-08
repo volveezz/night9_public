@@ -3,7 +3,7 @@ import { PatchnoteButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
 import { descriptionFormatter } from "../general/utilities.js";
-export async function patchnoteGenerator(message) {
+export async function generatePatchNotes(message) {
     const { member, channel } = message;
     if (!member)
         return console.error(`[Error code: 1111] ${message.author.id} not guildmember`);
