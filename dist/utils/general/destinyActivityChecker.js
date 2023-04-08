@@ -54,6 +54,7 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                                 if (isPreviousIsTraded === true) {
                                     wtmatches++;
                                     isWintrader = true;
+                                    console.debug(`Value was pushed ${activity.activityDetails.instanceId}`);
                                 }
                                 else {
                                     isPreviousIsTraded = true;
@@ -61,10 +62,11 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                             }
                             else {
                                 if (isPreviousIsTraded === true) {
-                                    if (isWintrader) {
+                                    isPreviousIsTraded = false;
+                                    if (isWintrader === true) {
                                         wtmatches++;
-                                        isPreviousIsTraded = false;
                                         isWintrader = false;
+                                        console.debug(`Wintrader canceled ${activity.activityDetails.instanceId}`);
                                     }
                                 }
                             }
