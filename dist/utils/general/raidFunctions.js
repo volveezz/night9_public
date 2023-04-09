@@ -588,7 +588,7 @@ export async function checkRaidTimeConflicts(interaction, raidEvent) {
         await member.send({ embeds: [embed] });
     }
 }
-export async function removeRaid(raid, interaction, requireMessageReply = true) {
+export async function removeRaid(raid, interaction, requireMessageReply = true, mainInteraction) {
     const deletionResult = await RaidEvent.destroy({ where: { id: raid.id }, limit: 1 });
     const guild = client.getCachedGuild() || (await client.guilds.fetch(guildId));
     const privateRaidChannel = guild.channels.cache.get(raid.channelId) || (await guild.channels.fetch(raid.channelId));
@@ -597,11 +597,15 @@ export async function removeRaid(raid, interaction, requireMessageReply = true) 
     const interactingMember = interaction
         ? guild.members.cache.get(interaction.user.id) || (await guild.members.fetch(interaction.user.id))
         : null;
+    console.log(mainInteraction?.message.id);
+    console.log(interaction?.message.id);
     const editMessageReply = async (embed) => {
         if (!interaction || !interaction.channel || !interaction.channel.isDMBased() || !requireMessageReply)
             return;
-        const message = interaction.message || (await interaction.fetchReply());
-        return await message.edit({ embeds: [embed], components: [] });
+        const message = mainInteraction?.message;
+        console.log(JSON.stringify(message.embeds[0].data));
+        await message.edit({ embeds: [embed], components: [] });
+        return;
     };
     if (deletionResult === 1) {
         if (privateRaidChannel) {
@@ -623,7 +627,13 @@ export async function removeRaid(raid, interaction, requireMessageReply = true) 
         }
         if (!interaction)
             return;
-        const successEmbed = new EmbedBuilder().setColor(colors.success).setTitle(`Рейд ${raid.id}-${raid.raid} удален`);
+        const successEmbed = new EmbedBuilder()
+            .setColor(colors.success)
+            .setAuthor({ name: `Рейд ${raid.id}-${raid.raid} удален`, iconURL: icons.success });
+        if (mainInteraction)
+            mainInteraction.deleteReply().catch((e) => {
+                return console.error(`[Error code: 1684]`, e);
+            });
         return await editMessageReply(successEmbed);
     }
     else {

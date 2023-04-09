@@ -8,26 +8,33 @@ export async function fetchRequest(cleanUrl, authorizationData) {
     });
     const jsonResponse = await response.json().catch(async (e) => {
         const status = response?.status;
+        if (status === 503)
+            console.error(`[Error code: 1683] Server is not avaliable`);
         if (status === 502)
-            return console.error(`[Error code: 1099] Web error`);
+            console.error(`[Error code: 1099] Web error`);
         if (status === 409)
-            return console.error(`[Error code: 1108] Confilt error`);
+            console.error(`[Error code: 1108] Confilt error`);
         if (status === 522)
-            return console.error(`[Error code: 1117] Timed out error`);
-        if (status >= 400 && status <= 599)
-            return console.error(`[Error code: 1228] ${status} web error code\n`, e);
-        console.error(`[Error code: 1064] ${status} statusCode\n`, e.stack);
+            console.error(`[Error code: 1117] Timed out error`);
+        if (status === 401)
+            console.error(`[Error code: 1682] Authorization error`, e.name, e.code);
+        if (status >= 400 && status <= 599) {
+            console.error(`[Error code: 1228] ${status} web error code\n`, e);
+        }
+        else {
+            console.error(`[Error code: 1064] ${status} statusCode\n`, e.stack);
+        }
         return undefined;
     });
     if (!jsonResponse || (await jsonResponse?.status) >= 400) {
         if (!jsonResponse)
-            return;
+            return undefined;
         console.error(`[Error code: 1083] ${jsonResponse?.status}`);
-        return;
+        return undefined;
     }
     if (jsonResponse.code === "EHOSTUNREACH" || jsonResponse.code === "ECONNRESET" || jsonResponse.code === "ERPROTO") {
         console.error(`[Error code: 1109] ${jsonResponse.code}${" " + authorizationData?.displayName || ""}`);
-        return;
+        return undefined;
     }
     return jsonResponse.Response ? jsonResponse.Response : jsonResponse;
 }

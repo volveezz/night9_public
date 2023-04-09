@@ -406,12 +406,14 @@ export default new Command({
             const raidData = getRaidData(raid, difficulty);
             const parsedTime = timeConverter(time, userTimezones.get(interaction.user.id));
             if (parsedTime <= Math.trunc(Date.now() / 1000)) {
+                await deferredReply;
                 throw {
                     name: "Ошибка. Указанное время в прошлом",
                     description: `Вы указали время <t:${parsedTime}>, <t:${parsedTime}:R>, но время начала обязательно должно быть в будущем\n\nВремя указывается по часовому поясу, указанному с помощью \`/timezone\`\n**Пример:**\n> 20:00 15/9`,
                 };
             }
             if (parsedTime >= 2147483647) {
+                await deferredReply;
                 throw {
                     name: `Ошибка. Проверьте корректность времени`,
                     description: `Вы указали время <t:${parsedTime}>, <t:${parsedTime}:R>...`,
@@ -547,8 +549,10 @@ export default new Command({
             const newReqClears = args.getInteger("новое_требование_закрытий");
             const isSilent = args.getBoolean("silent") || false;
             let raidData = await getRaidDatabaseInfo(raidId, interaction);
-            if (raidData === null || (Array.isArray(raidData) && raidData.length === 0))
+            if (raidData === null || (Array.isArray(raidData) && raidData.length === 0)) {
+                await deferredReply;
                 throw { errorType: UserErrors.RAID_NOT_FOUND };
+            }
             const raidInfo = getRaidData((newRaid || raidData.raid), newDifficulty ?? raidData.difficulty);
             const { time, requiredClears: reqClears, messageId: msgId } = raidData;
             const changes = [];
@@ -653,6 +657,7 @@ export default new Command({
                     changes.push(`Время старта осталось без изменений т.к. оно соответствует предыдущему`);
                 }
                 else if (changedTime >= 2147483647) {
+                    await deferredReply;
                     throw {
                         name: `Ошибка. Проверьте корректность времени`,
                         description: `Вы указали время <t:${changedTime}>, <t:${changedTime}:R>...`,
@@ -740,6 +745,7 @@ export default new Command({
             }
             else {
                 await t.rollback();
+                await deferredReply;
                 throw {
                     name: "Изменения не были внесены",
                     description: `${changes.map((v) => v).join(", ") || "Для измнения параметров рейда необходимо их указать"}`,
@@ -749,7 +755,7 @@ export default new Command({
         else if (subCommand === "удалить") {
             const raidId = args.getInteger("id_рейда");
             const raidData = await getRaidDatabaseInfo(raidId, interaction);
-            await RaidEvent.destroy({ where: { id: raidData.id } })
+            await RaidEvent.destroy({ where: { id: raidData.id }, limit: 1 })
                 .then(async () => {
                 const guild = client.getCachedGuild() || client.guilds.cache.get(guildId) || (await client.guilds.fetch(guildId));
                 const raidsChannel = (guild.channels.cache.get(ids.raidChnId) || (await guild.channels.fetch(ids.raidChnId)));
@@ -778,8 +784,10 @@ export default new Command({
             const raidId = args.getInteger("id_рейда");
             const raidData = await getRaidDatabaseInfo(raidId, interaction);
             const addedUser = args.getUser("участник", true);
-            if (addedUser.bot)
+            if (addedUser.bot) {
+                await deferredReply;
                 throw { name: "Нельзя записать бота как участника" };
+            }
             const addedUserDisplayName = nameCleaner(client.getCachedMembers().get(addedUser.id)?.displayName ||
                 (await client.guilds.cache.get(interaction.guild?.id || guildId).members.fetch(addedUser.id)).displayName);
             const userAlreadyInHotJoined = raidData.hotJoined.includes(addedUser.id);
@@ -807,18 +815,23 @@ export default new Command({
                 alt: Sequelize.fn("array_remove", Sequelize.col("alt"), addedUser.id),
             };
             if (userTarget === "joined") {
-                if (userAlreadyJoined)
+                if (userAlreadyJoined) {
+                    await deferredReply;
                     throw {
                         name: "Ошибка",
                         description: "Пользователь уже записан как участник",
                     };
-                if (raidData.joined.length >= 6 && userAlreadyInHotJoined)
+                }
+                if (raidData.joined.length >= 6 && userAlreadyInHotJoined) {
+                    await deferredReply;
                     throw {
                         name: "Ошибка",
                         description: `Набор ${raidData.id}-${raidData.raid} полон, а ${addedUserDisplayName} уже добавлен в запас`,
                     };
+                }
             }
             else if (userAlreadyAlt) {
+                await deferredReply;
                 throw { name: "Пользователь уже записан как возможный участник" };
             }
             update[userTarget] = Sequelize.fn("array_append", Sequelize.col(userTarget), addedUser.id);
@@ -872,10 +885,14 @@ export default new Command({
                 },
                 returning: ["id", "messageId", "channelId", "inChannelMessageId", "joined", "hotJoined", "alt", "raid", "difficulty"],
             }).then(async ([rowsUpdated, [raidEvent]]) => {
-                if (!rowsUpdated)
+                if (!rowsUpdated) {
+                    await deferredReply;
                     throw { name: `Исключаемый участник не состоит в рейде` };
-                if (!raidEvent)
+                }
+                if (!raidEvent) {
+                    await deferredReply;
                     throw { errorType: UserErrors.RAID_NOT_FOUND };
+                }
                 updatePrivateRaidMessage({ raidEvent });
                 updateRaidMessage(raidEvent, interaction);
                 const guild = interaction.guild || client.getCachedGuild();

@@ -33,7 +33,7 @@ export async function handleDeleteRaid({ deferredUpdate, interaction, raidEvent,
         });
         collector.on("collect", async (col) => {
             if (col.customId === RaidButtons.deleteConfirm) {
-                await removeRaid(raidEvent, col, requireMessageReply).catch((e) => {
+                await removeRaid(raidEvent, col, requireMessageReply, interaction.channel?.isDMBased() ? interaction : undefined).catch((e) => {
                     console.error(`[Error code: 1676]`, e);
                 });
                 resolve(1);
@@ -441,7 +441,7 @@ export default {
             });
         }
         else if (interaction.customId === RaidButtons.delete) {
-            return handleDeleteRaid({ deferredUpdate, interaction, raidEvent });
+            return await handleDeleteRaid({ deferredUpdate, interaction, raidEvent });
         }
         else if (interaction.customId === RaidButtons.resend) {
             return interaction.channel
