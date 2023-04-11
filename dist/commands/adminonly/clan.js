@@ -272,7 +272,8 @@ export default new Command({
                     });
                 }
                 else if (customId === "clanManagment_demote") {
-                    const query = (await fetch(`https://www.bungie.net/Platform/GroupV2/4123712/Members/${lastMember.membershipType}/${lastMember.bungieId}/SetMembershipType/${--lastMember.rank}/`, {
+                    const demoteRank = --lastMember.rank;
+                    const query = (await fetch(`https://www.bungie.net/Platform/GroupV2/4123712/Members/${lastMember.membershipType}/${lastMember.bungieId}/SetMembershipType/${demoteRank}/`, {
                         method: "POST",
                         headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${dbData.accessToken}` },
                     }));
@@ -281,12 +282,12 @@ export default new Command({
                         mergedMembers[memberIndex].rank = lastMember.rank;
                         managmentEmbed
                             .setColor(colors.success)
-                            .setAuthor({ name: `${lastMember.bungieName} был повышен до ${lastMember.rank} ранга`, iconURL: icons.success });
+                            .setAuthor({ name: `${lastMember.bungieName} был понижен до ${demoteRank} ранга`, iconURL: icons.success });
                         button.followUp({ ephemeral: true, embeds: [managmentEmbed] });
                     }
                     else {
                         managmentEmbed.setColor(colors.error).setAuthor({
-                            name: `Произошла ошибка во время понижения **${lastMember.bungieName}** до ${lastMember.rank} ранга`,
+                            name: `Произошла ошибка во время понижения **${lastMember.bungieName}** до ${demoteRank} ранга`,
                             iconURL: icons.close,
                         });
                         button.followUp({
@@ -296,10 +297,11 @@ export default new Command({
                     }
                 }
                 else if (customId === "clanManagment_promote") {
+                    const promoteRank = ++lastMember.rank;
                     managmentEmbed
                         .setColor(colors.success)
                         .setAuthor({ name: `${lastMember.bungieName} был повышен до ${lastMember.rank} ранга`, iconURL: icons.success });
-                    const query = (await fetch(`https://www.bungie.net/Platform/GroupV2/4123712/Members/${lastMember.membershipType}/${lastMember.bungieId}/SetMembershipType/${++lastMember.rank}/`, {
+                    const query = (await fetch(`https://www.bungie.net/Platform/GroupV2/4123712/Members/${lastMember.membershipType}/${lastMember.bungieId}/SetMembershipType/${promoteRank}/`, {
                         method: "POST",
                         headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${dbData.accessToken}` },
                     }));
@@ -310,10 +312,10 @@ export default new Command({
                     }
                     else {
                         managmentEmbed.setColor(colors.error).setAuthor({
-                            name: `Произошла ошибка во время повышения ${lastMember.bungieName} до ${lastMember.rank} ранга`,
+                            name: `Произошла ошибка во время повышения ${lastMember.bungieName} до ${promoteRank} ранга`,
                             iconURL: icons.close,
                         });
-                        button.followUp({
+                        await button.followUp({
                             ephemeral: true,
                             embeds: [managmentEmbed],
                         });
@@ -331,7 +333,7 @@ export default new Command({
                     customId !== "clanManagment_kick")
                     return;
                 try {
-                    button.message.edit({ embeds: [removalEmbed], components: await addButtonComponentsToMessage(components) });
+                    await button.message.edit({ embeds: [removalEmbed], components: await addButtonComponentsToMessage(components) });
                 }
                 catch (error) {
                     console.error(`Error blyad`);

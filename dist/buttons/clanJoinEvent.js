@@ -56,7 +56,7 @@ export default {
         }
         else if (modalSubmit) {
             const replyEmbed = new EmbedBuilder().setColor(colors.success).setTitle("Вы оставили заявку на вступление в клан");
-            var components;
+            let components = undefined;
             if (member.roles.cache.has(statusRoles.verified)) {
                 replyEmbed.setDescription("Вы выполнили все условия для вступления - примите приглашение в игре и вы будете автоматически авторизованы на сервере");
             }

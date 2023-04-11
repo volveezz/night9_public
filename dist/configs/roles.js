@@ -143,6 +143,7 @@ const trialsRoles = {
         process.env.TRIALS_KD_ROLE_00,
     ],
     kd: [
+        { roleId: process.env.TRIALS_KD_ROLE_15, kd: 1.5 },
         { roleId: process.env.TRIALS_KD_ROLE_14, kd: 1.4 },
         { roleId: process.env.TRIALS_KD_ROLE_13, kd: 1.3 },
         { roleId: process.env.TRIALS_KD_ROLE_12, kd: 1.2 },
