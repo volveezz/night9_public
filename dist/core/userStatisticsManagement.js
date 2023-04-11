@@ -120,6 +120,8 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                         if (triumphRecord && triumphRecord.completedCount && triumphRecord.completedCount > 0) {
                             const index = triumphRecord.completedCount;
                             if (role.gildedRoles && role.gildedRoles.at(index - 1) && role.gildedRoles.at(index - 1).toLowerCase() !== "null") {
+                                if (!memberRoles.has(titleCategory))
+                                    addRoles.push(titleCategory);
                                 if (!memberRoles.has(role.gildedRoles.at(index - 1))) {
                                     addRoles.push(role.gildedRoles.at(index - 1));
                                     removeRoles.push(role.roleId, role.gildedRoles
@@ -315,17 +317,6 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                 }
             }
         }
-        if (addRoles.length > 0) {
-            const rolesForGiving = addRoles
-                .join()
-                .split(",")
-                .filter((r) => r.length > 10);
-            if (addRoles.filter((r) => r.length <= 10).length > 0)
-                console.error(`[Error code: 1096] Error during giving roles [ ${addRoles} ] for ${member.displayName}`);
-            await member.roles
-                .add(rolesForGiving, "Role(s) added by autorole system")
-                .catch((e) => console.error(`[Error code: 1097] [Autorole error]`, e, rolesForGiving));
-        }
         if (removeRoles.length > 0) {
             const rolesForRemoving = removeRoles
                 .join()
@@ -336,6 +327,17 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
             await member.roles
                 .remove(rolesForRemoving, "Role(s) removed by autorole system")
                 .catch((e) => console.error(`[Error code: 1226] Error during removing roles: ${rolesForRemoving}`));
+        }
+        if (addRoles.length > 0) {
+            const rolesForGiving = addRoles
+                .join()
+                .split(",")
+                .filter((r) => r.length > 10);
+            if (addRoles.filter((r) => r.length <= 10).length > 0)
+                console.error(`[Error code: 1096] Error during giving roles [ ${addRoles} ] for ${member.displayName}`);
+            await member.roles
+                .add(rolesForGiving, "Role(s) added by autorole system")
+                .catch((e) => console.error(`[Error code: 1097] [Autorole error]`, e, rolesForGiving));
         }
     }
     catch (e) {
