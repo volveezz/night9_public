@@ -52,14 +52,20 @@ export default new Event("interactionCreate", async (interaction) => {
         const modalSubmit = (interaction.isModalSubmit() ? interaction : null);
         button.run({ client, interaction: buttonInteraction, selectMenu, modalSubmit }).catch(async (e) => {
             const { embeds, components } = errorResolver(e);
-            (interaction.replied || interaction.deferred
-                ? interaction.followUp({ embeds, components, ephemeral: true })
-                : interaction.reply({ embeds, components, ephemeral: true })).catch((err) => {
-                if (err.code === 40060)
-                    return interaction.followUp({ embeds, components, ephemeral: true });
-                console.error(`[Error code: 1205] Error on button reply`, err);
-            });
-            console.log(`[Error code: 1204] Error during executing button for ${interaction.user.username}`, e);
+            try {
+                if (interaction.replied || interaction.deferred) {
+                    await interaction.followUp({ embeds, components, ephemeral: true });
+                }
+                else {
+                    await interaction.reply({ embeds, components, ephemeral: true });
+                }
+            }
+            catch (error) {
+                if (error.code === 40060)
+                    return await interaction.followUp({ embeds, components, ephemeral: true });
+                console.error(`[Error code: 1685] Unknown error on command reply`, error);
+            }
+            console.error(`[Error code: 1686] Error during execution of ${interaction.customId} for ${client.getCachedMembers().get(interaction.user.id)?.displayName || interaction.user.username}\n`, e);
         });
     }
     else if (interaction.isAutocomplete()) {

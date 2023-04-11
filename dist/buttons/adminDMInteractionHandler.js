@@ -66,7 +66,7 @@ export default {
                 return;
             }
             case AdminDMChannelButtons.delete: {
-                interaction.deferUpdate();
+                const deferredUpdate = interaction.deferUpdate();
                 const user = client.users.cache.get(userId) || (await client.users.fetch(userId));
                 const DMChannel = user.dmChannel || (await user.createDM());
                 const message = DMChannel.messages.cache.get(messageId) || (await DMChannel.messages.fetch(messageId));
@@ -76,8 +76,9 @@ export default {
                     const embed = EmbedBuilder.from(interaction.message.embeds[0]).setColor(colors.kicked).setTitle("Сообщение удалено");
                     interaction.message.edit({ embeds: [embed], components: [] });
                 })
-                    .catch((e) => {
+                    .catch(async (e) => {
                     console.error(`[Error code: 1112] adminDMInteractionHandler delete msg error`, e);
+                    await deferredUpdate;
                     throw { name: "Произошла ошибка во время удаления сообщения" };
                 });
                 return;

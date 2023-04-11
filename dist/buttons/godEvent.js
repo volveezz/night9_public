@@ -20,9 +20,11 @@ export default {
                 const deferredReply = interaction.deferReply({ ephemeral: true });
                 const currentRaids = (await RaidEvent.findAll({ where: { time: { [Op.gt]: Math.floor(Date.now() / 1000) } } })).sort((a, b) => b.time - a.time);
                 if (currentRaids.length === 0) {
+                    await deferredReply;
                     throw { name: "Сейчас нет созданных рейдов" };
                 }
                 else if (currentRaids.length === 1) {
+                    await deferredReply;
                     throw { name: "Сейчас создан лишь один рейд" };
                 }
                 const raidChannel = (await guild.channels.fetch(ids.raidChnId));
@@ -56,6 +58,7 @@ export default {
                             continue;
                         }
                         else {
+                            await deferredReply;
                             throw error;
                         }
                     }
