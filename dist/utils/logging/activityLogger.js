@@ -41,7 +41,7 @@ async function logActivityCompletion(pgcrId) {
                 return `https://bungie.net${manifestImage}`;
             }
         }
-        const response = await fetchRequest(`Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`).catch((e) => console.log(`[Error code: 1072] activityReporter error`, pgcrId, e, e.statusCode));
+        const response = await fetchRequest(`Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`).catch((e) => console.error(`[Error code: 1072] activityReporter error`, pgcrId, e, e.statusCode));
         if (!response.activityDetails) {
             console.error(`[PGCR Checker] [Error code: 1009]`, pgcrId, response);
             return;

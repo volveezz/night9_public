@@ -24,7 +24,7 @@ export default new Event("channelDelete", (channel) => {
         ]);
     }
     else {
-        console.log(`[Error code: 1640] Deleted channel found as DM`, channel);
+        console.error(`[Error code: 1640] Deleted channel found as DM`, channel);
     }
     guildChannel.send({ embeds: [embed] });
 });

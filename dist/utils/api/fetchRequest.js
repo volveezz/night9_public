@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+let logged = false;
 export async function fetchRequest(cleanUrl, authorizationData) {
     const response = await fetch(`https://www.bungie.net/${cleanUrl}`, {
         headers: {
@@ -17,18 +18,21 @@ export async function fetchRequest(cleanUrl, authorizationData) {
         if (status === 522)
             console.error(`[Error code: 1117] Timed out error`);
         if (status === 401)
-            console.error(`[Error code: 1682] Authorization error`, e.name, e.code);
-        if (status >= 400 && status <= 599) {
-            console.error(`[Error code: 1228] ${status} web error code\n`, e);
-        }
-        else {
-            console.error(`[Error code: 1064] ${status} statusCode\n`, e.stack);
+            console.error(`[Error code: 1682] Authorization error`);
+        if (logged === false) {
+            if (status >= 400 && status <= 599) {
+                console.error(`[Error code: 1228] ${status} web error code\n`, response, response.body);
+                logged = true;
+            }
+            else {
+                console.error(`[Error code: 1064] ${status} statusCode\n`, e.stack);
+            }
         }
         return undefined;
     });
-    if (!jsonResponse || (await jsonResponse?.status) >= 400) {
-        if (!jsonResponse)
-            return undefined;
+    if (jsonResponse == null)
+        return undefined;
+    if ((await jsonResponse?.status) >= 400) {
         console.error(`[Error code: 1083] ${jsonResponse?.status}`);
         return undefined;
     }

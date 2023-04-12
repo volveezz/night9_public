@@ -69,7 +69,7 @@ export default new Command({
                             return false;
                         }
                         else {
-                            console.log(`[Error code: 1435]`, e);
+                            console.error(`[Error code: 1435]`, e);
                         }
                     });
                     if ((await u) === false) {

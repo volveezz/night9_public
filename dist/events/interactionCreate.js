@@ -27,19 +27,15 @@ export default new Event("interactionCreate", async (interaction) => {
         }
         command.run({ args: interaction.options, client, interaction }).catch(async (e) => {
             const { embeds, components } = errorResolver(e);
-            try {
-                if (interaction.replied || interaction.deferred) {
-                    await interaction.followUp({ embeds, components, ephemeral: true });
-                }
-                else {
-                    await interaction.reply({ embeds, components, ephemeral: true });
-                }
-            }
-            catch (error) {
-                if (error.code === 40060)
+            const messageOptions = { embeds, components, ephemeral: true };
+            const interactionReply = interaction.replied || interaction.deferred ? interaction.followUp(messageOptions) : interaction.reply(messageOptions);
+            await interactionReply.catch(async (error) => {
+                if (error.code === 40060) {
+                    console.log(`Resolved error 40060 (Interaction has already been acknowledged)`);
                     return await interaction.followUp({ embeds, components, ephemeral: true });
-                console.error(`[Error code: 1200] Unknown error on command reply`, error);
-            }
+                }
+                console.error(`[Error code: 1690] Unknown error on command reply`, error);
+            });
             console.error(`[Error code: 1664] Error during execution of ${command.name} for ${client.getCachedMembers().get(interaction.user.id)?.displayName || interaction.user.username}\n`, e);
         });
     }
@@ -52,19 +48,15 @@ export default new Event("interactionCreate", async (interaction) => {
         const modalSubmit = (interaction.isModalSubmit() ? interaction : null);
         button.run({ client, interaction: buttonInteraction, selectMenu, modalSubmit }).catch(async (e) => {
             const { embeds, components } = errorResolver(e);
-            try {
-                if (interaction.replied || interaction.deferred) {
-                    await interaction.followUp({ embeds, components, ephemeral: true });
-                }
-                else {
-                    await interaction.reply({ embeds, components, ephemeral: true });
-                }
-            }
-            catch (error) {
-                if (error.code === 40060)
+            const messageOptions = { embeds, components, ephemeral: true };
+            const interactionReply = interaction.replied || interaction.deferred ? interaction.followUp(messageOptions) : interaction.reply(messageOptions);
+            await interactionReply.catch(async (error) => {
+                if (error.code === 40060) {
+                    console.log(`Resolved error 40060 (Interaction has already been acknowledged)`);
                     return await interaction.followUp({ embeds, components, ephemeral: true });
+                }
                 console.error(`[Error code: 1685] Unknown error on command reply`, error);
-            }
+            });
             console.error(`[Error code: 1686] Error during execution of ${interaction.customId} for ${client.getCachedMembers().get(interaction.user.id)?.displayName || interaction.user.username}\n`, e);
         });
     }

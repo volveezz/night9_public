@@ -47,6 +47,7 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
         if (button.customId === RaidButtons.transitionDelete) {
             const isRaidDeleted = await handleDeleteRaid({ interaction: button, raidEvent: raid, deferredUpdate, requireMessageReply: false });
             if (isRaidDeleted === 1) {
+                sendedButtons.delete(button);
                 return collector.stop("deleted");
             }
             else if (isRaidDeleted === 2) {

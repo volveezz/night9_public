@@ -180,6 +180,8 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                                             if (!element || element === undefined || element?.toLowerCase() === "null")
                                                 dbRoleUpdated.gildedRoles[i] = "null";
                                         }
+                                        if (!memberRoles.has(titleCategory))
+                                            addRoles.push(titleCategory);
                                         addRoles.push(createdRole.id);
                                         removeRoles.push(role.roleId, dbRoleUpdated
                                             .gildedRoles.filter((r) => r && r.toLowerCase() !== "null" && r !== createdRole.id)
@@ -359,7 +361,7 @@ async function manageClanMembers(bungie_array) {
     try {
         const clanList = await fetchRequest("Platform/GroupV2/4123712/Members/?memberType=None");
         if (!clanList) {
-            console.log("[Error code: 1013] [Clan checker]", clanList);
+            console.error("[Error code: 1013] [Clan checker]", clanList);
             return;
         }
         if (clanList?.ErrorCode !== undefined && clanList.ErrorCode !== apiStatus.status) {

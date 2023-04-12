@@ -57,7 +57,7 @@ export default new Command({
                 interaction.editReply({ embeds: [embed] });
             })
                 .catch(async (e) => {
-                console.log(`[Error code: 1649]`, e);
+                console.error(`[Error code: 1649]`, e);
                 const embed = new EmbedBuilder().setColor(colors.error).setTitle(`Error: ${e.code}`).setDescription(e.toString());
                 await deferredReply;
                 interaction.editReply({ embeds: [embed] });
@@ -77,7 +77,7 @@ export default new Command({
                 return;
             })
                 .catch(async (e) => {
-                console.log(`[Error code: 1648]`, e);
+                console.error(`[Error code: 1648]`, e);
                 const embed = new EmbedBuilder().setColor(colors.error).setTitle(`Error: ${e.code}`).setDescription(e.toString());
                 await deferredReply;
                 interaction.editReply({ embeds: [embed] });

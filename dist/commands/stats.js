@@ -106,18 +106,18 @@ export default new Command({
             embed.spliceFields(0, 1, { name: "Ссылки", value: fieldUrls.join(", ") });
             embed.addFields({ name: "Персонажи", value: characterDataArray.join("\n") });
             interaction.editReply({ embeds: [embed] });
-            return fetchRequest(`Platform/GroupV2/User/${platform}/${bungieId}/0/1/`)
-                .then((clanBody) => {
+            return await fetchRequest(`Platform/GroupV2/User/${platform}/${bungieId}/0/1/`)
+                .then(async (clanBody) => {
                 const clanStatus = clanBody.results[0]?.group.groupId === "4123712"
                     ? `участник клана`
                     : clanBody.results[0]
                         ? `участник клана ${clanBody.results[0].group.name}`
                         : `не состоит в клане`;
                 embed.data.author.name += ` - ${clanStatus}`;
-                return interaction.editReply({ embeds: [embed] });
+                return await interaction.editReply({ embeds: [embed] });
             })
-                .catch((e) => console.log(`[Error code: 1059] Stats second phase error`, e, data.userInfo.membershipId));
+                .catch((e) => console.error(`[Error code: 1059] Stats second phase error`, e, data.userInfo.membershipId));
         })
-            .catch((e) => console.log(`[Error code: 1058] Stats first phase error`, e, parsedData.bungieId));
+            .catch((e) => console.error(`[Error code: 1058] Stats first phase error`, e, parsedData.bungieId));
     },
 });

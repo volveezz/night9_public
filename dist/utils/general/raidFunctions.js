@@ -597,13 +597,10 @@ export async function removeRaid(raid, interaction, requireMessageReply = true, 
     const interactingMember = interaction
         ? guild.members.cache.get(interaction.user.id) || (await guild.members.fetch(interaction.user.id))
         : null;
-    console.log(mainInteraction?.message.id);
-    console.log(interaction?.message.id);
     const editMessageReply = async (embed) => {
         if (!interaction || !interaction.channel || !interaction.channel.isDMBased() || !requireMessageReply)
             return;
         const message = mainInteraction?.message;
-        console.log(JSON.stringify(message.embeds[0].data));
         await message.edit({ embeds: [embed], components: [] });
         return;
     };
@@ -684,7 +681,16 @@ export function getRaidNameFromHash(activityHash) {
         case 1661734046:
             return "lw";
         default:
-            console.log(`[Error code: 1669] Found unknown raidId ${activityHash}`);
+            console.error(`[Error code: 1669] Found unknown raidId ${activityHash}`);
             return "unknown";
     }
+}
+export async function sendUserRaidGuideNoti(user, raidName) {
+    const embed = new EmbedBuilder()
+        .setAuthor({ name: `Ознакомьтесь с текстовым прохождением рейда перед его началом`, iconURL: icons.notify })
+        .setColor(colors.serious);
+    const components = [
+        new ButtonBuilder().setCustomId(`raidGuide_${raidName}`).setLabel(`Инструкция по рейду`).setStyle(ButtonStyle.Primary),
+    ];
+    return await user.send({ embeds: [embed], components: await addButtonComponentsToMessage(components) });
 }

@@ -10,9 +10,10 @@ import { client } from "../index.js";
 import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
-import { checkRaidTimeConflicts, getRaidData, updatePrivateRaidMessage, updateRaidMessage } from "../utils/general/raidFunctions.js";
+import { checkRaidTimeConflicts, getRaidData, sendUserRaidGuideNoti, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
 import { handleRaidCreatorLeaving } from "../utils/general/raidFunctions/raidCreatorHandler.js";
 import { RaidEvent } from "../utils/persistence/sequelize.js";
+const raidGuideSentUsers = new Map();
 async function actionMessageHandler({ interaction, raidEvent, target }) {
     const embed = new EmbedBuilder();
     const member = interaction.member;
@@ -74,7 +75,7 @@ async function joinedFromHotJoined(raidData) {
         returning: ["id", "messageId", "channelId", "inChannelMessageId", "joined", "hotJoined", "alt", "raid", "difficulty"],
     });
     const embed = new EmbedBuilder()
-        .setColor(colors.serious)
+        .setColor(colors.success)
         .setAuthor({
         name: `${nameCleaner(member.displayName)}: [Запас] → [Участник]`,
         iconURL: member.displayAvatarURL(),
@@ -181,8 +182,10 @@ export default {
                 "requiredClears",
             ],
         });
-        if (!raidEvent)
+        if (!raidEvent) {
+            await deferredUpdate;
             throw { errorType: UserErrors.RAID_NOT_FOUND };
+        }
         const raidData = getRaidData(raidEvent.raid, raidEvent.difficulty);
         const member = interaction.member ||
             client.getCachedGuild().members.cache.get(interaction.user.id) ||
@@ -205,13 +208,15 @@ export default {
             alt: Sequelize.fn("array_remove", Sequelize.col("alt"), interaction.user.id),
         };
         if (interaction.customId === RaidButtons.join) {
+            const raidsCompletedByUser = completedRaidsData.get(interaction.user.id);
+            const raidClears = raidsCompletedByUser
+                ? raidsCompletedByUser[raidEvent.raid] + (raidsCompletedByUser[raidEvent.raid + "Master"] || 0)
+                : 0;
             if (raidEvent.requiredClears) {
-                const raidsCompletedByUser = completedRaidsData.get(interaction.user.id);
                 if (!raidsCompletedByUser) {
                     await deferredUpdate;
                     throw { errorType: UserErrors.RAID_MISSING_DATA_FOR_CLEARS };
                 }
-                const raidClears = raidsCompletedByUser[raidEvent.raid] + (raidsCompletedByUser[raidEvent.raid + "Master"] ?? 0);
                 if (raidEvent.requiredClears > raidClears) {
                     await deferredUpdate;
                     throw { errorType: UserErrors.RAID_NOT_ENOUGH_CLEARS, errorData: [raidClears, raidEvent.requiredClears] };
@@ -224,6 +229,14 @@ export default {
             if (raidEvent.joined.length >= 6 && userAlreadyInHotJoined) {
                 await deferredUpdate;
                 throw { errorType: UserErrors.RAID_ALREADY_JOINED };
+            }
+            const sentUserSet = raidGuideSentUsers.get(raidEvent.raid) ?? new Set();
+            if (!sentUserSet.has(interaction.user.id)) {
+                if (raidClears <= 5) {
+                    sendUserRaidGuideNoti(interaction.user, raidEvent.raid);
+                }
+                sentUserSet.add(interaction.user.id);
+                raidGuideSentUsers.set(raidEvent.raid, sentUserSet);
             }
         }
         else if (userAlreadyAlt) {

@@ -168,6 +168,10 @@ export class ExtendedClient extends Client {
     }
     async registerModules() {
         this.on("ready", async (client) => {
+            setInterval(() => {
+                const time = Math.floor(this.uptime / 1000);
+                console.log(`Client uptime: ${convertSeconds(time, "en")}`);
+            }, 1000 * 60 * 30);
             const guilds = await client.guilds.fetch();
             const fetchGuildsPromises = guilds.map(async (guild) => {
                 const guildFetched = await guild.fetch();
@@ -193,10 +197,6 @@ export class ExtendedClient extends Client {
             setTimeout(() => {
                 cacheRaidMilestones();
             }, 1000 * 30);
-            setInterval(() => {
-                const time = Math.floor(this.uptime / 1000);
-                console.log(`Client uptime: ${convertSeconds(time, "en")}`);
-            }, 1000 * 60 * 30);
         });
     }
 }
