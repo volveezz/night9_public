@@ -22,7 +22,7 @@ export async function fetchRequest(cleanUrl, authorizationData) {
             console.error(`[Error code: 1117] Timed out error`, e.statusText);
         }
         else if (status === 401) {
-            console.error(`[Error code: 1682] Authorization error`, e.statusText);
+            console.error(`[Error code: 1682] Authorization error`, e.statusText, e.status, e.text, e.errorText, e.body?.status);
         }
         else {
             if (status >= 400 && status <= 599) {
@@ -36,7 +36,6 @@ export async function fetchRequest(cleanUrl, authorizationData) {
         return undefined;
     });
     if (jsonResponse == null) {
-        console.error(`[Error code: 1693]`, response);
         return undefined;
     }
     if ((await jsonResponse?.status) >= 400) {
