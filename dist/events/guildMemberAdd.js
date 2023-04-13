@@ -48,11 +48,12 @@ export default new Event("guildMemberAdd", (member) => {
                 membershipId: data.membershipId,
                 timezone: data.timezone ?? 3,
             }, {
-                transaction: transaction,
+                transaction,
             });
             await LeavedUsersData.destroy({
                 where: { discordId: data.discordId },
-                transaction: transaction,
+                transaction,
+                limit: 1,
             });
             embed.fields.push({
                 name: "Данные аккаунта восстановлены",

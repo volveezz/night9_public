@@ -562,31 +562,6 @@ export default new Command({
             const changesForChannel = [];
             if (newRaid !== null || newDifficulty !== null || newReqClears !== null) {
                 changes.push(`Рейд был измнен`);
-                raidEmbed
-                    .setColor(raidInfo.raidColor)
-                    .setTitle(newReqClears !== null || reqClears >= 1 || newDifficulty !== null
-                    ? `Рейд: ${raidInfo.raidName}${(newReqClears !== null && newReqClears === 0) || (newReqClears === null && reqClears === 0)
-                        ? ""
-                        : newReqClears
-                            ? ` от ${newReqClears} закрытий`
-                            : ` от ${reqClears} закрытий`}`
-                    : `Рейд: ${raidInfo.raidName}`)
-                    .setThumbnail(raidInfo.raidBanner);
-                if (newRaid !== null) {
-                    changesForChannel.push({
-                        name: `Рейд`,
-                        value: `Рейд набора был изменен - \`${raidInfo.raidName}\``,
-                    });
-                    await RaidEvent.update({
-                        raid: raidInfo.raid,
-                    }, {
-                        where: { id: raidData.id },
-                        transaction: t,
-                    });
-                    raidChallenges(raidInfo, client.getCachedTextChannel(raidData.channelId).messages.cache.get(raidData.inChannelMessageId) ??
-                        (await client.getCachedTextChannel(raidData.channelId).messages.fetch(raidData.inChannelMessageId)), raidData.time, newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : raidData.difficulty);
-                    client.getCachedTextChannel(raidData.channelId).edit({ name: `🔥｜${raidData.id}-${raidInfo.channelName}` });
-                }
                 if (newDifficulty !== null && raidInfo.maxDifficulty >= newDifficulty) {
                     changesForChannel.push({
                         name: "Сложность рейда",
@@ -598,6 +573,17 @@ export default new Command({
                         where: { id: raidData.id },
                         transaction: t,
                     });
+                    if (newRaid == null) {
+                        raidEmbed
+                            .setTitle(newReqClears !== null || reqClears >= 1 || newDifficulty !== null
+                            ? `Рейд: ${raidInfo.raidName}${(newReqClears !== null && newReqClears === 0) || (newReqClears === null && reqClears === 0)
+                                ? ""
+                                : newReqClears
+                                    ? ` от ${newReqClears} закрытий`
+                                    : ` от ${reqClears} закрытий`}`
+                            : `Рейд: ${raidInfo.raidName}`)
+                            .setColor(raidData.joined.length === 6 ? colors.invisible : raidInfo.raidColor);
+                    }
                 }
                 if (newReqClears !== null) {
                     if (newReqClears === 0) {
@@ -618,6 +604,49 @@ export default new Command({
                         where: { id: raidData.id },
                         transaction: t,
                     });
+                }
+                if (newRaid !== null) {
+                    changesForChannel.push({
+                        name: `Рейд`,
+                        value: `Рейд набора был изменен - \`${raidInfo.raidName}\``,
+                    });
+                    const [_, [updatedRaid]] = await RaidEvent.update({
+                        raid: raidInfo.raid,
+                    }, {
+                        where: { id: raidData.id },
+                        transaction: t,
+                        returning: [
+                            "id",
+                            "channelId",
+                            "inChannelMessageId",
+                            "creator",
+                            "messageId",
+                            "joined",
+                            "hotJoined",
+                            "alt",
+                            "raid",
+                            "difficulty",
+                        ],
+                        limit: 1,
+                    });
+                    const updatedRaidMessage = await updateRaidMessage(updatedRaid);
+                    raidEmbed
+                        .setColor(updatedRaid.joined.length === 6 ? colors.invisible : raidInfo.raidColor)
+                        .setTitle(newReqClears !== null || reqClears >= 1 || newDifficulty !== null
+                        ? `Рейд: ${raidInfo.raidName}${(newReqClears !== null && newReqClears === 0) || (newReqClears === null && reqClears === 0)
+                            ? ""
+                            : newReqClears
+                                ? ` от ${newReqClears} закрытий`
+                                : ` от ${reqClears} закрытий`}`
+                        : `Рейд: ${raidInfo.raidName}`)
+                        .setThumbnail(raidInfo.raidBanner);
+                    if (updatedRaidMessage) {
+                        raidEmbed.setFields(updatedRaidMessage.embeds[0].data.fields);
+                    }
+                    raidChallenges(raidInfo, client.getCachedTextChannel(updatedRaid.channelId).messages.cache.get(updatedRaid.inChannelMessageId) ??
+                        (await client.getCachedTextChannel(updatedRaid.channelId).messages.fetch(updatedRaid.inChannelMessageId)), raidData.time, newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : updatedRaid.difficulty);
+                    const channel = (await client.getCachedGuild().channels.fetch(updatedRaid.channelId));
+                    channel.edit({ name: `🔥｜${updatedRaid.id}${raidInfo.channelName}` }).catch((e) => console.error(`[Error code: 1696]`, e));
                 }
             }
             if (newDescription !== null) {

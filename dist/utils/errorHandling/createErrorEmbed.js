@@ -2,7 +2,7 @@ import { EmbedBuilder } from "discord.js";
 import UserErrors from "../../configs/UserErrors.js";
 import colors from "../../configs/colors.js";
 import { errorMessages } from "./errorMessages.js";
-function errorResolver({ name, description, errorType, errorData }) {
+function createErrorEmbed({ name, description, errorType, errorData }) {
     const type = errorType;
     if (errorType && UserErrors[type] !== undefined) {
         const { embeds, components } = errorMessages(type, errorData);
@@ -32,4 +32,4 @@ function errorResolver({ name, description, errorType, errorData }) {
         };
     }
 }
-export default errorResolver;
+export default createErrorEmbed;

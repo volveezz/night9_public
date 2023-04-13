@@ -10,7 +10,8 @@ export default {
         const interactionParts = interaction.customId.split("_");
         const raidName = interactionParts[1];
         if (interactionParts.length === 2) {
-            return await sendRaidGuide(interaction, raidName, deferredReply);
+            await sendRaidGuide(interaction, raidName, deferredReply);
+            return;
         }
         if (!(raidName in raidsGuide)) {
             await deferredReply;

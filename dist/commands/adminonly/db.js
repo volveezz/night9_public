@@ -213,6 +213,7 @@ export default new Command({
             case "delete": {
                 const request = await AuthData.destroy({
                     where: { [Op.or]: [{ discordId: id }, { bungieId: id }] },
+                    limit: 1,
                 });
                 const embed = new EmbedBuilder().setColor(colors.success).setAuthor({
                     name: `${request === 1 ? `Успех. Удалено ${request} строк` : `Удалено ${request} строк`}`,
@@ -484,12 +485,13 @@ export default new Command({
                     transaction: t,
                 });
                 if (interaction.guild?.roles.cache.has(removeroleid)) {
-                    var query = await AutoRoleData.destroy({ where: { roleId: removeroleid }, transaction: t });
+                    var query = await AutoRoleData.destroy({ where: { roleId: removeroleid }, transaction: t, limit: 1 });
                 }
                 else {
                     var query = await AutoRoleData.destroy({
                         where: { triumphRequirement: removeroleid },
                         transaction: t,
+                        limit: 1,
                     });
                 }
                 await t.commit();

@@ -3,6 +3,7 @@ import colors from "../configs/colors.js";
 import { ids } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
+import deleteLeavedUserData from "../utils/discord/deleteLeavedUserData.js";
 const guildMemberChannel = client.getCachedTextChannel(ids.guildMemberChnId);
 export default new Event("guildBanAdd", async (member) => {
     const joinedDate = Math.floor(member.guild.members.cache.get(member.user.id)?.joinedTimestamp / 1000);
@@ -28,5 +29,6 @@ export default new Event("guildBanAdd", async (member) => {
             },
         ]);
     }
-    guildMemberChannel.send({ embeds: [embed] });
+    const message = await guildMemberChannel.send({ embeds: [embed] });
+    await deleteLeavedUserData({ member, message });
 });

@@ -9,29 +9,36 @@ export async function fetchRequest(cleanUrl, authorizationData) {
     });
     const jsonResponse = await response.json().catch(async (e) => {
         const status = response?.status;
-        if (status === 503)
-            console.error(`[Error code: 1683] Server is not avaliable`);
-        if (status === 502)
-            console.error(`[Error code: 1099] Web error`);
-        if (status === 409)
-            console.error(`[Error code: 1108] Confilt error`);
-        if (status === 522)
-            console.error(`[Error code: 1117] Timed out error`);
-        if (status === 401)
-            console.error(`[Error code: 1682] Authorization error`);
-        if (logged === false) {
+        if (status === 503) {
+            console.error(`[Error code: 1683] Server is not avaliable`, e.statusText);
+        }
+        else if (status === 502) {
+            console.error(`[Error code: 1099] Web error`, e.statusText);
+        }
+        else if (status === 409) {
+            console.error(`[Error code: 1108] Confilt error`, e.statusText);
+        }
+        else if (status === 522) {
+            console.error(`[Error code: 1117] Timed out error`, e.statusText);
+        }
+        else if (status === 401) {
+            console.error(`[Error code: 1682] Authorization error`, e.statusText);
+        }
+        else {
             if (status >= 400 && status <= 599) {
                 console.error(`[Error code: 1228] ${status} web error code\n`, response, response.body);
                 logged = true;
             }
             else {
-                console.error(`[Error code: 1064] ${status} statusCode\n`, e.stack);
+                console.error(`[Error code: 1064] ${status} statusCode\n`, e);
             }
         }
         return undefined;
     });
-    if (jsonResponse == null)
+    if (jsonResponse == null) {
+        console.error(`[Error code: 1693]`, response);
         return undefined;
+    }
     if ((await jsonResponse?.status) >= 400) {
         console.error(`[Error code: 1083] ${jsonResponse?.status}`);
         return undefined;

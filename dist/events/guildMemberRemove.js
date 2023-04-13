@@ -4,9 +4,9 @@ import { ids } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-import { AuthData, database, LeavedUsersData } from "../utils/persistence/sequelize.js";
+import deleteLeavedUserData from "../utils/discord/deleteLeavedUserData.js";
 const guildMemberChannel = client.getCachedTextChannel(ids.guildMemberChnId);
-export default new Event("guildMemberRemove", (member) => {
+export default new Event("guildMemberRemove", async (member) => {
     if (member.guild.bans.cache.has(member.id))
         return;
     const embed = new EmbedBuilder()
@@ -38,53 +38,6 @@ export default new Event("guildMemberRemove", (member) => {
                             : "Роли не найдены"}`,
         });
     }
-    guildMemberChannel.send({ embeds: [embed] }).then(async (m) => {
-        const data = await AuthData.findByPk(member.id);
-        if (!data)
-            return;
-        const transaction = await database.transaction();
-        const embed = m.embeds[0];
-        try {
-            await AuthData.destroy({
-                where: { discordId: data.discordId },
-                transaction: transaction,
-            });
-            await LeavedUsersData.create({
-                discordId: data.discordId,
-                bungieId: data.bungieId,
-                displayName: data.displayName,
-                platform: data.platform,
-                accessToken: data.accessToken,
-                refreshToken: data.refreshToken,
-                membershipId: data.membershipId,
-                timezone: data.timezone,
-            }, {
-                transaction,
-            });
-            await transaction.commit();
-            embed.fields.push({
-                name: "BungieId",
-                value: `${data.platform}/${data.bungieId}`,
-                inline: true,
-            }, {
-                name: "Ник в игре",
-                value: data.displayName,
-                inline: true,
-            }, {
-                name: "MembershipId",
-                value: `[${data.membershipId}](https://www.bungie.net/7/ru/User/Profile/254/${data.membershipId})`,
-                inline: true,
-            });
-            m.edit({ embeds: [embed] });
-        }
-        catch (error) {
-            await transaction.rollback();
-            embed.fields.push({
-                name: "Ошибка",
-                value: "Произошла ошибка во время удаления данных в БД",
-            });
-            console.error(`[Error code: 1209]`, error, data, transaction);
-            m.edit({ embeds: [embed] });
-        }
-    });
+    const message = await guildMemberChannel.send({ embeds: [embed] });
+    await deleteLeavedUserData({ member, message });
 });

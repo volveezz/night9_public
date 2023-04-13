@@ -106,7 +106,7 @@ export default {
                 where: { messageId: interaction.message.id },
                 attributes: ["joined", "hotJoined", "alt"],
             });
-            return await RaidEvent.update({
+            await RaidEvent.update({
                 joined: Sequelize.fn("array_remove", Sequelize.col("joined"), `${interaction.user.id}`),
                 hotJoined: Sequelize.fn("array_remove", Sequelize.col("hotJoined"), `${interaction.user.id}`),
                 alt: Sequelize.fn("array_remove", Sequelize.col("alt"), `${interaction.user.id}`),
@@ -164,6 +164,7 @@ export default {
                     handleRaidCreatorLeaving(raidEvent, raidEvent.creator);
                 }
             });
+            return;
         }
         let raidEvent = await RaidEvent.findOne({
             where: {

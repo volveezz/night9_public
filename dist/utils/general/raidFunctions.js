@@ -8,6 +8,7 @@ import colors from "../../configs/colors.js";
 import destinyRaidsChallenges from "../../configs/destinyRaidsChallenges.js";
 import icons from "../../configs/icons.js";
 import { guildId, ids } from "../../configs/ids.js";
+import raidsGuide from "../../configs/raidguide.json" assert { type: "json" };
 import { dlcRoles, statusRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
 import { fetchRequest } from "../api/fetchRequest.js";
@@ -16,7 +17,7 @@ import { RaidEvent } from "../persistence/sequelize.js";
 import { addButtonComponentsToMessage } from "./addButtonsToMessage.js";
 import { completedRaidsData } from "./destinyActivityChecker.js";
 import nameCleaner from "./nameClearer.js";
-import { escapeString, getRandomGIF, getRandomRaidGIF } from "./utilities.js";
+import { getRandomGIF, getRandomRaidGIF } from "./utilities.js";
 const blockedModifierHashesArray = [1123720291, 1783825372, 782039530, 2006149364, 197794292, 3307318061, 438106166];
 export function generateRaidClearsText(clears = 0) {
     const baseText = `**${clears}** закрыт`;
@@ -388,7 +389,12 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
         const member = client.getCachedMembers().get(discordId);
         if (!raidUserData) {
             if (!retry && member?.roles.cache.has(statusRoles.verified)) {
-                setTimeout(() => updatePrivateRaidMessage({ raidEvent, retry: true }), 60 * 1000 * 5);
+                setTimeout(() => {
+                    if (raidEvent == null)
+                        return;
+                    updatePrivateRaidMessage({ raidEvent, retry: true });
+                    updateRaidMessage(raidEvent);
+                }, 1000 * 60 * 5);
             }
             if (member?.roles.cache.has(statusRoles.verified)) {
                 return `⁣　<@${discordId}> не закеширован`;
@@ -415,7 +421,11 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
             raidClears.push(`${raidUserData.gos} СС`);
         if (raidUserData.lw > 0)
             raidClears.push(`${raidUserData.lw} ПЖ`);
-        return `⁣　**${escapeString(nameCleaner(member?.displayName || member?.user.username || "неизвестный пользователь"))}** ${raidClears.length > 0 ? `завершил: ${raidClears.join(", ")}` : `не проходил ранее рейды`}`;
+        return `⁣　**${nameCleaner(member?.displayName || member?.user.username || "неизвестный пользователь", true)}** ${raidClears.length > 0
+            ? `завершил: ${raidClears.join(", ")}`
+            : raidUserData?.totalRaidCount === 0
+                ? `не проходил ранее рейды`
+                : `не проходил доступные на данный момент рейды`}`;
     }
     const joined = raidEvent.joined.map(async (userId) => raidUserDataManager(userId));
     const hotJoined = raidEvent.hotJoined.map(async (userId) => raidUserDataManager(userId));
@@ -432,7 +442,7 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
         embed.spliceFields(2, 0, { name: "Закрытия рейдов у запасных участников", value: (await Promise.all(hotJoined)).join("\n") });
     if (raidEvent.alt.length > 0)
         embed.spliceFields(3, 0, { name: "Закрытия рейдов у возможных участников", value: (await Promise.all(alt)).join("\n") });
-    return inChnMsg.edit({ embeds: [embed] });
+    return await inChnMsg.edit({ embeds: [embed] });
 }
 export function timeConverter(str, timezoneOffset = 3) {
     if (!str || str.length === 0)
@@ -593,7 +603,10 @@ export async function removeRaid(raid, interaction, requireMessageReply = true, 
     const guild = client.getCachedGuild() || (await client.guilds.fetch(guildId));
     const privateRaidChannel = guild.channels.cache.get(raid.channelId) || (await guild.channels.fetch(raid.channelId));
     const mainRaidChannel = (guild.channels.cache.get(ids.raidChnId) || (await guild.channels.fetch(ids.raidChnId)));
-    const raidMessage = mainRaidChannel.messages.cache.get(raid.messageId) || (await mainRaidChannel.messages.fetch(raid.messageId));
+    const raidMessage = mainRaidChannel.messages.cache.get(raid.messageId) ||
+        (await mainRaidChannel.messages.fetch(raid.messageId).catch((e) => {
+            `[Error code: 1697] Not found raid message`;
+        }));
     const interactingMember = interaction
         ? guild.members.cache.get(interaction.user.id) || (await guild.members.fetch(interaction.user.id))
         : null;
@@ -617,7 +630,7 @@ export async function removeRaid(raid, interaction, requireMessageReply = true, 
             }
         }
         try {
-            await raidMessage.delete();
+            await raidMessage?.delete();
         }
         catch (e) {
             console.error(`[Error code: 1667]`, e);
@@ -686,6 +699,8 @@ export function getRaidNameFromHash(activityHash) {
     }
 }
 export async function sendUserRaidGuideNoti(user, raidName) {
+    if (!(raidName in raidsGuide))
+        return;
     const embed = new EmbedBuilder()
         .setAuthor({ name: `Ознакомьтесь с текстовым прохождением рейда перед его началом`, iconURL: icons.notify })
         .setColor(colors.serious);

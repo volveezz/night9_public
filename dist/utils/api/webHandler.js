@@ -7,7 +7,7 @@ import { statusRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
 import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
 import { escapeString } from "../general/utilities.js";
-import { AuthData, InitData, UserActivityData } from "../persistence/sequelize.js";
+import { AuthData, InitData, LeavedUsersData, UserActivityData } from "../persistence/sequelize.js";
 import { fetchRequest } from "./fetchRequest.js";
 export default async function webHandler(code, state, res) {
     const json = await InitData.findOne({ where: { state: state } });
@@ -59,6 +59,11 @@ export default async function webHandler(code, state, res) {
         }
         const { membershipType: platform, membershipId: bungieId } = fetchedData;
         const displayName = fetchedData.bungieGlobalDisplayName || fetchedData.LastSeenDisplayName || fetchedData.displayName;
+        const ifHasLeaved = await LeavedUsersData.findOne({ where: { bungieId }, attributes: [] });
+        if (ifHasLeaved) {
+            console.error(`[Error code: 1691] User (${json.discordId}) tried to connect already registered bungieId (${bungieId})`);
+            return res.send(`<script>location.replace('error.html')</script>`);
+        }
         const [authData, created] = await AuthData.findOrCreate({
             where: {
                 bungieId,
@@ -80,6 +85,7 @@ export default async function webHandler(code, state, res) {
         }
         InitData.destroy({
             where: { discordId: json.discordId },
+            limit: 1,
         });
         res.send(`<script>location.replace('index.html')</script>`).end();
         const clanResponse = await fetchRequest(`Platform/GroupV2/User/${platform}/${bungieId}/0/1/`, body.access_token);

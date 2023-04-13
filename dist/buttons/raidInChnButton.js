@@ -441,7 +441,8 @@ export default {
             });
         }
         else if (interaction.customId === RaidButtons.delete) {
-            return await handleDeleteRaid({ deferredUpdate, interaction, raidEvent });
+            await handleDeleteRaid({ deferredUpdate, interaction, raidEvent });
+            return;
         }
         else if (interaction.customId === RaidButtons.resend) {
             return interaction.channel

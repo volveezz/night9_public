@@ -106,7 +106,7 @@ export default new Command({
             embed.spliceFields(0, 1, { name: "Ссылки", value: fieldUrls.join(", ") });
             embed.addFields({ name: "Персонажи", value: characterDataArray.join("\n") });
             interaction.editReply({ embeds: [embed] });
-            return await fetchRequest(`Platform/GroupV2/User/${platform}/${bungieId}/0/1/`)
+            await fetchRequest(`Platform/GroupV2/User/${platform}/${bungieId}/0/1/`)
                 .then(async (clanBody) => {
                 const clanStatus = clanBody.results[0]?.group.groupId === "4123712"
                     ? `участник клана`
@@ -114,9 +114,11 @@ export default new Command({
                         ? `участник клана ${clanBody.results[0].group.name}`
                         : `не состоит в клане`;
                 embed.data.author.name += ` - ${clanStatus}`;
-                return await interaction.editReply({ embeds: [embed] });
+                await interaction.editReply({ embeds: [embed] });
+                return;
             })
                 .catch((e) => console.error(`[Error code: 1059] Stats second phase error`, e, data.userInfo.membershipId));
+            return;
         })
             .catch((e) => console.error(`[Error code: 1058] Stats first phase error`, e, parsedData.bungieId));
     },

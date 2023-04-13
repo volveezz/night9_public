@@ -13,7 +13,7 @@ export default {
                     where: { creator: interaction.user.id },
                     attributes: ["id", "raid"],
                 });
-            return await interaction
+            await interaction
                 .respond(raidData.map((data) => ({
                 name: String(data.id),
                 value: data.id,
@@ -35,7 +35,7 @@ export default {
                     hour: "2-digit",
                     minute: "2-digit",
                 });
-            return await interaction
+            await interaction
                 .respond([
                 {
                     name,
