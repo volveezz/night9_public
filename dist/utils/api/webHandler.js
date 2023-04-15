@@ -59,7 +59,7 @@ export default async function webHandler(code, state, res) {
         }
         const { membershipType: platform, membershipId: bungieId } = fetchedData;
         const displayName = fetchedData.bungieGlobalDisplayName || fetchedData.LastSeenDisplayName || fetchedData.displayName;
-        const ifHasLeaved = await LeavedUsersData.findOne({ where: { bungieId }, attributes: [] });
+        const ifHasLeaved = await LeavedUsersData.findOne({ where: { bungieId }, attributes: ["discordId"] });
         if (ifHasLeaved) {
             console.error(`[Error code: 1691] User (${json.discordId}) tried to connect already registered bungieId (${bungieId})`);
             return res.send(`<script>location.replace('error.html')</script>`);

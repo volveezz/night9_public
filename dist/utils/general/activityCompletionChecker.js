@@ -115,16 +115,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
         });
         if (refreshedAccessToken != null)
             currentAccessToken = refreshedAccessToken;
-        const characterData = response?.activities.data;
-        const currentActivityHash = characterData?.currentActivityHash;
-        if (response == null ||
-            response.activities?.data == null ||
-            (currentActivityHash !== previousActivityHash && previousActivityHash !== undefined) ||
-            currentActivityHash === 82913930 ||
-            CachedDestinyActivityDefinition[currentActivityHash]?.activityTypeHash !== raidActivityModeHashes ||
-            (previousActivityHash !== undefined &&
-                !response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash)) ||
-            (discordId && !clanOnline.has(discordId))) {
+        const stopActivityHashChecker = () => {
             clearInterval(interval);
             currentlyRunning.delete(uniqueId);
             activityCompletionCurrentProfiles.delete(bungieId);
@@ -135,6 +126,23 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                     console.debug(`VALUES OF ${platform}/${bungieId}/${characterId} WERE DELETED`);
                 }
             }, 60 * 1000 * 30);
+        };
+        if (!response || !response.activities) {
+            stopActivityHashChecker();
+            return null;
+        }
+        const characterData = response?.activities?.data;
+        const currentActivityHash = characterData?.currentActivityHash;
+        if (characterData == null ||
+            response == null ||
+            response.activities?.data == null ||
+            (currentActivityHash !== previousActivityHash && previousActivityHash !== undefined) ||
+            currentActivityHash === 82913930 ||
+            CachedDestinyActivityDefinition[currentActivityHash]?.activityTypeHash !== raidActivityModeHashes ||
+            (previousActivityHash !== undefined &&
+                !response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash)) ||
+            (discordId && !clanOnline.has(discordId))) {
+            stopActivityHashChecker();
             return null;
         }
         try {
