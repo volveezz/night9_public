@@ -5,6 +5,19 @@ import { client } from "../../index.js";
 import { timer } from "../general/utilities.js";
 const publicNewsChannel = client.getCachedTextChannel(channelIds.externalNewsFeed) || (await client.getCachedGuild().channels.fetch(channelIds.externalNewsFeed));
 const twitterNewsChannel = client.getCachedTextChannel(channelIds.admin) || (await client.getCachedGuild().channels.fetch(channelIds.admin));
+function extractImageUrl(content) {
+    const imgRegex = /<img.*?src="(.*?)".*?>/i;
+    const videoRegex = /<video.*?poster="(.*?)".*?>/i;
+    const imgMatch = content.match(imgRegex);
+    const videoMatch = content.match(videoRegex);
+    if (imgMatch) {
+        return imgMatch[1];
+    }
+    else if (videoMatch) {
+        return videoMatch[1];
+    }
+    return null;
+}
 async function handleTimeReplacement({ message: oldMessage }) {
     const fetchMessage = async () => {
         let message = await oldMessage.fetch();
@@ -70,8 +83,12 @@ async function generateTwitterEmbed(twitterData, author) {
         }
         return embed;
     };
+    const extractedMedia = extractImageUrl(twitterData.content || "")?.replaceAll("&amp;", "&");
     const replacedDescription = replaceTimeWithEpoch(twitterData.contentSnippet.replaceAll("\n", "\n\n"));
     const embed = resolveAuthor().setDescription(replacedDescription);
+    if (extractedMedia) {
+        embed.setImage(extractedMedia);
+    }
     await twitterNewsChannel.send({ embeds: [embed] });
     return;
 }
