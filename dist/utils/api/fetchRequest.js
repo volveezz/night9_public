@@ -10,19 +10,19 @@ export async function fetchRequest(cleanUrl, authorizationData) {
     const jsonResponse = await response.json().catch(async (e) => {
         const status = response?.status;
         if (status === 503) {
-            console.error(`[Error code: 1683] Server is not avaliable`, e.statusText);
+            console.error(`[Error code: 1683] Server is not avaliable`, e.body?.statusText, e.body?.statusCode, e.error?.code, e.error?.status);
         }
         else if (status === 502) {
-            console.error(`[Error code: 1099] Web error`, e.statusText);
+            console.error(`[Error code: 1099] Web error`, e.body?.statusText, e.body?.statusCode, e.error?.code, e.error?.status);
         }
         else if (status === 409) {
-            console.error(`[Error code: 1108] Confilt error`, e.statusText);
+            console.error(`[Error code: 1108] Confilt error`, e.body?.statusText, e.body?.statusCode, e.error?.code, e.error?.status);
         }
         else if (status === 522) {
-            console.error(`[Error code: 1117] Timed out error`, e.statusText);
+            console.error(`[Error code: 1117] Timed out error`, e.body?.statusText, e.body?.statusCode, e.error?.code, e.error?.status);
         }
         else if (status === 401) {
-            console.error(`[Error code: 1682] Authorization error`, e.statusText, e.status, e.text, e.errorText, e.body?.status);
+            console.error(`[Error code: 1682] Authorization error`, e.body?.statusText, e.body?.statusCode, e.error?.code, e.error?.status);
         }
         else {
             if (status >= 400 && status <= 599) {

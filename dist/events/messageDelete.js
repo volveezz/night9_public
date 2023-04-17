@@ -1,15 +1,15 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
-import { ids } from "../configs/ids.js";
+import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-const messageChannel = client.getCachedTextChannel(ids.messagesChnId);
+const messageChannel = client.getCachedTextChannel(channelIds.messages);
 export default new Event("messageDelete", (message) => {
     if (message.system ||
         message.author?.id === client.user.id ||
         (message.content?.length === 0 && message.attachments.size === 0 && message.stickers.size === 0) ||
         !message.author ||
-        message.channelId === ids.messagesChnId)
+        message.channelId === channelIds.messages)
         return;
     const embed = new EmbedBuilder()
         .setColor(colors.error)

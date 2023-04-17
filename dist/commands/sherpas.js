@@ -34,12 +34,14 @@ export default new Command({
         for await (const [key, value] of completedRaidsData) {
             if (value[selectedRaid] + (value[selectedRaid + "Master"] || 0) === 0) {
                 const member = client.getCachedMembers().get(key);
-                if (!member)
-                    return console.error(`[Error code: 1692] No member ${key}`);
+                if (!member) {
+                    console.error(`[Error code: 1692] No member ${key}`);
+                    continue;
+                }
                 const raidRole = getRaidData(selectedRaid).requiredRole || client.getCachedGuild().roles.everyone.id;
                 const hasRaidRole = member.roles.cache.has(raidRole);
                 if (hasRaidRole === false)
-                    return;
+                    continue;
                 noviceRaidList[selectedRaid].push(key);
             }
         }

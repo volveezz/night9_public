@@ -1,9 +1,9 @@
 import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
-import fetch from "node-fetch";
 import { Op } from "sequelize";
 import UserErrors from "../../configs/UserErrors.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
+import { requestUpdateTokens } from "../../core/tokenManagement.js";
 import { Command } from "../../structures/command.js";
 import { isSnowflake } from "../../utils/general/utilities.js";
 import { AuthData } from "../../utils/persistence/sequelize.js";
@@ -30,7 +30,7 @@ export default new Command({
         }
         const data = await AuthData.findOne({
             where: { [Op.or]: [{ discordId: id }, { bungieId: id }] },
-            attributes: ["displayName", "refreshToken"],
+            attributes: ["discordId", "displayName", "refreshToken"],
         });
         if (!data) {
             await deferredReply;
@@ -38,24 +38,12 @@ export default new Command({
             throw { errorType: UserErrors.DB_USER_NOT_FOUND, errorData: { isSelf } };
         }
         try {
-            const form = new URLSearchParams();
-            form.append("grant_type", "refresh_token");
-            form.append("refresh_token", data.refreshToken);
-            var token = (await fetch(`https://www.bungie.net/Platform/App/OAuth/Token/`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    Authorization: `Basic ${process.env.AUTH}`,
-                },
-                body: form,
-            }).then(async (response) => {
-                return response.json();
-            }));
+            var token = await requestUpdateTokens({ refresh_token: data.refreshToken, userId: data.discordId });
         }
         catch (err) {
             throw { name: "[Error code: 1233] Request error", description: err?.error?.error_description || "no description available", err };
         }
-        if (token) {
+        if (token && token.access_token && token.refresh_token && token.membership_id) {
             await AuthData.update({
                 accessToken: token.access_token,
                 refreshToken: token.refresh_token,
@@ -73,10 +61,18 @@ export default new Command({
                     .setColor(colors.error)
                     .setAuthor({ name: `Произошла ошибка во время обновления токена ${data.displayName}`, iconURL: icons.close });
             }
-            (await deferredReply) && interaction.editReply({ embeds: [embed] });
+            await deferredReply;
+            await interaction.editReply({ embeds: [embed] });
+            return;
         }
         else {
-            throw { name: `${id} not updated` };
+            console.error(`[Error code: 1700]`, token, data);
+            const errorEmbed = new EmbedBuilder()
+                .setColor(colors.error)
+                .setAuthor({ name: `Произошла ошибка во время обновления токена ${data.displayName}`, iconURL: icons.error });
+            await deferredReply;
+            await interaction.editReply({ embeds: [errorEmbed] });
+            return;
         }
     },
 });

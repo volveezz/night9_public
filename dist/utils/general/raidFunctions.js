@@ -1,4 +1,4 @@
-import { ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, ComponentType, EmbedBuilder, } from "discord.js";
+import { ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, EmbedBuilder, } from "discord.js";
 import { Op } from "sequelize";
 import { raidAnnounceSet } from "../../commands/raid.js";
 import { RaidButtons } from "../../configs/Buttons.js";
@@ -7,7 +7,7 @@ import UserErrors from "../../configs/UserErrors.js";
 import colors from "../../configs/colors.js";
 import destinyRaidsChallenges from "../../configs/destinyRaidsChallenges.js";
 import icons from "../../configs/icons.js";
-import { guildId, ids } from "../../configs/ids.js";
+import { channelIds, guildId } from "../../configs/ids.js";
 import raidsGuide from "../../configs/raidguide.json" assert { type: "json" };
 import { dlcRoles, statusRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
@@ -164,12 +164,12 @@ export async function getRaidDatabaseInfo(raidId, interaction) {
     }
 }
 export async function updateRaidMessage(raidDbData, interaction) {
-    let msg = client.getCachedTextChannel(ids.raidChnId).messages.cache.get(raidDbData.messageId) ||
-        (await client.getCachedTextChannel(ids.raidChnId).messages.fetch(raidDbData.messageId));
+    let msg = client.getCachedTextChannel(channelIds.raid).messages.cache.get(raidDbData.messageId) ||
+        (await client.getCachedTextChannel(channelIds.raid).messages.fetch(raidDbData.messageId));
     let components = [];
     if (!msg || !msg.embeds || !msg.embeds[0]) {
         try {
-            msg = await (await (interaction?.guild || client.getCachedGuild()).channels.fetch(ids.raidChnId)).messages.fetch(raidDbData.messageId);
+            msg = await (await (interaction?.guild || client.getCachedGuild()).channels.fetch(channelIds.raid)).messages.fetch(raidDbData.messageId);
         }
         catch (error) {
             return console.error(`[Error code: 1037] Error during updateRaidMessage`, msg);
@@ -532,7 +532,7 @@ async function raidAnnounce(oldRaidData) {
         .setTitle("Уведомление о скором рейде")
         .setThumbnail(raidInfo?.raidBanner ?? null)
         .setTimestamp(raidData.time * 1000)
-        .setDescription(`Рейд [${raidData.id}-${raidData.raid}](https://discord.com/channels/${guildId}/${ids.raidChnId}/${raidData.messageId}) начнется в течение ${Math.trunc((raidData.time - Math.trunc(Date.now() / 1000)) / 60)} минут!`)
+        .setDescription(`Рейд [${raidData.id}-${raidData.raid}](https://discord.com/channels/${guildId}/${channelIds.raid}/${raidData.messageId}) начнется в течение ${Math.trunc((raidData.time - Math.trunc(Date.now() / 1000)) / 60)} минут!`)
         .addFields([
         {
             name: "Состав группы:",
@@ -546,7 +546,7 @@ async function raidAnnounce(oldRaidData) {
         console.error(`[Error code: 1631] Error during adding image to the notify message`, error);
     }
     const raidVoiceChannels = guild.channels.cache
-        .filter((chn) => chn.parentId === ids.raidChnCategoryId && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"))
+        .filter((chn) => chn.parentId === channelIds.raidCategory && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"))
         .reverse();
     const components = [];
     for await (const [_, chn] of raidVoiceChannels) {
@@ -565,12 +565,7 @@ async function raidAnnounce(oldRaidData) {
     raidMembers.forEach(async (member) => {
         (await member).send({
             embeds: [embed],
-            components: [
-                {
-                    type: ComponentType.ActionRow,
-                    components,
-                },
-            ],
+            components: await addButtonComponentsToMessage(components),
         });
     });
 }
@@ -588,7 +583,7 @@ export async function checkRaidTimeConflicts(interaction, raidEvent) {
         const userJoinedRaidsList = conflictingRaids
             .sort((a, b) => a.id - b.id)
             .map((raidData, i) => {
-            return `${i + 1}. [${raidData.id}-${raidData.raid}](https://discord.com/channels/${guildId}/${ids.raidChnId}/${raidData.messageId}) - ${raidData.joined.includes(member.id) ? "участником" : "запасным участником"}`;
+            return `${i + 1}. [${raidData.id}-${raidData.raid}](https://discord.com/channels/${guildId}/${channelIds.raid}/${raidData.messageId}) - ${raidData.joined.includes(member.id) ? "участником" : "запасным участником"}`;
         })
             .join("\n⁣　⁣");
         const embed = new EmbedBuilder()
@@ -602,7 +597,7 @@ export async function removeRaid(raid, interaction, requireMessageReply = true, 
     const deletionResult = await RaidEvent.destroy({ where: { id: raid.id }, limit: 1 });
     const guild = client.getCachedGuild() || (await client.guilds.fetch(guildId));
     const privateRaidChannel = guild.channels.cache.get(raid.channelId) || (await guild.channels.fetch(raid.channelId));
-    const mainRaidChannel = (guild.channels.cache.get(ids.raidChnId) || (await guild.channels.fetch(ids.raidChnId)));
+    const mainRaidChannel = (guild.channels.cache.get(channelIds.raid) || (await guild.channels.fetch(channelIds.raid)));
     const raidMessage = mainRaidChannel.messages.cache.get(raid.messageId) ||
         (await mainRaidChannel.messages.fetch(raid.messageId).catch((e) => {
             `[Error code: 1697] Not found raid message`;

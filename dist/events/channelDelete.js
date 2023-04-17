@@ -1,9 +1,9 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
-import { ids } from "../configs/ids.js";
+import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-const guildChannel = client.getCachedTextChannel(ids.guildChnId);
+const guildChannel = client.getCachedTextChannel(channelIds.guild);
 export default new Event("channelDelete", (channel) => {
     const embed = new EmbedBuilder().setColor(colors.error).setAuthor({
         name: "Канал удален",

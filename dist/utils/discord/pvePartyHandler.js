@@ -1,10 +1,11 @@
 import { ButtonBuilder, ButtonStyle, ChannelType, ComponentType, EmbedBuilder, } from "discord.js";
 import colors from "../../configs/colors.js";
-import { ids } from "../../configs/ids.js";
+import { channelIds } from "../../configs/ids.js";
 import { dlcRoles } from "../../configs/roles.js";
 import { bungieNames } from "../../core/userStatisticsManagement.js";
 import { client } from "../../index.js";
 import { CachedDestinyActivityDefinition } from "../api/manifestHandler.js";
+import { escapeString } from "../general/utilities.js";
 class activitySettings {
     name;
     description;
@@ -54,7 +55,7 @@ class UserSettings {
     }
 }
 export const createdChannelsMap = new Map();
-const pvePartyChannel = client.getCachedTextChannel(ids.pvePartyChnId);
+const pvePartyChannel = client.getCachedTextChannel(channelIds.pveParty);
 export async function handlePveParty(message) {
     if (!message.content.startsWith("+") || !message.member)
         return;
@@ -259,7 +260,7 @@ export async function pvePartyVoiceChatHandler(channelId, member, state) {
     const joinedUsersUpdatedFieldValue = createdChannel.joined
         .map((id, i) => {
         const bungieName = bungieNames.get(id);
-        return `${i + 1}. <@${id}>${bungieName ? ` — ${bungieName}` : ""}`;
+        return `${i + 1}. <@${id}>${bungieName ? ` — ${escapeString(bungieName)}` : ""}`;
     })
         .join("\n");
     const joinedUsersReadyField = {
@@ -269,7 +270,7 @@ export async function pvePartyVoiceChatHandler(channelId, member, state) {
     joinedUsersFieldIndex && joinedUsersFieldIndex >= 1
         ? embed.data.fields?.splice(joinedUsersFieldIndex, 1, joinedUsersReadyField)
         : embed.addFields(joinedUsersReadyField);
-    createdChannel.message.edit({ embeds: [embed] }).then((m) => createdChannelsMap.set(channelId, {
+    await createdChannel.message.edit({ embeds: [embed] }).then((m) => createdChannelsMap.set(channelId, {
         joined: createdChannel.joined,
         message: m,
         voice: createdChannel.voice,

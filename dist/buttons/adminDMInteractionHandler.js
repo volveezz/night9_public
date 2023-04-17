@@ -2,7 +2,7 @@ import { EmbedBuilder } from "discord.js";
 import { AdminDMChannelButtons } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
-import { ids } from "../configs/ids.js";
+import { channelIds } from "../configs/ids.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { descriptionFormatter } from "../utils/general/utilities.js";
 import { sendDmLogMessage } from "../utils/logging/logger.js";
@@ -16,7 +16,7 @@ export default {
         const messageId = interaction.message.embeds[0].footer.text.split(" | MId: ").pop();
         const userId = interaction.message.embeds[0].footer.text.split(" | MId: ").shift().split("UId: ").pop();
         const replyMember = interaction.guild.members.cache.get(userId);
-        const channel = (interaction.channel || (await client.getCachedGuild().channels.fetch(ids.dmMsgsChnId)));
+        const channel = (interaction.channel || (await client.getCachedGuild().channels.fetch(channelIds.directMessages)));
         if (!replyMember)
             throw { name: "[adminDMInteractionHandler error] User not found", userId, errorType: UserErrors.MEMBER_NOT_FOUND };
         switch (buttonId) {

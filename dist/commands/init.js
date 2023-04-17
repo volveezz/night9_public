@@ -1,5 +1,5 @@
 import { Command } from "../structures/command.js";
-import { sendRegistrationLink } from "../utils/discord/registration.js";
+import sendRegistrationLink from "../utils/discord/registration.js";
 export default new Command({
     name: "init",
     description: "Свяжите свой аккаунт Destiny с аккаунтом Discord",

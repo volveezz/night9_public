@@ -2,28 +2,35 @@ import { EmbedBuilder, Message } from "discord.js";
 import { workingCollectors } from "../buttons/adminDMInteractionHandler.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
-import { ids } from "../configs/ids.js";
+import { channelIds } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
 import { Event } from "../structures/event.js";
 import { manageAdminDMChannel } from "../utils/discord/adminDmManager.js";
 import { handleDm } from "../utils/discord/dmHandler.js";
 import { generatePatchNotes } from "../utils/discord/patchnoteGenerator.js";
 import { handlePveParty } from "../utils/discord/pvePartyHandler.js";
-import { sendRegistrationLink } from "../utils/discord/registration.js";
+import sendRegistrationLink from "../utils/discord/registration.js";
+import { handleTimeReplacement } from "../utils/discord/replaceTimeWithEpoch.js";
 import { cacheUserActivity } from "../utils/discord/userActivityHandler.js";
+const bungieHelpTwitter = "https://twitter.com/BungieHelp/status/";
 async function handleMessage(message) {
+    if (message.content.startsWith(bungieHelpTwitter) && message.channelId === channelIds.externalNewsFeed) {
+        setTimeout(async () => {
+            handleTimeReplacement({ message });
+        }, 1000 * 5);
+    }
     if (!message.author || message.author.bot || message.system || !(message instanceof Message))
         return;
-    if (message.channelId === ids.patchGeneratorChnId) {
+    if (message.channelId === channelIds.patchNoteGenerator) {
         return generatePatchNotes(message);
     }
-    if (message.channelId === ids.pvePartyChnId) {
+    if (message.channelId === channelIds.pveParty) {
         return handlePveParty(message);
     }
     if (message.channel.isDMBased()) {
         return handleDirectMessage(message);
     }
-    if (ids.dmMsgsChnId === message.channelId &&
+    if (channelIds.directMessages === message.channelId &&
         message.member?.permissions.has("Administrator") &&
         !workingCollectors.has(message.author.id)) {
         return manageAdminDMChannel(message);

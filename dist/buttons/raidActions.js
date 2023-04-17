@@ -4,7 +4,7 @@ import { RaidButtons } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
-import { ids, ownerId } from "../configs/ids.js";
+import { channelIds, ownerId } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
 import { client } from "../index.js";
 import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
@@ -85,7 +85,7 @@ async function joinedFromHotJoined(raidData) {
     });
     client.getCachedTextChannel(updatedRaidData.channelId).send({ embeds: [embed] });
     const { embeds, components } = (await updateRaidMessage(updatedRaidData));
-    (await client.getCachedTextChannel(ids.raidChnId).messages.fetch(updatedRaidData.messageId)).edit({
+    (await client.getCachedTextChannel(channelIds.raid).messages.fetch(updatedRaidData.messageId)).edit({
         embeds,
         components: await addButtonComponentsToMessage(components),
     });

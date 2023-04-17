@@ -1,10 +1,10 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
-import { ids } from "../configs/ids.js";
+import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import deleteLeavedUserData from "../utils/discord/deleteLeavedUserData.js";
-const guildMemberChannel = client.getCachedTextChannel(ids.guildMemberChnId);
+const guildMemberChannel = client.getCachedTextChannel(channelIds.guildMember);
 export default new Event("guildBanAdd", async (member) => {
     const joinedDate = Math.floor(member.guild.members.cache.get(member.user.id)?.joinedTimestamp / 1000);
     const embed = new EmbedBuilder()

@@ -3,7 +3,7 @@ import colors from "../../configs/colors.js";
 import { logUserRegistrationAttempt } from "../logging/logger.js";
 import { AuthData, InitData } from "../persistence/sequelize.js";
 const emoji = "<:dot:1018321568218226788>";
-export async function sendRegistrationLink(interaction, deferredReply) {
+async function sendRegistrationLink(interaction, deferredReply) {
     const user = interaction instanceof Message ? interaction.author : interaction.user;
     const userId = user.id;
     const checker = await AuthData.findOne({
@@ -29,3 +29,4 @@ export async function sendRegistrationLink(interaction, deferredReply) {
     logUserRegistrationAttempt(request.state, user, created);
     return embed;
 }
+export default sendRegistrationLink;

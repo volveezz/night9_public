@@ -2,7 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuild
 import { ClanJoinButtons, RegisterButtons } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
-import { ids } from "../configs/ids.js";
+import { channelIds } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
 export default {
     name: "clanJoinEvent",
@@ -80,7 +80,7 @@ export default {
                     return;
                 loggedEmbed.addFields({ name: c.customId.split("_").pop() ?? "Заголовок не найден", value: c.value ?? "ничего не указано" });
             });
-            client.getCachedTextChannel(ids.clanChnId)?.send({ embeds: [loggedEmbed] });
+            client.getCachedTextChannel(channelIds.clan)?.send({ embeds: [loggedEmbed] });
         }
     },
 };

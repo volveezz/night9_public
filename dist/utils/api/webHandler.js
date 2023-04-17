@@ -2,7 +2,7 @@ import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import fetch from "node-fetch";
 import { ClanButtons, TimezoneButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
-import { ids } from "../../configs/ids.js";
+import { channelIds } from "../../configs/ids.js";
 import { statusRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
 import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
@@ -123,7 +123,7 @@ export default async function webHandler(code, state, res) {
             loggedEmbed.addFields([{ name: "Текущий клан", value: `${clanResponse.results[0].group.name}`, inline: true }]);
         }
         try {
-            client.getCachedTextChannel(ids.botChnId).send({ embeds: [loggedEmbed] });
+            client.getCachedTextChannel(channelIds.bot).send({ embeds: [loggedEmbed] });
         }
         catch (error) {
             console.error(`[Error code: 1236] Failed to send log message for ${displayName}`);

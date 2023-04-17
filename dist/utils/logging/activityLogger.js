@@ -2,7 +2,7 @@ import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { Op } from "sequelize";
 import { RaidButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
-import { ids } from "../../configs/ids.js";
+import { channelIds } from "../../configs/ids.js";
 import { client } from "../../index.js";
 import { fetchRequest } from "../api/fetchRequest.js";
 import { CachedDestinyActivityDefinition } from "../api/manifestHandler.js";
@@ -48,7 +48,13 @@ async function logActivityCompletion(pgcrId) {
         }
         const { mode, referenceId } = response.activityDetails;
         const manifestData = CachedDestinyActivityDefinition[referenceId];
-        const footerText = `Активность была начата ${response.activityWasStartedFromBeginning ? "с начала" : "с сохранения"}`;
+        const footerText = (mode === 4
+            ? `Рейд запущен`
+            : mode === 82
+                ? `Подземелье запущено`
+                : `Активность запущена`) + response.activityWasStartedFromBeginning
+            ? "с начала"
+            : "с контрольной точки";
         const thumbnailUrl = getActivityImage(referenceId, manifestData.pgcrImage);
         const embed = new EmbedBuilder()
             .setColor(colors.success)
@@ -282,7 +288,7 @@ async function logActivityCompletion(pgcrId) {
                     preciseEncountersTime.clear();
                 }
             }
-            const msg = client.getCachedTextChannel(ids.activityChnId).send({ embeds: [embed] });
+            const msg = client.getCachedTextChannel(channelIds.activity).send({ embeds: [embed] });
             const currentTime = Math.floor(Date.now() / 1000);
             databaseData.forEach(async (dbMemberData) => {
                 if (mode === 82 && clanMembersInActivity > 1)

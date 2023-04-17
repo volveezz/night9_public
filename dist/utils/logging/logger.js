@@ -1,13 +1,13 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { AdminDMChannelButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
-import { ids } from "../../configs/ids.js";
+import { channelIds } from "../../configs/ids.js";
 import { statusRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
 import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
 import { escapeString } from "../general/utilities.js";
 export async function sendDmLogMessage(member, text, id, interaction) {
-    const dmLogChannel = interaction ? null : client.getCachedTextChannel(ids.dmMsgsChnId);
+    const dmLogChannel = interaction ? null : client.getCachedTextChannel(channelIds.directMessages);
     const embed = new EmbedBuilder()
         .setColor(colors.success)
         .setTitle("Отправлено сообщение")
@@ -39,7 +39,7 @@ export function logUserRegistrationAttempt(state, user, isNewUser) {
         { name: "State", value: `${state}`, inline: true },
         { name: "Впервые", value: `${isNewUser}`, inline: true },
     ]);
-    client.getCachedTextChannel(ids.botChnId).send({ embeds: [embed] });
+    client.getCachedTextChannel(channelIds.bot).send({ embeds: [embed] });
 }
 export async function updateClanRolesWithLogging(result, join) {
     const member = client.getCachedGuild().members.cache.get(result.discordId);
@@ -84,5 +84,5 @@ export async function updateClanRolesWithLogging(result, join) {
                 .setColor(colors.kicked);
         }
     }
-    await client.getCachedTextChannel(ids.clanChnId).send({ embeds: [embed] });
+    await client.getCachedTextChannel(channelIds.clan).send({ embeds: [embed] });
 }

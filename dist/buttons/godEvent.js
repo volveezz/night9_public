@@ -4,7 +4,7 @@ import { RaidButtons } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
-import { ids } from "../configs/ids.js";
+import { channelIds } from "../configs/ids.js";
 import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { updateRaidMessage } from "../utils/general/raidFunctions.js";
 import { RaidEvent } from "../utils/persistence/sequelize.js";
@@ -27,7 +27,7 @@ export default {
                     await deferredReply;
                     throw { name: "Сейчас создан лишь один рейд" };
                 }
-                const raidChannel = (await guild.channels.fetch(ids.raidChnId));
+                const raidChannel = (await guild.channels.fetch(channelIds.raid));
                 const baseComponents = [
                     new ButtonBuilder().setCustomId(RaidButtons.join).setLabel("Записаться").setStyle(ButtonStyle.Success),
                     new ButtonBuilder().setCustomId(RaidButtons.leave).setLabel("Выйти").setStyle(ButtonStyle.Danger),
@@ -159,16 +159,16 @@ export default {
                 }
                 return;
             case "achatAccess": {
-                return chnPermGranter(ids.adminChnId);
+                return chnPermGranter(channelIds.admin);
             }
             case "achatVoiceAccess": {
-                return chnPermGranter(ids.adminVoiceChnId);
+                return chnPermGranter(channelIds.adminVoice);
             }
             case "manifestAccess": {
-                return chnPermGranter(ids.manifestChnId);
+                return chnPermGranter(channelIds.manifest);
             }
             case "vchatAccess": {
-                return chnPermGranter(ids.voiceChnId);
+                return chnPermGranter(channelIds.voice);
             }
             case "color":
                 {

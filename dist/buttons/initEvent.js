@@ -1,7 +1,7 @@
 import { EmbedBuilder } from "discord.js";
 import { RegisterButtons } from "../configs/Buttons.js";
 import colors from "../configs/colors.js";
-import { sendRegistrationLink } from "../utils/discord/registration.js";
+import sendRegistrationLink from "../utils/discord/registration.js";
 const emoji = "<:dot:1018321568218226788>";
 export default {
     name: "initEvent",

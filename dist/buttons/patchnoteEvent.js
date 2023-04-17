@@ -1,9 +1,9 @@
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
 import { PatchnoteButtons } from "../configs/Buttons.js";
-import { ids } from "../configs/ids.js";
+import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
-const channelOfGods = client.getCachedTextChannel(ids.godChnId);
-const newsChannel = client.getCachedTextChannel(ids.newsChnId);
+const channelOfGods = client.getCachedTextChannel(channelIds.supporters);
+const newsChannel = client.getCachedTextChannel(channelIds.news);
 export default {
     name: "patchnoteEvent",
     run: async ({ interaction }) => {
@@ -29,14 +29,14 @@ export default {
                         components,
                     })
                     .then((_r) => {
-                    interaction.reply({ content: `Отправлено в <#${ids.godChnId}>`, ephemeral: true });
+                    interaction.reply({ content: `Отправлено в <#${channelIds.supporters}>`, ephemeral: true });
                     interaction.message.delete();
                 });
                 return;
             }
             case PatchnoteButtons.sendToPublic: {
                 newsChannel.send(typeof content == "string" ? content : { embeds: [content] }).then((_r) => {
-                    interaction.reply({ content: `Отправлено в <#${ids.newsChnId}>`, ephemeral: true });
+                    interaction.reply({ content: `Отправлено в <#${channelIds.news}>`, ephemeral: true });
                     interaction.message.delete();
                 });
                 return;

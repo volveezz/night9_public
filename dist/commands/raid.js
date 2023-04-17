@@ -4,7 +4,7 @@ import { Op, Sequelize } from "sequelize";
 import { RaidButtons } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
-import { guildId, ids } from "../configs/ids.js";
+import { channelIds, guildId } from "../configs/ids.js";
 import raidsGuide from "../configs/raidguide.json" assert { type: "json" };
 import { userTimezones } from "../core/userStatisticsManagement.js";
 import { Command } from "../structures/command.js";
@@ -437,12 +437,12 @@ export default new Command({
                 new ButtonBuilder().setCustomId(RaidButtons.alt).setLabel("Возможно буду").setStyle(ButtonStyle.Secondary),
             ];
             const content = `Открыт набор в рейд: ${raidData.raidName} ${raidData.requiredRole !== null ? `<@&${raidData.requiredRole}>` : member.guild.roles.everyone}`;
-            const raidChannel = guild.channels.cache.get(ids.raidChnId) || (await guild.channels.fetch(ids.raidChnId));
-            const additionalPosition = guild.channels.cache.get(ids.raidChnCategoryId)?.children?.cache.size || 1;
+            const raidChannel = guild.channels.cache.get(channelIds.raid) || (await guild.channels.fetch(channelIds.raid));
+            const additionalPosition = guild.channels.cache.get(channelIds.raidCategory)?.children?.cache.size || 1;
             member.guild.channels
                 .create({
                 name: `🔥｜${raidDb.id}-${raidData.channelName}`,
-                parent: ids.raidChnCategoryId,
+                parent: channelIds.raidCategory,
                 position: raidChannel.rawPosition + additionalPosition,
                 permissionOverwrites: [
                     {
@@ -556,7 +556,7 @@ export default new Command({
             const raidInfo = getRaidData((newRaid || raidData.raid), newDifficulty ?? raidData.difficulty);
             const { time, requiredClears: reqClears, messageId: msgId } = raidData;
             const changes = [];
-            const raidMessage = await client.getCachedTextChannel(ids.raidChnId).messages.fetch(msgId);
+            const raidMessage = await client.getCachedTextChannel(channelIds.raid).messages.fetch(msgId);
             const raidEmbed = EmbedBuilder.from(raidMessage?.embeds[0]);
             const t = await database.transaction();
             const changesForChannel = [];
@@ -787,7 +787,8 @@ export default new Command({
             await RaidEvent.destroy({ where: { id: raidData.id }, limit: 1 })
                 .then(async () => {
                 const guild = client.getCachedGuild() || client.guilds.cache.get(guildId) || (await client.guilds.fetch(guildId));
-                const raidsChannel = (guild.channels.cache.get(ids.raidChnId) || (await guild.channels.fetch(ids.raidChnId)));
+                const raidsChannel = (guild.channels.cache.get(channelIds.raid) ||
+                    (await guild.channels.fetch(channelIds.raid)));
                 const privateRaidChannel = (guild.channels.cache.get(raidData.channelId) ||
                     (await guild.channels.fetch(raidData.channelId)));
                 try {

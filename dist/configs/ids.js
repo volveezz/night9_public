@@ -1,23 +1,25 @@
 const ownerId = process.env.OWNER_ID;
-const ids = {
-    adminChnId: process.env.ADMIN_CHANNEL_ID,
-    adminVoiceChnId: process.env.ADMIN_VOICE_CHANNEL_ID,
-    guildMemberChnId: process.env.GUILD_MEMBER_CHANNEL_ID,
-    guildChnId: process.env.GUILD_CHANNEL_ID,
-    messagesChnId: process.env.MESSAGES_CHANNEL_ID,
-    voiceChnId: process.env.VOICE_CHANNEL_ID,
-    clanChnId: process.env.CLAN_CHANNEL_ID,
-    botChnId: process.env.BOT_CHANNEL_ID,
-    raidChnId: process.env.RAID_CHANNEL_ID,
-    raidChnCategoryId: process.env.RAID_CHANNEL_CATEGORY_ID,
-    dmMsgsChnId: process.env.DIRECT_MESSAGES_CHANNEL_ID,
-    activityChnId: process.env.ACTIVITY_CHANNEL_ID,
-    manifestChnId: process.env.MANIFEST_CHANNEL_ID,
-    patchGeneratorChnId: process.env.PATCHNOTE_GENERATOR_CHANNEL_ID,
-    godChnId: process.env.GOD_CHANNEL_ID,
-    newsChnId: process.env.NEWS_CHANNEL_ID,
-    pvePartyChnId: process.env.PVE_PARTY_CHANNEL_ID,
-    pvePartyCategoryId: process.env.PVE_PARTY_CATEGORY_ID,
+const channelIds = {
+    admin: process.env.ADMIN_CHANNEL_ID,
+    adminVoice: process.env.ADMIN_VOICE_CHANNEL_ID,
+    guildMember: process.env.GUILD_MEMBER_CHANNEL_ID,
+    guild: process.env.GUILD_CHANNEL_ID,
+    messages: process.env.MESSAGES_CHANNEL_ID,
+    voice: process.env.VOICE_CHANNEL_ID,
+    clan: process.env.CLAN_CHANNEL_ID,
+    bot: process.env.BOT_CHANNEL_ID,
+    raid: process.env.RAID_CHANNEL_ID,
+    raidCategory: process.env.RAID_CHANNEL_CATEGORY_ID,
+    directMessages: process.env.DIRECT_MESSAGES_CHANNEL_ID,
+    activity: process.env.ACTIVITY_CHANNEL_ID,
+    manifest: process.env.MANIFEST_CHANNEL_ID,
+    patchNoteGenerator: process.env.PATCHNOTE_GENERATOR_CHANNEL_ID,
+    supporters: process.env.GOD_CHANNEL_ID,
+    news: process.env.NEWS_CHANNEL_ID,
+    externalNewsFeed: process.env.PUBLIC_NEWS_CHANNEL_ID,
+    pveParty: process.env.PVE_PARTY_CHANNEL_ID,
+    pvePartyCategory: process.env.PVE_PARTY_CATEGORY_ID,
+    publicBotSpam: process.env.PUBLIC_BOT_CHANNEL_ID,
 };
 const forbiddenRaidIds = [
     548750096, 960175301, 3213556450, 757116822, 2693136601, 417231112, 809170886, 3333172150, 119944200, 3446541099, 2693136602, 3879860661,
@@ -29,4 +31,4 @@ const checkedStoryActivities = [
     3083261666,
 ];
 const guildId = process.env.GUILD_ID;
-export { checkedStoryActivities, forbiddenRaidIds, guildId, ids, ownerId };
+export { channelIds, checkedStoryActivities, forbiddenRaidIds, guildId, ownerId };

@@ -1,16 +1,31 @@
-import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import fetch from "node-fetch";
 import { RegisterButtons } from "../configs/Buttons.js";
 import colors from "../configs/colors.js";
+import { channelIds } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
 import { client } from "../index.js";
+import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { AuthData, LeavedUsersData, database } from "../utils/persistence/sequelize.js";
 const BUNGIE_TOKEN_URL = "https://www.bungie.net/Platform/App/OAuth/Token/";
-async function bungieGrantRequest(row, table, t, retry = false) {
+export async function requestUpdateTokens({ userId, table = AuthData, refresh_token, }) {
+    let refreshToken = refresh_token;
+    if (!refreshToken) {
+        if (table === AuthData) {
+            refreshToken = (await AuthData.findByPk(userId, { attributes: ["refreshToken"] }))?.refreshToken;
+        }
+        else if (table === LeavedUsersData) {
+            refreshToken = (await LeavedUsersData.findByPk(userId, { attributes: ["refreshToken"] }))?.refreshToken;
+        }
+    }
+    if (!refreshToken) {
+        console.error(`[Error code: 1698]`, userId, table, refreshToken);
+        return null;
+    }
     const form = new URLSearchParams(Object.entries({
         grant_type: "refresh_token",
-        refresh_token: row.refreshToken,
+        refresh_token: refreshToken,
     }));
     const fetchRequest = (await fetch(BUNGIE_TOKEN_URL, {
         method: "POST",
@@ -21,6 +36,10 @@ async function bungieGrantRequest(row, table, t, retry = false) {
         body: form,
     }));
     const request = await fetchRequest.json();
+    return request;
+}
+async function bungieGrantRequest(row, table, t, retry = false) {
+    const request = await requestUpdateTokens({ refresh_token: row.refreshToken, table: table === 1 ? AuthData : LeavedUsersData });
     if (request && request.access_token) {
         await (table === 1 ? AuthData : LeavedUsersData).update({ accessToken: request.access_token, refreshToken: request.refresh_token }, { where: { bungieId: row.bungieId }, transaction: t });
     }
@@ -44,14 +63,11 @@ async function bungieGrantRequest(row, table, t, retry = false) {
                             .setColor(colors.warning)
                             .setTitle("Необходима повторная регистрация")
                             .setDescription(`У вашего авторизационного токена истек срок годности. Зарегистрируйтесь повторно`);
-                        const components = [
-                            {
-                                type: ComponentType.ActionRow,
-                                components: [
-                                    new ButtonBuilder().setCustomId(RegisterButtons.register).setLabel("Регистрация").setStyle(ButtonStyle.Success),
-                                ],
-                            },
-                        ];
+                        const registerButton = new ButtonBuilder()
+                            .setCustomId(RegisterButtons.register)
+                            .setLabel("Регистрация")
+                            .setStyle(ButtonStyle.Success);
+                        const components = await addButtonComponentsToMessage([registerButton]);
                         const member = client.getCachedMembers().get(discordId) || (await client.getCachedGuild().members.fetch(discordId));
                         const user = member ||
                             client.users.cache.get(discordId) ||
@@ -64,8 +80,8 @@ async function bungieGrantRequest(row, table, t, retry = false) {
                         }
                         user.send({ embeds: [embed], components }).catch(async (e) => {
                             if (e.code === 50007) {
-                                const botChannel = client.getCachedTextChannel("677552181154676758") ||
-                                    (await client.getCachedGuild().channels.fetch("677552181154676758"));
+                                const botChannel = client.getCachedTextChannel(channelIds.publicBotSpam) ||
+                                    (await client.getCachedGuild().channels.fetch(channelIds.publicBotSpam));
                                 embed.setAuthor({
                                     name: `${nameCleaner(user.displayName ? user.displayName : user.user?.username || user.username)}`,
                                     iconURL: user.displayAvatarURL(),

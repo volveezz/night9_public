@@ -1,11 +1,12 @@
 import { ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder } from "discord.js";
 import { AdminDMChannelButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
-import { ids } from "../../configs/ids.js";
+import { channelIds } from "../../configs/ids.js";
 import { client } from "../../index.js";
 import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
 import { escapeString } from "../general/utilities.js";
-const dmChannel = client.getCachedTextChannel(ids.dmMsgsChnId) || (await client.getCachedGuild().channels.fetch(ids.dmMsgsChnId));
+const dmChannel = client.getCachedTextChannel(channelIds.directMessages) ||
+    (await client.getCachedGuild().channels.fetch(channelIds.directMessages));
 async function sendAdminNotification(message, member) {
     const embed = new EmbedBuilder()
         .setColor(colors.success)
