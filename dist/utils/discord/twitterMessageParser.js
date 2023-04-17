@@ -57,9 +57,6 @@ async function generateTwitterEmbed(twitterData, author) {
         return;
     const resolveAuthor = () => {
         const embed = new EmbedBuilder();
-        const twittDate = twitterData.pubDate && new Date(twitterData.pubDate);
-        if (twittDate)
-            embed.setTimestamp(twittDate);
         if (author === BungieTwitterAuthor.Bungie) {
             return embed.setColor("#d3d2d0").setAuthor({
                 name: "Bungie",
@@ -85,7 +82,8 @@ async function generateTwitterEmbed(twitterData, author) {
     };
     const extractedMedia = extractImageUrl(twitterData.content || "")?.replaceAll("&amp;", "&");
     const replacedDescription = replaceTimeWithEpoch(twitterData.contentSnippet.replaceAll("\n", "\n\n"));
-    const embed = resolveAuthor().setDescription(replacedDescription);
+    const replacedOutput = replacedDescription.replace(/https:\/\/t\.co\/\S+/g, "");
+    const embed = resolveAuthor().setDescription(replacedOutput);
     if (extractedMedia) {
         embed.setImage(extractedMedia);
     }
