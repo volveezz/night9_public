@@ -3,16 +3,22 @@ import colors from "../../configs/colors.js";
 import { Command } from "../../structures/command.js";
 export default new Command({
     name: "purge",
-    description: "Удаляет пачку сообщений за одну команду",
-    descriptionLocalizations: { "en-US": "Delete multiple messages in one command", "en-GB": "Delete multiple messages in one command" },
+    description: "Удаление нескольких сообщений одной командой",
+    descriptionLocalizations: {
+        "en-US": "Deleting multiple messages with one command",
+        "en-GB": "Deleting multiple messages with one command",
+    },
     defaultMemberPermissions: ["Administrator"],
     options: [
         {
             type: ApplicationCommandOptionType.Integer,
             name: "amount",
             nameLocalizations: { ru: "количество" },
-            description: "Количество сообщений для удаления",
-            descriptionLocalizations: { "en-GB": "Specify amount of messages", "en-US": "Specify amount of messages" },
+            description: "Укажите количество сообщений для удаления",
+            descriptionLocalizations: {
+                "en-GB": "Specify the number of messages to delete",
+                "en-US": "Specify the number of messages to delete",
+            },
             required: true,
             min_value: 1,
             max_value: 100,
@@ -21,10 +27,10 @@ export default new Command({
             type: ApplicationCommandOptionType.User,
             name: "user",
             nameLocalizations: { ru: "пользователь" },
-            description: "Пользователь, сообщения которого удаляем",
+            description: "Укажите пользователя, сообщения которого удаляем",
             descriptionLocalizations: {
-                "en-GB": "Specify user messages of which we will delete",
-                "en-US": "Specify user messages of which we will delete",
+                "en-GB": "Specify the user whose messages we are deleting",
+                "en-US": "Specify the user whose messages we are deleting",
             },
         },
     ],

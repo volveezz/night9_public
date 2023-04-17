@@ -15,8 +15,8 @@ export default new Command({
     },
     description: "Подробная информация и статистика аккаунта",
     descriptionLocalizations: {
-        "en-US": "Detailed information and statistic about the account",
-        "en-GB": "Detailed information and statistic about the account",
+        "en-US": "Detailed account information and statistics",
+        "en-GB": "Detailed account information and statistics",
     },
     userContextMenu: {
         name: "Информация",

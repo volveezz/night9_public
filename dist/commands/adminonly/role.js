@@ -4,24 +4,48 @@ import { Command } from "../../structures/command.js";
 import { timer } from "../../utils/general/utilities.js";
 export default new Command({
     name: "role",
-    description: "Удаление ролей у пользователей",
+    description: "Управление и удаление ролей у пользователей",
+    descriptionLocalizations: { "en-GB": "Managing and removing roles from users", "en-US": "Managing and removing roles from users" },
     options: [
         {
             type: ApplicationCommandOptionType.Subcommand,
             name: "clear",
             description: "Удаление роли у всех пользоваталей",
-            options: [{ type: ApplicationCommandOptionType.Role, name: "role", description: "Забираемая роль", required: true }],
+            descriptionLocalizations: { "en-GB": "Remove the role from all users", "en-US": "Remove the role from all users" },
+            options: [
+                {
+                    type: ApplicationCommandOptionType.Role,
+                    name: "role",
+                    description: "Укажите забираемую роль",
+                    descriptionLocalizations: { "en-GB": "Specify the role to be taken away", "en-US": "Specify the role to be taken away" },
+                    required: true,
+                },
+            ],
         },
         {
             type: ApplicationCommandOptionType.Subcommand,
             name: "set",
             description: "Установить определенную роль пользователю",
+            descriptionLocalizations: { "en-GB": "Set a specific role for a user", "en-US": "Set a specific role for a user" },
             options: [
-                { type: ApplicationCommandOptionType.Role, name: "role", description: "Устанавливаемая роль", required: true },
                 {
                     type: ApplicationCommandOptionType.User,
                     name: "user",
-                    description: "Пользователь, которому устанавливаем роль",
+                    description: "Укажите пользователя, которому устанавливаем роль",
+                    descriptionLocalizations: {
+                        "en-GB": "Specify the user to whom you want to set the role",
+                        "en-US": "Specify the user to whom you want to set the role",
+                    },
+                    required: true,
+                },
+                {
+                    type: ApplicationCommandOptionType.Role,
+                    name: "role",
+                    description: "Укажите роль, которая должна быть установлена для пользователя",
+                    descriptionLocalizations: {
+                        "en-GB": "Specify the role to be set for the user",
+                        "en-US": "Specify the role to be set for the user",
+                    },
                     required: true,
                 },
             ],

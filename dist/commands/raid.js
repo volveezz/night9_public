@@ -102,8 +102,8 @@ export default new Command({
                     nameLocalizations: { "en-US": "time", "en-GB": "time" },
                     description: "Укажите время старта. Формат: ЧАС:МИНУТА ДЕНЬ/МЕСЯЦ",
                     descriptionLocalizations: {
-                        "en-US": "Specify the start time in the format: HH:mm dd/MM",
-                        "en-GB": "Specify the start time in the format: HH:mm dd/MM",
+                        "en-US": "Enter the start time in the format HH:mm dd/MM",
+                        "en-GB": "Enter the start time in the format HH:mm dd/MM",
                     },
                     autocomplete: true,
                     required: true,
@@ -114,8 +114,8 @@ export default new Command({
                     nameLocalizations: { "en-US": "description", "en-GB": "description" },
                     description: "Укажите описание набора. Вы можете указать здесь что угодно. Знаки для разметки: \\n \\* \\!",
                     descriptionLocalizations: {
-                        "en-US": "Provide a description. You can specify anything here. Markdown symbols: \\n \\* \\!",
-                        "en-GB": "Provide a description. You can specify anything here. Markdown symbols: \\n \\* \\!",
+                        "en-US": "Enter a description. You can enter anything here. Markdown symbols: \\n \\* \\!",
+                        "en-GB": "Enter a description. You can enter anything here. Markdown symbols: \\n \\* \\!",
                     },
                     maxLength: 1000,
                 },
@@ -127,8 +127,8 @@ export default new Command({
                     nameLocalizations: { "en-US": "difficulty", "en-GB": "difficulty" },
                     description: "Укажите сложность рейда. По умолч.: нормальный",
                     descriptionLocalizations: {
-                        "en-US": "Specify raid difficulty. Default: normal",
-                        "en-GB": "Specify raid difficulty. Default: normal",
+                        "en-US": "Specify the difficulty of the raid. Default: Normal",
+                        "en-GB": "Specify the difficulty of the raid. Default: Normal",
                     },
                     choices: [
                         {
@@ -151,8 +151,8 @@ export default new Command({
                     nameLocalizations: { "en-US": "clears_requirement", "en-GB": "clears_requirement" },
                     description: "Укажите минимальное количество закрытий этого рейда для записи",
                     descriptionLocalizations: {
-                        "en-US": "Specify minimum number of completions of this raid for join",
-                        "en-GB": "Specify minimum number of completions of this raid for join",
+                        "en-US": "Specify raid clears requirement for this raid to join LFG",
+                        "en-GB": "Specify raid clears requirement for this raid to join LFG",
                     },
                 },
             ],
@@ -173,8 +173,8 @@ export default new Command({
                     autocomplete: true,
                     description: "Укажите Id редактируемого рейда",
                     descriptionLocalizations: {
-                        "en-US": "Specify the raid id of modified raid",
-                        "en-GB": "Specify the raid id of modified raid",
+                        "en-US": "Specify the raid id of the modified raid",
+                        "en-GB": "Specify the raid id of the modified raid",
                     },
                 },
                 {
@@ -231,8 +231,8 @@ export default new Command({
                     autocomplete: true,
                     description: "Укажите измененное время старта. Формат: ЧАС:МИНУТА ДЕНЬ/МЕСЯЦ",
                     descriptionLocalizations: {
-                        "en-US": "Specify changed LFG start time in format: HH:mm dd/MM",
-                        "en-GB": "Specify changed LFG start time in format: HH:mm dd/MM",
+                        "en-US": "Enter the modified LFG start time in the format HH:mm dd/MM",
+                        "en-GB": "Enter the modified LFG start time in the format HH:mm dd/MM",
                     },
                 },
                 {
@@ -248,8 +248,8 @@ export default new Command({
                     nameLocalizations: { "en-US": "new_description", "en-GB": "new_description" },
                     description: "Укажите измененное описание. Вы можете указать здесь что угодно. Знаки для разметки: \\n \\* \\!",
                     descriptionLocalizations: {
-                        "en-US": "Specify new LFG description. You can write anything here. Formatting symbols: \\n \\* \\!",
-                        "en-GB": "Specify new LFG description. You can write anything here. Formatting symbols: \\n \\* \\!",
+                        "en-US": "Enter a new description. You can enter anything here. Markdown symbols: \\n \\* \\!",
+                        "en-GB": "Enter a new description. You can enter anything here. Markdown symbols: \\n \\* \\!",
                     },
                 },
                 {
@@ -260,8 +260,8 @@ export default new Command({
                     nameLocalizations: { "en-US": "new_difficulty", "en-GB": "new_difficulty" },
                     description: "Укажите сложность рейда. По умолч.: нормальный",
                     descriptionLocalizations: {
-                        "en-US": "Specify raid difficulty. Default: normal",
-                        "en-GB": "Specify raid difficulty. Default: normal",
+                        "en-US": "Specify the new difficulty of the raid. Default: Normal",
+                        "en-GB": "Specify the new difficulty of the raid. Default: Normal",
                     },
                     choices: [
                         {
@@ -283,8 +283,8 @@ export default new Command({
                     name: "новое_требование_закрытий",
                     description: "Укажите новое минимальное количество закрытий этого рейда для записи",
                     descriptionLocalizations: {
-                        "en-US": "Specify raid clears requirement of this raid for joining LFG",
-                        "en-GB": "Specify raid clears requirement of this raid for joining LFG",
+                        "en-US": "Specify new raid clears requirement for this raid to join LFG",
+                        "en-GB": "Specify new raid clears requirement for this raid to join LFG",
                     },
                     nameLocalizations: { "en-US": "new_clears_requirement", "en-GB": "new_clears_requirement" },
                 },
@@ -316,8 +316,8 @@ export default new Command({
                     nameLocalizations: { "en-US": "isalt", "en-GB": "isalt" },
                     description: "Укажите группу добавляемого участника",
                     descriptionLocalizations: {
-                        "en-US": "Specify if user should be added as alternative",
-                        "en-GB": "Specify if user should be added as alternative",
+                        "en-US": "Specify whether to add the user as an alternative",
+                        "en-GB": "Specify whether to add the user as an alternative",
                     },
                 },
                 {
@@ -359,8 +359,8 @@ export default new Command({
                     autocomplete: true,
                     description: "Укажите Id рейда, из которого исключаем участника",
                     descriptionLocalizations: {
-                        "en-US": "Specify the raid id of the raid from which you are kicking the user",
-                        "en-GB": "Specify the raid id of the raid from which you are kicking the user",
+                        "en-US": "Specify the raid id of the raid you are kicking the user from",
+                        "en-GB": "Specify the raid id of the raid you are kicking the user from",
                     },
                 },
             ],
@@ -370,7 +370,7 @@ export default new Command({
             name: "удалить",
             nameLocalizations: { "en-US": "delete", "en-GB": "delete" },
             description: "Удаление/отмена созданного набора",
-            descriptionLocalizations: { "en-US": "Delete/cancel LFG", "en-GB": "Delete/cancel LFG" },
+            descriptionLocalizations: { "en-US": "Delete/Cancel LFG", "en-GB": "Delete/Cancel LFG" },
             options: [
                 {
                     type: ApplicationCommandOptionType.Integer,
@@ -381,8 +381,8 @@ export default new Command({
                     autocomplete: true,
                     description: "Укажите Id удаляемого рейда",
                     descriptionLocalizations: {
-                        "en-US": "Specify the raid id of the raid you are deletting",
-                        "en-GB": "Specify the raid id of the raid you are deletting",
+                        "en-US": "Specify the raid ID of the raid you want to delete",
+                        "en-GB": "Specify the raid ID of the raid you want to delete",
                     },
                 },
             ],

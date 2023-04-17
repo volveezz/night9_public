@@ -17,20 +17,20 @@ export default new Command({
                 {
                     type: ApplicationCommandOptionType.Subcommand,
                     name: "code",
-                    description: "Generate embed from a code",
+                    description: "Generate embed from code",
                     options: [
                         { type: ApplicationCommandOptionType.String, name: "embed_code", description: "Embed code", required: true },
                         {
                             type: ApplicationCommandOptionType.String,
                             name: "message_id",
-                            description: "Specify a id of a message if you want to edit existing one",
+                            description: "Specify a message ID if you want to edit an existing message",
                         },
                     ],
                 },
                 {
                     type: ApplicationCommandOptionType.Subcommand,
                     name: "preset",
-                    description: "Generate embed from a predefined preset",
+                    description: "Create an embed from a pre-defined preset",
                     options: [{ type: ApplicationCommandOptionType.String, name: "preset_name", description: "Preset name", required: true }],
                 },
             ],
@@ -43,10 +43,10 @@ export default new Command({
                 {
                     type: ApplicationCommandOptionType.String,
                     name: "customid",
-                    description: "Specify a customid of a future button",
+                    description: "Specify a button custom ID",
                     required: true,
                 },
-                { type: ApplicationCommandOptionType.String, name: "label", description: "Specify a label of a future button" },
+                { type: ApplicationCommandOptionType.String, name: "label", description: "Specify a button label" },
                 {
                     type: ApplicationCommandOptionType.Number,
                     name: "style",

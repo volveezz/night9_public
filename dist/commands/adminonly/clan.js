@@ -15,7 +15,7 @@ export default new Command({
         {
             type: ApplicationCommandOptionType.Subcommand,
             name: "list",
-            description: "View detailed statistics for each of clan members",
+            description: "View detailed statistics for each Night 9 clan member",
             options: [{ name: "removal", description: "Add removal system", type: ApplicationCommandOptionType.Boolean }],
         },
     ],

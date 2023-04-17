@@ -12,8 +12,8 @@ export default new Command({
     },
     description: "Статистика закрытых рейдов на каждом классе",
     descriptionLocalizations: {
-        "en-US": "Statistics of completed raid on each character",
-        "en-GB": "Statistics of completed raid on each character",
+        "en-US": "Statistics of completed raids for each character",
+        "en-GB": "Statistics of completed raids for each character",
     },
     options: [
         {

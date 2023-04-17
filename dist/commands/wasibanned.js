@@ -7,8 +7,8 @@ export default new Command({
     name: "wasibanned",
     description: "Проверьте свой статус бана",
     descriptionLocalizations: {
-        "en-GB": "See if your statistics is currently checking",
-        "en-US": "See if your statistics is currently checking",
+        "en-GB": "Check whether your statistics are currently being checked",
+        "en-US": "Check whether your statistics are currently being checked",
     },
     run: async ({ interaction }) => {
         const embed = new EmbedBuilder().setColor(colors.invisible);

@@ -9,13 +9,13 @@ import { isSnowflake } from "../../utils/general/utilities.js";
 import { AuthData } from "../../utils/persistence/sequelize.js";
 export default new Command({
     name: "auth",
-    description: "Refresh the authorization data for a selected user",
+    description: "Refresh of the user's authorisation data for the selected user",
     defaultMemberPermissions: ["Administrator"],
     options: [
         {
             type: ApplicationCommandOptionType.String,
             name: "id",
-            description: "Specify the user whose authorization data should be refreshed",
+            description: "Specify the user whose permissions are to be updated",
             required: true,
         },
     ],

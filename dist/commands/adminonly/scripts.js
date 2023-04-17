@@ -5,7 +5,7 @@ import { convertSeconds } from "../../utils/general/convertSeconds.js";
 import { AuthData, UserActivityData } from "../../utils/persistence/sequelize.js";
 export default new Command({
     name: "scripts",
-    description: "script system",
+    description: "Script system",
     defaultMemberPermissions: ["Administrator"],
     options: [
         {

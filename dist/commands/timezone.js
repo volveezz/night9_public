@@ -7,7 +7,7 @@ import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessa
 export default new Command({
     name: "timezone",
     description: "Укажите свой часовой пояс",
-    descriptionLocalizations: { "en-US": "Choose your timezone", "en-GB": "Choose your timezone" },
+    descriptionLocalizations: { "en-US": "Select your time zone", "en-GB": "Select your time zone" },
     global: true,
     run: async ({ interaction }) => {
         const embed = new EmbedBuilder()

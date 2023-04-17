@@ -7,11 +7,10 @@ import { Command } from "../structures/command.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default new Command({
     name: "autoname",
-    nameLocalizations: { "en-GB": "autonick", "en-US": "autonick" },
     description: "Управление автоматической сменой установкой своего ника",
     descriptionLocalizations: {
-        "en-US": "Enables or disables automatic nickname change",
-        "en-GB": "Enables or disables automatic nickname change",
+        "en-US": "Enable or disable automatic nickname changes",
+        "en-GB": "Enable or disable automatic nickname changes",
     },
     run: async ({ interaction }) => {
         const embed = new EmbedBuilder().setColor(colors.serious).setAuthor({

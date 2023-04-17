@@ -14,8 +14,8 @@ export default new Command({
     nameLocalizations: { "en-US": "completions", "en-GB": "completions" },
     description: "Проверьте статистику всех активностей в выбранной категории",
     descriptionLocalizations: {
-        "en-US": "Check statistic of all activities in the selected category",
-        "en-GB": "Check statistic of all activities in the selected category",
+        "en-US": "View statistics of all activities in the selected category",
+        "en-GB": "View statistics of all activities in the selected category",
     },
     options: [
         {
@@ -23,8 +23,8 @@ export default new Command({
             nameLocalizations: { "en-US": "category", "en-GB": "category" },
             description: "Укажите категорию проверяемых активностей",
             descriptionLocalizations: {
-                "en-US": "Choose category for checking",
-                "en-GB": "Choose category for checking",
+                "en-US": "Select category to check",
+                "en-GB": "Select category to check",
             },
             type: ApplicationCommandOptionType.String,
             choices: [
