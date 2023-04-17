@@ -413,18 +413,21 @@ async function manageClanMembers(bungie_array) {
                     if (!(memberAuthData.roleCategoriesBits & NightRoleCategory.Triumphs))
                         return clanJoinDateCheck.add(membershipId);
                     const member = client.getCachedMembers().get(memberAuthData.discordId);
-                    if (!member)
-                        return console.error(`[Error code: 1087] Member not found ${memberAuthData.discordId}/${memberAuthData.displayName}`);
+                    if (!member) {
+                        console.error(`[Error code: 1087] Member not found ${memberAuthData.discordId}/${memberAuthData.displayName}`);
+                        return;
+                    }
                     for (const step of clanJoinDateRoles.roles) {
                         if (step.days <= Math.trunc((Date.now() - new Date(result.joinDate).getTime()) / 1000 / 60 / 60 / 24)) {
                             if (!member.roles.cache.has(step.roleId)) {
                                 try {
-                                    if (!member.roles.cache.has(triumphsCategory))
-                                        await member.roles.add(triumphsCategory);
-                                    await member.roles.add(step.roleId).catch((e) => console.error(`[Error code: 1239] Error catched`, { e }));
-                                    setTimeout(async () => {
-                                        await member.roles.remove(clanJoinDateRoles.allRoles.filter((r) => r !== step.roleId));
-                                    }, 1500);
+                                    await member.roles.remove(clanJoinDateRoles.allRoles.filter((r) => r !== step.roleId));
+                                    if (!member.roles.cache.has(triumphsCategory)) {
+                                        await member.roles.add([triumphsCategory, step.roleId]);
+                                    }
+                                    else {
+                                        await member.roles.add(step.roleId);
+                                    }
                                 }
                                 catch (error) {
                                     console.error(`[Error code: 1238] Error during clanJoinDate role managment`, { error });

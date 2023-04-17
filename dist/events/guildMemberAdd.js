@@ -1,11 +1,13 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import { channelIds } from "../configs/ids.js";
+import { statusRoles } from "../configs/roles.js";
 import { requestUpdateTokens } from "../core/tokenManagement.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import welcomeMessage from "../utils/discord/welcomeMessage.js";
-import { AuthData, LeavedUsersData, database } from "../utils/persistence/sequelize.js";
+import { escapeString } from "../utils/general/utilities.js";
+import { AuthData, InitData, LeavedUsersData, database } from "../utils/persistence/sequelize.js";
 const guildMemberChannel = client.getCachedTextChannel(channelIds.guildMember);
 export default new Event("guildMemberAdd", async (member) => {
     welcomeMessage(member);
@@ -70,10 +72,11 @@ export default new Event("guildMemberAdd", async (member) => {
             transaction,
             limit: 1,
         });
+        InitData.destroy({ where: { discordId: data.discordId }, limit: 1, transaction });
         loggedEmbed.addFields([
             {
                 name: "Данные аккаунта восстановлены",
-                value: `${data.displayName} (${data.platform}/${data.bungieId})`,
+                value: `${escapeString(data.displayName)} ([${data.platform}/${data.bungieId}](https://www.bungie.net/7/ru/User/Profile/${data.platform}/${data.bungieId}))`,
             },
         ]);
         loggedEmbed.addFields([
@@ -84,6 +87,7 @@ export default new Event("guildMemberAdd", async (member) => {
         ]);
         await transaction.commit();
         await message.edit({ embeds: [loggedEmbed] });
+        await member.roles.set([statusRoles.member, statusRoles.verified]);
     }
     catch (error) {
         await transaction.rollback();

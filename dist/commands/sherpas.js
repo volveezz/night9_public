@@ -79,9 +79,11 @@ export default new Command({
                 .setColor(colors.success)
                 .setTitle(`Новички в ${getRaidData(selectedRaid).raidName}`)
                 .setDescription(raidEmbedData);
+            await deferredReply;
             if (index === 0) {
-                await deferredReply;
-                await interaction.editReply({ embeds: [embed] });
+                await interaction.editReply({ embeds: [embed] }).catch(async (e) => {
+                    await interaction.followUp({ embeds: [embed], ephemeral: true });
+                });
             }
             else {
                 await interaction.followUp({ embeds: [embed], ephemeral: true });
