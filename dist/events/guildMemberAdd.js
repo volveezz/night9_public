@@ -72,7 +72,7 @@ export default new Event("guildMemberAdd", async (member) => {
             transaction,
             limit: 1,
         });
-        InitData.destroy({ where: { discordId: data.discordId }, limit: 1, transaction });
+        InitData.destroy({ where: { discordId: data.discordId }, limit: 1 });
         loggedEmbed.addFields([
             {
                 name: "Данные аккаунта восстановлены",

@@ -6,23 +6,60 @@ import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { getRaidData } from "../utils/general/raidFunctions.js";
 export default new Command({
-    name: "sherpas",
+    name: "новички",
+    nameLocalizations: { "en-GB": "sherpas", "en-US": "sherpas" },
     description: "Список новичков, которые никогда не ходили в те или иные рейды",
-    defaultMemberPermissions: ["Administrator"],
+    descriptionLocalizations: {
+        "en-GB": "List of newbies who have never gone on certain raids",
+        "en-US": "List of newbies who have never gone on certain raids",
+    },
     options: [
         {
             type: ApplicationCommandOptionType.String,
             name: "рейд",
+            nameLocalizations: { "en-GB": "raid", "en-US": "raid" },
             description: "Выберите рейд, новичков на который ищем",
+            descriptionLocalizations: {
+                "en-GB": "Select the raid to which you are looking for newbies",
+                "en-US": "Select the raid to which you are looking for newbies",
+            },
             required: true,
             choices: [
-                { name: "Источник кошмаров", value: "ron" },
-                { name: "Гибель короля", value: "kf" },
-                { name: "Клятва послушника", value: "votd" },
-                { name: "Хрустальный чертог", value: "vog" },
-                { name: "Склеп Глубокого камня", value: "dsc" },
-                { name: "Сад спасения", value: "gos" },
-                { name: "Последнее желание", value: "lw" },
+                {
+                    name: "Источник кошмаров",
+                    nameLocalizations: { "en-US": "Root of Nightmares", "en-GB": "Root of Nightmares" },
+                    value: "ron",
+                },
+                {
+                    name: "Гибель короля",
+                    nameLocalizations: { "en-US": "King's Fall", "en-GB": "King's Fall" },
+                    value: "kf",
+                },
+                {
+                    name: "Клятва послушника",
+                    nameLocalizations: { "en-US": "Vow of the Disciple", "en-GB": "Vow of the Disciple" },
+                    value: "votd",
+                },
+                {
+                    name: "Хрустальный чертог",
+                    nameLocalizations: { "en-US": "Vault of Glass", "en-GB": "Vault of Glass" },
+                    value: "vog",
+                },
+                {
+                    name: "Склеп Глубокого камня",
+                    nameLocalizations: { "en-US": "Deep Stone Crypt", "en-GB": "Deep Stone Crypt" },
+                    value: "dsc",
+                },
+                {
+                    name: "Сад спасения",
+                    nameLocalizations: { "en-US": "Garden of Salvation", "en-GB": "Garden of Salvation" },
+                    value: "gos",
+                },
+                {
+                    name: "Последнее желание",
+                    nameLocalizations: { "en-US": "Last Wish", "en-GB": "Last Wish" },
+                    value: "lw",
+                },
             ],
         },
     ],
@@ -74,14 +111,15 @@ export default new Command({
                     ? `не проходил ранее рейды`
                     : `не проходил доступные на данный момент рейды`}`;
         }
-        async function sendEmbed(raidEmbedData, index = 0) {
+        async function sendEmbed(raidEmbedData, embedCountIndex = 0) {
             const embed = new EmbedBuilder()
                 .setColor(colors.success)
                 .setTitle(`Новички в ${getRaidData(selectedRaid).raidName}`)
                 .setDescription(raidEmbedData);
             await deferredReply;
-            if (index === 0) {
+            if (embedCountIndex === 0) {
                 await interaction.editReply({ embeds: [embed] }).catch(async (e) => {
+                    console.error(`[Error code: 1702]`, e);
                     await interaction.followUp({ embeds: [embed], ephemeral: true });
                 });
             }
@@ -97,21 +135,21 @@ export default new Command({
         if (raidClearsList.length > 0) {
             let currentDescription = "";
             let embedIndex = 0;
-            raidClearsList.forEach((raidClear) => {
+            raidClearsList.forEach(async (raidClear) => {
                 if (currentDescription.length + raidClear.length + 1 > maxLength) {
-                    sendEmbed(currentDescription, embedIndex);
+                    await sendEmbed(currentDescription, embedIndex);
                     currentDescription = "";
                     embedIndex++;
                 }
                 currentDescription += raidClear + "\n";
             });
             if (currentDescription.length > 0) {
-                sendEmbed(currentDescription, embedIndex);
+                await sendEmbed(currentDescription, embedIndex);
             }
         }
         else {
             const noNovicesText = "Похоже, в этот рейд нет новичков без закрытий";
-            sendEmbed(noNovicesText);
+            await sendEmbed(noNovicesText);
         }
     },
 });
