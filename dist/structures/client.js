@@ -187,6 +187,7 @@ export class ExtendedClient extends Client {
             this.loadCommands();
             this.loadAutocompletions();
             this.startUpdatingPresence();
+            this.importFile("../utils/api/rssHandler.js");
             if (process.env.DEV_BUILD !== "dev") {
                 tokenManagment();
                 clanOnlineMemberActivityChecker();

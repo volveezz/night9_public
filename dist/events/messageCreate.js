@@ -10,7 +10,7 @@ import { handleDm } from "../utils/discord/dmHandler.js";
 import { generatePatchNotes } from "../utils/discord/patchnoteGenerator.js";
 import { handlePveParty } from "../utils/discord/pvePartyHandler.js";
 import sendRegistrationLink from "../utils/discord/registration.js";
-import { handleTimeReplacement } from "../utils/discord/replaceTimeWithEpoch.js";
+import { handleTimeReplacement } from "../utils/discord/twitterMessageParser.js";
 import { cacheUserActivity } from "../utils/discord/userActivityHandler.js";
 const bungieHelpTwitter = "https://twitter.com/BungieHelp/status/";
 async function handleMessage(message) {
