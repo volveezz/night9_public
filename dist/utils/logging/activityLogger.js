@@ -49,10 +49,10 @@ async function logActivityCompletion(pgcrId) {
         const { mode, referenceId } = response.activityDetails;
         const manifestData = CachedDestinyActivityDefinition[referenceId];
         const footerText = (mode === 4
-            ? `Рейд запущен`
+            ? `Рейд был закрыт`
             : mode === 82
-                ? `Подземелье запущено`
-                : `Активность запущена`) + response.activityWasStartedFromBeginning
+                ? `Подземелье было закрыто`
+                : `Активность была закрыта`) + response.activityWasStartedFromBeginning
             ? "с начала"
             : "с контрольной точки";
         const thumbnailUrl = getActivityImage(referenceId, manifestData.pgcrImage);
