@@ -549,70 +549,45 @@ export default new Command({
             const newReqClears = args.getInteger("новое_требование_закрытий");
             const isSilent = args.getBoolean("silent") || false;
             let raidData = await getRaidDatabaseInfo(raidId, interaction);
-            if (raidData === null || (Array.isArray(raidData) && raidData.length === 0)) {
+            if (raidData == null || (Array.isArray(raidData) && raidData.length === 0)) {
                 await deferredReply;
                 throw { errorType: UserErrors.RAID_NOT_FOUND };
             }
             const raidInfo = getRaidData((newRaid || raidData.raid), newDifficulty ?? raidData.difficulty);
-            const { time, requiredClears: reqClears, messageId: msgId } = raidData;
             const changes = [];
-            const raidMessage = await client.getCachedTextChannel(channelIds.raid).messages.fetch(msgId);
+            const raidMessage = await client.getCachedTextChannel(channelIds.raid).messages.fetch(raidData.messageId);
             const raidEmbed = EmbedBuilder.from(raidMessage?.embeds[0]);
             const t = await database.transaction();
             const changesForChannel = [];
-            if (newRaid !== null || newDifficulty !== null || newReqClears !== null) {
-                changes.push(`Рейд был измнен`);
-                if (newDifficulty !== null && raidInfo.maxDifficulty >= newDifficulty) {
+            const updateDifficulty = async (newDifficulty, raidInfo, raidData, t) => {
+                if (newDifficulty != null && raidInfo.maxDifficulty >= newDifficulty && newDifficulty != raidData.difficulty) {
+                    const difficultyText = newDifficulty === 2 ? "Мастер" : newDifficulty === 1 ? "Нормальный" : "*неизвестная сложность*";
                     changesForChannel.push({
                         name: "Сложность рейда",
-                        value: `Сложность рейда была изменена - \`${newDifficulty === 2 ? "Мастер" : newDifficulty === 1 ? "Нормальный" : "*неизвестная сложность*"}\``,
+                        value: `Сложность рейда была изменена - \`${difficultyText}\``,
                     });
-                    await RaidEvent.update({
-                        difficulty: newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : 1,
-                    }, {
-                        where: { id: raidData.id },
-                        transaction: t,
-                    });
-                    if (newRaid == null) {
-                        raidEmbed
-                            .setTitle(newReqClears !== null || reqClears >= 1 || newDifficulty !== null
-                            ? `Рейд: ${raidInfo.raidName}${(newReqClears !== null && newReqClears === 0) || (newReqClears === null && reqClears === 0)
-                                ? ""
-                                : newReqClears
-                                    ? ` от ${newReqClears} закрытий`
-                                    : ` от ${reqClears} закрытий`}`
-                            : `Рейд: ${raidInfo.raidName}`)
-                            .setColor(raidData.joined.length === 6 ? colors.invisible : raidInfo.raidColor);
-                    }
+                    await RaidEvent.update({ difficulty: newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : 1 }, { where: { id: raidData.id }, transaction: t });
                 }
-                if (newReqClears !== null) {
-                    if (newReqClears === 0) {
-                        changesForChannel.push({
-                            name: "Требование для вступления",
-                            value: `Требование для вступления \`отключено\``,
-                        });
-                    }
-                    else {
-                        changesForChannel.push({
-                            name: "Требование для вступления",
-                            value: `Теперь для вступления нужно от \`${newReqClears}\` закрытий`,
-                        });
-                    }
-                    await RaidEvent.update({
-                        requiredClears: newReqClears,
-                    }, {
-                        where: { id: raidData.id },
-                        transaction: t,
+            };
+            async function updateRequiredClears(newReqClears, raidData, t) {
+                if (newReqClears != null) {
+                    const requiredClearsText = newReqClears === 0
+                        ? `Требование для вступления \`отключено\``
+                        : `Теперь для вступления нужно от \`${newReqClears}\` закрытий`;
+                    changesForChannel.push({
+                        name: "Требование для вступления",
+                        value: requiredClearsText,
                     });
+                    await RaidEvent.update({ requiredClears: newReqClears }, { where: { id: raidData.id }, transaction: t });
                 }
+            }
+            async function updateRaid(newRaid, raidInfo, raidData, t, raidEmbed, newDifficulty) {
                 if (newRaid !== null) {
                     changesForChannel.push({
                         name: `Рейд`,
                         value: `Рейд набора был изменен - \`${raidInfo.raidName}\``,
                     });
-                    const [_, [updatedRaid]] = await RaidEvent.update({
-                        raid: raidInfo.raid,
-                    }, {
+                    const [_, [updatedRaid]] = await RaidEvent.update({ raid: raidInfo.raid }, {
                         where: { id: raidData.id },
                         transaction: t,
                         returning: [
@@ -630,24 +605,30 @@ export default new Command({
                         limit: 1,
                     });
                     const updatedRaidMessage = await updateRaidMessage(updatedRaid);
-                    raidEmbed
-                        .setColor(updatedRaid.joined.length === 6 ? colors.invisible : raidInfo.raidColor)
-                        .setTitle(newReqClears !== null || reqClears >= 1 || newDifficulty !== null
-                        ? `Рейд: ${raidInfo.raidName}${(newReqClears !== null && newReqClears === 0) || (newReqClears === null && reqClears === 0)
-                            ? ""
-                            : newReqClears
-                                ? ` от ${newReqClears} закрытий`
-                                : ` от ${reqClears} закрытий`}`
-                        : `Рейд: ${raidInfo.raidName}`)
-                        .setThumbnail(raidInfo.raidBanner);
                     if (updatedRaidMessage) {
                         raidEmbed.setFields(updatedRaidMessage.embeds[0].data.fields);
                     }
                     raidChallenges(raidInfo, client.getCachedTextChannel(updatedRaid.channelId).messages.cache.get(updatedRaid.inChannelMessageId) ??
-                        (await client.getCachedTextChannel(updatedRaid.channelId).messages.fetch(updatedRaid.inChannelMessageId)), raidData.time, newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : updatedRaid.difficulty);
+                        (await client.getCachedTextChannel(updatedRaid.channelId).messages.fetch(updatedRaid.inChannelMessageId)), raidData.time, newDifficulty != null && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : updatedRaid.difficulty);
                     const channel = (await client.getCachedGuild().channels.fetch(updatedRaid.channelId));
                     channel.edit({ name: `🔥｜${updatedRaid.id}${raidInfo.channelName}` }).catch((e) => console.error(`[Error code: 1696]`, e));
                 }
+            }
+            if (newRaid != null || newDifficulty != null || newReqClears != null) {
+                changes.push(`Рейд был измнен`);
+                await updateDifficulty(newDifficulty, raidInfo, raidData, t);
+                await updateRequiredClears(newReqClears, raidData, t);
+                await updateRaid(newRaid, raidInfo, raidData, t, raidEmbed, newDifficulty);
+                raidEmbed
+                    .setColor(raidData.joined.length === 6 ? colors.invisible : raidInfo.raidColor)
+                    .setTitle(newReqClears != null || raidData.requiredClears >= 1 || newDifficulty != null
+                    ? `Рейд: ${raidInfo.raidName}${(newReqClears != null && newReqClears === 0) || (newReqClears == null && raidData.requiredClears === 0)
+                        ? ""
+                        : newReqClears != null
+                            ? ` от ${newReqClears} закрытий`
+                            : ` от ${raidData.requiredClears} закрытий`}`
+                    : `Рейд: ${raidInfo.raidName}`)
+                    .setThumbnail(raidInfo.raidBanner);
             }
             if (newDescription !== null) {
                 const descriptionFieldIndex = raidEmbed.data.fields?.findIndex((field) => field.name === "Описание");
@@ -682,7 +663,7 @@ export default new Command({
             }
             if (newTime !== null) {
                 const changedTime = timeConverter(newTime, userTimezones.get(interaction.user.id));
-                if (changedTime === time) {
+                if (changedTime === raidData.time) {
                     changes.push(`Время старта осталось без изменений т.к. оно соответствует предыдущему`);
                 }
                 else if (changedTime >= 2147483647) {
@@ -706,7 +687,7 @@ export default new Command({
                         value: `Прежнее время старта: <t:${raidData.time}>, <t:${raidData.time}:R>\nНовое время: <t:${changedTime}>, <t:${changedTime}:R>`,
                     });
                     changes.push(`Время старта было изменено`);
-                    const [i, updatedRaiddata] = await RaidEvent.update({
+                    const [_, updatedRaiddata] = await RaidEvent.update({
                         time: changedTime,
                     }, { where: { id: raidData.id }, transaction: t, returning: ["id", "time"] });
                     raidAnnounceSet.delete(updatedRaiddata[0].id);
