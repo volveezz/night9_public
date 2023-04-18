@@ -52,9 +52,7 @@ async function logActivityCompletion(pgcrId) {
             ? `Рейд был закрыт`
             : mode === 82
                 ? `Подземелье было закрыто`
-                : `Активность была закрыта`) + response.activityWasStartedFromBeginning
-            ? "с начала"
-            : "с контрольной точки";
+                : `Активность была закрыта`) + (response.activityWasStartedFromBeginning ? " с начала" : " с контрольной точки");
         const thumbnailUrl = getActivityImage(referenceId, manifestData.pgcrImage);
         const embed = new EmbedBuilder()
             .setColor(colors.success)
