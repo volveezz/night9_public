@@ -43,7 +43,7 @@ async function fetchAndSendLatestTweets(url, latestLink) {
                 if (author) {
                     if (isValidTweet(author, entry.guid)) {
                         if (entry.content && entry.content.length > 0) {
-                            generateTwitterEmbed(entry, author, feed.icon);
+                            generateTwitterEmbed(entry, author, feed.image?.url);
                             processedLinks.add(entry.link);
                         }
                         else {
