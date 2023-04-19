@@ -29,7 +29,7 @@ async function logActivityCompletion(pgcrId) {
         pgcrIds.add(pgcrId);
         function getActivityImage(hash, manifestImage) {
             const placeholderImage = "/img/theme/destiny/bgs/pgcrs/placeholder.jpg";
-            if (manifestImage === placeholderImage) {
+            if (manifestImage === placeholderImage || manifestImage === "/img/destiny_content/pgcr/season_20_mission_avalon.jpg") {
                 if (hashToImageMap[hash]) {
                     return hashToImageMap[hash];
                 }

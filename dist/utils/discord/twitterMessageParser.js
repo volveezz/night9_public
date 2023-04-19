@@ -55,10 +55,12 @@ async function handleTimeReplacement({ message: oldMessage }) {
 function cleanText(content) {
     content = content.replace(/<br\s*\/?>/gi, "\n");
     content = content.replace(/<div class="rsshub-quote">[\s\S]*?<\/div>|<[^>]*>|&[^;]+;/g, "");
+    if (content.startsWith("Re "))
+        content = content.slice(3);
     content = content.trim();
     return content;
 }
-async function generateTwitterEmbed(twitterData, author) {
+async function generateTwitterEmbed(twitterData, author, icon) {
     if (!twitterData.content)
         return;
     const resolveAuthor = () => {
@@ -66,21 +68,28 @@ async function generateTwitterEmbed(twitterData, author) {
         if (author === BungieTwitterAuthor.Bungie) {
             return embed.setColor("#d3d2d0").setAuthor({
                 name: "Bungie",
-                iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1097538591736987779/fhGb6cpO_400x400.png",
+                iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1097538591736987779/fhGb6cpO_400x400.png",
                 url: twitterData.link,
             });
         }
         else if (author === BungieTwitterAuthor.BungieHelp) {
             return embed.setColor("#FFA500").setAuthor({
                 name: "BungieHelp",
-                iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1097538580571758612/vNe1WM28_400x400.png",
+                iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1097538580571758612/vNe1WM28_400x400.png",
                 url: twitterData.link,
             });
         }
         else if (author === BungieTwitterAuthor.DestinyTheGame) {
             return embed.setColor("#8fcdf6").setAuthor({
                 name: "DestinyTheGame",
-                iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1097538571142963280/1hh-HGZb_400x400.png",
+                iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1097538571142963280/1hh-HGZb_400x400.png",
+                url: twitterData.link,
+            });
+        }
+        else if (author === BungieTwitterAuthor.Destiny2Team) {
+            return embed.setColor("#68EDFF").setAuthor({
+                name: "Destiny2Team",
+                iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1098350594575577188/zPtKbIQx.jpg",
                 url: twitterData.link,
             });
         }
