@@ -15,7 +15,7 @@ const destinyRaidChallanges = {
             encounter: 3,
             description: "Необходимо перенести все светлые планеты на темную сторону, а светлые на темную",
         },
-        { hash: 1616571513, encounter: 4, description: "Каждый должен активировать по узлу [unverified]" },
+        { hash: 1616571513, encounter: 4, description: "Каждый игрок должен активировать узел на светлой и темной сторонах" },
     ],
     kf: [
         {

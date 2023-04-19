@@ -54,13 +54,12 @@ async function handleTimeReplacement({ message: oldMessage }) {
 }
 function cleanText(content) {
     content = content.replace(/<br\s*\/?>/gi, "\n");
-    content = content.replace(/<[^>]*>/g, "");
-    content = content.replace(/\n{2,}/g, "\n");
+    content = content.replace(/<div class="rsshub-quote">[\s\S]*?<\/div>|<[^>]*>|&[^;]+;/g, "");
     content = content.trim();
     return content;
 }
 async function generateTwitterEmbed(twitterData, author) {
-    if (!twitterData.contentSnippet)
+    if (!twitterData.content)
         return;
     const resolveAuthor = () => {
         const embed = new EmbedBuilder();
@@ -88,14 +87,14 @@ async function generateTwitterEmbed(twitterData, author) {
         return embed;
     };
     const cleanContent = cleanText(twitterData.content || "");
-    if (!cleanContent) {
+    if (!cleanContent || cleanContent.length === 0) {
         console.error(`[Error code: 1706]`, twitterData);
         return null;
     }
     const extractedMedia = extractImageUrl(twitterData.content || "")?.replaceAll("&amp;", "&");
     const replacedDescription = replaceTimeWithEpoch(cleanContent);
     const replacedOutput = replacedDescription.replace(/https:\/\/t\.co\/\S+/g, "");
-    const embed = resolveAuthor().setDescription(replacedOutput);
+    const embed = resolveAuthor().setDescription(replacedOutput.length > 0 ? replacedOutput : null);
     if (extractedMedia) {
         embed.setImage(extractedMedia);
     }

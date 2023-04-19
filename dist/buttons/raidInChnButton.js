@@ -67,7 +67,7 @@ export default {
             RaidButtons.invite,
         ].includes(interaction.customId))
             return;
-        const deferredUpdate = [RaidButtons.transfer, RaidButtons.delete, RaidButtons.invite].includes(interaction.customId)
+        const deferredUpdate = [RaidButtons.transfer, RaidButtons.delete, RaidButtons.invite, RaidButtons.notify].includes(interaction.customId)
             ? interaction.deferReply({ ephemeral: true })
             : interaction.deferUpdate();
         const attributes = ["creator", "id", "raid", "joined", "messageId", "channelId"];
@@ -107,6 +107,10 @@ export default {
             throw { errorType: UserErrors.RAID_MISSING_PERMISSIONS };
         }
         if (interaction.customId === RaidButtons.notify) {
+            await deferredUpdate;
+            interaction.editReply({
+                content: "Перейдите в [личные сообщения](https://discord.com/channels/@me/774617169169743872) для настройки и отправки оповещения",
+            });
             const GIFImage = (await getRandomRaidGIF()) || "https://media.giphy.com/media/cKJZAROeOx7MfU6Kws/giphy.gif";
             let modalTitle = `Рейдовое оповещение ${raidEvent.id}-${raidEvent.raid}`;
             let modalDescription = `Рейдер, тебя оповестил ${raidEvent.creator === interaction.user.id ? "создатель рейда" : "администратор"} об скором старте.\n\nЗаходи в голосовой канал как можно скорее!`;

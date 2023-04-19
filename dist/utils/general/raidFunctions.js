@@ -290,20 +290,19 @@ export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) 
         raidMilestone.activities[raidMilestone?.activities.length > 1 ? (difficulty === 1 ? 0 : 1) : 0]?.modifierHashes === undefined) {
         embed.data.fields[0].name = `**Испытания рейда**`;
         embed.data.fields[0].value = `⁣　⁣*отсутствуют*`;
-        return inChnMsg.edit({ embeds: [embed] });
+        await inChnMsg.edit({ embeds: [embed] });
+        return;
     }
     raidMilestone.activities[raidMilestone?.activities.length > 1 ? (difficulty === 1 ? 0 : 1) : 0].modifierHashes.forEach((modifier) => {
         if (blockedModifierHashesArray.includes(modifier) || (difficulty !== 1 && modifier === 97112028))
             return;
         if (manifest[modifier].displayProperties.description.toLowerCase().startsWith("вас ждет испытание")) {
-            const challenge = new Date(raidMilestone.endDate).getTime() > startTime * 1000
+            const challenge = (new Date(raidMilestone.endDate).getTime() > startTime * 1000
                 ? raidDataChallanges.find((a) => a.hash === modifier)
                 : raidDataChallanges.find((a) => a.hash === modifier)?.encounter === raidDataChallanges.length
                     ? raidDataChallanges.find((a) => a.encounter === 1)
-                    : raidDataChallanges.find((a) => a.encounter === raidDataChallanges.find((a) => a.hash === modifier).encounter + 1);
-            raidChallengesArray.push("⁣　⁣**" +
-                manifest[challenge?.hash].displayProperties.name +
-                `**, ${challenge.encounter} этап: ${challenge.description.toLowerCase()}`);
+                    : raidDataChallanges.find((a) => a.encounter === raidDataChallanges.find((a) => a.hash === modifier).encounter + 1));
+            raidChallengesArray.push("⁣　⁣**" + manifest[challenge.hash].displayProperties.name + `**, ${challenge.encounter} этап: ${challenge.description}`);
         }
         else if (new Date(raidMilestone.endDate).getTime() > startTime * 1000) {
             const modifierDescription = findModifierDescription(modifier);

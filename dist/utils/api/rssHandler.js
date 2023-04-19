@@ -2,38 +2,48 @@ import Parser from "rss-parser";
 import { BungieTwitterAuthor } from "../../configs/BungieTwitterAuthor.js";
 import { generateTwitterEmbed } from "../discord/twitterMessageParser.js";
 const parser = new Parser();
-const rssBungieHelpUrl = "https://rss-hub-ten-plum.vercel.app/twitter/user/bungiehelp/readable=1&brief=100&limit=1";
-const rssBungieUrl = "https://rss-hub-ten-plum.vercel.app/twitter/user/bungie/readable=1&brief=100&limit=1";
-const rssDestinyTheGameUrl = "https://rss-hub-ten-plum.vercel.app/twitter/user/destinythegame/readable=1&brief=100&limit=1";
+const rssBungieHelpUrl = "https://rss-hub-ten-plum.vercel.app/twitter/user/bungiehelp?readable=1&limit=10";
+const rssBungieUrl = "https://rss-hub-ten-plum.vercel.app/twitter/user/bungie?readable=1&limit=10";
+const rssDestinyTheGameUrl = "https://rss-hub-ten-plum.vercel.app/twitter/user/destinythegame?readable=1&limit=10";
 let latestBungieHelpTweetLink;
 let latestBungieTweetLink;
 let latestDestinyTheGameTweetLink;
-async function fetchAndSendLatestTweet(url, latestLink) {
+async function fetchAndSendLatestTweets(url, latestLink) {
     try {
         const feed = await parser.parseURL(url);
-        const latestEntry = feed.items[0];
-        if (!latestEntry.link) {
-            console.error(`[Error code: 1703]`, latestEntry);
-            return latestLink;
-        }
         if (!latestLink) {
-            return latestEntry.link;
+            const firstEntry = feed.items[0];
+            return firstEntry.link;
         }
-        if (latestLink !== latestEntry.link) {
-            const author = latestEntry.creator === "Destiny 2"
-                ? BungieTwitterAuthor.DestinyTheGame
-                : latestEntry.creator === "Bungie"
-                    ? BungieTwitterAuthor.Bungie
-                    : latestEntry.creator === "Bungie Help"
-                        ? BungieTwitterAuthor.BungieHelp
-                        : null;
-            if (author) {
-                await generateTwitterEmbed(latestEntry, author);
+        const newEntries = [];
+        for (const entry of feed.items) {
+            if (entry.link === latestLink) {
+                break;
             }
-            else {
-                console.error(`[Error code: 1705]`, latestEntry);
+            newEntries.unshift(entry);
+        }
+        if (newEntries.length > 0) {
+            for (const entry of newEntries) {
+                if (!entry.link) {
+                    console.error(`[Error code: 1703]`, entry);
+                    continue;
+                }
+                const author = getBungieTwitterAuthor(entry.creator);
+                if (author) {
+                    if (isValidTweet(author, entry.guid)) {
+                        if (entry.content && entry.content.length > 0) {
+                            generateTwitterEmbed(entry, author);
+                        }
+                        else {
+                            console.error(`[Error code: 1707]`, entry);
+                        }
+                    }
+                }
+                else {
+                    console.error(`[Error code: 1705]`, entry);
+                }
             }
-            return latestEntry.link;
+            return newEntries[0].link;
         }
     }
     catch (error) {
@@ -41,17 +51,37 @@ async function fetchAndSendLatestTweet(url, latestLink) {
     }
     return latestLink;
 }
+function getBungieTwitterAuthor(creator) {
+    switch (creator) {
+        case "Destiny 2":
+            return BungieTwitterAuthor.DestinyTheGame;
+        case "Bungie":
+            return BungieTwitterAuthor.Bungie;
+        case "Bungie Help":
+            return BungieTwitterAuthor.BungieHelp;
+        default:
+            return null;
+    }
+}
+function isValidTweet(author, guid) {
+    if (!guid)
+        return false;
+    const guidLowerCase = guid.toLowerCase();
+    return ((author === BungieTwitterAuthor.Bungie && guidLowerCase.startsWith("https://twitter.com/bungie/")) ||
+        (author === BungieTwitterAuthor.BungieHelp && guidLowerCase.startsWith("https://twitter.com/bungiehelp/")) ||
+        (author === BungieTwitterAuthor.DestinyTheGame && guidLowerCase.startsWith("https://twitter.com/destinythegame/")));
+}
 (async () => {
-    latestBungieHelpTweetLink = await fetchAndSendLatestTweet(rssBungieHelpUrl, latestBungieHelpTweetLink);
-    latestBungieTweetLink = await fetchAndSendLatestTweet(rssBungieUrl, latestBungieTweetLink);
-    latestDestinyTheGameTweetLink = await fetchAndSendLatestTweet(rssDestinyTheGameUrl, latestDestinyTheGameTweetLink);
+    latestBungieHelpTweetLink = await fetchAndSendLatestTweets(rssBungieHelpUrl, latestBungieHelpTweetLink);
+    latestBungieTweetLink = await fetchAndSendLatestTweets(rssBungieUrl, latestBungieTweetLink);
+    latestDestinyTheGameTweetLink = await fetchAndSendLatestTweets(rssDestinyTheGameUrl, latestDestinyTheGameTweetLink);
 })();
 setInterval(async () => {
-    latestBungieHelpTweetLink = await fetchAndSendLatestTweet(rssBungieHelpUrl, latestBungieHelpTweetLink);
+    latestBungieHelpTweetLink = await fetchAndSendLatestTweets(rssBungieHelpUrl, latestBungieHelpTweetLink);
 }, 1000 * 60);
 setInterval(async () => {
-    latestBungieTweetLink = await fetchAndSendLatestTweet(rssBungieUrl, latestBungieTweetLink);
-}, 1000 * 75);
+    latestBungieTweetLink = await fetchAndSendLatestTweets(rssBungieUrl, latestBungieTweetLink);
+}, 1000 * 60);
 setInterval(async () => {
-    latestDestinyTheGameTweetLink = await fetchAndSendLatestTweet(rssDestinyTheGameUrl, latestDestinyTheGameTweetLink);
-}, 1000 * 90);
+    latestDestinyTheGameTweetLink = await fetchAndSendLatestTweets(rssDestinyTheGameUrl, latestDestinyTheGameTweetLink);
+}, 1000 * 60);
