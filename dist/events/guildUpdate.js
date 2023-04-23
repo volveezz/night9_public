@@ -43,9 +43,12 @@ export default new Event("guildUpdate", async (oldGuild, newGuild) => {
                     const afterChanges = newGuild[key].filter((v) => !value.includes(v));
                     if ((beforeChanges.length === 0 && afterChanges.length === 0) || (!beforeChanges && !afterChanges))
                         continue;
+                    const removedKeys = beforeChanges.map((k) => `❌${k}`).join("\n");
+                    const addedKeys = afterChanges.map((k) => `✅${k}`).join("\n");
+                    const changeDetails = [removedKeys, addedKeys].filter((detail) => detail.length > 0).join("\n");
                     guildChanges.push({
                         name: `Features обновлены`,
-                        value: `${beforeChanges.join(", ")} → ${afterChanges.join(", ")}`,
+                        value: changeDetails,
                     });
                 }
                 catch (e) {
