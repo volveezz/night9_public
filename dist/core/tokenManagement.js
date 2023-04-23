@@ -74,8 +74,15 @@ async function bungieGrantRequest(row, table, t, retry = false) {
                             (await client.users.fetch(discordId)) ||
                             (await client.getCachedGuild().members.fetch(discordId));
                         if (member) {
-                            await member.roles.set([statusRoles.newbie]).catch((e) => {
+                            await member.roles.set([statusRoles.newbie]).catch(async (e) => {
                                 console.error(`[Error code: 1635] An error occurred while deleting roles of ${member.displayName || member.user.username}\n`, e);
+                                const botHighestRole = member.guild.roles.highest.position;
+                                const removableRoles = member.roles.cache.filter((role) => {
+                                    return role.editable && !role.managed && role.position < botHighestRole;
+                                });
+                                await member.roles.remove(removableRoles).catch((e) => {
+                                    console.error(`[Error code: 1712] An error occurred while removing roles of ${member.displayName || member.user.username}\n`, e);
+                                });
                             });
                         }
                         user.send({ embeds: [embed], components }).catch(async (e) => {

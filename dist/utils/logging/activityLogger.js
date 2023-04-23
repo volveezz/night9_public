@@ -261,8 +261,6 @@ async function logActivityCompletion(pgcrId) {
                     });
                     if (encountersData.length >= 1) {
                         try {
-                            if (encountersData.length < 2)
-                                console.debug(`[Error code: 1638] PGCR: ${pgcrId}\n`, encountersData);
                             embed.addFields([
                                 {
                                     name: "Затраченное время на этапы",

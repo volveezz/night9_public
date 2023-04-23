@@ -13,19 +13,19 @@ export async function fetchRequest(cleanUrl, authorizationData) {
             console.error(`[Error code: 1710] A timeout occurred`);
         }
         else if (status === 503) {
-            console.error(`[Error code: 1683] Server is not avaliable`, e.body?.statusText, e.body?.statusCode, e.error?.code, e.error?.status);
+            console.error(`[Error code: 1683] Server is not avaliable`);
         }
         else if (status === 502) {
-            console.error(`[Error code: 1099] Web error`, e.body?.statusText, e.body?.statusCode, e.error?.code, e.error?.status);
+            console.error(`[Error code: 1099] Web error`);
         }
         else if (status === 409) {
-            console.error(`[Error code: 1108] Confilt error`, e.body?.statusText, e.body?.statusCode, e.error?.code, e.error?.status);
+            console.error(`[Error code: 1108] Confilt error`);
         }
         else if (status === 522) {
-            console.error(`[Error code: 1117] Timed out error`, e.body?.statusText, e.body?.statusCode, e.error?.code, e.error?.status);
+            console.error(`[Error code: 1117] Timed out error`);
         }
         else if (status === 401) {
-            console.error(`[Error code: 1682] Authorization error`, e.body?.status, e.error?.statusCode);
+            console.error(`[Error code: 1682] Authorization error`);
         }
         else {
             if (status >= 400 && status <= 599) {
