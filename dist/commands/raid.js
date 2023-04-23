@@ -35,6 +35,15 @@ schedule("0 23 * * *", () => {
         },
     }).then((RaidEvent) => RaidEvent.forEach((raidData) => raidAnnounceSystem(raidData)));
 });
+function getDefaultComponents() {
+    return [
+        new ButtonBuilder().setCustomId(RaidButtons.notify).setLabel("Оповестить участников").setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder().setCustomId(RaidButtons.transfer).setLabel("Переместить участников в рейд-войс").setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder().setCustomId(RaidButtons.unlock).setLabel("Закрыть набор").setStyle(ButtonStyle.Danger),
+        new ButtonBuilder().setCustomId(RaidButtons.delete).setLabel("Удалить набор").setStyle(ButtonStyle.Danger),
+        new ButtonBuilder().setCustomId(RaidButtons.resend).setLabel("Обновить сообщение").setStyle(ButtonStyle.Secondary),
+    ];
+}
 export default new Command({
     name: "рейд",
     nameLocalizations: {
@@ -463,16 +472,7 @@ export default new Command({
                     .addFields([
                     { name: "⁣", value: `**Испытания этой недели**\n　*на одном из этапов*\n\n**Модификаторы рейда**\n　*если есть..*` },
                 ]);
-                const components = [
-                    new ButtonBuilder().setCustomId(RaidButtons.notify).setLabel("Оповестить участников").setStyle(ButtonStyle.Secondary),
-                    new ButtonBuilder()
-                        .setCustomId(RaidButtons.transfer)
-                        .setLabel("Переместить участников в рейд-войс")
-                        .setStyle(ButtonStyle.Secondary),
-                    new ButtonBuilder().setCustomId(RaidButtons.unlock).setLabel("Закрыть набор").setStyle(ButtonStyle.Danger),
-                    new ButtonBuilder().setCustomId(RaidButtons.delete).setLabel("Удалить набор").setStyle(ButtonStyle.Danger),
-                    new ButtonBuilder().setCustomId(RaidButtons.resend).setLabel("Обновить сообщение").setStyle(ButtonStyle.Secondary),
-                ];
+                const components = getDefaultComponents();
                 if (raidData.raid in raidsGuide) {
                     components.push(new ButtonBuilder()
                         .setCustomId(`raidGuide_${raidData.raid}`)
@@ -559,6 +559,15 @@ export default new Command({
             const raidEmbed = EmbedBuilder.from(raidMessage?.embeds[0]);
             const t = await database.transaction();
             const changesForChannel = [];
+            const inChannelMessage = client.getCachedTextChannel(raidData.channelId).messages.cache.get(raidData.inChannelMessageId) ??
+                client.getCachedTextChannel(raidData.channelId).messages.fetch(raidData.inChannelMessageId);
+            const components = [];
+            if ((newRaid && newRaid in raidsGuide) || raidData.raid in raidsGuide) {
+                components.push(new ButtonBuilder()
+                    .setCustomId(`raidGuide_${newRaid || raidData.raid}`)
+                    .setLabel("Инструкция по рейду")
+                    .setStyle(ButtonStyle.Primary));
+            }
             const updateDifficulty = async (newDifficulty, raidInfo, raidData, t) => {
                 if (newDifficulty != null && raidInfo.maxDifficulty >= newDifficulty && newDifficulty != raidData.difficulty) {
                     const difficultyText = newDifficulty === 2 ? "Мастер" : newDifficulty === 1 ? "Нормальный" : "*неизвестная сложность*";
@@ -608,8 +617,7 @@ export default new Command({
                     if (updatedRaidMessage) {
                         raidEmbed.setFields(updatedRaidMessage.embeds[0].data.fields);
                     }
-                    raidChallenges(raidInfo, client.getCachedTextChannel(updatedRaid.channelId).messages.cache.get(updatedRaid.inChannelMessageId) ??
-                        (await client.getCachedTextChannel(updatedRaid.channelId).messages.fetch(updatedRaid.inChannelMessageId)), raidData.time, newDifficulty != null && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : updatedRaid.difficulty);
+                    raidChallenges(raidInfo, await inChannelMessage, raidData.time, newDifficulty != null && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : updatedRaid.difficulty);
                     const channel = (await client.getCachedGuild().channels.fetch(updatedRaid.channelId));
                     channel.edit({ name: `🔥｜${updatedRaid.id}${raidInfo.channelName}` }).catch((e) => console.error(`[Error code: 1696]`, e));
                 }
@@ -684,7 +692,7 @@ export default new Command({
                     }
                     changesForChannel.push({
                         name: "Старт рейда перенесен",
-                        value: `Прежнее время старта: <t:${raidData.time}>, <t:${raidData.time}:R>\nНовое время: <t:${changedTime}>, <t:${changedTime}:R>`,
+                        value: ` - Прежнее время старта: <t:${raidData.time}>, <t:${raidData.time}:R>\n- Новое время: <t:${changedTime}>, <t:${changedTime}:R>`,
                     });
                     changes.push(`Время старта было изменено`);
                     const [_, updatedRaiddata] = await RaidEvent.update({
@@ -734,14 +742,14 @@ export default new Command({
                     console.error(`[Error code: 1207]`, error);
                     await t.rollback();
                 }
-                newRaid
-                    ? raidMessage.edit({
-                        content: "",
-                        embeds: [raidEmbed],
-                    })
-                    : raidMessage.edit({
-                        embeds: [raidEmbed],
-                    });
+                const messageOptions = {
+                    embeds: [raidEmbed],
+                    ...(!newRaid ? { content: "" } : {}),
+                };
+                (await inChannelMessage).edit({
+                    components: await addButtonComponentsToMessage([...getDefaultComponents(), ...components]),
+                });
+                raidMessage.edit(messageOptions);
                 const replyEmbed = new EmbedBuilder()
                     .setColor(colors.success)
                     .setTitle(`Рейд ${raidData.id} был изменен`)

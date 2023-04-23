@@ -4,7 +4,6 @@ import { channelIds } from "../../configs/ids.js";
 import { client } from "../../index.js";
 import { timer } from "../general/utilities.js";
 const publicNewsChannel = client.getCachedTextChannel(channelIds.externalNewsFeed) || (await client.getCachedGuild().channels.fetch(channelIds.externalNewsFeed));
-const twitterNewsChannel = client.getCachedTextChannel(channelIds.admin) || (await client.getCachedGuild().channels.fetch(channelIds.admin));
 function extractImageUrl(content) {
     const imgRegex = /<img.*?src="(.*?)".*?>/i;
     const videoRegex = /<video.*?poster="(.*?)".*?>/i;
@@ -107,7 +106,7 @@ async function generateTwitterEmbed(twitterData, author, icon) {
     if (extractedMedia) {
         embed.setImage(extractedMedia);
     }
-    await twitterNewsChannel.send({ embeds: [embed] });
+    await publicNewsChannel.send({ embeds: [embed] });
     return;
 }
 function replaceTimeWithEpoch(text) {

@@ -131,7 +131,6 @@ async function logActivityCompletion(pgcrId) {
             if (mode === 2 &&
                 !((clanMembersInActivity === 1 && membersMembershipIds.length === 1) || clanMembersInActivity > 1))
                 return;
-            console.debug(`[Error code: 1639] PGCR: ${pgcrId}\n`, JSON.stringify(Array.from(completedPhases.entries())));
             let completedUsersCount = 0;
             let uncompletedUsersCount = 0;
             const raidName = mode === 4 ? getRaidNameFromHash(referenceId) : null;
@@ -166,7 +165,7 @@ async function logActivityCompletion(pgcrId) {
                     const raidClearsResult = getFormattedRaidClearsForUser(value.bungieId);
                     embed.addFields({
                         name: escapeString(value.bungieName),
-                        value: `${raidClearsResult ? `${raidClearsResult}\n` : ""}${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
+                        value: `${raidClearsResult ? `${raidClearsResult}\n` : ""}${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 300 < response.entries[0].values.activityDurationSeconds.basic.value
                             ? `\nВ ${mode === 4
                                 ? "рейде"
                                 : mode === 82
@@ -190,7 +189,7 @@ async function logActivityCompletion(pgcrId) {
                 const raidClearsResult = getFormattedRaidClearsForUser(value.bungieId);
                 embed.addFields({
                     name: "❌" + escapeString(value.bungieName),
-                    value: `${raidClearsResult ? `${raidClearsResult}\n` : ""}${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 120 < response.entries[0].values.activityDurationSeconds.basic.value
+                    value: `${raidClearsResult ? `${raidClearsResult}\n` : ""}${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 300 < response.entries[0].values.activityDurationSeconds.basic.value
                         ? `\nВ ${mode === 4
                             ? "рейде"
                             : mode === 82
@@ -260,7 +259,6 @@ async function logActivityCompletion(pgcrId) {
                             encountersData.push(encounterData);
                         }
                     });
-                    console.debug(`[Error code: 1642] PGCR: ${pgcrId}\n`, JSON.stringify(Array.from(encountersData.entries())));
                     if (encountersData.length >= 1) {
                         try {
                             if (encountersData.length < 2)
@@ -295,14 +293,16 @@ async function logActivityCompletion(pgcrId) {
                     return;
                 if (dbMemberData.clan === true && clanMembersInActivity > 2)
                     UserActivityData.increment("raids", { by: 1, where: { discordId: dbMemberData.discordId } });
-                const pastCreatedRaid = await RaidEvent.findOne({
-                    where: {
-                        creator: dbMemberData.discordId,
-                        time: {
-                            [Op.lt]: currentTime,
+                const pastCreatedRaid = raidName &&
+                    (await RaidEvent.findOne({
+                        where: {
+                            creator: dbMemberData.discordId,
+                            time: {
+                                [Op.lt]: currentTime,
+                            },
+                            raid: raidName.replace("Master", ""),
                         },
-                    },
-                });
+                    }));
                 if (pastCreatedRaid && pastCreatedRaid.time < currentTime) {
                     const resolvedMessage = await msg;
                     const raidCompletionEmbed = new EmbedBuilder()
@@ -325,7 +325,7 @@ async function logActivityCompletion(pgcrId) {
                     setTimeout(async () => {
                         const isRaidStillExists = await RaidEvent.findOne({ where: { id: pastCreatedRaid.id }, attributes: ["time"] });
                         if (isRaidStillExists && isRaidStillExists.time === pastCreatedRaid.time) {
-                            await removeRaid(pastCreatedRaid);
+                            await removeRaid(pastCreatedRaid).catch((e) => console.error(`[Error code: 1711]`, e));
                         }
                         if (!raidCompletionNotification)
                             return;
@@ -336,7 +336,7 @@ async function logActivityCompletion(pgcrId) {
                                 .setDescription(`Созданный вами рейд ${pastCreatedRaid.id}-${pastCreatedRaid.raid} на <t:${pastCreatedRaid.time}> был завершен и удален\n\n[Результаты рейда](https://discord.com/channels/${resolvedMessage.guildId}/${resolvedMessage.channelId}/${resolvedMessage.id})`);
                             raidCompletionNotification.edit({ embeds: [updatedEmbed], components: [] });
                         }
-                    }, 1000 * 60 * 30);
+                    }, 1000 * 60 * 20);
                 }
             });
         }

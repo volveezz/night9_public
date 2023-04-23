@@ -9,7 +9,10 @@ export async function fetchRequest(cleanUrl, authorizationData) {
     });
     const jsonResponse = await response.json().catch(async (e) => {
         const status = response?.status;
-        if (status === 503) {
+        if (status === 524) {
+            console.error(`[Error code: 1710] A timeout occurred`);
+        }
+        else if (status === 503) {
             console.error(`[Error code: 1683] Server is not avaliable`, e.body?.statusText, e.body?.statusCode, e.error?.code, e.error?.status);
         }
         else if (status === 502) {
