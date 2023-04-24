@@ -13,14 +13,14 @@ export default new Command({
         "en-GB": "Enable or disable automatic nickname changes",
     },
     run: async ({ interaction }) => {
+        const dbInfo = await AuthData.findByPk(interaction.user.id);
+        if (!dbInfo)
+            throw { errorType: UserErrors.DB_USER_NOT_FOUND };
         const embed = new EmbedBuilder().setColor(colors.serious).setAuthor({
             name: "Идет обработка...",
             iconURL: icons.loading,
         });
-        const reply = interaction.reply({ embeds: [embed], ephemeral: true });
-        const dbInfo = await AuthData.findByPk(interaction.user.id);
-        if (!dbInfo)
-            throw { errorType: UserErrors.DB_USER_NOT_FOUND };
+        const deferredReply = interaction.deferReply({ ephemeral: true });
         const nameStatus = dbInfo.displayName.startsWith("⁣") ? true : false;
         embed
             .setAuthor(null)
@@ -48,7 +48,7 @@ export default new Command({
                 ],
             },
         ];
-        await reply;
+        await deferredReply;
         const collector = (await interaction.editReply({ embeds: [embed], components })).createMessageComponentCollector({
             max: 1,
             time: 60 * 2 * 1000,

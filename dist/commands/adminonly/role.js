@@ -106,7 +106,7 @@ export default new Command({
                             name: "Неудаленные роли",
                             value: member.roles.cache
                                 .filter((role) => !removableRoles.has(role.id))
-                                .map((role) => role.name)
+                                .map((role) => `<@&${role.id}>`)
                                 .join(", "),
                             inline: false,
                         })

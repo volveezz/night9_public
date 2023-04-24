@@ -16,6 +16,11 @@ async function fetchAndSendLatestTweets(url, latestLink) {
         const feed = await parser.parseURL(url);
         if (!latestLink) {
             const firstEntry = feed.items[0];
+            feed.items.forEach((item) => {
+                if (!item.link)
+                    return;
+                processedLinks.add(item.link);
+            });
             return firstEntry.link;
         }
         const newEntries = [];
