@@ -73,6 +73,10 @@ export class ExtendedClient extends Client {
     getCachedTextChannel(id) {
         return (this.guild || this.guilds.cache.get(guildId)).channels.cache.get(id);
     }
+    async getAsyncTextChannel(id) {
+        const guild = this.getCachedGuild() || this.guilds.cache.get(guildId) || (await this.guilds.fetch(guildId));
+        return (this.getCachedTextChannel(id) || guild.channels.cache.get(id) || guild.channels.fetch(id));
+    }
     async importFile(filePath) {
         return (await import(filePath))?.default;
     }
