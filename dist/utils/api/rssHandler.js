@@ -13,7 +13,11 @@ let latestDestinyTeamTweetLink;
 const processedLinks = new Set();
 async function fetchAndSendLatestTweets(url, latestLink) {
     try {
-        const feed = await parser.parseURL(url);
+        const feed = await parser.parseURL(url).catch((e) => {
+            console.error("[Error code: 1706] Error fetching RSS feed:", e.message, e.stack, e.response?.data);
+        });
+        if (!feed)
+            return;
         if (!latestLink) {
             const firstEntry = feed.items[0];
             feed.items.forEach((item) => {

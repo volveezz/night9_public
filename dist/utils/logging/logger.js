@@ -4,6 +4,7 @@ import colors from "../../configs/colors.js";
 import { channelIds } from "../../configs/ids.js";
 import { statusRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
+import setMemberRoles from "../discord/setRoles.js";
 import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
 import { escapeString } from "../general/utilities.js";
 export async function sendDmLogMessage(member, text, id, interaction) {
@@ -27,7 +28,7 @@ export async function sendDmLogMessage(member, text, id, interaction) {
     };
     interaction ? interaction.editReply(payload) : dmLogChannel.send(payload);
 }
-export function logUserRegistrationAttempt(state, user, isNewUser) {
+export async function logUserRegistrationAttempt(state, user, isNewUser) {
     const embed = new EmbedBuilder()
         .setColor(colors.serious)
         .setAuthor({
@@ -39,7 +40,7 @@ export function logUserRegistrationAttempt(state, user, isNewUser) {
         { name: "State", value: `${state}`, inline: true },
         { name: "Впервые", value: `${isNewUser}`, inline: true },
     ]);
-    client.getCachedTextChannel(channelIds.bot).send({ embeds: [embed] });
+    await (await client.getAsyncTextChannel(channelIds.bot)).send({ embeds: [embed] });
 }
 export async function updateClanRolesWithLogging(result, join) {
     const member = client.getCachedGuild().members.cache.get(result.discordId);
@@ -59,7 +60,8 @@ export async function updateClanRolesWithLogging(result, join) {
                 .setColor(colors.success);
         }
         else {
-            await member.roles.set(member.roles.cache.has(statusRoles.verified) ? [statusRoles.kicked, statusRoles.verified] : [statusRoles.kicked], "Member left clan");
+            const setRoles = member.roles.cache.has(statusRoles.verified) ? [statusRoles.kicked, statusRoles.verified] : [statusRoles.kicked];
+            await setMemberRoles({ member, roles: setRoles, reason: "Member left clan" });
             embed
                 .setAuthor({
                 name: `${escapeString(member.displayName)} покинул клан`,
@@ -69,20 +71,11 @@ export async function updateClanRolesWithLogging(result, join) {
         }
     }
     else {
-        if (join) {
-            embed
-                .setAuthor({
-                name: `Неизвестный на сервере пользователь вступил в клан`,
-            })
-                .setColor(colors.success);
-        }
-        else {
-            embed
-                .setAuthor({
-                name: `Неизвестный на сервере пользователь покинул клан`,
-            })
-                .setColor(colors.kicked);
-        }
+        embed
+            .setAuthor({
+            name: join ? `Неизвестный на сервере пользователь вступил в клан` : `Неизвестный на сервере пользователь покинул клан`,
+        })
+            .setColor(join ? colors.success : colors.kicked);
     }
-    await client.getCachedTextChannel(channelIds.clan).send({ embeds: [embed] });
+    await (await client.getAsyncTextChannel(channelIds.clan)).send({ embeds: [embed] });
 }
