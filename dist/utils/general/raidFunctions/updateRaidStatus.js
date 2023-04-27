@@ -140,14 +140,11 @@ async function updateRaidStatus() {
     });
 }
 async function getOngoingRaids() {
-    const currentTime = Math.floor(Date.now() / 1000);
-    const currentDay = new Date(currentTime * 1000);
+    const currentDay = new Date();
     currentDay.setHours(23, 0, 0, 0);
     const endTime = Math.floor(currentDay.getTime() / 1000);
     return await RaidEvent.findAll({
-        where: {
-            [Op.and]: [{ time: { [Op.gte]: currentTime } }, { time: { [Op.lte]: endTime } }],
-        },
+        where: { time: { [Op.lte]: endTime } },
         attributes: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId"],
     });
 }
