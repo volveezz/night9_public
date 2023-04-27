@@ -26,14 +26,15 @@ setTimeout(() => {
     }).then((RaidEvent) => RaidEvent.forEach((raidData) => raidAnnounceSystem(raidData)));
 }, 15000);
 schedule("0 23 * * *", () => {
+    const currentTime = Math.floor(Date.now() / 1000);
+    const currentDay = new Date(currentTime * 1000);
+    currentDay.setHours(23, 0, 0, 0);
+    const endTime = Math.floor(currentDay.getTime() / 1000);
     RaidEvent.findAll({
         where: {
-            [Op.and]: [
-                { time: { [Op.gt]: Math.trunc(Date.now() / 1000) } },
-                { time: { [Op.lte]: Math.trunc(Math.trunc(Date.now() / 1000) + 25 * 60 * 60) } },
-            ],
+            [Op.and]: [{ time: { [Op.gte]: currentTime } }, { time: { [Op.lte]: endTime } }],
         },
-    }).then((RaidEvent) => RaidEvent.forEach((raidData) => raidAnnounceSystem(raidData)));
+    }).then(async (RaidEvent) => RaidEvent.forEach((raidData) => raidAnnounceSystem(raidData)));
 });
 function getDefaultComponents() {
     return [

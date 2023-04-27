@@ -155,7 +155,7 @@ async function getVoiceChannelMembersAuthData(voiceChannelMemberIds) {
 }
 async function checkFireteamRoster(voiceChannelMembersAuthData) {
     for (const authData of voiceChannelMembersAuthData) {
-        const destinyProfile = await fetchRequest(`Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=1000`);
+        const destinyProfile = await fetchRequest(`Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=1000`);
         const transitoryData = destinyProfile?.profileTransitoryData?.data?.partyMembers;
         if (!transitoryData)
             return null;
