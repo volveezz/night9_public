@@ -1,4 +1,5 @@
 import { ChannelType, EmbedBuilder } from "discord.js";
+import { schedule } from "node-cron";
 import { Op, Sequelize } from "sequelize";
 import colors from "../../../configs/colors.js";
 import { channelIds } from "../../../configs/ids.js";
@@ -9,9 +10,16 @@ import { addButtonComponentsToMessage } from "../addButtonsToMessage.js";
 import nameCleaner from "../nameClearer.js";
 import { updatePrivateRaidMessage, updateRaidMessage } from "../raidFunctions.js";
 const MINUTES_AFTER_RAID = 5;
+const checkingRaids = new Set();
+schedule("0 23 * * *", () => {
+    updateRaidStatus();
+});
 async function updateRaidStatus() {
     const ongoingRaids = await getOngoingRaids();
     for (const raidEvent of ongoingRaids) {
+        if (checkingRaids.has(raidEvent.id))
+            continue;
+        checkingRaids.add(raidEvent.id);
         const startTime = new Date(raidEvent.time * 1000);
         const raidStartTimePlus5 = new Date(startTime.getTime() + MINUTES_AFTER_RAID * 60 * 1000);
         console.debug(`Checking raid ID: ${raidEvent.id}, time: ${raidEvent.time}, time + 5: ${Math.floor(raidStartTimePlus5.getTime() / 1000)}`);
@@ -65,12 +73,13 @@ async function updateRaidStatus() {
                     return updatedData ? updatedData[0] : 0;
                 };
                 const sendChannelEmbed = async (raidEvent) => {
-                    const member = client.getCachedMembers().get(discordId);
+                    const member = await client.getAsyncMember(discordId);
                     const userAlreadyWasHotJoined = raidEvent.hotJoined.includes(discordId);
                     const userAlreadyWasAlt = raidEvent.alt.includes(discordId);
                     const userPreviousState = `${userAlreadyWasAlt ? "[Возможный участник]" : userAlreadyWasHotJoined ? "[Запас]" : "❌"}`;
                     const userNewState = `${userInFireteam ? "[Участник]" : "❌"}`;
                     const actionState = `${userPreviousState} -> ${userNewState}`;
+                    const footerText = userInFireteam ? (userAlreadyWasHotJoined || userAlreadyWasAlt ? `перезаписан` : `записан`) : `выписан`;
                     const embed = new EmbedBuilder()
                         .setColor(userInFireteam ? colors.success : colors.error)
                         .setAuthor({
@@ -78,9 +87,16 @@ async function updateRaidStatus() {
                         iconURL: member?.displayAvatarURL(),
                     })
                         .setFooter({
-                        text: `Пользователь ${userAlreadyWasHotJoined || userAlreadyWasAlt ? `перезаписан` : `выписан`} системой слежки за составом`,
+                        text: `Пользователь ${footerText} системой слежки за составом`,
                     });
-                    (await client.getAsyncTextChannel(raidEvent.channelId)).send({ embeds: [embed] });
+                    const raidChannel = await client.getAsyncTextChannel(raidEvent.channelId);
+                    raidChannel.send({ embeds: [embed] });
+                    if (userInFireteam && !raidEvent.joined.includes(discordId)) {
+                        raidChannel.permissionOverwrites.create(discordId, { ViewChannel: true });
+                    }
+                    else if (!userInFireteam && raidEvent.joined.includes(discordId)) {
+                        raidChannel.permissionOverwrites.delete(discordId);
+                    }
                 };
                 const updateRaidMessageEmbed = async (raidEvent) => {
                     const raidMessage = (await client.getAsyncTextChannel(channelIds.raid)).messages.fetch(raidEvent.messageId);
@@ -114,6 +130,7 @@ async function updateRaidStatus() {
                 if (checkFireteam === false) {
                     console.debug(`Interval cleared for raid ID: ${raidEvent.id}`);
                     clearInterval(interval);
+                    checkingRaids.delete(raidEvent.id);
                 }
             }, 1000 * 60 * 5);
         }, raidStartTimePlus5.getTime() - Date.now());
@@ -122,9 +139,10 @@ async function updateRaidStatus() {
 async function getOngoingRaids() {
     return RaidEvent.findAll({
         where: {
-            time: {
-                [Op.lt]: Math.floor(Date.now() / 1000),
-            },
+            [Op.and]: [
+                { time: { [Op.gt]: Math.floor(Date.now() / 1000) } },
+                { time: { [Op.lte]: Math.floor(Math.floor(Date.now() / 1000) + 25 * 60 * 60) } },
+            ],
         },
         attributes: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId"],
     });

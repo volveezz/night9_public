@@ -807,8 +807,7 @@ export default new Command({
                 await deferredReply;
                 throw { name: "Нельзя записать бота как участника" };
             }
-            const addedUserDisplayName = nameCleaner(client.getCachedMembers().get(addedUser.id)?.displayName ||
-                (await client.guilds.cache.get(interaction.guild?.id || guildId).members.fetch(addedUser.id)).displayName);
+            const addedUserDisplayName = nameCleaner((await client.getAsyncMember(addedUser.id)).displayName);
             const userAlreadyInHotJoined = raidData.hotJoined.includes(addedUser.id);
             const userAlreadyJoined = raidData.joined.includes(addedUser.id);
             const userAlreadyAlt = raidData.alt.includes(addedUser.id);
@@ -873,7 +872,7 @@ export default new Command({
                 where: { id: raidData.id },
                 returning: ["id", "channelId", "inChannelMessageId", "joined", "hotJoined", "alt", "messageId", "raid", "difficulty"],
             });
-            const raidChn = client.getCachedTextChannel(raidData.channelId);
+            const raidChn = await client.getAsyncTextChannel(raidData.channelId);
             raidChn.send({ embeds: [embedReply] });
             raidChn.permissionOverwrites.create(addedUser.id, {
                 ViewChannel: true,
