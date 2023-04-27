@@ -7,6 +7,7 @@ import handleMemberStatistics from "../core/userStatisticsManagement.js";
 import { clanOnlineMemberActivityChecker } from "../utils/general/activityCompletionChecker.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
 import getFiles from "../utils/general/fileReader.js";
+import updateRaidStatus from "../utils/general/raidFunctions/updateRaidStatus.js";
 import { cacheRaidMilestones } from "../utils/general/raidMilestones.js";
 const __dirname = resolve();
 export class ExtendedClient extends Client {
@@ -201,6 +202,7 @@ export class ExtendedClient extends Client {
             console.log(`${this.user.username} online since ${new Date().toLocaleString()}`);
             setTimeout(() => {
                 cacheRaidMilestones();
+                updateRaidStatus();
             }, 1000 * 30);
         });
     }

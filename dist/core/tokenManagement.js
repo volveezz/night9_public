@@ -5,6 +5,7 @@ import colors from "../configs/colors.js";
 import { channelIds } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
 import { client } from "../index.js";
+import { apiStatus } from "../structures/apiStatus.js";
 import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { AuthData, LeavedUsersData, database } from "../utils/persistence/sequelize.js";
@@ -44,6 +45,9 @@ async function bungieGrantRequest(row, table, t, retry = false) {
         await (table === 1 ? AuthData : LeavedUsersData).update({ accessToken: request.access_token, refreshToken: request.refresh_token }, { where: { bungieId: row.bungieId }, transaction: t });
     }
     else {
+        if (request && request.error_description === "SystemDisabled") {
+            apiStatus.status = 5;
+        }
         if (retry === false) {
             bungieGrantRequest(row, table, t, true);
             console.error(`[Error code: 1420] For ${row.bungieId}\n`, request);

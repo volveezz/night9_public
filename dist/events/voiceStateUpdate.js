@@ -6,14 +6,10 @@ import { Event } from "../structures/event.js";
 import { createdChannelsMap, pvePartyVoiceChatHandler } from "../utils/discord/pvePartyHandler.js";
 import { cacheUserActivity } from "../utils/discord/userActivityHandler.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
-import updateRaidStatus from "../utils/general/raidFunctions/updateRaidRoster.js";
 const voiceChannel = client.getCachedTextChannel(channelIds.voice);
 const voiceUsers = new Map();
 export default new Event("voiceStateUpdate", (oldState, newState) => {
     const embed = new EmbedBuilder().setColor(colors.success);
-    if (oldState.channel?.parentId === channelIds.raidCategory || newState.channel?.parentId === channelIds.raidCategory) {
-        updateRaidStatus(oldState, newState);
-    }
     if (!oldState.channelId && newState.channelId) {
         if (createdChannelsMap.has(newState.channelId))
             pvePartyVoiceChatHandler(newState.channelId, newState.member, "join");

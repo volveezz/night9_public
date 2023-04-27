@@ -74,9 +74,7 @@ function areAllPhasesComplete(phases) {
 }
 async function fetchCharacterResponse({ accessToken, bungieId, characterId, platform, }) {
     try {
-        const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`, {
-            accessToken,
-        }).catch((e) => console.error(`[Error code: 1654]`, e));
+        const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`).catch((e) => console.error(`[Error code: 1654]`, e));
         if (response == null) {
             throw { name: `[Error code: 1653] Got error upon checking ${platform}/${bungieId}` };
         }

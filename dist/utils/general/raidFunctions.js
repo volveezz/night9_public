@@ -382,17 +382,20 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
         if (!raidEvent)
             return null;
     }
-    const inChnMsgPromise = client.getCachedTextChannel(raidEvent.channelId).messages.fetch(raidEvent.inChannelMessageId);
-    async function raidUserDataManager(discordId) {
+    const inChnMsgPromise = (await client.getAsyncTextChannel(raidEvent.channelId)).messages.fetch(raidEvent.inChannelMessageId);
+    const raidUserDataManager = async (discordId) => {
         const raidUserData = completedRaidsData.get(discordId);
         const member = client.getCachedMembers().get(discordId);
         if (!raidUserData) {
             if (!retry && member?.roles.cache.has(statusRoles.verified)) {
-                setTimeout(() => {
+                setTimeout(async () => {
                     if (raidEvent == null)
                         return;
                     updatePrivateRaidMessage({ raidEvent, retry: true });
-                    updateRaidMessage(raidEvent);
+                    const updatedRaidEvent = await RaidEvent.findByPk(raidEvent.id);
+                    if (!updatedRaidEvent)
+                        return;
+                    updateRaidMessage(updatedRaidEvent);
                 }, 1000 * 60 * 5);
             }
             if (member?.roles.cache.has(statusRoles.verified)) {
@@ -425,7 +428,7 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
             : raidUserData?.totalRaidCount === 0
                 ? `не проходил ранее рейды`
                 : `не проходил доступные на данный момент рейды`}`;
-    }
+    };
     const joined = raidEvent.joined.map(async (userId) => raidUserDataManager(userId));
     const hotJoined = raidEvent.hotJoined.map(async (userId) => raidUserDataManager(userId));
     const alt = raidEvent.alt.map(async (userId) => raidUserDataManager(userId));
