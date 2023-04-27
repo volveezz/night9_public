@@ -168,14 +168,7 @@ export async function updateRaidMessage(raidDbData, interaction) {
         (await client.getCachedTextChannel(channelIds.raid).messages.fetch(raidDbData.messageId));
     let components = [];
     if (!msg || !msg.embeds || !msg.embeds[0]) {
-        try {
-            msg = await (await (interaction?.guild || client.getCachedGuild()).channels.fetch(channelIds.raid)).messages.fetch(raidDbData.messageId);
-        }
-        catch (error) {
-            return console.error(`[Error code: 1037] Error during updateRaidMessage`, msg);
-        }
-        if (!msg)
-            return console.error(`[Error code: 1219] Error during updateRaidMessage`, msg);
+        return console.error(`[Error code: 1219] Error during updateRaidMessage`, msg);
     }
     const embed = EmbedBuilder.from(msg.embeds[0]);
     const clearMemberName = (id) => nameCleaner(client.getCachedMembers().get(id)?.displayName || "неизвестный пользователь", true);
@@ -385,20 +378,22 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
     const inChnMsgPromise = (await client.getAsyncTextChannel(raidEvent.channelId)).messages.fetch(raidEvent.inChannelMessageId);
     const raidUserDataManager = async (discordId) => {
         const raidUserData = completedRaidsData.get(discordId);
-        const member = client.getCachedMembers().get(discordId);
+        const member = await client.getAsyncMember(discordId);
         if (!raidUserData) {
             if (!retry && member?.roles.cache.has(statusRoles.verified)) {
                 setTimeout(async () => {
                     if (raidEvent == null)
                         return;
-                    updatePrivateRaidMessage({ raidEvent, retry: true });
-                    const updatedRaidEvent = await RaidEvent.findByPk(raidEvent.id);
-                    if (!updatedRaidEvent)
-                        return;
-                    updateRaidMessage(updatedRaidEvent);
+                    await updatePrivateRaidMessage({ raidEvent, retry: true });
                 }, 1000 * 60 * 5);
             }
             if (member?.roles.cache.has(statusRoles.verified)) {
+                setTimeout(async () => {
+                    const updatedRaidEvent = await RaidEvent.findByPk(raidEvent.id);
+                    if (!updatedRaidEvent)
+                        return;
+                    await updateRaidMessage(updatedRaidEvent);
+                }, 1000 * 60 * 3);
                 return `⁣　<@${discordId}> не закеширован`;
             }
             else if (!member) {

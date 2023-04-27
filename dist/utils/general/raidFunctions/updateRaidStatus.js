@@ -16,17 +16,20 @@ schedule("0 23 * * *", () => {
 });
 async function updateRaidStatus() {
     const ongoingRaids = await getOngoingRaids();
-    ongoingRaids.forEach((raidEvent) => {
-        if (checkingRaids.has(raidEvent.id))
+    ongoingRaids.forEach((initialRaidEvent) => {
+        if (checkingRaids.has(initialRaidEvent.id))
             return;
-        checkingRaids.add(raidEvent.id);
-        const startTime = new Date(raidEvent.time * 1000);
+        checkingRaids.add(initialRaidEvent.id);
+        const startTime = new Date(initialRaidEvent.time * 1000);
         const raidStartTimePlus5 = new Date(startTime.getTime() + MINUTES_AFTER_RAID * 60 * 1000);
-        console.debug(`Added raid ID: ${raidEvent.id} for checking, time: ${raidEvent.time}, time + 5: ${Math.floor(raidStartTimePlus5.getTime() / 1000)}`);
+        console.debug(`Added raid ID: ${initialRaidEvent.id} for checking, time: ${initialRaidEvent.time}, time + 5: ${Math.floor(raidStartTimePlus5.getTime() / 1000)}`);
         const checkFireteamStatus = async () => {
-            const raidStillExists = await RaidEvent.findOne({ where: { id: raidEvent.id, time: raidEvent.time }, attributes: ["id"] });
-            if (!raidStillExists) {
-                console.debug(`Raid with ID: ${raidEvent.id} was deleted or time was changed`);
+            const raidEvent = await RaidEvent.findOne({
+                where: { id: initialRaidEvent.id, time: initialRaidEvent.time },
+                attributes: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId"],
+            });
+            if (!raidEvent) {
+                console.debug(`Raid with ID: ${initialRaidEvent.id} was deleted or time was changed`);
                 return false;
             }
             const voiceChannels = (await client.getCachedGuild().channels.fetch()).filter((channel) => channel && channel.type === ChannelType.GuildVoice);
@@ -40,13 +43,11 @@ async function updateRaidStatus() {
                 return false;
             }
             const voiceChannelMembersAuthData = await getVoiceChannelMembersAuthData(raidVoiceChannel.members.map((member) => member.id));
-            const fireteamData = await checkFireteamRoster(voiceChannelMembersAuthData);
-            if (!fireteamData) {
+            const partyMembers = await checkFireteamRoster(voiceChannelMembersAuthData);
+            if (!partyMembers) {
                 console.error(`[Error code: 1719]`, raidEvent.id);
                 return false;
             }
-            const { joinability, transitoryData: partyMembers } = fireteamData;
-            console.debug("Joinability:", joinability);
             const fireteamBungieIds = partyMembers.map((member) => member.membershipId);
             const raidMemberBungieIds = voiceChannelMembersAuthData.map((record) => record.bungieId);
             const matchingBungieIds = fireteamBungieIds.filter((id) => raidMemberBungieIds.includes(id));
@@ -128,12 +129,12 @@ async function updateRaidStatus() {
         };
         setTimeout(() => {
             const interval = setInterval(async () => {
-                console.debug(`Checking fireteam status for raid ID: ${raidEvent.id}`, raidStartTimePlus5.getTime() - Date.now());
+                console.debug(`Checking fireteam status for raid ID: ${initialRaidEvent.id}`, raidStartTimePlus5.getTime() - Date.now());
                 const checkFireteam = await checkFireteamStatus();
                 if (checkFireteam === false) {
-                    console.debug(`Interval cleared for raid ID: ${raidEvent.id}`);
+                    console.debug(`Interval cleared for raid ID: ${initialRaidEvent.id}`);
                     clearInterval(interval);
-                    checkingRaids.delete(raidEvent.id);
+                    checkingRaids.delete(initialRaidEvent.id);
                 }
             }, 1000 * 60 * 5);
         }, raidStartTimePlus5.getTime() - Date.now());
@@ -162,10 +163,10 @@ async function getVoiceChannelMembersAuthData(voiceChannelMemberIds) {
 async function checkFireteamRoster(voiceChannelMembersAuthData) {
     for (const authData of voiceChannelMembersAuthData) {
         const destinyProfile = await fetchRequest(`Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=1000`);
-        const transitoryData = destinyProfile?.profileTransitoryData?.data?.partyMembers;
-        if (!transitoryData)
+        const partyMembers = destinyProfile?.profileTransitoryData?.data?.partyMembers;
+        if (!partyMembers)
             return null;
-        return { transitoryData, joinability: destinyProfile.profileTransitoryData.data.joinability };
+        return destinyProfile.profileTransitoryData.data.partyMembers;
     }
     return null;
 }
