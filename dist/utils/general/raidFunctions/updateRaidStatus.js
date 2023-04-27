@@ -108,13 +108,13 @@ async function updateRaidStatus() {
             }
         };
         const interval = setInterval(async () => {
-            console.debug(`Checking fireteam status for raid ID: ${raidEvent.id}`);
+            console.debug(`Checking fireteam status for raid ID: ${raidEvent.id}`, raidStartTimePlus5.getTime() - Date.now());
             const checkFireteam = await checkFireteamStatus();
             if (checkFireteam === false) {
                 console.debug(`Interval cleared for raid ID: ${raidEvent.id}`);
                 clearInterval(interval);
             }
-        }, raidStartTimePlus5.getTime() - Date.now());
+        }, 1000 * 60 * 5);
     }
 }
 async function getOngoingRaids() {
