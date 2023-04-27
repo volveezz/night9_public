@@ -16,9 +16,9 @@ schedule("0 23 * * *", () => {
 });
 async function updateRaidStatus() {
     const ongoingRaids = await getOngoingRaids();
-    for (const raidEvent of ongoingRaids) {
+    ongoingRaids.forEach((raidEvent) => {
         if (checkingRaids.has(raidEvent.id))
-            continue;
+            return;
         checkingRaids.add(raidEvent.id);
         const startTime = new Date(raidEvent.time * 1000);
         const raidStartTimePlus5 = new Date(startTime.getTime() + MINUTES_AFTER_RAID * 60 * 1000);
@@ -134,7 +134,7 @@ async function updateRaidStatus() {
                 }
             }, 1000 * 60 * 5);
         }, raidStartTimePlus5.getTime() - Date.now());
-    }
+    });
 }
 async function getOngoingRaids() {
     return RaidEvent.findAll({
