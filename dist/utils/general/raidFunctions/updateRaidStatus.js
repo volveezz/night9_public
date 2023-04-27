@@ -42,7 +42,9 @@ async function updateRaidStatus() {
                 console.debug(`Raid voice channel was not found with joined members of raid id: ${raidEvent.id}`);
                 return false;
             }
-            const voiceChannelMembersAuthData = await getVoiceChannelMembersAuthData(raidVoiceChannel.members.map((member) => member.id));
+            const voiceChannelMembersAuthData = await getVoiceChannelMembersAuthData([
+                ...new Set(...raidVoiceChannel.members.map((member) => member.id), raidEvent.joined),
+            ]);
             const partyMembers = await checkFireteamRoster(voiceChannelMembersAuthData);
             if (!partyMembers) {
                 console.error(`[Error code: 1719]`, raidEvent.id);
@@ -79,6 +81,7 @@ async function updateRaidStatus() {
                     const member = await client.getAsyncMember(discordId);
                     const userAlreadyWasHotJoined = raidEvent.hotJoined.includes(member.id);
                     const userAlreadyWasAlt = raidEvent.alt.includes(member.id);
+                    console.debug(`Data: ${userAlreadyWasAlt}, ${userAlreadyWasHotJoined}`, "\n\n", raidEvent);
                     const userPreviousState = `${userAlreadyWasAlt ? "[Возможный участник]" : userAlreadyWasHotJoined ? "[Запас]" : "❌"}`;
                     const userNewState = `${userInFireteam ? "[Участник]" : "❌"}`;
                     const actionState = `${userPreviousState} -> ${userNewState}`;
@@ -150,22 +153,29 @@ async function getOngoingRaids() {
 }
 async function getVoiceChannelMembersAuthData(voiceChannelMemberIds) {
     console.debug(`Fetching auth data for ${voiceChannelMemberIds.length} members`);
-    return AuthData.findAll({
+    return await AuthData.findAll({
         where: {
             discordId: {
                 [Op.in]: voiceChannelMemberIds,
             },
         },
-        attributes: ["platform", "bungieId", "discordId"],
+        attributes: ["platform", "bungieId", "discordId", "accessToken"],
     });
 }
 async function checkFireteamRoster(voiceChannelMembersAuthData) {
-    for (const authData of voiceChannelMembersAuthData) {
-        const destinyProfile = await fetchRequest(`Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=1000`);
+    for await (const authData of voiceChannelMembersAuthData) {
+        const destinyProfile = await fetchRequest(`Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=204,1000`, authData.accessToken);
         const partyMembers = destinyProfile?.profileTransitoryData?.data?.partyMembers;
-        if (!partyMembers)
-            return null;
-        return destinyProfile.profileTransitoryData.data.partyMembers;
+        const characterActivities = destinyProfile.characterActivities.data;
+        if (!partyMembers || !characterActivities)
+            continue;
+        for (const characterId in characterActivities) {
+            const currentActivityModeHash = characterActivities[characterId].currentActivityModeHash;
+            const currentActivityModeType = characterActivities[characterId].currentActivityModeType;
+            if (currentActivityModeHash === 2166136261 || currentActivityModeType === 4) {
+                return destinyProfile.profileTransitoryData.data.partyMembers;
+            }
+        }
     }
     return null;
 }
