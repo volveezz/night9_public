@@ -22,7 +22,7 @@ async function updateRaidStatus() {
         checkingRaids.add(raidEvent.id);
         const startTime = new Date(raidEvent.time * 1000);
         const raidStartTimePlus5 = new Date(startTime.getTime() + MINUTES_AFTER_RAID * 60 * 1000);
-        console.debug(`Checking raid ID: ${raidEvent.id}, time: ${raidEvent.time}, time + 5: ${Math.floor(raidStartTimePlus5.getTime() / 1000)}`);
+        console.debug(`Added raid ID: ${raidEvent.id} for checking, time: ${raidEvent.time}, time + 5: ${Math.floor(raidStartTimePlus5.getTime() / 1000)}`);
         const checkFireteamStatus = async () => {
             const raidStillExists = await RaidEvent.findOne({ where: { id: raidEvent.id, time: raidEvent.time }, attributes: ["id"] });
             if (!raidStillExists) {
@@ -138,12 +138,7 @@ async function updateRaidStatus() {
 }
 async function getOngoingRaids() {
     return RaidEvent.findAll({
-        where: {
-            [Op.and]: [
-                { time: { [Op.gt]: Math.floor(Date.now() / 1000) } },
-                { time: { [Op.lte]: Math.floor(Math.floor(Date.now() / 1000) + 25 * 60 * 60) } },
-            ],
-        },
+        where: { time: { [Op.lte]: Math.floor(Math.floor(Date.now() / 1000) + 25 * 60 * 60) } },
         attributes: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId"],
     });
 }
