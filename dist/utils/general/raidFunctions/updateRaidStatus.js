@@ -55,9 +55,11 @@ async function updateRaidStatus() {
                 console.debug(`Not enough matching Bungie IDs for raid ID: ${raidEvent.id}`);
                 return false;
             }
-            for (const memberAuthData of voiceChannelMembersAuthData) {
+            for await (const memberAuthData of voiceChannelMembersAuthData) {
                 const discordId = memberAuthData.discordId;
                 const userInFireteam = partyMembers.some((member) => member.membershipId === memberAuthData.bungieId);
+                if (raidEvent.joined.includes(discordId) && userInFireteam)
+                    continue;
                 const updateRaidDatabase = async (raidEvent) => {
                     const updatedData = userInFireteam && !raidEvent.joined.includes(discordId)
                         ? await updateRaidJoinedRoster(true, raidEvent, discordId)
@@ -102,6 +104,7 @@ async function updateRaidStatus() {
                     const raidMessage = (await client.getAsyncTextChannel(channelIds.raid)).messages.fetch(raidEvent.messageId);
                     const updatedMessageOptions = await updateRaidMessage(raidEvent);
                     if (updatedMessageOptions) {
+                        console.debug(raidEvent.raid, raidEvent.difficulty, raidEvent.joined, updatedMessageOptions.embeds[0]);
                         const { embeds, components } = updatedMessageOptions;
                         return (await raidMessage).edit({ embeds, components: await addButtonComponentsToMessage(components) });
                     }
@@ -112,10 +115,10 @@ async function updateRaidStatus() {
                 };
                 const isUserAdded = await updateRaidDatabase(raidEvent);
                 if (isUserAdded === 1) {
-                    console.debug(`User ${discordId} was added to raid ${raidEvent.id}`);
+                    console.debug(`User ${discordId} was updated in the raid ${raidEvent.id}`);
                 }
                 else if (isUserAdded === 0) {
-                    console.debug(`User ${discordId} was removed from raid ${raidEvent.id}`);
+                    console.debug(`User ${discordId} wasn't changed in the raid ${raidEvent.id}`);
                 }
                 else {
                     console.error(`[Error code: 1718]`, raidEvent.id);
@@ -137,8 +140,14 @@ async function updateRaidStatus() {
     });
 }
 async function getOngoingRaids() {
-    return RaidEvent.findAll({
-        where: { time: { [Op.lte]: Math.floor(Math.floor(Date.now() / 1000) + 25 * 60 * 60) } },
+    const currentTime = Math.floor(Date.now() / 1000);
+    const currentDay = new Date(currentTime * 1000);
+    currentDay.setHours(23, 0, 0, 0);
+    const endTime = Math.floor(currentDay.getTime() / 1000);
+    return await RaidEvent.findAll({
+        where: {
+            [Op.and]: [{ time: { [Op.gte]: currentTime } }, { time: { [Op.lte]: endTime } }],
+        },
         attributes: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId"],
     });
 }
