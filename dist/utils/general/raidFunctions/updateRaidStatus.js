@@ -77,8 +77,8 @@ async function updateRaidStatus() {
                 };
                 const sendChannelEmbed = async (raidEvent) => {
                     const member = await client.getAsyncMember(discordId);
-                    const userAlreadyWasHotJoined = raidEvent.hotJoined.includes(discordId);
-                    const userAlreadyWasAlt = raidEvent.alt.includes(discordId);
+                    const userAlreadyWasHotJoined = raidEvent.hotJoined.includes(member.id);
+                    const userAlreadyWasAlt = raidEvent.alt.includes(member.id);
                     const userPreviousState = `${userAlreadyWasAlt ? "[Возможный участник]" : userAlreadyWasHotJoined ? "[Запас]" : "❌"}`;
                     const userNewState = `${userInFireteam ? "[Участник]" : "❌"}`;
                     const actionState = `${userPreviousState} -> ${userNewState}`;
@@ -93,19 +93,18 @@ async function updateRaidStatus() {
                         text: `Пользователь ${footerText} системой слежки за составом`,
                     });
                     const raidChannel = await client.getAsyncTextChannel(raidEvent.channelId);
-                    raidChannel.send({ embeds: [embed] });
+                    await raidChannel.send({ embeds: [embed] });
                     if (userInFireteam && !raidEvent.joined.includes(discordId)) {
-                        raidChannel.permissionOverwrites.create(discordId, { ViewChannel: true });
+                        await raidChannel.permissionOverwrites.create(discordId, { ViewChannel: true });
                     }
                     else if (!userInFireteam && raidEvent.joined.includes(discordId)) {
-                        raidChannel.permissionOverwrites.delete(discordId);
+                        await raidChannel.permissionOverwrites.delete(discordId);
                     }
                 };
                 const updateRaidMessageEmbed = async (raidEvent) => {
                     const raidMessage = (await client.getAsyncTextChannel(channelIds.raid)).messages.fetch(raidEvent.messageId);
                     const updatedMessageOptions = await updateRaidMessage(raidEvent);
                     if (updatedMessageOptions) {
-                        console.debug(raidEvent.raid, raidEvent.difficulty, raidEvent.joined, updatedMessageOptions.embeds[0]);
                         const { embeds, components } = updatedMessageOptions;
                         return (await raidMessage).edit({ embeds, components: await addButtonComponentsToMessage(components) });
                     }
@@ -183,7 +182,7 @@ async function updateRaidJoinedRoster(joined, raidEvent, discordId) {
             id: raidEvent.id,
         },
         limit: 1,
-        returning: true,
+        returning: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId"],
     });
     return updatedData;
 }
