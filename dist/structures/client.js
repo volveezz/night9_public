@@ -9,6 +9,7 @@ import { convertSeconds } from "../utils/general/convertSeconds.js";
 import getFiles from "../utils/general/fileReader.js";
 import updateRaidStatus from "../utils/general/raidFunctions/updateRaidStatus.js";
 import { cacheRaidMilestones } from "../utils/general/raidMilestones.js";
+import { restoreFetchedPGCRs } from "../utils/logging/activityLogger.js";
 const __dirname = resolve();
 export class ExtendedClient extends Client {
     commands = new Collection();
@@ -192,6 +193,7 @@ export class ExtendedClient extends Client {
             this.loadCommands();
             this.loadAutocompletions();
             this.startUpdatingPresence();
+            restoreFetchedPGCRs();
             this.importFile("../utils/api/rssHandler.js");
             if (process.env.DEV_BUILD !== "dev") {
                 tokenManagment();

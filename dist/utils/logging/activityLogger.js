@@ -24,6 +24,16 @@ const hashToImageMap = {
     1368255375: "https://cdn.discordapp.com/attachments/679191036849029167/1089134183747690516/season_20_battleground_bulkhead.png",
 };
 const pgcrIds = new Set();
+async function restoreFetchedPGCRs() {
+    const completedActivitiesChannels = await client.getAsyncTextChannel(channelIds.activity);
+    (await completedActivitiesChannels.messages.fetch({ limit: 5 })).forEach(async (message) => {
+        const url = message.embeds?.[0]?.data?.author?.url;
+        const pgcrId = url?.split("/")[4];
+        if (pgcrId) {
+            pgcrIds.add(pgcrId);
+        }
+    });
+}
 async function logActivityCompletion(pgcrId) {
     if (!pgcrIds.has(pgcrId)) {
         pgcrIds.add(pgcrId);
@@ -282,7 +292,7 @@ async function logActivityCompletion(pgcrId) {
                     preciseEncountersTime.clear();
                 }
             }
-            const msg = client.getCachedTextChannel(channelIds.activity).send({ embeds: [embed] });
+            const msg = (await client.getAsyncTextChannel(channelIds.activity)).send({ embeds: [embed] });
             const currentTime = Math.floor(Date.now() / 1000);
             databaseData.forEach(async (dbMemberData) => {
                 if (mode === 82 && clanMembersInActivity > 1)
@@ -340,4 +350,4 @@ async function logActivityCompletion(pgcrId) {
         }
     }
 }
-export { logActivityCompletion };
+export { logActivityCompletion, restoreFetchedPGCRs };

@@ -107,14 +107,16 @@ async function updateRaidStatus() {
                 }
             }
         };
-        const interval = setInterval(async () => {
-            console.debug(`Checking fireteam status for raid ID: ${raidEvent.id}`, raidStartTimePlus5.getTime() - Date.now());
-            const checkFireteam = await checkFireteamStatus();
-            if (checkFireteam === false) {
-                console.debug(`Interval cleared for raid ID: ${raidEvent.id}`);
-                clearInterval(interval);
-            }
-        }, 1000 * 60 * 5);
+        setTimeout(() => {
+            const interval = setInterval(async () => {
+                console.debug(`Checking fireteam status for raid ID: ${raidEvent.id}`, raidStartTimePlus5.getTime() - Date.now());
+                const checkFireteam = await checkFireteamStatus();
+                if (checkFireteam === false) {
+                    console.debug(`Interval cleared for raid ID: ${raidEvent.id}`);
+                    clearInterval(interval);
+                }
+            }, 1000 * 60 * 5);
+        }, raidStartTimePlus5.getTime() - Date.now());
     }
 }
 async function getOngoingRaids() {
@@ -140,8 +142,8 @@ async function getVoiceChannelMembersAuthData(voiceChannelMemberIds) {
 }
 async function checkFireteamRoster(voiceChannelMembersAuthData) {
     for (const authData of voiceChannelMembersAuthData) {
-        const destinyProfile = await fetchRequest(`/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=1000`);
-        const transitoryData = destinyProfile.profileTransitoryData.data?.partyMembers;
+        const destinyProfile = await fetchRequest(`Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=1000`);
+        const transitoryData = destinyProfile?.profileTransitoryData?.data?.partyMembers;
         if (!transitoryData)
             return null;
         return { transitoryData, joinability: destinyProfile.profileTransitoryData.data.joinability };
