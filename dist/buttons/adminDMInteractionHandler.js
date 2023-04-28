@@ -12,14 +12,16 @@ export default {
     run: async ({ client, interaction }) => {
         if (interaction.customId !== AdminDMChannelButtons.delete && interaction.customId !== AdminDMChannelButtons.reply)
             return;
-        const buttonId = interaction.customId;
+        const customId = interaction.customId;
         const messageId = interaction.message.embeds[0].footer.text.split(" | MId: ").pop();
         const userId = interaction.message.embeds[0].footer.text.split(" | MId: ").shift().split("UId: ").pop();
         const replyMember = interaction.guild.members.cache.get(userId);
-        const channel = (interaction.channel || (await client.getCachedGuild().channels.fetch(channelIds.directMessages)));
-        if (!replyMember)
-            throw { name: "[adminDMInteractionHandler error] User not found", userId, errorType: UserErrors.MEMBER_NOT_FOUND };
-        switch (buttonId) {
+        const channel = await client.getAsyncTextChannel(channelIds.directMessages);
+        if (!replyMember) {
+            console.error(`[Error code: 1728]`, userId);
+            throw { errorType: UserErrors.MEMBER_NOT_FOUND };
+        }
+        switch (customId) {
             case AdminDMChannelButtons.reply: {
                 const embed = new EmbedBuilder()
                     .setColor(colors.default)
