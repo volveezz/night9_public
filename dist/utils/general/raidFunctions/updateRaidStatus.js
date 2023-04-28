@@ -71,17 +71,16 @@ async function updateRaidStatus() {
                             : null;
                     const updatedRaidEvent = updatedData ? updatedData[1][0] : raidEvent;
                     await Promise.all([
-                        sendChannelEmbed(updatedRaidEvent),
+                        sendChannelEmbed(),
                         updateRaidMessageEmbed(updatedRaidEvent),
                         updatePrivateRaidMessageEmbed(updatedRaidEvent),
                     ]);
                     return updatedData ? updatedData[0] : 0;
                 };
-                const sendChannelEmbed = async (raidEvent) => {
+                const sendChannelEmbed = async () => {
                     const member = await client.getAsyncMember(discordId);
                     const userAlreadyWasHotJoined = raidEvent.hotJoined.includes(member.id);
                     const userAlreadyWasAlt = raidEvent.alt.includes(member.id);
-                    console.debug(`Data: ${userAlreadyWasAlt}, ${userAlreadyWasHotJoined}`, "\n\n", raidEvent);
                     const userPreviousState = `${userAlreadyWasAlt ? "[Возможный участник]" : userAlreadyWasHotJoined ? "[Запас]" : "❌"}`;
                     const userNewState = `${userInFireteam ? "[Участник]" : "❌"}`;
                     const actionState = `${userPreviousState} -> ${userNewState}`;
@@ -192,7 +191,7 @@ async function updateRaidJoinedRoster(joined, raidEvent, discordId) {
             id: raidEvent.id,
         },
         limit: 1,
-        returning: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId"],
+        returning: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId", "raid", "difficulty"],
     });
     return updatedData;
 }
