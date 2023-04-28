@@ -43,9 +43,8 @@ async function updateRaidStatus() {
                 console.debug(`Raid voice channel was not found with joined members of raid id: ${raidEvent.id}`);
                 return false;
             }
-            const voiceChannelMembersAuthData = await getVoiceChannelMembersAuthData([
-                ...new Set(...raidVoiceChannel.members.map((member) => member.id), raidEvent.joined),
-            ]);
+            const userIds = [...new Set([...raidEvent.joined, ...raidVoiceChannel.members.map((member) => member.id)])];
+            const voiceChannelMembersAuthData = await getVoiceChannelMembersAuthData(userIds);
             const partyMembers = await checkFireteamRoster(voiceChannelMembersAuthData);
             if (!partyMembers) {
                 console.error(`[Error code: 1719]`, raidEvent.id);
@@ -160,7 +159,6 @@ async function getOngoingRaids() {
 }
 async function getVoiceChannelMembersAuthData(voiceChannelMemberIds) {
     console.debug(`Fetching auth data for ${voiceChannelMemberIds.length} members`);
-    console.debug(`Voice Ids:`, voiceChannelMemberIds);
     return await AuthData.findAll({
         where: {
             discordId: {
@@ -175,20 +173,16 @@ async function checkFireteamRoster(voiceChannelMembersAuthData) {
         const destinyProfile = await fetchRequest(`Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=204,1000`, authData.accessToken);
         const partyMembers = destinyProfile?.profileTransitoryData?.data?.partyMembers;
         const characterActivities = destinyProfile.characterActivities.data;
-        if (!partyMembers || !characterActivities) {
-            console.debug(`Skipped ${authData.discordId}`);
+        if (!partyMembers || !characterActivities)
             continue;
-        }
         for (const characterId in characterActivities) {
             const currentActivityModeHash = characterActivities[characterId].currentActivityModeHash;
             const currentActivityModeType = characterActivities[characterId].currentActivityModeType;
             if (currentActivityModeHash === 2166136261 || currentActivityModeType === 4) {
-                console.debug(`Returned ${authData.discordId}`);
                 return destinyProfile.profileTransitoryData.data.partyMembers;
             }
         }
     }
-    console.debug(`Not found anything`);
     return null;
 }
 async function updateRaidJoinedRoster(joined, raidEvent, discordId) {
