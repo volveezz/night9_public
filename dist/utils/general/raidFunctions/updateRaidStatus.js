@@ -75,6 +75,8 @@ async function updateRaidStatus() {
                 const userInFireteam = partyMembers.some((member) => member.membershipId === memberAuthData.bungieId);
                 if (raidEvent.joined.includes(discordId) && userInFireteam)
                     continue;
+                if (raidEvent.hotJoined.includes(discordId) && !userInFireteam)
+                    continue;
                 const updateRaidDatabase = async (raidEvent) => {
                     const updatedData = userInFireteam && !raidEvent.joined.includes(discordId)
                         ? await updateRaidJoinedRoster(true, raidEvent, discordId)
@@ -91,9 +93,16 @@ async function updateRaidStatus() {
                 };
                 const sendChannelEmbed = async () => {
                     const member = await client.getAsyncMember(discordId);
+                    const userAlreadyWasJoined = raidEvent.joined.includes(member.id);
                     const userAlreadyWasHotJoined = raidEvent.hotJoined.includes(member.id);
                     const userAlreadyWasAlt = raidEvent.alt.includes(member.id);
-                    const userPreviousState = `${userAlreadyWasAlt ? "[Возможный участник]" : userAlreadyWasHotJoined ? "[Запас]" : "❌"}`;
+                    const userPreviousState = `${userAlreadyWasAlt
+                        ? "[Возможный участник]"
+                        : userAlreadyWasHotJoined
+                            ? "[Запас]"
+                            : userAlreadyWasJoined
+                                ? `[Участник]`
+                                : "❌"}`;
                     const userNewState = `${userInFireteam ? "[Участник]" : "❌"}`;
                     const actionState = `${userPreviousState} -> ${userNewState}`;
                     const footerText = userInFireteam ? (userAlreadyWasHotJoined || userAlreadyWasAlt ? `перезаписан` : `записан`) : `выписан`;
@@ -142,7 +151,7 @@ async function updateRaidStatus() {
         };
         setTimeout(() => {
             const interval = setInterval(async () => {
-                console.debug(`Checking fireteam status for raid ID: ${initialRaidEvent.id}`, raidStartTimePlus5.getTime() - Date.now());
+                console.debug(`Checking fireteam status for raid ID: ${initialRaidEvent.id}`);
                 const checkFireteam = await checkFireteamStatus();
                 if (checkFireteam === false) {
                     console.debug(`Interval cleared for raid ID: ${initialRaidEvent.id}`);
