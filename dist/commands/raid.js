@@ -12,6 +12,7 @@ import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessa
 import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { generateRaidClearsText, getRaidData, getRaidDatabaseInfo, raidAnnounceSystem, raidChallenges, timeConverter, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
+import updateRaidStatus from "../utils/general/raidFunctions/updateRaidStatus.js";
 import { descriptionFormatter, escapeString } from "../utils/general/utilities.js";
 import { RaidEvent, database } from "../utils/persistence/sequelize.js";
 export const raidAnnounceSet = new Set();
@@ -475,6 +476,7 @@ export default new Command({
             })
                 .then(async (privateRaidChannel) => {
                 raidAnnounceSystem(raidDb);
+                updateRaidStatus();
                 const premiumEmbed = new EmbedBuilder()
                     .setColor("#F3AD0C")
                     .addFields([
@@ -708,6 +710,7 @@ export default new Command({
                     }, { where: { id: raidData.id }, transaction: t, returning: ["id", "time"] });
                     raidAnnounceSet.delete(updatedRaiddata[0].id);
                     raidAnnounceSystem(updatedRaiddata[0]);
+                    updateRaidStatus();
                 }
                 else {
                     changes.push(`Время старта осталось без изменений\nУказаное время <t:${changedTime}>, <t:${changedTime}:R> находится в прошлом`);

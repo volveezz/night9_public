@@ -26,11 +26,16 @@ async function updateRaidStatus() {
         let isFirstCheck = true;
         const checkFireteamStatus = async () => {
             const raidEvent = await RaidEvent.findOne({
-                where: { id: initialRaidEvent.id, time: initialRaidEvent.time },
+                where: { id: initialRaidEvent.id },
                 attributes: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId"],
             });
-            if (!raidEvent) {
-                console.debug(`Raid with ID: ${initialRaidEvent.id} was deleted or time was changed`);
+            if (!raidEvent || raidEvent.time != initialRaidEvent.time) {
+                if (raidEvent && raidEvent.time != initialRaidEvent.time) {
+                    setTimeout(() => updateRaidStatus(), 1000 * 60);
+                    console.debug(`Raid with ID: ${initialRaidEvent.id} has changed time, rescheduling update`);
+                    return false;
+                }
+                console.debug(`Raid with ID: ${initialRaidEvent.id} was deleted`);
                 return false;
             }
             const voiceChannels = (await client.getCachedGuild().channels.fetch()).filter((channel) => channel && channel.type === ChannelType.GuildVoice);
