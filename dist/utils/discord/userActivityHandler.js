@@ -30,6 +30,6 @@ async function userActivityUpdater() {
     }
     await t.commit().catch(async (e) => {
         await t.rollback();
-        console.error(`[Error code: 1201] Error during updating discord_activity values`, { e });
+        console.error("[Error code: 1201] Error during updating discord_activity values", { e });
     });
 }

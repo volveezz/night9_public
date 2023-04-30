@@ -67,7 +67,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
             }
         }
         catch (error) {
-            console.error(`[Error code: 1644]`, error);
+            console.error("[Error code: 1644]", error);
         }
         async function DLCChecker(version) {
             if (!version)
@@ -265,8 +265,8 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
             if (memberRoles.has(seasonalRoles.curSeasonRole))
                 removeRoles.push(seasonalRoles.curSeasonRole);
         }
-        DLCChecker(destinyProfileResponse.profile.data.versionsOwned).catch((e) => console.error(`[Error code: 1092] dlc_rolesChecker`, { e }, member.displayName));
-        triumphsChecker().catch((e) => console.error(`[Error code: 1093] triumphsChecker`, { e }, member.displayName));
+        DLCChecker(destinyProfileResponse.profile.data.versionsOwned).catch((e) => console.error(`[Error code: 1092] ${member.displayName}`, e));
+        triumphsChecker().catch((e) => console.error(`[Error code: 1093] ${member.displayName}`, e));
         if (roleCategoriesBits & NightRoleCategory.Trials) {
             const metrics = destinyProfileResponse.metrics.data.metrics["1765255052"]?.objectiveProgress.progress;
             if (metrics == null || isNaN(metrics))
@@ -339,7 +339,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                 console.error(`[Error code: 1096] Error during giving roles [ ${addRoles} ] for ${member.displayName}`);
             await member.roles
                 .add(rolesForGiving, "Role(s) added by autorole system")
-                .catch((e) => console.error(`[Error code: 1097] [Autorole error]`, e, rolesForGiving));
+                .catch((e) => console.error("[Error code: 1097] [Autorole error]", e, rolesForGiving));
         }
     }
     catch (e) {
@@ -374,11 +374,11 @@ async function manageClanMembers(bungie_array) {
             client.stopUpdatingPresence();
         }
         if (!clanList.results || !clanList.results?.length) {
-            console.error(`[Error code: 1118]`, clanList.ErrorStatus, clanList.Message);
+            console.error("[Error code: 1118]", clanList.ErrorStatus, clanList.Message);
             if (clanList.ErrorCode === 5)
                 client.user.setPresence({
                     activities: [
-                        { name: `BungieAPI отключено`, type: ActivityType.Listening },
+                        { name: "BungieAPI отключено", type: ActivityType.Listening },
                         { name: "Destiny API не отвечает", type: ActivityType.Listening },
                     ],
                     status: "online",
@@ -430,7 +430,7 @@ async function manageClanMembers(bungie_array) {
                                     }
                                 }
                                 catch (error) {
-                                    console.error(`[Error code: 1238] Error during clanJoinDate role managment`, { error });
+                                    console.error("[Error code: 1238] Error during clanJoinDate role managment", { error });
                                 }
                             }
                             break;
@@ -564,7 +564,7 @@ async function handleMemberStatistics() {
         dbNotFoundUsers.length > 0 && process.env.DEV_BUILD !== "dev" ? console.error(dbNotFoundUsers.filter((val, ind) => ind < 5)) : [];
         const databaseData = dbNotFiltred.filter((data) => client.getCachedMembers().has(data.discordId));
         if (!databaseData || (databaseData.length === 0 && !process.env.DEV_BUILD)) {
-            return console.error(`[Checker] [Error code: 1022] DB is ${databaseData ? `${databaseData}${databaseData?.length} size` : `not avaliable`}`);
+            return console.error(`[Error code: 1022] DB is ${databaseData ? `${databaseData}${databaseData?.length} size` : "not avaliable"}`);
         }
         if (apiStatus.status === 1) {
             for (let i = 0; i < databaseData.length; i++) {

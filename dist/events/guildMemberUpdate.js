@@ -22,7 +22,7 @@ export default new Event("guildMemberUpdate", (oldMember, newMember) => {
                 .join(", ");
             embed.addFields([
                 {
-                    name: `${addedRoles.size === 1 ? `Роль добавлена` : `Роли добавлены`}`,
+                    name: `${addedRoles.size === 1 ? "Роль добавлена" : "Роли добавлены"}`,
                     value: addedRolesString.length > 1024 ? "Слишком много ролей" : addedRolesString,
                 },
             ]);
@@ -35,7 +35,7 @@ export default new Event("guildMemberUpdate", (oldMember, newMember) => {
                 .join(", ");
             embed.addFields([
                 {
-                    name: `${removedRoles.size === 1 ? `Роль удалена` : `Роли удалены`}`,
+                    name: `${removedRoles.size === 1 ? "Роль удалена" : "Роли удалены"}`,
                     value: removedRolesString.length > 1024 ? "Слишком много ролей" : removedRolesString,
                 },
             ]);
@@ -53,8 +53,8 @@ export default new Event("guildMemberUpdate", (oldMember, newMember) => {
         })
             .addFields([
             { name: "Пользователь", value: `<@${newMember.id}>`, inline: true },
-            { name: "До изменения", value: `\`${oldMember.displayName}\``, inline: true },
-            { name: "После", value: `\`${newMember.displayName}\``, inline: true },
+            { name: "До изменения", value: "'${oldMember.displayName}'", inline: true },
+            { name: "После", value: "'${newMember.displayName}'", inline: true },
         ]);
         guildMemberChannel.send({ embeds: [embed] });
     }

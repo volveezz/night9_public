@@ -83,6 +83,10 @@ export class ExtendedClient extends Client {
         const guild = this.getCachedGuild() || this.guilds.cache.get(guildId) || (await this.guilds.fetch(guildId));
         return (this.getCachedTextChannel(id) || guild.channels.cache.get(id) || guild.channels.fetch(id));
     }
+    async getAsyncMessage(inputChannel, messageId) {
+        const resolvedChannel = typeof inputChannel === "string" ? await this.getAsyncTextChannel(inputChannel) : inputChannel;
+        return resolvedChannel.messages.cache.get(messageId) || resolvedChannel.messages.fetch(messageId);
+    }
     async importFile(filePath) {
         return (await import(filePath))?.default;
     }
@@ -97,15 +101,15 @@ export class ExtendedClient extends Client {
     async loadCommands() {
         const guildCommands = [];
         const globalCommands = [];
-        const commandFiles = getFiles(join(__dirname, "dist/commands/"));
+        const commandFiles = await getFiles(join(__dirname, "dist/commands/"));
         const commandReading = commandFiles.map((filePath) => {
             return this.importFile(`../commands/${filePath}`).then((command) => {
                 if (!command) {
-                    console.error(`[Error code: 1132] Command file not valid`, { filePath });
+                    console.error("[Error code: 1132] Command file not valid", { filePath });
                     return;
                 }
                 if (!command.name) {
-                    console.error(`[Error code: 1135] Unable to find command name for`, { filePath });
+                    console.error("[Error code: 1135] Unable to find command name for", { filePath });
                     return;
                 }
                 if (command.userContextMenu) {
@@ -138,11 +142,11 @@ export class ExtendedClient extends Client {
         await this.registerCommands({ global: false, commands: guildCommands });
     }
     async loadEvents() {
-        const eventFiles = getFiles(join(__dirname, "dist/events/"));
+        const eventFiles = await getFiles(join(__dirname, "dist/events/"));
         const eventPromises = eventFiles.map((filePath) => {
             return this.importFile(`../events/${filePath}`).then((event) => {
                 if (!event) {
-                    console.error(`[Error code: 1137] Event file not valid`, { filePath });
+                    console.error("[Error code: 1137] Event file not valid", { filePath });
                     return;
                 }
                 this.on(event.event, event.run);
@@ -151,11 +155,11 @@ export class ExtendedClient extends Client {
         await Promise.all(eventPromises);
     }
     async loadButtons() {
-        const buttonFiles = getFiles(join(__dirname, "dist/buttons/"));
+        const buttonFiles = await getFiles(join(__dirname, "dist/buttons/"));
         const buttonReading = buttonFiles.map((filePath) => {
             return this.importFile(`../buttons/${filePath}`).then((button) => {
                 if (!button) {
-                    console.error(`[Error code: 1140] Button file not valid`, { filePath });
+                    console.error("[Error code: 1140] Button file not valid", { filePath });
                     return;
                 }
                 this.buttons.set(button.name, button);
@@ -164,11 +168,11 @@ export class ExtendedClient extends Client {
         await Promise.all(buttonReading);
     }
     async loadAutocompletions() {
-        const autocompleteFiles = getFiles(join(__dirname, "dist/autocompletions"));
+        const autocompleteFiles = await getFiles(join(__dirname, "dist/autocompletions"));
         const autocompleteReading = autocompleteFiles.map((filePath) => {
             return this.importFile(`../autocompletions/${filePath}`).then((autocomplete) => {
                 if (!autocomplete) {
-                    console.error(`[Error code: 1141] Autocomplete file not valid`, { filePath });
+                    console.error("[Error code: 1141] Autocomplete file not valid", { filePath });
                     return;
                 }
                 this.autocomplete.set(autocomplete.name, autocomplete);

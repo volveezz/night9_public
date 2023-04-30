@@ -12,7 +12,7 @@ client.rest.on("rateLimited", (rateLimit) => {
     console.error(`Ratelimited for ${rateLimit.timeToReset} ms, route: ${rateLimit.route}${rateLimit.majorParameter ? `, parameter: ${rateLimit.majorParameter}` : ""}`);
 });
 process.on("uncaughtException", (error) => {
-    console.error(`uncaughtException at top level`, error);
+    console.error("uncaughtException at top level", error);
 });
 process.on("unhandledRejection", (error) => {
     if (error.code === "ECONNRESET")
@@ -26,8 +26,8 @@ process.on("unhandledRejection", (error) => {
     if (error.code >= 400 && error.code <= 599)
         return console.error(`[Error code: 1215] ${error.code}`);
     if (error.code === 50035)
-        return console.error(`[Error code: 1243]`, error, error.rawError);
-    console.error(`unhandledRejection at top level`, { error });
+        return console.error("[Error code: 1243]", error, error.rawError);
+    console.error("unhandledRejection at top level", { error });
 });
 const app = express();
 const port = process.env.PORT || 3000;
@@ -54,7 +54,7 @@ app.get("/callback", async (req, res) => {
         const discordState = req.query["state"];
         const { clientState } = req.signedCookies;
         if (clientState !== discordState) {
-            console.error(`State verification failed.`);
+            console.error("State verification failed.");
             return res.sendStatus(403);
         }
         const tokens = (await getOAuthTokens(code));
@@ -66,7 +66,7 @@ app.get("/callback", async (req, res) => {
             expires_at: Date.now() + tokens.expires_in * 1000,
         });
         await updateMetadata(userId);
-        res.send(`<script>location.replace('index.html')</script>`);
+        res.send("<script>location.replace('index.html')</script>");
     }
     catch (e) {
         console.error(e);

@@ -27,7 +27,7 @@ export default new Command({
         const destinyMembers = destinyRequest.results;
         const isRemovalSystem = args.getBoolean("removal") || false;
         if (!clanMembers || !discordMembers || !destinyRequest || !destinyMembers) {
-            console.error(`[Error code: 1035] clan list error`, !clanMembers ? clanMembers : "", !discordMembers ? discordMembers : "", !destinyRequest ? destinyRequest : "");
+            console.error("[Error code: 1035] clan list error", !clanMembers ? clanMembers : "", !discordMembers ? discordMembers : "", !destinyRequest ? destinyRequest : "");
             throw { name: "Ошибка во время сбора данных", description: "Пожалуйста, повторите попытку позже" };
         }
         const mergedMembersUnsort = destinyMembers.map((clanmember) => {
@@ -60,14 +60,14 @@ export default new Command({
             .setTitle(`Статистика ${destinyRequest.results[0].groupId === "4123712" ? "клана Night 9" : "неизвестного клана"}`)
             .addFields([
             {
-                name: `*n* *bungieName* / *discordName* / *platform*/*bungieId*`,
-                value: `*bungieNet* | *lastOnline* | *joinDate* | *msgsSent* | *voiceSec* | *clanDungeons/Raids*`,
+                name: "*n* *bungieName* / *discordName* / *platform*/*bungieId*",
+                value: "*bungieNet* | *lastOnline* | *joinDate* | *msgsSent* | *voiceSec* | *clanDungeons/Raids*",
             },
         ]);
         const fields = mergedMembers.map((member) => {
             const dbData = clanMembers.find((d) => d.bungieId === member.bungieId);
             return {
-                name: `${member.bungieName} / ${discordMembers.get(dbData?.discordId)?.displayName || "Не зарегистрирован"} / ${member.membershipType + `/` + member.bungieId}`,
+                name: `${member.bungieName} / ${discordMembers.get(dbData?.discordId)?.displayName || "Не зарегистрирован"} / ${member.membershipType + "/" + member.bungieId}`,
                 value: `[Bungie.net](https://www.bungie.net/7/ru/User/Profile/${member.membershipType}/${member.bungieId}) | ${member.isOnline ? "В игре" : `<t:${member.lastOnlineStatusChange}>`} | <t:${member.joinDate}>${dbData && dbData.UserActivityData
                     ? ` | ${dbData.UserActivityData.messages}:book: | ${dbData.UserActivityData.voice}с:microphone2: | ${dbData.UserActivityData.dungeons}/${dbData.UserActivityData.raids}`
                     : ""}`,
@@ -102,7 +102,7 @@ export default new Command({
                 };
                 const removalEmbed = new EmbedBuilder()
                     .setColor(colors.default)
-                    .setTitle(`Управление пользователем`)
+                    .setTitle("Управление пользователем")
                     .addFields([
                     {
                         name: "Пользователь",
@@ -235,7 +235,7 @@ export default new Command({
                                         name: "Уведомление об исключении из клана",
                                         iconURL: (interaction.guild || client.getCachedGuild()).bannerURL(),
                                     })
-                                        .setDescription(`> Вы были исключены из клана [Night 9](https://www.bungie.net/ru/ClanV2?groupid=4123712) в Destiny 2 поскольку не играли долгое время\n — Если вы вернетесь в игру - клан готов будет вас принять снова\n — Вступление в клан для исключенных доступно в <#724592361237381121> или по кнопке ниже`);
+                                        .setDescription("> Вы были исключены из клана [Night 9](https://www.bungie.net/ru/ClanV2?groupid=4123712) в Destiny 2 поскольку не играли долгое время\n — Если вы вернетесь в игру - клан готов будет вас принять снова\n — Вступление в клан для исключенных доступно в <#724592361237381121> или по кнопке ниже");
                                     lastMember.serverMember.send({
                                         embeds: [kickNotify],
                                         components: [
@@ -336,7 +336,7 @@ export default new Command({
                     await button.message.edit({ embeds: [removalEmbed], components: await addButtonComponentsToMessage(components) });
                 }
                 catch (error) {
-                    console.error(`Error blyad`);
+                    console.error("Error blyad");
                 }
                 return;
             });

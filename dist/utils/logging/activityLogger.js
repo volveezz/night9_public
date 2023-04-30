@@ -51,18 +51,18 @@ async function logActivityCompletion(pgcrId) {
                 return `https://bungie.net${manifestImage}`;
             }
         }
-        const response = await fetchRequest(`Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`).catch((e) => console.error(`[Error code: 1072] activityReporter error`, pgcrId, e, e.statusCode));
+        const response = await fetchRequest(`Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`).catch((e) => console.error("[Error code: 1072] activityReporter error", pgcrId, e, e.statusCode));
         if (!response.activityDetails) {
-            console.error(`[PGCR Checker] [Error code: 1009]`, pgcrId, response);
+            console.error("[PGCR Checker] [Error code: 1009]", pgcrId, response);
             return;
         }
         const { mode, referenceId } = response.activityDetails;
         const manifestData = CachedDestinyActivityDefinition[referenceId];
         const footerText = (mode === 4
-            ? `Рейд был закрыт`
+            ? "Рейд был закрыт"
             : mode === 82
-                ? `Подземелье было закрыто`
-                : `Активность была закрыта`) + (response.activityWasStartedFromBeginning ? " с начала" : " с контрольной точки");
+                ? "Подземелье было закрыто"
+                : "Активность была закрыта") + (response.activityWasStartedFromBeginning ? " с начала" : " с контрольной точки");
         const thumbnailUrl = getActivityImage(referenceId, manifestData.pgcrImage);
         const embed = new EmbedBuilder()
             .setColor(colors.success)
@@ -186,7 +186,7 @@ async function logActivityCompletion(pgcrId) {
                     });
                 }
                 catch (error) {
-                    console.error(`[Error code: 1671]`, error);
+                    console.error("[Error code: 1671]", error);
                 }
             });
             embed.data.fields = embed.data.fields?.sort((a, b) => {
@@ -283,11 +283,11 @@ async function logActivityCompletion(pgcrId) {
                             ]);
                         }
                         catch (error) {
-                            console.error(`[Error code: 1610] Error during adding fields to the raid result`, error);
+                            console.error("[Error code: 1610] Error during adding fields to the raid result", error);
                         }
                     }
                     else {
-                        console.error(`[Error code: 1613]`, encountersData, preciseEncountersTime, preciseEncountersTime.size);
+                        console.error("[Error code: 1613]", encountersData, preciseEncountersTime, preciseEncountersTime.size);
                     }
                     preciseEncountersTime.clear();
                 }
@@ -329,18 +329,18 @@ async function logActivityCompletion(pgcrId) {
                         embeds: [raidCompletionEmbed],
                         components: await addButtonComponentsToMessage([deleteRaidButton]),
                     })
-                        .catch((e) => console.error(`[Error code: 1071] acitvityReporter final error`, e));
+                        .catch((e) => console.error("[Error code: 1071] acitvityReporter final error", e));
                     setTimeout(async () => {
                         const isRaidStillExists = await RaidEvent.findOne({ where: { id: pastCreatedRaid.id }, attributes: ["time"] });
                         if (isRaidStillExists && isRaidStillExists.time === pastCreatedRaid.time) {
-                            await removeRaid(pastCreatedRaid).catch((e) => console.error(`[Error code: 1711]`, e));
+                            await removeRaid(pastCreatedRaid).catch((e) => console.error("[Error code: 1711]", e));
                         }
                         if (!raidCompletionNotification)
                             return;
                         const updatedMessage = await raidCompletionNotification.fetch();
                         if (updatedMessage) {
                             const updatedEmbed = EmbedBuilder.from(updatedMessage.embeds[0])
-                                .setTitle(`Рейд был завершен`)
+                                .setTitle("Рейд был завершен")
                                 .setDescription(`Созданный вами рейд ${pastCreatedRaid.id}-${pastCreatedRaid.raid} на <t:${pastCreatedRaid.time}> был завершен и удален\n\n[Результаты рейда](https://discord.com/channels/${resolvedMessage.guildId}/${resolvedMessage.channelId}/${resolvedMessage.id})`);
                             raidCompletionNotification.edit({ embeds: [updatedEmbed], components: [] });
                         }

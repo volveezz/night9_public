@@ -10,22 +10,22 @@ export async function fetchRequest(cleanUrl, authorizationData) {
     const jsonResponse = await response.json().catch(async (e) => {
         const status = response?.status;
         if (status === 524) {
-            console.error(`[Error code: 1710] A timeout occurred`);
+            console.error("[Error code: 1710] A timeout occurred");
         }
         else if (status === 503) {
-            console.error(`[Error code: 1683] Server is not avaliable`);
+            console.error("[Error code: 1683] Server is not avaliable");
         }
         else if (status === 502) {
-            console.error(`[Error code: 1099] Web error`);
+            console.error("[Error code: 1099] Web error");
         }
         else if (status === 409) {
-            console.error(`[Error code: 1108] Confilt error`);
+            console.error("[Error code: 1108] Confilt error");
         }
         else if (status === 522) {
-            console.error(`[Error code: 1117] Timed out error`);
+            console.error("[Error code: 1117] Timed out error");
         }
         else if (status === 401) {
-            console.error(`[Error code: 1682] Authorization error`);
+            console.error("[Error code: 1682] Authorization error");
         }
         else {
             if (status >= 400 && status <= 599) {

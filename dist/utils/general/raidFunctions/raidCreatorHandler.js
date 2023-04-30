@@ -22,7 +22,7 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
     }
     const embed = new EmbedBuilder()
         .setAuthor({ name: `Вы покинули рейд ${raid.id}-${raid.raid} являясь его создателем`, iconURL: icons.error })
-        .setDescription(`Права на рейд будут переданы другому участнику в течение 10 минут\n\nПри желании вы можете выполнить одно из трех действий:\n　1. Отменить передачу прав, если вы знаете, что делаете\n　2. Удалить рейд\n　3. Передать права другому участнику вручную`)
+        .setDescription("Права на рейд будут переданы другому участнику в течение 10 минут\n\nПри желании вы можете выполнить одно из трех действий:\n　1. Отменить передачу прав, если вы знаете, что делаете\n　2. Удалить рейд\n　3. Передать права другому участнику вручную")
         .setColor(colors.error);
     const cancelButton = new ButtonBuilder()
         .setLabel("Отменить передачу прав")
@@ -70,7 +70,7 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
     });
     collector.on("end", async (_, reason) => {
         sendedButtons.forEach((i) => i.deleteReply().catch((e) => {
-            return console.error(`[Error code: 1679]`, e);
+            return console.error("[Error code: 1679]", e);
         }));
         sendedButtons.clear();
         const handleEndReason = () => {
@@ -84,7 +84,7 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
                 return new EmbedBuilder()
                     .setColor(colors.error)
                     .setTitle(`Произошла ошибка во время удаления ${raid.id}-${raid.raid}`)
-                    .setDescription(`Скорее всего, рейд уже был удален`);
+                    .setDescription("Скорее всего, рейд уже был удален");
             }
         };
         if (reason === "time") {
@@ -105,7 +105,7 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
                     return;
                 }
                 await message.delete().catch((e) => {
-                    return console.error(`[Error code: 1680]`, e);
+                    return console.error("[Error code: 1680]", e);
                 });
                 return;
             }
@@ -120,14 +120,14 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
             await message.edit({ embeds: [timeEndEmbed], components: [] });
             if (!newRaidCreator) {
                 await removeRaid(raid).catch((e) => {
-                    console.error(`[Error code: 1677]`, e);
+                    console.error("[Error code: 1677]", e);
                 });
                 return;
             }
             return await raidCreatorTransition(newRaidCreator, raid);
         }
         else {
-            const embed = handleEndReason() || new EmbedBuilder().setColor(colors.error).setAuthor({ name: `Произошла ошибка`, iconURL: icons.error });
+            const embed = handleEndReason() || new EmbedBuilder().setColor(colors.error).setAuthor({ name: "Произошла ошибка", iconURL: icons.error });
             await message.edit({ embeds: [embed], components: [] });
             return;
         }
@@ -146,7 +146,7 @@ async function raidCreatorTransition(member, raid) {
         const notifyEmbed = new EmbedBuilder()
             .setColor(colors.default)
             .addFields([{ name: "Создатель рейда", value: `Права создателя были переданы ${nameCleaner(member.displayName, true)}` }])
-            .setFooter({ text: `Изменение системой` });
+            .setFooter({ text: "Изменение системой" });
         await privateRaidChannel.send({ embeds: [notifyEmbed] });
     };
     const notifyNewCreator = async () => {
@@ -156,15 +156,15 @@ async function raidCreatorTransition(member, raid) {
             name: `Вам были переданы права на рейд ${raid.id}-${raid.raid}`,
             url: `https://discord.com/channels/${guildId}/${channelIds.raid}/${raid.messageId}`,
         })
-            .setDescription(`Вы получили эти права поскольку предыдущий создатель покинул рейд\n\nСоздатель рейда - участник, который имеет повышенные права в рейде\nСоздатель рейда может:\n　- Изменять рейд, в который идет набор\n　- Изменять время, требования по закрытым рейдам для записи, описание набора`)
+            .setDescription("Вы получили эти права поскольку предыдущий создатель покинул рейд\n\nСоздатель рейда - участник, который имеет повышенные права в рейде\nСоздатель рейда может:\n　- Изменять рейд, в который идет набор\n　- Изменять время, требования по закрытым рейдам для записи, описание набора")
             .addFields([
             {
-                name: `Передача прав на рейд другому участнику`,
-                value: `⁣　\`/рейд изменить новый_создатель:\`\n　\`/raid edit new_creator:\``,
+                name: "Передача прав на рейд другому участнику",
+                value: "⁣　'/рейд изменить новый_создатель:'\n　'/raid edit new_creator:'",
             },
             {
-                name: `Изменение времени набора`,
-                value: `⁣　\`/рейд изменить новое_время:ВРЕМЯ_В_ФОРМАТЕ\`\n　\`/raid edit new_time:ВРЕМЯ_В_ФОРМАТЕ\`\nВместо \`ВРЕМЯ_В_ФОРМАТЕ\` - необходимо указать время в следующем формате: \`ЧАС:МИНУТЫ ДЕНЬ/МЕСЯЦ\` (т.е. время разделяется двоеточием \`:\`, а дата точкой или слешем \`/\`)`,
+                name: "Изменение времени набора",
+                value: "⁣　'/рейд изменить новое_время:ВРЕМЯ_В_ФОРМАТЕ'\n　'/raid edit new_time:ВРЕМЯ_В_ФОРМАТЕ'\nВместо 'ВРЕМЯ_В_ФОРМАТЕ' - необходимо указать время в следующем формате: 'ЧАС:МИНУТЫ ДЕНЬ/МЕСЯЦ' (т.е. время разделяется двоеточием ':', а дата точкой или слешем '/')",
             },
         ]);
         await member.send({ embeds: [embed] });
@@ -192,7 +192,7 @@ async function findNewRaidCreator(raid) {
             const memberClearsData = completedRaidsData.get(member.id);
             if (!skipRequirements && !memberClearsData)
                 continue;
-            const memberTotalClears = memberClearsData?.[`${raid.raid}`] || 0 + memberClearsData?.[`${raid.raid}Master`] || 0;
+            const memberTotalClears = memberClearsData?.[`${raid.raid}'] || 0 + memberClearsData?.['${raid.raid}Master`] || 0;
             if (memberTotalClears > highestClears) {
                 highestClears = memberTotalClears;
                 newCreator = member;

@@ -31,7 +31,7 @@ async function periodicDestinyActivityChecker() {
             await client.getCachedGuild().fetch(), console.error("[Error code: 1005]", dbNotFoundUsers);
         const databaseData = unfilteredDatabase.filter((data) => client.getCachedMembers().has(data.discordId));
         if (!databaseData)
-            return console.error(`[Error code: 1006] DB is not avaliable`, databaseData);
+            return console.error("[Error code: 1006] DB is not avaliable", databaseData);
         for (let i = 0; i < databaseData.length; i++) {
             const databaseUser = databaseData[i];
             const member = client.getCachedMembers().get(databaseUser.discordId);

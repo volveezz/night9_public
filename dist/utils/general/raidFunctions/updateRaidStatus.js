@@ -2,11 +2,9 @@ import { ChannelType, EmbedBuilder } from "discord.js";
 import { schedule } from "node-cron";
 import { Op, Sequelize } from "sequelize";
 import colors from "../../../configs/colors.js";
-import { channelIds } from "../../../configs/ids.js";
 import { client } from "../../../index.js";
 import { fetchRequest } from "../../api/fetchRequest.js";
 import { AuthData, RaidEvent } from "../../persistence/sequelize.js";
-import { addButtonComponentsToMessage } from "../addButtonsToMessage.js";
 import nameCleaner from "../nameClearer.js";
 import { updatePrivateRaidMessage, updateRaidMessage } from "../raidFunctions.js";
 const MINUTES_AFTER_RAID = 5;
@@ -40,7 +38,7 @@ async function updateRaidStatus() {
             }
             const voiceChannels = (await client.getCachedGuild().channels.fetch()).filter((channel) => channel && channel.type === ChannelType.GuildVoice);
             if (!voiceChannels) {
-                console.error(`[Error code: 1727]`, raidEvent.id);
+                console.error("[Error code: 1727]", raidEvent.id);
                 return false;
             }
             const raidVoiceChannel = voiceChannels.find((channel) => channel.members.hasAny(...raidEvent.joined));
@@ -52,7 +50,7 @@ async function updateRaidStatus() {
             const voiceChannelMembersAuthData = await getVoiceChannelMembersAuthData(userIds);
             const partyMembers = await checkFireteamRoster(voiceChannelMembersAuthData);
             if (!partyMembers) {
-                console.error(`[Error code: 1719]`, raidEvent.id);
+                console.error("[Error code: 1719]", raidEvent.id);
                 if (isFirstCheck) {
                     isFirstCheck = false;
                     return true;
@@ -101,11 +99,11 @@ async function updateRaidStatus() {
                         : userAlreadyWasHotJoined
                             ? "[Запас]"
                             : userAlreadyWasJoined
-                                ? `[Участник]`
+                                ? "[Участник]"
                                 : "❌"}`;
                     const userNewState = `${userInFireteam ? "[Участник]" : "❌"}`;
                     const actionState = `${userPreviousState} -> ${userNewState}`;
-                    const footerText = userInFireteam ? (userAlreadyWasHotJoined || userAlreadyWasAlt ? `перезаписан` : `записан`) : `выписан`;
+                    const footerText = userInFireteam ? (userAlreadyWasHotJoined || userAlreadyWasAlt ? "перезаписан" : "записан") : "выписан";
                     const embed = new EmbedBuilder()
                         .setColor(userInFireteam ? colors.success : colors.error)
                         .setAuthor({
@@ -125,13 +123,8 @@ async function updateRaidStatus() {
                     }
                 };
                 const updateRaidMessageEmbed = async (raidEvent) => {
-                    const raidMessage = (await client.getAsyncTextChannel(channelIds.raid)).messages.fetch(raidEvent.messageId);
-                    const updatedMessageOptions = await updateRaidMessage(raidEvent);
-                    if (updatedMessageOptions) {
-                        const { embeds, components } = updatedMessageOptions;
-                        return (await raidMessage).edit({ embeds, components: await addButtonComponentsToMessage(components) });
-                    }
-                    return null;
+                    const updatedMessageOptions = await updateRaidMessage({ raidEvent });
+                    return updatedMessageOptions ?? null;
                 };
                 const updatePrivateRaidMessageEmbed = async (raidEvent) => {
                     return await updatePrivateRaidMessage({ raidEvent });
@@ -144,7 +137,7 @@ async function updateRaidStatus() {
                     console.debug(`User ${discordId} wasn't changed in the raid ${raidEvent.id}`);
                 }
                 else {
-                    console.error(`[Error code: 1718]`, raidEvent.id);
+                    console.error("[Error code: 1718]", raidEvent.id);
                     return;
                 }
             }

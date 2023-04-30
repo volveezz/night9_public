@@ -45,7 +45,7 @@ export default new Event("messageDelete", (message) => {
         embed.addFields([
             {
                 name: message.attachments.size === 1 ? "Вложение" : "Вложения",
-                value: arrayAttachment.join(`\n`).toString() ?? "blank",
+                value: arrayAttachment.join("\n").toString() ?? "blank",
             },
         ]);
     }
@@ -55,7 +55,7 @@ export default new Event("messageDelete", (message) => {
         embed.addFields([
             {
                 name: stickerArr.length === 1 ? "Стикер" : "Стикеры",
-                value: stickerArr.join(`\n`).toString() ?? "blank",
+                value: stickerArr.join("\n").toString() ?? "blank",
             },
         ]);
     }

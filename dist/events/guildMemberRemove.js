@@ -16,10 +16,10 @@ export default new Event("guildMemberRemove", async (member) => {
     })
         .setColor(colors.error)
         .addFields([
-        { name: `Пользователь`, value: `${member.displayName}/${member}`, inline: true },
+        { name: "Пользователь", value: `${member.displayName}/${member}`, inline: true },
         {
             name: "Дата присоединения к серверу",
-            value: String(`<t:` + Math.round(member.joinedTimestamp / 1000) + ">"),
+            value: String("<t:" + Math.round(member.joinedTimestamp / 1000) + ">"),
             inline: true,
         },
     ])
@@ -28,13 +28,13 @@ export default new Event("guildMemberRemove", async (member) => {
         embed.addFields({
             name: "Статус пользователя",
             value: `${member.roles.cache.has(statusRoles.clanmember)
-                ? `Участник клана`
+                ? "Участник клана"
                 : member.roles.cache.has(statusRoles.member)
-                    ? `Участник сервера`
+                    ? "Участник сервера"
                     : member.roles.cache.has(statusRoles.kicked)
-                        ? `Исключенный участник`
+                        ? "Исключенный участник"
                         : member.roles.cache.has(statusRoles.newbie)
-                            ? `Неизвестный`
+                            ? "Неизвестный"
                             : "Роли не найдены"}`,
         });
     }

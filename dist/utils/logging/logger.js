@@ -73,7 +73,7 @@ export async function updateClanRolesWithLogging(result, join) {
     else {
         embed
             .setAuthor({
-            name: join ? `Неизвестный на сервере пользователь вступил в клан` : `Неизвестный на сервере пользователь покинул клан`,
+            name: join ? "Неизвестный на сервере пользователь вступил в клан" : "Неизвестный на сервере пользователь покинул клан",
         })
             .setColor(join ? colors.success : colors.kicked);
     }

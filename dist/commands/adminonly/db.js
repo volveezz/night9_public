@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, } from "discord.js";
+import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { Op } from "sequelize";
 import NightRoleCategory from "../../configs/RoleCategory.js";
 import UserErrors from "../../configs/UserErrors.js";
@@ -8,6 +8,7 @@ import { activityRoles, raidRoles, statisticsRoles, titleCategory, triumphsCateg
 import { longOffline, userTimezones } from "../../core/userStatisticsManagement.js";
 import { Command } from "../../structures/command.js";
 import { CachedDestinyRecordDefinition } from "../../utils/api/manifestHandler.js";
+import { addButtonComponentsToMessage } from "../../utils/general/addButtonsToMessage.js";
 import { convertSeconds } from "../../utils/general/convertSeconds.js";
 import { completedRaidsData } from "../../utils/general/destinyActivityChecker.js";
 import { AuthData, AutoRoleData, UserActivityData, database } from "../../utils/persistence/sequelize.js";
@@ -277,11 +278,11 @@ export default new Command({
                         : args.getInteger("category") ?? NightRoleCategory.Triumphs;
                 const embed = new EmbedBuilder().setColor(colors.default);
                 if (databaseRoleData) {
-                    embed.setTitle(`Дополнение существующей авто-роли`);
+                    embed.setTitle("Дополнение существующей авто-роли");
                     embed.setDescription(`Добавление условия ${hash} к <@&${databaseRoleData.roleId}>`);
                 }
                 else {
-                    embed.setTitle(`Создание авто-роли`);
+                    embed.setTitle("Создание авто-роли");
                 }
                 if (CachedDestinyRecordDefinition[hash].displayProperties.hasIcon) {
                     embed.setThumbnail(`https://www.bungie.net${CachedDestinyRecordDefinition[hash].displayProperties.icon}`);
@@ -319,12 +320,7 @@ export default new Command({
                 await deferredReply;
                 const interactionReply = await interaction.editReply({
                     embeds: [embed],
-                    components: [
-                        {
-                            type: ComponentType.ActionRow,
-                            components,
-                        },
-                    ],
+                    components: await addButtonComponentsToMessage(components),
                 });
                 const collector = interactionReply.createMessageComponentCollector({
                     time: 60 * 2 * 1000,
@@ -509,7 +505,7 @@ export default new Command({
                     interaction.editReply({ embeds: [embed] });
                 }
                 else {
-                    throw { name: `Удалено ${query} авто-ролей`, description: `Hash: ${removeroleid}` };
+                    throw { name: `Удалено ${query} авто-ролей', description: 'Hash: ${removeroleid}` };
                 }
                 return;
             }

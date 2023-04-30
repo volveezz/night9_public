@@ -63,7 +63,7 @@ export async function handlePveParty(message) {
     const userLimitString = userMessageContent.replace(/\+\s+/, "");
     const userLimit = parseInt(userLimitString) + 1;
     if (isNaN(userLimit) || userLimit <= 1 || userLimit > 99) {
-        messageErrorHandler(`Ошибка числа участников`, "Число участников должно быть больше 1 и меньше 100", message);
+        messageErrorHandler("Ошибка числа участников", "Число участников должно быть больше 1 и меньше 100", message);
         return;
     }
     userMessageContent = userMessageContent.replace(/\+\s?\d{1,2}\s?/, "").trim();
@@ -81,7 +81,7 @@ export async function handlePveParty(message) {
     };
     stringArgs?.forEach((args) => {
         if (!args)
-            return console.error(`Broken arg`, stringArgs);
+            return console.error("Broken arg", stringArgs);
         if (args.toLowerCase() === "--everyone")
             return (userSettings.ping = "everyone");
         if (args.toLowerCase() === "--f" || args.toLowerCase() === "--frs")
@@ -132,7 +132,7 @@ export async function handlePveParty(message) {
     }
     catch (error) {
         message.channel
-            .send(`Ошибка. Не удалось установить ваш заголовок\nВозможные причины: текст слишком длинный или содержит специальные символы`)
+            .send("Ошибка. Не удалось установить ваш заголовок\nВозможные причины: текст слишком длинный или содержит специальные символы")
             .then((m) => setTimeout(() => m.delete(), 5000));
     }
     try {
@@ -140,7 +140,7 @@ export async function handlePveParty(message) {
     }
     catch (error) {
         message.channel
-            .send(`Ошибка. Не удалось установить ваше описание\nВозможные причины: текст слишком длинный или содержит специальные символы`)
+            .send("Ошибка. Не удалось установить ваше описание\nВозможные причины: текст слишком длинный или содержит специальные символы")
             .then((m) => setTimeout(() => m.delete(), 5000));
     }
     try {
@@ -149,7 +149,7 @@ export async function handlePveParty(message) {
     catch (error) {
         embed.setColor(colors.error);
         message.channel
-            .send(`Ошибка. Не удалось установить ваш цвет: \`${userSettings.color}\``)
+            .send("Ошибка. Не удалось установить ваш цвет: '${userSettings.color}'")
             .then((m) => setTimeout(() => m.delete(), 5000));
     }
     if (userSettings.activitySettings?.name && userTitle) {

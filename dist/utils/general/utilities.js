@@ -30,7 +30,7 @@ export async function getRandomGIF(prompt, offset) {
         return match ? match[1] : response.data[0]?.images.original.url;
     }
     catch (error) {
-        console.error(`[Error code: 1600] Giphy error`, error);
+        console.error("[Error code: 1600] Giphy error", error);
         return null;
     }
 }
@@ -49,7 +49,7 @@ export async function getRandomRaidGIF() {
         return await getRandomGIF(randomPrompt, offset);
     }
     catch (error) {
-        console.error(`[Error code: 1659] Giphy error`, error);
+        console.error("[Error code: 1659] Giphy error", error);
         return null;
     }
 }

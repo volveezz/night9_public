@@ -25,13 +25,13 @@ export default async function webHandler(code, state, res) {
         body: form,
     })).json());
     if (body.error === "invalid_request" || body.error === "invalid_grant") {
-        res.send(`<script>location.replace('error.html')</script>`);
+        res.send("<script>location.replace('error.html')</script>");
         return console.error("[Error code: 1010]", `There is problem with fetching authData from state: ${state}`, body);
     }
     try {
-        const request = await fetchRequest(`Platform/User/GetMembershipsForCurrentUser/`, body.access_token);
+        const request = await fetchRequest("Platform/User/GetMembershipsForCurrentUser/", body.access_token);
         if (!request || !request.destinyMemberships) {
-            res.send(`<script>location.replace('error.html')</script>`);
+            res.send("<script>location.replace('error.html')</script>");
             return console.error(`[Error code: 1034] State: ${state} / Code: ${code}`, body, request);
         }
         const fetchedData = request.destinyMemberships.find((membership) => {
@@ -54,7 +54,7 @@ export default async function webHandler(code, state, res) {
                 })) ||
             request.destinyMemberships[0];
         if (!fetchedData) {
-            res.send(`<script>location.replace('error.html')</script>`);
+            res.send("<script>location.replace('error.html')</script>");
             return console.error("[Error code: 1011]", `State: ${state} / Code:${code}`, body, fetchedData, request);
         }
         const { membershipType: platform, membershipId: bungieId } = fetchedData;
@@ -62,7 +62,7 @@ export default async function webHandler(code, state, res) {
         const ifHasLeaved = await LeavedUsersData.findOne({ where: { bungieId }, attributes: ["discordId"] });
         if (ifHasLeaved) {
             console.error(`[Error code: 1691] User (${json.discordId}) tried to connect already registered bungieId (${bungieId})`);
-            return res.send(`<script>location.replace('error.html')</script>`);
+            return res.send("<script>location.replace('error.html')</script>");
         }
         const [authData, created] = await AuthData.findOrCreate({
             where: {
@@ -81,21 +81,21 @@ export default async function webHandler(code, state, res) {
         });
         if (!created) {
             console.error(`[Error code: 1439] User (${json.discordId}) tried to connect already registered bungieId`, authData?.toJSON());
-            return res.send(`<script>location.replace('error.html')</script>`);
+            return res.send("<script>location.replace('error.html')</script>");
         }
         InitData.destroy({
             where: { discordId: json.discordId },
             limit: 1,
         });
-        res.send(`<script>location.replace('index.html')</script>`).end();
+        res.send("<script>location.replace('index.html')</script>").end();
         const clanResponse = await fetchRequest(`Platform/GroupV2/User/${platform}/${bungieId}/0/1/`, body.access_token);
         const member = client.getCachedMembers().get(json.discordId);
         if (!member) {
-            return console.error(`[Error code: 1012] Member error during webHandling of`, json);
+            return console.error("[Error code: 1012] Member error during webHandling of", json);
         }
         const embed = new EmbedBuilder()
             .setTitle("Вы зарегистрировались")
-            .setDescription("Для удобства на сервере вы можете указать свой часовой пояс введя команду `/timezone`")
+            .setDescription("Для удобства на сервере вы можете указать свой часовой пояс введя команду '/timezone'")
             .setColor(colors.success)
             .addFields({
             name: "Bungie аккаунт",
@@ -155,8 +155,8 @@ export default async function webHandler(code, state, res) {
         if (!clanResponse || !clanResponse.results) {
             embed.setDescription(embed.data.description
                 ? embed.data.description +
-                    `\n\nПроизошла ошибка во время обработки вашего клана. Скорее всего это связано с недоступностью API игры\n\nКнопка ниже служит для отправки приглашения в клан - она заработает как только сервера игры станут доступны`
-                : `\n\nПроизошла ошибка во время обработки вашего клана. Скорее всего это связано с недоступностью API игры\n\nКнопка ниже служит для отправки приглашения в клан - она заработает как только сервера игры станут доступны`);
+                    "\n\nПроизошла ошибка во время обработки вашего клана. Скорее всего это связано с недоступностью API игры\n\nКнопка ниже служит для отправки приглашения в клан - она заработает как только сервера игры станут доступны"
+                : "\n\nПроизошла ошибка во время обработки вашего клана. Скорее всего это связано с недоступностью API игры\n\nКнопка ниже служит для отправки приглашения в клан - она заработает как только сервера игры станут доступны");
             await member.send({
                 embeds: [embed],
                 components: await addButtonComponentsToMessage([clanRequestComponent, timezoneComponent]),
@@ -164,8 +164,8 @@ export default async function webHandler(code, state, res) {
         }
         else if (clanResponse.results.length === 0 || !(clanResponse.results?.[0]?.group?.groupId === "4123712")) {
             embed.setDescription(embed.data.description
-                ? embed.data.description + `\n\nНажмите кнопку для получения приглашения в клан`
-                : `Нажмите кнопку для получения приглашения в клан`);
+                ? embed.data.description + "\n\nНажмите кнопку для получения приглашения в клан"
+                : "Нажмите кнопку для получения приглашения в клан");
             await member.send({
                 embeds: [embed],
                 components: await addButtonComponentsToMessage([clanRequestComponent, timezoneComponent]),
@@ -180,10 +180,10 @@ export default async function webHandler(code, state, res) {
     }
     catch (error) {
         try {
-            res.send(`<script>location.replace('error.html')</script>`);
+            res.send("<script>location.replace('error.html')</script>");
         }
         catch (e) {
-            console.error(`[Error code: 1210]`, e);
+            console.error("[Error code: 1210]", e);
         }
         return console.error(`[Error code: 1234] State: ${state} / Code:${code}`, { body }, { error });
     }

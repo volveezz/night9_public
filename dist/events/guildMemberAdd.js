@@ -52,7 +52,7 @@ export default new Event("guildMemberAdd", async (member) => {
         }
     }
     catch (error) {
-        console.error(`[Error code: 1701]`, error);
+        console.error("[Error code: 1701]", error);
     }
     try {
         await AuthData.create({
@@ -81,7 +81,7 @@ export default new Event("guildMemberAdd", async (member) => {
         ]);
         loggedEmbed.addFields([
             {
-                name: `Токен авторизации`,
+                name: "Токен авторизации",
                 value: `Обновлен: ${authorizationData.accessToken?.length} / ${authorizationData.refreshToken?.length}`,
             },
         ]);
@@ -95,7 +95,7 @@ export default new Event("guildMemberAdd", async (member) => {
             name: "Ошибка",
             value: "Во время восстановления данных произошла ошибка",
         });
-        console.error(`[Error code: 1131]`, error, data, transaction);
+        console.error("[Error code: 1131]", error, data, transaction);
         message.edit({ embeds: [loggedEmbed] });
     }
 });

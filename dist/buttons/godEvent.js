@@ -140,14 +140,14 @@ export default {
             for await (const raid of currentRaids) {
                 try {
                     const messagePromise = raidChannel.messages.fetch(raid.messageId);
-                    const messageOptions = await updateRaidMessage(raid);
+                    const messageOptions = await updateRaidMessage({ raidEvent: raid, returnComponents: true });
                     if (!messageOptions)
                         continue;
                     const { embeds, components } = messageOptions;
                     await (await messagePromise).delete();
                     const updatedRaidMessage = await raidChannel.send({
                         embeds,
-                        components: await addButtonComponentsToMessage(components.length > 0 ? components : baseComponents),
+                        components: await addButtonComponentsToMessage(components && components.length > 0 ? components : baseComponents),
                     });
                     await raid.update({ messageId: updatedRaidMessage.id });
                     sortedRaidCount++;

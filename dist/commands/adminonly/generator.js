@@ -83,7 +83,7 @@ export default new Command({
                     const embed = EmbedBuilder.from(embedJSON);
                     const responseEmbed = new EmbedBuilder()
                         .setColor(colors.success)
-                        .setAuthor({ name: `Сообщение успешно ${messageId ? `изменено` : "отправлено"}`, iconURL: icons.success });
+                        .setAuthor({ name: `Сообщение успешно ${messageId ? "изменено" : "отправлено"}`, iconURL: icons.success });
                     if (messageId) {
                         const message = await channel.messages.fetch(messageId);
                         if (!message) {
@@ -111,7 +111,7 @@ export default new Command({
                     }
                 }
                 catch (error) {
-                    console.error(`[Error code: 1646] Error during handling embed message`, error);
+                    console.error("[Error code: 1646] Error during handling embed message", error);
                     const errorResponse = new EmbedBuilder().setColor(colors.error).setAuthor({
                         name: `Произошла ошибка во время ${messageId ? "редактирования" : "отправки"} сообщения`,
                         iconURL: icons.close,
@@ -125,7 +125,7 @@ export default new Command({
                 const presetName = args.getString("preset_name", true);
                 const preset = await getPreset(presetName);
                 if (!preset) {
-                    throw { name: "Ошибка", description: `Искомый пресет \`${presetName}\` не найден` };
+                    throw { name: "Ошибка", description: "Искомый пресет '${presetName}' не найден" };
                 }
                 const { embeds, components } = preset;
                 await channel.send({ embeds, components: await addButtonComponentsToMessage(components) });
@@ -169,15 +169,15 @@ async function getPreset(presetName) {
                 .addFields([
                 {
                     name: "<:eine:1087575481647374416> Зарегистрируйтесь у кланового бота",
-                    value: "Нажмите кнопку `Регистрация` ниже или введите `/init`",
+                    value: "Нажмите кнопку 'Регистрация' ниже или введите '/init'",
                 },
                 {
                     name: "<:zwei:1087575495912206357> Заполните форму на вступление в клан",
-                    value: "Сделать это можно нажав на кнопку `Форма на вступление`",
+                    value: "Сделать это можно нажав на кнопку 'Форма на вступление'",
                 },
                 {
                     name: "<:drei:1087575479617331253> Вступите в клан",
-                    value: "[Подайте заявку в клан](https://www.bungie.net/ru/ClanV2?groupid=4123712) или отправьте её себе сами нажав `Приглашение в клан`",
+                    value: "[Подайте заявку в клан](https://www.bungie.net/ru/ClanV2?groupid=4123712) или отправьте её себе сами нажав 'Приглашение в клан'",
                 },
             ]);
             const components = [
@@ -190,41 +190,41 @@ async function getPreset(presetName) {
         case "godmsg1": {
             const components = [
                 new ButtonBuilder()
-                    .setCustomId(`godEvent_customRoleColor`)
+                    .setCustomId("godEvent_customRoleColor")
                     .setLabel("Установить свой цвет ника")
                     .setStyle(ButtonStyle.Secondary),
                 new ButtonBuilder()
-                    .setCustomId(`godEvent_customRoleName`)
+                    .setCustomId("godEvent_customRoleName")
                     .setLabel("Установить свое название роли")
                     .setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId(`godEvent_getInvite`).setLabel("Приглашение на альфа-сервер").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId(`godEvent_achatAccess`).setLabel("Получить доступ к а-чату").setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("godEvent_getInvite").setLabel("Приглашение на альфа-сервер").setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("godEvent_achatAccess").setLabel("Получить доступ к а-чату").setStyle(ButtonStyle.Secondary),
                 new ButtonBuilder()
-                    .setCustomId(`godEvent_achatVoiceAccess`)
+                    .setCustomId("godEvent_achatVoiceAccess")
                     .setLabel("Доступ к голосовому а-чату")
                     .setStyle(ButtonStyle.Secondary),
                 new ButtonBuilder()
-                    .setCustomId(`godEvent_manifestAccess`)
+                    .setCustomId("godEvent_manifestAccess")
                     .setLabel("Канал с обновлениями базы данных игры")
                     .setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId(`godEvent_vchatAccess`).setLabel("Логи голосовых каналов").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId(`godEvent_sortraids`).setLabel(`Отсортировка рейдов`).setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("godEvent_vchatAccess").setLabel("Логи голосовых каналов").setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("godEvent_sortraids").setLabel("Отсортировка рейдов").setStyle(ButtonStyle.Secondary),
             ];
             const embed = new EmbedBuilder()
                 .setColor("Gold")
-                .setDescription(`Hex-код для установки собственного цвета роли можно найти [на этом сайте](https://htmlcolorcodes.com/)`);
+                .setDescription("Hex-код для установки собственного цвета роли можно найти [на этом сайте](https://htmlcolorcodes.com/)");
             return { embeds: [embed], components };
         }
         case "godmsg2": {
             const components = [
-                new ButtonBuilder().setCustomId(`godEvent_color_red`).setEmoji("🟥").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId(`godEvent_color_white`).setEmoji("⬜").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId(`godEvent_color_purple`).setEmoji("🟪").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId(`godEvent_color_brown`).setEmoji("🟫").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId(`godEvent_color_blue`).setEmoji("🟦").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId(`godEvent_color_orange`).setEmoji("🟧").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId(`godEvent_color_green`).setEmoji("🟩").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId(`godEvent_color_reset`).setEmoji("❌").setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("godEvent_color_red").setEmoji("🟥").setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("godEvent_color_white").setEmoji("⬜").setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("godEvent_color_purple").setEmoji("🟪").setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("godEvent_color_brown").setEmoji("🟫").setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("godEvent_color_blue").setEmoji("🟦").setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("godEvent_color_orange").setEmoji("🟧").setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("godEvent_color_green").setEmoji("🟩").setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("godEvent_color_reset").setEmoji("❌").setStyle(ButtonStyle.Secondary),
             ];
             const embed = new EmbedBuilder().setColor("DarkGold").setTitle("Выберите любой из цветов ника");
             return { embeds: [embed], components };
@@ -237,7 +237,7 @@ async function getPreset(presetName) {
             const embed = new EmbedBuilder()
                 .setColor(colors.default)
                 .setTitle("Возвращение в клан")
-                .setDescription(`Нажмите на кнопку ниже для получения приглашения в клан в игре или перейдите на [страницу клана](https://www.bungie.net/ru/ClanV2?groupid=4123712) и вступите там\n　<:dot:1018321568218226788> Приглашение можно принять на [bungie.net](https://bungie.net/) или в игре\n　<:dot:1018321568218226788> Доступно **только для зарегистрированных** пользователей`);
+                .setDescription("Нажмите на кнопку ниже для получения приглашения в клан в игре или перейдите на [страницу клана](https://www.bungie.net/ru/ClanV2?groupid=4123712) и вступите там\n -  Приглашение можно принять на [bungie.net](https://bungie.net/) или в игре\n - Доступно **только для зарегистрированных** пользователей");
             return { embeds: [embed], components };
         }
     }

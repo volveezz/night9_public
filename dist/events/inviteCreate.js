@@ -15,15 +15,15 @@ export default new Event("inviteCreate", (invite) => {
     })
         .setFooter({ text: `Id: ${invite.inviterId}` })
         .addFields([
-        { name: `Ссылка`, value: `https://discord.gg/${invite.code}` },
+        { name: "Ссылка", value: `https://discord.gg/${invite.code}` },
         {
             name: "Использований",
-            value: String(invite.maxUses ? invite.uses + `/` + invite.maxUses : "без ограничений"),
+            value: String(invite.maxUses ? invite.uses + "/" + invite.maxUses : "без ограничений"),
             inline: true,
         },
         {
             name: "Действительно до",
-            value: String(`${invite.expiresTimestamp ? `<t:` + Math.round(invite.expiresTimestamp / 1000) + `>` : "бессрочно"}`),
+            value: String(`${invite.expiresTimestamp ? "<t:" + Math.round(invite.expiresTimestamp / 1000) + ">" : "бессрочно"}`),
             inline: true,
         },
         {

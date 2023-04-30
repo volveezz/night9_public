@@ -43,7 +43,7 @@ export default {
                 },
             ])
                 .catch((e) => {
-                return console.error(`[Error code: 1681]`, e);
+                return console.error("[Error code: 1681]", e);
             });
         }
     },

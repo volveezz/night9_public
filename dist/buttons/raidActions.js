@@ -59,13 +59,13 @@ async function actionMessageHandler({ interaction, raidEvent, target }) {
                     .setAuthor({ name: `${displayName}: проник на рейд\n<@${ownerId}>`, iconURL: member.displayAvatarURL() });
         }
     }
-    client.getCachedTextChannel(raidEvent.channelId).send({ embeds: [embed] });
+    (await client.getAsyncTextChannel(raidEvent.channelId)).send({ embeds: [embed] });
 }
 async function joinedFromHotJoined(raidData) {
     const newRaidJoined = raidData.hotJoined.shift();
     const member = client.getCachedMembers().get(newRaidJoined);
     if (!member)
-        return console.error(`[Error code: 1647]`, raidData);
+        return console.error("[Error code: 1647]", raidData);
     const [_, [updatedRaidData]] = await RaidEvent.update({
         joined: Sequelize.fn("array_append", Sequelize.col("joined"), `${newRaidJoined}`),
         hotJoined: Sequelize.fn("array_remove", Sequelize.col("hotJoined"), `${newRaidJoined}`),
@@ -81,10 +81,10 @@ async function joinedFromHotJoined(raidData) {
         iconURL: member.displayAvatarURL(),
     })
         .setFooter({
-        text: `Пользователь перезаписан системой`,
+        text: "Пользователь перезаписан системой",
     });
     client.getCachedTextChannel(updatedRaidData.channelId).send({ embeds: [embed] });
-    const { embeds, components } = (await updateRaidMessage(updatedRaidData));
+    const { embeds, components } = (await updateRaidMessage({ raidEvent: updatedRaidData, returnComponents: true }));
     (await client.getCachedTextChannel(channelIds.raid).messages.fetch(updatedRaidData.messageId)).edit({
         embeds,
         components: await addButtonComponentsToMessage(components),
@@ -94,7 +94,7 @@ async function joinedFromHotJoined(raidData) {
         .setAuthor({ name: `Вы были автоматически записаны на рейд ${raidData.id}-${raidData.raid}`, iconURL: icons.notify });
     member.send({ embeds: [embeds[0]] });
     if (!updatedRaidData)
-        return console.error(`[Error code: 1637]`, updatedRaidData);
+        return console.error("[Error code: 1637]", updatedRaidData);
     await updatePrivateRaidMessage({ raidEvent: updatedRaidData });
 }
 export default {
@@ -106,23 +106,25 @@ export default {
                 where: { messageId: interaction.message.id },
                 attributes: ["joined", "hotJoined", "alt"],
             });
-            await RaidEvent.update({
+            const updateQuery = {
                 joined: Sequelize.fn("array_remove", Sequelize.col("joined"), `${interaction.user.id}`),
                 hotJoined: Sequelize.fn("array_remove", Sequelize.col("hotJoined"), `${interaction.user.id}`),
                 alt: Sequelize.fn("array_remove", Sequelize.col("alt"), `${interaction.user.id}`),
-            }, {
-                where: {
-                    [Op.and]: [
-                        {
-                            [Op.or]: [
-                                { joined: { [Op.contains]: [interaction.user.id] } },
-                                { hotJoined: { [Op.contains]: [interaction.user.id] } },
-                                { alt: { [Op.contains]: [interaction.user.id] } },
-                            ],
-                            messageId: interaction.message.id,
-                        },
-                    ],
-                },
+            };
+            const searchQuery = {
+                [Op.and]: [
+                    {
+                        [Op.or]: [
+                            { joined: { [Op.contains]: [interaction.user.id] } },
+                            { hotJoined: { [Op.contains]: [interaction.user.id] } },
+                            { alt: { [Op.contains]: [interaction.user.id] } },
+                        ],
+                        messageId: interaction.message.id,
+                    },
+                ],
+            };
+            const [rowsUpdated, [raidEvent]] = await RaidEvent.update(updateQuery, {
+                where: searchQuery,
                 returning: [
                     "id",
                     "messageId",
@@ -135,35 +137,37 @@ export default {
                     "raid",
                     "difficulty",
                 ],
-            }).then(([rowsUpdated, [raidEvent]]) => {
-                if (!rowsUpdated)
-                    return;
-                if (!raidEvent)
-                    throw { errorType: UserErrors.RAID_NOT_FOUND };
-                updatePrivateRaidMessage({ raidEvent });
-                updateRaidMessage(raidEvent, interaction);
-                client.getCachedTextChannel(raidEvent.channelId).permissionOverwrites.delete(interaction.user.id);
-                raidDataBeforeLeave.then((r) => {
-                    actionMessageHandler({
-                        interaction,
-                        raidEvent,
-                        target: r
-                            ? r.joined.includes(interaction.user.id)
-                                ? "joined"
-                                : r.alt.includes(interaction.user.id)
-                                    ? "alt"
-                                    : r.hotJoined.includes(interaction.user.id)
-                                        ? "hotJoined"
-                                        : "leave"
-                            : "leave",
-                    });
-                    if (raidEvent.joined.length === 5 && raidEvent.hotJoined.length > 0)
-                        setTimeout(() => joinedFromHotJoined(raidEvent), 500);
+            });
+            if (!rowsUpdated)
+                return;
+            if (!raidEvent) {
+                await deferredUpdate;
+                throw { errorType: UserErrors.RAID_NOT_FOUND };
+            }
+            updatePrivateRaidMessage({ raidEvent });
+            updateRaidMessage({ raidEvent, interaction });
+            (await client.getAsyncTextChannel(raidEvent.channelId)).permissionOverwrites.delete(interaction.user.id);
+            raidDataBeforeLeave.then((updatedRaidEvent) => {
+                actionMessageHandler({
+                    interaction,
+                    raidEvent,
+                    target: updatedRaidEvent
+                        ? updatedRaidEvent.joined.includes(interaction.user.id)
+                            ? "joined"
+                            : updatedRaidEvent.alt.includes(interaction.user.id)
+                                ? "alt"
+                                : updatedRaidEvent.hotJoined.includes(interaction.user.id)
+                                    ? "hotJoined"
+                                    : "leave"
+                        : "leave",
                 });
-                if (raidEvent.creator === interaction.user.id) {
-                    handleRaidCreatorLeaving(raidEvent, raidEvent.creator);
+                if (raidEvent.joined.length === 5 && raidEvent.hotJoined.length > 0) {
+                    setTimeout(() => joinedFromHotJoined(raidEvent), 500);
                 }
             });
+            if (raidEvent.creator === interaction.user.id) {
+                await handleRaidCreatorLeaving(raidEvent, raidEvent.creator);
+            }
             return;
         }
         let raidEvent = await RaidEvent.findOne({
@@ -188,9 +192,7 @@ export default {
             throw { errorType: UserErrors.RAID_NOT_FOUND };
         }
         const raidData = getRaidData(raidEvent.raid, raidEvent.difficulty);
-        const member = interaction.member ||
-            client.getCachedGuild().members.cache.get(interaction.user.id) ||
-            (await client.getCachedGuild().members.fetch(interaction.user.id));
+        const member = await client.getAsyncMember(interaction.user.id);
         if (raidData.requiredRole && member.roles.cache.has(statusRoles.verified) && !member.roles.cache.has(raidData.requiredRole)) {
             await deferredUpdate;
             throw { errorType: UserErrors.RAID_MISSING_DLC, errorData: [`<@&${raidData.requiredRole}>`] };
@@ -250,13 +252,13 @@ export default {
             returning: ["id", "channelId", "inChannelMessageId", "joined", "hotJoined", "alt", "messageId", "time", "raid", "difficulty"],
         });
         updatePrivateRaidMessage({ raidEvent });
-        updateRaidMessage(raidEvent, interaction);
+        updateRaidMessage({ raidEvent, interaction });
         actionMessageHandler({
             interaction,
             raidEvent,
             target: userAlreadyInHotJoined ? "hotJoined" : userAlreadyJoined ? "joined" : userAlreadyAlt ? "alt" : "",
         });
-        client.getCachedTextChannel(raidEvent.channelId).permissionOverwrites.create(interaction.user.id, {
+        await (await client.getAsyncTextChannel(raidEvent.channelId)).permissionOverwrites.create(interaction.user.id, {
             ViewChannel: true,
         });
         if (interaction.customId === RaidButtons.join) {

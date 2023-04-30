@@ -21,7 +21,7 @@ export async function requestUpdateTokens({ userId, table = AuthData, refresh_to
         }
     }
     if (!refreshToken) {
-        console.error(`[Error code: 1698]`, userId, table, refreshToken);
+        console.error("[Error code: 1698]", userId, table, refreshToken);
         return null;
     }
     const form = new URLSearchParams(Object.entries({
@@ -66,7 +66,7 @@ async function bungieGrantRequest(row, table, t, retry = false) {
                         const embed = new EmbedBuilder()
                             .setColor(colors.warning)
                             .setTitle("Необходима повторная регистрация")
-                            .setDescription(`У вашего авторизационного токена истек срок годности. Зарегистрируйтесь повторно`);
+                            .setDescription("У вашего авторизационного токена истек срок годности. Зарегистрируйтесь повторно");
                         const registerButton = new ButtonBuilder()
                             .setCustomId(RegisterButtons.register)
                             .setLabel("Регистрация")
@@ -131,7 +131,7 @@ async function refreshTokens(table) {
     }
     catch (error) {
         await t.rollback();
-        console.error(`[Error code: 1421] Error during commiting DB changes`);
+        console.error("[Error code: 1421] Error during commiting DB changes");
     }
 }
 async function tokenManagment() {

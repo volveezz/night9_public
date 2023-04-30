@@ -12,6 +12,6 @@ export default new Event("channelCreate", (channel) => {
         iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086266897907060756/5711-icon-moderation.png",
     })
         .setFooter({ text: `ChnId: ${channel.id}` })
-        .addFields([{ name: `Канал`, value: `<#${channel.id}>`, inline: true }]);
+        .addFields([{ name: "Канал", value: `<#${channel.id}>`, inline: true }]);
     guildChannel.send({ embeds: [embed] });
 });

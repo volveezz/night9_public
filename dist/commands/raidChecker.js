@@ -41,7 +41,7 @@ export default new Command({
         if (db_data === null) {
             if (interaction instanceof UserContextMenuCommandInteraction ||
                 interaction.options.getUser("пользователь")?.id !== interaction.user.id) {
-                throw { name: `Выбранный пользователь не зарегистрирован` };
+                throw { name: "Выбранный пользователь не зарегистрирован" };
             }
             throw { name: "Эта команда доступна после регистрации" };
         }
@@ -163,7 +163,7 @@ export default new Command({
                 ]);
             }
             catch (e) {
-                console.error(`Error during addin RaidEvent to embed raidChecker`, e.stack);
+                console.error("Error during addin RaidEvent to embed raidChecker", e.stack);
             }
         });
         if (embed.data.fields?.length === 0)

@@ -37,7 +37,7 @@ async function fetchAndSendLatestTweets(url, latestLink) {
         if (newEntries.length > 0) {
             for (const entry of newEntries) {
                 if (!entry.link) {
-                    console.error(`[Error code: 1703]`, entry);
+                    console.error("[Error code: 1703]", entry);
                     continue;
                 }
                 if (isRetweet(entry)) {
@@ -56,12 +56,12 @@ async function fetchAndSendLatestTweets(url, latestLink) {
                             processedLinks.add(entry.link);
                         }
                         else {
-                            console.error(`[Error code: 1707]`, entry);
+                            console.error("[Error code: 1707]", entry);
                         }
                     }
                 }
                 else {
-                    console.error(`[Error code: 1705]`, entry);
+                    console.error("[Error code: 1705]", entry);
                 }
             }
             return newEntries[newEntries.length - 1].link;
@@ -89,7 +89,7 @@ function getBungieTwitterAuthor(creator) {
 function isRetweet(item) {
     const retweetPattern = /^RT/;
     if (!item.content || !item.contentSnippet) {
-        console.error(`[Error code: 1709]`, item);
+        console.error("[Error code: 1709]", item);
         return true;
     }
     if (retweetPattern.test(item.content || item.contentSnippet)) {

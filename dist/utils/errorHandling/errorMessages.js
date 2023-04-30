@@ -14,9 +14,9 @@ function errorMessages(errorType, ...rest) {
                             .setColor(colors.warning)
                             .setAuthor({
                             iconURL: icons.warning,
-                            name: `Ошибка. Пользователь не зарегистрирован`,
+                            name: "Ошибка. Пользователь не зарегистрирован",
                         })
-                            .setDescription(`Функционал станет доступен сразу после его регистрации`),
+                            .setDescription("Функционал станет доступен сразу после его регистрации"),
                     ]
                     : [
                         new EmbedBuilder()
@@ -24,7 +24,7 @@ function errorMessages(errorType, ...rest) {
                             iconURL: icons.error,
                             name: "Ошибка. Доступно после регистрации",
                         })
-                            .setDescription("Для регистрации нажмите на кнопку ниже или введите `/init`")
+                            .setDescription("Для регистрации нажмите на кнопку ниже или введите '/init'")
                             .setColor(colors.error),
                     ],
                 components: isSelf === false
@@ -128,9 +128,9 @@ function errorMessages(errorType, ...rest) {
                         .setColor(colors.error)
                         .setAuthor({
                         iconURL: icons.error,
-                        name: `Ошибка. Нет данных по завершенным вами рейдов`,
+                        name: "Ошибка. Нет данных по завершенным вами рейдов",
                     })
-                        .setDescription(`Убедитесь в статусе регистрации или подождите несколько минут\nЗакрытые рейды проверяются только у участников клана или у пользователей, которые проявляют какой-либо актив на сервере`),
+                        .setDescription("Убедитесь в статусе регистрации или подождите несколько минут\nЗакрытые рейды проверяются только у участников клана или у пользователей, которые проявляют какой-либо актив на сервере"),
                 ],
             };
         }
@@ -154,7 +154,7 @@ function errorMessages(errorType, ...rest) {
                 embeds: [
                     new EmbedBuilder().setColor(colors.error).setAuthor({
                         iconURL: icons.error,
-                        name: `Ошибка. Недостаточно прав`,
+                        name: "Ошибка. Недостаточно прав",
                     }),
                 ],
             };
@@ -176,7 +176,7 @@ function errorMessages(errorType, ...rest) {
                         .setColor(colors.warning)
                         .setAuthor({
                         iconURL: icons.warning,
-                        name: `Ошибка. Нет необходимого DLC`,
+                        name: "Ошибка. Нет необходимого DLC",
                     })
                         .setDescription(`Для записи на этот рейд необходимо дополнение ${rest[0]}`),
                 ],

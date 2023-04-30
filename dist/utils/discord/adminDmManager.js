@@ -15,7 +15,7 @@ async function sendDirectMessage(member, isEmbed, content, originatingMessage) {
         sendDmLogMessage(member, sentMessage.content.length > 0 ? sentMessage.content : sentMessage.embeds[0].description, sentMessage.id);
     }
     catch (error) {
-        console.error(`[Error code: 1429] Error during sending DM`, { error });
+        console.error("[Error code: 1429] Error during sending DM", { error });
         const errorEmbed = new EmbedBuilder()
             .setColor(colors.error)
             .setTitle("Произошла ошибка во время отправки сообщения")

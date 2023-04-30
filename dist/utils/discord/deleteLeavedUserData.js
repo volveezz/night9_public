@@ -52,7 +52,7 @@ async function deleteLeavedUserData({ message, member }) {
             name: "Ошибка",
             value: "Произошла ошибка во время удаления данных в БД",
         });
-        console.error(`[Error code: 1209]`, error, data, transaction);
+        console.error("[Error code: 1209]", error, data, transaction);
         await message.edit({ embeds: [embed] });
     }
 }

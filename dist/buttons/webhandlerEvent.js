@@ -58,7 +58,7 @@ export default {
                 const embed = new EmbedBuilder()
                     .setColor(colors.success)
                     .setAuthor({ name: "Приглашение было отправлено", iconURL: icons.success })
-                    .setDescription(`Принять приглашение можно в игре или на [сайте Bungie](https://www.bungie.net/ru/ClanV2?groupId=4123712)`);
+                    .setDescription("Принять приглашение можно в игре или на [сайте Bungie](https://www.bungie.net/ru/ClanV2?groupId=4123712)");
                 (await deferredReply) && interaction.editReply({ embeds: [embed] });
                 if (!interaction.channel?.isDMBased())
                     return;
@@ -70,7 +70,7 @@ export default {
                 })
                     .catch((err) => {
                     if (err.code !== 10008)
-                        console.error(`[Error code: 1107]`, err);
+                        console.error("[Error code: 1107]", err);
                 });
             }
             else if (clanInviteRequest.ErrorCode === 676) {
@@ -88,7 +88,7 @@ export default {
                 const embed = new EmbedBuilder()
                     .setColor(colors.error)
                     .setAuthor({ name: "Ошибка", iconURL: icons.close })
-                    .setDescription(`На вашем аккаунте стоит запрет на получение приглашений в клан\nПопробуйте вступить вручную через [bungie.net](https://www.bungie.net/ru/ClanV2?groupid=4123712)`);
+                    .setDescription("На вашем аккаунте стоит запрет на получение приглашений в клан\nПопробуйте вступить вручную через [bungie.net](https://www.bungie.net/ru/ClanV2?groupid=4123712)");
                 (await deferredReply) &&
                     interaction.editReply({ embeds: [embed], components: await addButtonComponentsToMessage([timezoneComponent]) });
                 if (!interaction.channel?.isDMBased())
@@ -100,7 +100,7 @@ export default {
                 return;
             }
             else {
-                console.error(`[Error code: 1633]`, clanInviteRequest);
+                console.error("[Error code: 1633]", clanInviteRequest);
                 throw { name: "Критическая ошибка", description: "API игры, скорее всего, недоступно в данный момент" };
             }
         }

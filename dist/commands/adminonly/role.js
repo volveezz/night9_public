@@ -67,7 +67,7 @@ export default new Command({
                     await member.roles.remove(role.id, "Cleaning user role").catch((e) => {
                         i--;
                         if (e.code !== 50013) {
-                            console.error(`[Error code: 1436]`, e);
+                            console.error("[Error code: 1436]", e);
                         }
                     });
                     await timer(i * 450);
@@ -86,7 +86,7 @@ export default new Command({
                     embed
                         .setColor(colors.success)
                         .setDescription(`Роль ${role} была установлена ${member}`)
-                        .setAuthor({ name: `Роль установлена`, iconURL: icons.success });
+                        .setAuthor({ name: "Роль установлена", iconURL: icons.success });
                     (await deferredReply) && (await interaction.editReply({ embeds: [embed] }));
                     return true;
                 })
@@ -97,7 +97,7 @@ export default new Command({
                             return role.editable && !role.managed && role.position < botHighestRole;
                         });
                         await member.roles.remove(removableRoles).catch((e) => {
-                            console.error(`[Error code: 1712]`, e);
+                            console.error("[Error code: 1712]", e);
                         });
                         embed
                             .setColor(colors.warning)
@@ -110,11 +110,11 @@ export default new Command({
                                 .join(", "),
                             inline: false,
                         })
-                            .setAuthor({ name: `Ошибка была исправлена`, iconURL: icons.warning });
+                            .setAuthor({ name: "Ошибка была исправлена", iconURL: icons.warning });
                         (await deferredReply) && (await interaction.editReply({ embeds: [embed] }));
                     }
                     else {
-                        console.error(`[Error code: 1435]`, e);
+                        console.error("[Error code: 1435]", e);
                         return false;
                     }
                 });

@@ -28,6 +28,6 @@ function convertSeconds(seconds, language = "ru") {
     if (result === "") {
         return language === "en" ? "less than a second" : "менее секунды";
     }
-    return result;
+    return result.trim();
 }
 export { convertSeconds };

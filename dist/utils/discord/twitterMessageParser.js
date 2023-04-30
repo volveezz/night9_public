@@ -34,10 +34,10 @@ async function handleTimeReplacement({ message: oldMessage }) {
     const messageDescription = messageEmbed.description;
     const replacedDescription = replaceTimeWithEpoch(messageDescription);
     if (!replacedDescription || replacedDescription.length < 5) {
-        console.error(`[Error code: 1699]`, message);
+        console.error("[Error code: 1699]", message);
         return;
     }
-    const embed = new EmbedBuilder().setColor("#FFA500").setDescription(replacedDescription).setFooter({ text: `BungieHelp notification` });
+    const embed = new EmbedBuilder().setColor("#FFA500").setDescription(replacedDescription).setFooter({ text: "BungieHelp notification" });
     if (messageEmbed.author)
         embed.setAuthor(messageEmbed.author);
     if (messageEmbed.title)
@@ -96,7 +96,7 @@ async function generateTwitterEmbed(twitterData, author, icon) {
     };
     const cleanContent = cleanText(twitterData.content || "");
     if (!cleanContent || cleanContent.length === 0) {
-        console.error(`[Error code: 1706]`, twitterData);
+        console.error("[Error code: 1706]", twitterData);
         return null;
     }
     const extractedMedia = extractImageUrl(twitterData.content || "")?.replaceAll("&amp;", "&");

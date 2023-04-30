@@ -23,13 +23,13 @@ export default new Event("guildUpdate", async (oldGuild, newGuild) => {
     if (oldGuild.premiumTier !== newGuild.premiumTier) {
         embed.addFields({
             name: "Статус буста сервера обновлен",
-            value: `\`${oldGuild.premiumTier}\` → \`${newGuild.premiumTier}\``,
+            value: "'${oldGuild.premiumTier}' → '${newGuild.premiumTier}'",
         });
     }
     if (oldGuild.ownerId !== newGuild.ownerId) {
         embed.addFields({
             name: "Владелец сервера обновлен",
-            value: `${await newGuild.fetchOwner().then((own) => `\`` + own.displayName + `\``)}`,
+            value: `${await newGuild.fetchOwner().then((own) => "'" + own.displayName + "'")}`,
         });
     }
     const guildChanges = [];
@@ -47,12 +47,12 @@ export default new Event("guildUpdate", async (oldGuild, newGuild) => {
                     const addedKeys = afterChanges.map((k) => `✅${k}`).join("\n");
                     const changeDetails = [removedKeys, addedKeys].filter((detail) => detail.length > 0).join("\n");
                     guildChanges.push({
-                        name: `Features обновлены`,
+                        name: "Features обновлены",
                         value: changeDetails,
                     });
                 }
                 catch (e) {
-                    console.error(`[Error code: 1655]`, e);
+                    console.error("[Error code: 1655]", e);
                 }
                 continue;
             }
@@ -65,7 +65,7 @@ export default new Event("guildUpdate", async (oldGuild, newGuild) => {
                     guildChanges.push({ name: "systemChannelFlags обновлены", value: `${systemObject} → ${systemObjectUpdated}` });
                 }
                 catch (error) {
-                    console.error(`[Error code: 1658]`, error);
+                    console.error("[Error code: 1658]", error);
                 }
                 continue;
             }

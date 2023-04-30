@@ -34,7 +34,7 @@ export async function handleDeleteRaid({ deferredUpdate, interaction, raidEvent,
         collector.on("collect", async (col) => {
             if (col.customId === RaidButtons.deleteConfirm) {
                 await removeRaid(raidEvent, col, requireMessageReply, interaction.channel?.isDMBased() ? interaction : undefined).catch((e) => {
-                    console.error(`[Error code: 1676]`, e);
+                    console.error("[Error code: 1676]", e);
                 });
                 resolve(1);
             }
@@ -47,7 +47,7 @@ export async function handleDeleteRaid({ deferredUpdate, interaction, raidEvent,
         collector.on("end", async (_, reason) => {
             if (reason === "time") {
                 if (requireMessageReply) {
-                    embed.setAuthor({ name: `Время для удаления вышло. Повторите снова`, iconURL: undefined }).setColor(colors.invisible);
+                    embed.setAuthor({ name: "Время для удаления вышло. Повторите снова", iconURL: undefined }).setColor(colors.invisible);
                     await interaction.editReply({ components: [], embeds: [embed] });
                 }
                 resolve(3);
@@ -159,7 +159,7 @@ export default {
                                             .then((_) => sendedTo.push(`${nameCleaner(user.displayName, true)} получил текстовое оповещение`));
                                     }
                                     else {
-                                        console.error(`[Error code: 1210]`, e);
+                                        console.error("[Error code: 1210]", e);
                                     }
                                 });
                             }
@@ -181,7 +181,7 @@ export default {
                 await Promise.all(raidEvent.joined.map(async (id) => {
                     const member = guild.members.cache.get(id);
                     if (!member)
-                        return console.error(`[Error code: 1211]`, id, member);
+                        return console.error("[Error code: 1211]", id, member);
                     if (member.id === raidEvent.creator)
                         return;
                     await member
@@ -197,7 +197,7 @@ export default {
                                 .then((d) => sendedTo.push(`${nameCleaner(member.displayName, true)} получил текстовое оповещение`));
                         }
                         else {
-                            console.error(`[Error code: 1212]`, e.requestBody.json.components);
+                            console.error("[Error code: 1212]", e.requestBody.json.components);
                         }
                     });
                 }));
@@ -205,11 +205,11 @@ export default {
                     .setColor(colors.success)
                     .setTitle(`Оповещение доставлено ${sendedTo.length} участникам из ${raidMembersLength} записавшихся`);
                 sendedTo.length === 0 ? [] : finishEmbed.setDescription(sendedTo.join("\n") || "nothing");
-                message.edit({ components: [], embeds: [finishEmbed] }).catch((e) => console.error(`[Error code: 1660]`, e));
+                message.edit({ components: [], embeds: [finishEmbed] }).catch((e) => console.error("[Error code: 1660]", e));
                 return;
             }
             async function handleEditAction(collectorInteraction) {
-                const RaidModal = new ModalBuilder().setTitle(`Измените текст оповещения`).setCustomId(RaidAdditionalFunctional.modalEdit);
+                const RaidModal = new ModalBuilder().setTitle("Измените текст оповещения").setCustomId(RaidAdditionalFunctional.modalEdit);
                 const RaidModal_title = new TextInputBuilder()
                     .setLabel("Заголовок")
                     .setStyle(TextInputStyle.Short)
@@ -250,7 +250,7 @@ export default {
                     interactionSubmit.deferUpdate();
                 }
                 catch (error) {
-                    console.error(`[Error code: 1661] Edit button was deferred multiple times`);
+                    console.error("[Error code: 1661] Edit button was deferred multiple times");
                     return;
                 }
                 const raidEditedTitle = interactionSubmit.fields.getTextInputValue(RaidNotifyEdit.title).trim();
@@ -259,7 +259,7 @@ export default {
                 if (!raidEditedTitle && !raidEditedDescription && !raidEditedImage) {
                     const errorEmbed = new EmbedBuilder()
                         .setColor(colors.error)
-                        .setAuthor({ name: `Ошибка. Нельзя не указать все поля`, iconURL: icons.close });
+                        .setAuthor({ name: "Ошибка. Нельзя не указать все поля", iconURL: icons.close });
                     return await collectorInteraction.followUp({ embeds: [errorEmbed], ephemeral: true });
                 }
                 const editableEmbed = EmbedBuilder.from(collectorInteraction.message.embeds[0]);
@@ -273,21 +273,21 @@ export default {
                     modalTitle = raidEditedTitle;
                 }
                 catch (error) {
-                    collectorInteraction.followUp({ content: `Не удалось изменить заголовок набора`, ephemeral: true });
+                    collectorInteraction.followUp({ content: "Не удалось изменить заголовок набора", ephemeral: true });
                 }
                 try {
                     editableEmbed.setDescription(descriptionFormatter(raidEditedDescription) || null);
                     modalDescription = raidEditedDescription;
                 }
                 catch (error) {
-                    collectorInteraction.followUp({ content: `Не удалось изменить описание набора`, ephemeral: true });
+                    collectorInteraction.followUp({ content: "Не удалось изменить описание набора", ephemeral: true });
                 }
                 try {
                     editableEmbed.setImage(raidEditedImage || null);
                     modalImage = raidEditedImage;
                 }
                 catch (error) {
-                    collectorInteraction.followUp({ content: `Не удалось изменить изображение набора`, ephemeral: true });
+                    collectorInteraction.followUp({ content: "Не удалось изменить изображение набора", ephemeral: true });
                 }
                 await collectorInteraction.editReply({ embeds: [editableEmbed] });
                 return;
@@ -330,7 +330,7 @@ export default {
             }
             const raidLeaderEmbed = new EmbedBuilder()
                 .setColor(colors.serious)
-                .setAuthor({ name: `Отправьте заготовленное оповещение или измените его`, iconURL: icons.notify })
+                .setAuthor({ name: "Отправьте заготовленное оповещение или измените его", iconURL: icons.notify })
                 .setDescription(`Рейдер, тебя оповестил ${raidEvent.creator === interaction.user.id ? "создатель рейда" : "администратор"} об скором старте.\n\nЗаходи в голосовой канал как можно скорее!`)
                 .setImage(GIFImage);
             const message = await interaction.user.send({
@@ -379,7 +379,7 @@ export default {
                 const member = membersCollection.find((m) => m.id === jId);
                 if (member) {
                     if (!freeRaidVC || freeRaidVC.type !== ChannelType.GuildVoice)
-                        return console.error(`[Error code: 1213]`, freeRaidVC);
+                        return console.error("[Error code: 1213]", freeRaidVC);
                     if (!freeRaidVC.members.has(member.id)) {
                         await member.voice.setChannel(freeRaidVC, `${interaction.user.username} переместил участников в рейдовый голосовой`);
                         movedUsers.push(`${nameCleaner(member.displayName, true)} был перемещен`);

@@ -66,7 +66,7 @@ export default new Command({
             return;
         }
         else {
-            console.error(`[Error code: 1700]`, token, data);
+            console.error("[Error code: 1700]", token, data);
             const errorEmbed = new EmbedBuilder()
                 .setColor(colors.error)
                 .setAuthor({ name: `Произошла ошибка во время обновления токена ${data.displayName}`, iconURL: icons.error });

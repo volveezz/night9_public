@@ -37,13 +37,13 @@ const errorResolver = async ({ error, interaction, retryOperation }) => {
                 console.log(`Resolved error ${error.code} for ${username}`);
                 return;
             }
-            console.error(`[Error code: 1685] Unknown error on command reply`, error);
+            console.error("[Error code: 1685] Unknown error on command reply", error);
         });
         console.error(`[Error code: 1694] Error during execution of ${interaction.customId || interaction.commandName || interaction.name} for ${username}\n`, error);
     }
     catch (e) {
         if (!retryOperation)
-            errorResolver({ error, interaction, retryOperation: true }).catch((e) => console.error(`[Error code: 1695] Received error upon second run of error response`));
+            errorResolver({ error, interaction, retryOperation: true }).catch((e) => console.error("[Error code: 1695] Received error upon second run of error response"));
     }
 };
 export default new Event("interactionCreate", async (interaction) => {
@@ -72,10 +72,10 @@ export default new Event("interactionCreate", async (interaction) => {
     else if (interaction.isAutocomplete()) {
         const autocomplete = client.autocomplete.get(interaction.commandName);
         if (!autocomplete)
-            return console.error(`[Error code: 1138] Found unknown autocomplete interaction`, { interaction });
+            return console.error("[Error code: 1138] Found unknown autocomplete interaction", { interaction });
         autocomplete
             .run({ client, interaction, option: interaction.options.getFocused(true) })
-            .catch((e) => console.error(`[Error code: 1139]`, { e }));
+            .catch((e) => console.error("[Error code: 1139]", { e }));
     }
     commandLogger(interaction);
 });

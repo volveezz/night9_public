@@ -18,7 +18,7 @@ export default {
         const replyMember = interaction.guild.members.cache.get(userId);
         const channel = await client.getAsyncTextChannel(channelIds.directMessages);
         if (!replyMember) {
-            console.error(`[Error code: 1728]`, userId);
+            console.error("[Error code: 1728]", userId);
             throw { errorType: UserErrors.MEMBER_NOT_FOUND };
         }
         switch (customId) {
@@ -79,7 +79,7 @@ export default {
                     interaction.message.edit({ embeds: [embed], components: [] });
                 })
                     .catch(async (e) => {
-                    console.error(`[Error code: 1112] adminDMInteractionHandler delete msg error`, e);
+                    console.error("[Error code: 1112] adminDMInteractionHandler delete msg error", e);
                     await deferredUpdate;
                     throw { name: "Произошла ошибка во время удаления сообщения" };
                 });

@@ -6,7 +6,7 @@ async function getManifest() {
         return manifest;
     }
     catch (e) {
-        console.error(`[Error code: 1662] Manifest error`, e);
+        console.error("[Error code: 1662] Manifest error", e);
         throw e;
     }
 }

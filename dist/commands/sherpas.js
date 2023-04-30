@@ -85,7 +85,7 @@ export default new Command({
         function formatRaidUserData(discordId) {
             const raidUserData = completedRaidsData.get(discordId);
             if (!raidUserData)
-                return `нет данных по закрытиям`;
+                return "нет данных по закрытиям";
             const member = client.getCachedMembers().get(discordId);
             const raidClears = [];
             if (raidUserData.ron > 0)
@@ -108,8 +108,8 @@ export default new Command({
                 "Пользователь не на сервере", true)}** ${raidClears.length > 0
                 ? `завершил: ${raidClears.join(", ")}`
                 : raidUserData?.totalRaidCount === 0
-                    ? `не проходил ранее рейды`
-                    : `не проходил доступные на данный момент рейды`}`;
+                    ? "не проходил ранее рейды"
+                    : "не проходил доступные на данный момент рейды"}`;
         }
         async function sendEmbed(raidEmbedData, embedCountIndex = 0) {
             const embed = new EmbedBuilder()
@@ -119,7 +119,7 @@ export default new Command({
             await deferredReply;
             if (embedCountIndex === 0) {
                 await interaction.editReply({ embeds: [embed] }).catch(async (e) => {
-                    console.error(`[Error code: 1702]`, e);
+                    console.error("[Error code: 1702]", e);
                     await interaction.followUp({ embeds: [embed], ephemeral: true });
                 });
             }

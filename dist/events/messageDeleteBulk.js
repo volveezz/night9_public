@@ -16,9 +16,9 @@ export default new Event("messageDeleteBulk", (messages) => {
             {
                 name: `Сообщение ${m?.member?.displayName} (${m?.id})`,
                 value: `${m?.content?.length > 0
-                    ? `\`${m?.content?.length > 1000 ? "*в сообщении слишком много текста*" : m?.content}\``
+                    ? "'${m?.content?.length! > 1000 ? \"*в сообщении слишком много текста*\" : m?.content}'"
                     : m?.embeds[0]?.title
-                        ? `\`${m?.embeds[0]?.title}\``
+                        ? "'${m?.embeds[0]?.title}'"
                         : "*в сообщении нет текста*"}`,
             },
         ]);

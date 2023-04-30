@@ -118,10 +118,10 @@ export default {
                         });
                     });
                     if (storedMilestones.length === 0) {
-                        embed.setTitle(`Все испытания на сверхмощное снаряжение пройдены`);
+                        embed.setTitle("Все испытания на сверхмощное снаряжение пройдены");
                     }
                     else {
-                        embed.setTitle(`Испытания на сверхмощное снаряжение`);
+                        embed.setTitle("Испытания на сверхмощное снаряжение");
                     }
                     await interaction.editReply({ embeds: [embed], components: [] });
                 });

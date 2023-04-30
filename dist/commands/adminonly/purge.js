@@ -43,7 +43,7 @@ export default new Command({
         if (!msgs || msgs > 100) {
             const embed = new EmbedBuilder()
                 .setColor(colors.error)
-                .setTitle(`Параметр "количество" должен быть больше или равен 1 и меньше 100`);
+                .setTitle('Параметр "количество" должен быть больше или равен 1 и меньше 100');
             await deferredReply;
             return interaction.editReply({ embeds: [embed] });
         }
@@ -63,7 +63,7 @@ export default new Command({
                 interaction.editReply({ embeds: [embed] });
             })
                 .catch(async (e) => {
-                console.error(`[Error code: 1649]`, e);
+                console.error("[Error code: 1649]", e);
                 const embed = new EmbedBuilder().setColor(colors.error).setTitle(`Error: ${e.code}`).setDescription(e.toString());
                 await deferredReply;
                 interaction.editReply({ embeds: [embed] });
@@ -83,7 +83,7 @@ export default new Command({
                 return;
             })
                 .catch(async (e) => {
-                console.error(`[Error code: 1648]`, e);
+                console.error("[Error code: 1648]", e);
                 const embed = new EmbedBuilder().setColor(colors.error).setTitle(`Error: ${e.code}`).setDescription(e.toString());
                 await deferredReply;
                 interaction.editReply({ embeds: [embed] });

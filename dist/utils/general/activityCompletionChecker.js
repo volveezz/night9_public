@@ -18,7 +18,7 @@ export async function clanOnlineMemberActivityChecker() {
         for (const [discordId, { membershipId, platform }] of checkingUsers) {
             const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204,1000`);
             if (!response || !response.characterActivities) {
-                console.error(`[Error code: 1612] Error during checking clan members`, response);
+                console.error("[Error code: 1612] Error during checking clan members", response);
                 break;
             }
             const characterActivities = response.characterActivities.data;
@@ -74,7 +74,7 @@ function areAllPhasesComplete(phases) {
 }
 async function fetchCharacterResponse({ accessToken, bungieId, characterId, platform, }) {
     try {
-        const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`).catch((e) => console.error(`[Error code: 1654]`, e));
+        const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`).catch((e) => console.error("[Error code: 1654]", e));
         if (response == null) {
             throw { name: `[Error code: 1653] Got error upon checking ${platform}/${bungieId}` };
         }
@@ -157,7 +157,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
             await characterMilestonesChecker(response);
         }
         catch (error) {
-            console.error(`[Error code: 1636]`, error);
+            console.error("[Error code: 1636]", error);
         }
     }
     async function characterMilestonesChecker(response) {
@@ -174,11 +174,11 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                     updatedMilestoneActivity.phases == null ||
                     updatedMilestoneActivity.phases[0] == null ||
                     updatedMilestoneActivity.phases[0].phaseHash == null)
-                    return console.error(`[Error code: 1645]`, cachedMilestoneActivity, updatedMilestoneActivity);
+                    return console.error("[Error code: 1645]", cachedMilestoneActivity, updatedMilestoneActivity);
                 for (const phaseIndexString in updatedMilestoneActivity.phases) {
                     const phaseIndex = parseInt(phaseIndexString);
                     if (phaseIndex == null)
-                        return console.error(`[Error code: 1651]`, updatedMilestoneActivity);
+                        return console.error("[Error code: 1651]", updatedMilestoneActivity);
                     const cachedMilestonePhase = cachedMilestoneActivity.phases[phaseIndex];
                     const updatedMilestonePhase = updatedMilestoneActivity.phases[phaseIndex];
                     if (cachedMilestonePhase?.phaseHash === updatedMilestonePhase?.phaseHash) {
@@ -229,7 +229,7 @@ export async function activityCompletionChecker({ accessToken, bungieId, charact
                         }
                     }
                     else if (!cachedMilestone || !updatedMilestone) {
-                        console.error(`[Error code: 1218]`, cachedMilestone, updatedMilestone);
+                        console.error("[Error code: 1218]", cachedMilestone, updatedMilestone);
                     }
                 }
             }

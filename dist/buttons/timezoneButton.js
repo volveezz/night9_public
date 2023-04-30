@@ -8,8 +8,8 @@ export default {
     run: async ({ interaction }) => {
         const embed = new EmbedBuilder()
             .setColor(colors.default)
-            .setTitle(`Установите свой часовой пояс`)
-            .setDescription(`Если не знаете свой - в описании каждого часового пояса есть текущее время по нему\nЧасовой пояс устанавливается от Гринвича! От +00:00, а не от Московского времени`);
+            .setTitle("Установите свой часовой пояс")
+            .setDescription("Если не знаете свой - в описании каждого часового пояса есть текущее время по нему\nЧасовой пояс устанавливается от Гринвича! От +00:00, а не от Московского времени");
         const tzBlank = new StringSelectMenuBuilder()
             .setCustomId(TimezoneButtons.selectMenu)
             .setPlaceholder("Часовой пояс не выбран")
