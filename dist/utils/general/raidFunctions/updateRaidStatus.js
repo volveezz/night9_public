@@ -21,7 +21,7 @@ async function updateRaidStatus() {
         const startTime = new Date(initialRaidEvent.time * 1000);
         const raidStartTimePlus5 = new Date(startTime.getTime() + MINUTES_AFTER_RAID * 60 * 1000);
         console.debug(`Added raid ID: ${initialRaidEvent.id} for checking, time: ${initialRaidEvent.time}, time + 5: ${Math.floor(raidStartTimePlus5.getTime() / 1000)}`);
-        let isFirstCheck = true;
+        let isFirstCheck = 0;
         const checkFireteamStatus = async () => {
             const raidEvent = await RaidEvent.findOne({
                 where: { id: initialRaidEvent.id },
@@ -51,14 +51,11 @@ async function updateRaidStatus() {
             const partyMembers = await checkFireteamRoster(voiceChannelMembersAuthData);
             if (!partyMembers) {
                 console.error("[Error code: 1719]", raidEvent.id);
-                if (isFirstCheck) {
-                    isFirstCheck = false;
+                if (isFirstCheck < 5) {
+                    isFirstCheck++;
                     return true;
                 }
                 return false;
-            }
-            if (isFirstCheck === false) {
-                isFirstCheck = true;
             }
             const fireteamBungieIds = partyMembers.map((member) => member.membershipId);
             const raidMemberBungieIds = voiceChannelMembersAuthData.map((record) => record.bungieId);
@@ -66,7 +63,14 @@ async function updateRaidStatus() {
             const minMembers = Math.ceil(raidEvent.joined.length / 2);
             if (matchingBungieIds.length < minMembers) {
                 console.debug(`Not enough matching Bungie IDs for raid ID: ${raidEvent.id}`);
+                if (isFirstCheck < 5) {
+                    isFirstCheck++;
+                    return true;
+                }
                 return false;
+            }
+            if (isFirstCheck != 0) {
+                isFirstCheck = 0;
             }
             for await (const memberAuthData of voiceChannelMembersAuthData) {
                 const discordId = memberAuthData.discordId;

@@ -247,13 +247,17 @@ async function logActivityCompletion(pgcrId) {
                     const phasesArray = Array.from(preciseEncountersTime.values()).sort((a, b) => a.phaseIndex - b.phaseIndex);
                     phasesArray.forEach((encounterData, i) => {
                         if (i === 0) {
+                            const startTimeFromGame = new Date(response.period).getTime();
+                            const isTimeFromGameValid = startTimeFromGame < encounterData.start;
+                            const resolvedStartTime = isTimeFromGameValid ? startTimeFromGame : encounterData.start;
+                            console.debug(startTimeFromGame, isTimeFromGameValid, resolvedStartTime);
                             encountersData.push({
                                 end: encounterData.end,
                                 phase: encounterData.phase,
-                                phaseIndex: encounterData.phaseIndex != 1 && response.activityWasStartedFromBeginning
+                                phaseIndex: `${isTimeFromGameValid ? "" : "⚠️"}${encounterData.phaseIndex != 1 && response.activityWasStartedFromBeginning
                                     ? `1-${encounterData.phaseIndex}`
-                                    : encounterData.phaseIndex,
-                                start: new Date(response.period).getTime(),
+                                    : encounterData.phaseIndex}`,
+                                start: resolvedStartTime,
                             });
                         }
                         else if (i === phasesArray.length - 1) {
