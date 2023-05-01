@@ -134,7 +134,7 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
             if (wtmatches >= 10 && member.id !== ownerId) {
                 if (!member.roles.cache.has(trialsRoles.wintrader)) {
                     await member.roles.remove(trialsRoles.allKd);
-                    setTimeout(async () => await member.roles.add(trialsRoles.wintrader), 1000);
+                    await member.roles.add(trialsRoles.wintrader);
                 }
                 return;
             }
