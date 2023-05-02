@@ -4,6 +4,7 @@ import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import nameCleaner from "../utils/general/nameClearer.js";
+import { escapeString } from "../utils/general/utilities.js";
 const guildMemberChannel = client.getCachedTextChannel(channelIds.guildMember);
 export default new Event("guildMemberUpdate", (oldMember, newMember) => {
     if (!oldMember.joinedTimestamp || (!oldMember.nickname && oldMember.roles.cache.size === 0))
@@ -53,8 +54,8 @@ export default new Event("guildMemberUpdate", (oldMember, newMember) => {
         })
             .addFields([
             { name: "Пользователь", value: `<@${newMember.id}>`, inline: true },
-            { name: "До изменения", value: "'${oldMember.displayName}'", inline: true },
-            { name: "После", value: "'${newMember.displayName}'", inline: true },
+            { name: "До изменения", value: escapeString(oldMember.displayName), inline: true },
+            { name: "После", value: escapeString(newMember.displayName), inline: true },
         ]);
         guildMemberChannel.send({ embeds: [embed] });
     }

@@ -1,28 +1,86 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
+import icons from "../configs/icons.js";
 import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-const messageChannel = client.getCachedTextChannel(channelIds.messages);
-export default new Event("messageDeleteBulk", (messages) => {
-    const messagesArray = messages.reverse();
-    const embed = new EmbedBuilder().setColor(colors.error).setAuthor({
-        name: "Группа сообщений удалена",
-        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086264381832179742/1984-icon-delete.png",
-    });
-    for (let i = 0; i < messagesArray.size && i < 24; i++) {
-        const m = messagesArray.at(i);
-        embed.addFields([
-            {
-                name: `Сообщение ${m?.member?.displayName} (${m?.id})`,
-                value: `${m?.content?.length > 0
-                    ? "'${m?.content?.length! > 1000 ? \"*в сообщении слишком много текста*\" : m?.content}'"
-                    : m?.embeds[0]?.title
-                        ? "'${m?.embeds[0]?.title}'"
-                        : "*в сообщении нет текста*"}`,
-            },
-        ]);
+import nameCleaner from "../utils/general/nameClearer.js";
+const messageChannel = await client.getAsyncTextChannel(channelIds.messages);
+const createFieldValue = (message) => {
+    let fieldValue = "";
+    if (message.partial) {
+        fieldValue = "*неполное сообщение*";
     }
-    messagesArray.size > 24 ? embed.setFooter({ text: `И ещё ${messagesArray.size - 24} сообщений` }) : [];
-    messageChannel.send({ embeds: [embed] });
+    else {
+        if (message.content.length > 0) {
+            fieldValue = message.content.length > 1020 ? "*в сообщении слишком много текста*" : message.content;
+        }
+        else if (message.embeds[0]?.title || message.embeds[0].author?.name) {
+            fieldValue += `\n\`${message.embeds[0]?.title || message.embeds[0].author?.name}\``;
+        }
+        else {
+            fieldValue += "\n*в сообщении нет текста*";
+        }
+    }
+    if (message.attachments.size > 0 && fieldValue.length < 990) {
+        fieldValue += "\n*Прикрепленные файлы:*";
+        message.attachments.forEach((attachment) => {
+            if (fieldValue.length + attachment.name.length + attachment.url.length > 1020)
+                return;
+            fieldValue += `\n[${attachment.name}](${attachment.url})`;
+        });
+    }
+    return fieldValue;
+};
+const getEmbedSize = (embed) => {
+    let size = 0;
+    size += embed.data.author?.name?.length || 0;
+    size += embed.data.footer?.text?.length || 0;
+    (embed.data.fields || []).forEach((field) => {
+        size += field.name.length + field.value.length;
+    });
+    return size;
+};
+const getTotalEmbedsSize = (embeds) => {
+    return embeds.reduce((totalSize, embed) => {
+        return totalSize + getEmbedSize(embed);
+    }, 0);
+};
+export default new Event("messageDeleteBulk", async (messages) => {
+    const messagesArray = messages.reverse();
+    const createNewEmbed = () => {
+        return new EmbedBuilder().setColor(colors.error).setAuthor({
+            name: "Группа сообщений удалена",
+            iconURL: icons.delete,
+        });
+    };
+    let embed = createNewEmbed();
+    const embeds = [embed];
+    for (let i = 0; i < messagesArray.size; i++) {
+        const message = messagesArray.at(i);
+        if (!message)
+            continue;
+        const displayName = nameCleaner(message.member?.displayName || "неизвестный пользователь", true);
+        const memberId = message.member?.id;
+        const fieldValue = createFieldValue(message);
+        const fieldSize = `Сообщение ${displayName} (${memberId})`.length + fieldValue.length;
+        if ((embed.data.fields || []).length >= 25 || getTotalEmbedsSize(embeds) + fieldSize > 6000) {
+            if (embeds.length < 10) {
+                embed = createNewEmbed();
+                embeds.push(embed);
+            }
+            else {
+                break;
+            }
+        }
+        embed.addFields({
+            name: `Сообщение ${displayName} (${memberId})`,
+            value: fieldValue,
+        });
+    }
+    const remainingMessages = messagesArray.size - embeds.reduce((acc, curr) => acc + (curr.data.fields || []).length, 0);
+    if (remainingMessages > 0) {
+        embed.setFooter({ text: `И ещё ${remainingMessages} сообщений` });
+    }
+    await messageChannel.send({ embeds: embeds });
 });

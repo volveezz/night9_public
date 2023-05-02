@@ -71,7 +71,7 @@ export default new Command({
                         "NaN";
             }
             if (id === "NaN" || isNaN(parseInt(id))) {
-                throw { name: "Command '${id}' not found" };
+                throw { name: `Command \`${id}\` not found` };
             }
             client.application?.commands
                 .delete(id)
@@ -114,7 +114,7 @@ export default new Command({
                     })
                         .catch((e) => {
                         if (e.code === 10063) {
-                            throw { name: "Command '${id}' not found as global or guild command", falseAlarm: true };
+                            throw { name: `Command \`${id}\` not found as global or guild command` };
                         }
                         else {
                             console.error(e);

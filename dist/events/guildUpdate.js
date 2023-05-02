@@ -3,6 +3,7 @@ import colors from "../configs/colors.js";
 import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
+import nameCleaner from "../utils/general/nameClearer.js";
 const guildChannel = client.getCachedTextChannel(channelIds.guild);
 export default new Event("guildUpdate", async (oldGuild, newGuild) => {
     const embed = new EmbedBuilder().setColor(colors.default).setAuthor({
@@ -23,13 +24,13 @@ export default new Event("guildUpdate", async (oldGuild, newGuild) => {
     if (oldGuild.premiumTier !== newGuild.premiumTier) {
         embed.addFields({
             name: "Статус буста сервера обновлен",
-            value: "'${oldGuild.premiumTier}' → '${newGuild.premiumTier}'",
+            value: `\`${oldGuild.premiumTier}\` → \`${newGuild.premiumTier}\``,
         });
     }
     if (oldGuild.ownerId !== newGuild.ownerId) {
         embed.addFields({
             name: "Владелец сервера обновлен",
-            value: `${await newGuild.fetchOwner().then((own) => "'" + own.displayName + "'")}`,
+            value: `${nameCleaner((await newGuild.fetchOwner()).displayName, true)}`,
         });
     }
     const guildChanges = [];

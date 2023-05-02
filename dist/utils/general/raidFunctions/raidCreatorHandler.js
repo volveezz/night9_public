@@ -192,7 +192,7 @@ async function findNewRaidCreator(raid) {
             const memberClearsData = completedRaidsData.get(member.id);
             if (!skipRequirements && !memberClearsData)
                 continue;
-            const memberTotalClears = memberClearsData?.[`${raid.raid}'] || 0 + memberClearsData?.['${raid.raid}Master`] || 0;
+            const memberTotalClears = memberClearsData?.[`${raid.raid}`] || 0 + memberClearsData?.[`${raid.raid}Master`] || 0;
             if (memberTotalClears > highestClears) {
                 highestClears = memberTotalClears;
                 newCreator = member;

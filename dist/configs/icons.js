@@ -5,5 +5,6 @@ const icons = {
     loading: "https://cdn.discordapp.com/attachments/679191036849029167/1061566114787754004/volve_luchsii_lider.gif",
     warning: "https://cdn.discordapp.com/attachments/679191036849029167/1092958503108366466/warning.png",
     error: "https://cdn.discordapp.com/attachments/679191036849029167/1092958503351623780/serious_warning.png",
+    delete: "https://cdn.discordapp.com/attachments/679191036849029167/1086264381832179742/1984-icon-delete.png",
 };
 export default icons;

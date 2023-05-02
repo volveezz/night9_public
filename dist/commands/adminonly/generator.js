@@ -125,7 +125,7 @@ export default new Command({
                 const presetName = args.getString("preset_name", true);
                 const preset = await getPreset(presetName);
                 if (!preset) {
-                    throw { name: "Ошибка", description: "Искомый пресет '${presetName}' не найден" };
+                    throw { name: "Ошибка", description: `Искомый пресет \`${presetName}\` не найден` };
                 }
                 const { embeds, components } = preset;
                 await channel.send({ embeds, components: await addButtonComponentsToMessage(components) });

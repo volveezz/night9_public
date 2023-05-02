@@ -148,9 +148,9 @@ export async function handlePveParty(message) {
     }
     catch (error) {
         embed.setColor(colors.error);
-        message.channel
-            .send("Ошибка. Не удалось установить ваш цвет: '${userSettings.color}'")
-            .then((m) => setTimeout(() => m.delete(), 5000));
+        const channel = await client.getAsyncTextChannel(message.channelId);
+        const sentMessage = await channel.send(`Ошибка. Не удалось установить ваш цвет: \`${userSettings.color}\``);
+        setTimeout(() => sentMessage.delete(), 5000);
     }
     if (userSettings.activitySettings?.name && userTitle) {
         embed.addFields([

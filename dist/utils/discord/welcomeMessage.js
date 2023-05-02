@@ -52,10 +52,11 @@ export default async function welcomeMessage(member) {
             attributes: ["displayName", "membershipId"],
         });
         if (data) {
+            const bungieUrl = `[Bungie.net профиль](https://www.bungie.net/7/ru/User/Profile/254/${data.membershipId})`;
             const registrationRestoredEmbed = new EmbedBuilder()
                 .setColor(colors.invisible)
                 .setTitle(" Регистрация восстановлена ")
-                .setDescription(`Ранее Вы уже были на нашем сервере - все данные сохранены!\n\n\'${escapeString(data.displayName)}\` - [Bungie.net профиль](https://www.bungie.net/7/ru/User/Profile/254/${data.membershipId})`);
+                .setDescription(`Ранее Вы уже были на нашем сервере - все данные сохранены!\n\n\`${escapeString(data.displayName)}\` - ${bungieUrl}`);
             await message.channel.send({
                 embeds: [registrationRestoredEmbed],
             });

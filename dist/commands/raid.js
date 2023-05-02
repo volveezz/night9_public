@@ -583,7 +583,7 @@ export default new Command({
                     const difficultyText = newDifficulty === 2 ? "Мастер" : newDifficulty === 1 ? "Нормальный" : "*неизвестная сложность*";
                     changesForChannel.push({
                         name: "Сложность рейда",
-                        value: "Сложность рейда была изменена - '${difficultyText}'",
+                        value: `Сложность рейда была изменена - \`${difficultyText}\``,
                     });
                     await RaidEvent.update({ difficulty: newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : 1 }, { where: { id: raidData.id }, transaction: t });
                 }
@@ -592,7 +592,7 @@ export default new Command({
                 if (newReqClears != null) {
                     const requiredClearsText = newReqClears === 0
                         ? "Требование для вступления 'отключено'"
-                        : "Теперь для вступления нужно от '${newReqClears}' закрытий";
+                        : `Теперь для вступления нужно от \`${newReqClears}\` закрытий`;
                     changesForChannel.push({
                         name: "Требование для вступления",
                         value: requiredClearsText,
@@ -604,7 +604,7 @@ export default new Command({
                 if (newRaid !== null) {
                     changesForChannel.push({
                         name: "Рейд",
-                        value: "Рейд набора был изменен - '${raidInfo.raidName}'",
+                        value: `Рейд набора был изменен - \`${raidInfo.raidName}\``,
                     });
                     const [_, [updatedRaid]] = await RaidEvent.update({ raid: raidInfo.raid }, {
                         where: { id: raidData.id },
