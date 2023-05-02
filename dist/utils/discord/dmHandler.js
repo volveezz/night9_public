@@ -26,7 +26,7 @@ async function sendAdminNotification(message, member) {
         embed.addFields([{ name: "Стикеры", value: message.stickers.map((sticker) => sticker.name + ":" + sticker.description).join("\n") }]);
     }
     const buttons = [new ButtonBuilder().setCustomId(AdminDMChannelButtons.reply).setLabel("Reply").setStyle(ButtonStyle.Success)];
-    dmChannel.send({
+    await dmChannel.send({
         embeds: [embed],
         components: await addButtonComponentsToMessage(buttons),
     });

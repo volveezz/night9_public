@@ -17,17 +17,15 @@ export default new Event("guildBanAdd", async (member) => {
         .addFields([
         {
             name: "Дата присоединения к серверу",
-            value: String(isNaN(joinedDate) ? "не найдена" : `<t:${joinedDate}>`),
+            value: `${isNaN(joinedDate) ? "не найдена" : `<t:${joinedDate}>`}`,
         },
     ]);
     await member.fetch();
     if (member.reason) {
-        embed.addFields([
-            {
-                name: "Причина бана",
-                value: member.reason ? member.reason : "не указана",
-            },
-        ]);
+        embed.addFields({
+            name: "Причина бана",
+            value: member.reason ? member.reason : "не указана",
+        });
     }
     const message = await guildMemberChannel.send({ embeds: [embed] });
     await deleteLeavedUserData({ member, message });

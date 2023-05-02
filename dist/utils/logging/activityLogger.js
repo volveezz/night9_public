@@ -24,6 +24,7 @@ const hashToImageMap = {
     1368255375: "https://cdn.discordapp.com/attachments/679191036849029167/1089134183747690516/season_20_battleground_bulkhead.png",
 };
 const pgcrIds = new Set();
+const ACTIVITY_LEAVE_TIME = 300;
 async function restoreFetchedPGCRs() {
     const completedActivitiesChannels = await client.getAsyncTextChannel(channelIds.activity);
     (await completedActivitiesChannels.messages.fetch({ limit: 5 })).forEach(async (message) => {
@@ -96,7 +97,8 @@ async function logActivityCompletion(pgcrId) {
             .setThumbnail(thumbnailUrl);
         const completedUsers = new Map();
         response.entries.forEach((entry) => {
-            const userData = completedUsers.get(entry.player.destinyUserInfo.membershipId);
+            const destinyUserInfo = entry.player.destinyUserInfo;
+            const userData = completedUsers.get(destinyUserInfo.membershipId);
             const miscArray = userData?.misc || [];
             if (entry.extended?.weapons?.some((a) => a.referenceId === 4103414242) && !miscArray.some((a) => a.endsWith("**Божественность**")))
                 miscArray.push("<a:catbowtie:1034701666580189256>**Божественность**");
@@ -106,22 +108,25 @@ async function logActivityCompletion(pgcrId) {
                 miscArray.push("<a:workin:1077438227830542406>**Гьяллархорн**");
             if (entry.extended?.weapons?.some((a) => a.referenceId === 3512014804) && !miscArray.some((a) => a.endsWith("**Люмина**")))
                 miscArray.push("<a:iamthebest:1084475253901774938>**Люмина**");
-            completedUsers.set(entry.player.destinyUserInfo.membershipId, {
-                bungieId: entry.player.destinyUserInfo.membershipId,
-                bungieName: entry.player.destinyUserInfo.bungieGlobalDisplayName,
-                classHash: entry.values.completed.basic.value === 1
-                    ? (entry.player.classHash === 671679327
+            const isUserCompletedActivity = entry.values.completed.basic.value === 1;
+            const isUserHunter = entry.player.classHash === 671679327;
+            const isUserWarlock = entry.player.classHash === 2271682572;
+            completedUsers.set(destinyUserInfo.membershipId, {
+                bungieId: destinyUserInfo.membershipId,
+                bungieName: destinyUserInfo.bungieGlobalDisplayName,
+                classHash: isUserCompletedActivity
+                    ? (isUserHunter
                         ? "<:hunter:995496474978824202>"
-                        : entry.player.classHash === 2271682572
+                        : isUserWarlock
                             ? "<:warlock:995496471526920232>"
                             : "<:titan:995496472722284596>") + (userData?.classHash || "")
                     : (userData?.classHash || "") +
-                        String(entry.player.classHash === 671679327
+                        (isUserHunter
                             ? "<:deadHunter:1023051800653344859>"
-                            : entry.player.classHash === 2271682572
+                            : isUserWarlock
                                 ? "<:deadWarlock:1023051796932989059>"
                                 : "<:deadTitan:1023051798740729876>"),
-                completed: !userData?.completed ? (entry.values.completed.basic.value === 1 ? true : false) : true,
+                completed: !userData?.completed ? (isUserCompletedActivity ? true : false) : true,
                 kills: entry.values.kills.basic.value + (userData?.kills || 0),
                 deaths: entry.values.deaths.basic.value + (userData?.deaths || 0),
                 assists: entry.values.assists.basic.value + (userData?.assists || 0),
@@ -161,6 +166,7 @@ async function logActivityCompletion(pgcrId) {
                 const masterClearsText = masterClears > 0 ? `\n+**${masterClears}** на мастере` : "";
                 return baseClearsText + masterClearsText;
             };
+            const activityModeName = `В ${mode === 4 ? "рейде" : mode === 82 ? "подземелье" : "задании"}`;
             completedUsers.forEach((value, key) => {
                 if (!value.completed) {
                     return;
@@ -172,16 +178,11 @@ async function logActivityCompletion(pgcrId) {
                 if (completedUsersCount > 12)
                     return;
                 try {
+                    const isUserLeavedActivity = value.timeInActivity + ACTIVITY_LEAVE_TIME < response.entries[0].values.activityDurationSeconds.basic.value;
                     const raidClearsResult = getFormattedRaidClearsForUser(value.bungieId);
                     embed.addFields({
                         name: escapeString(value.bungieName),
-                        value: `${raidClearsResult ? `${raidClearsResult}\n` : ""}${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 300 < response.entries[0].values.activityDurationSeconds.basic.value
-                            ? `\nВ ${mode === 4
-                                ? "рейде"
-                                : mode === 82
-                                    ? "подземелье"
-                                    : "задании"}: **${convertSeconds(value.timeInActivity)}**`
-                            : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
+                        value: `${raidClearsResult ? `${raidClearsResult}\n` : ""}${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${isUserLeavedActivity ? `\n${activityModeName}: **${convertSeconds(value.timeInActivity)}**` : ""}${value.misc.length > 0 ? `\n${value.misc.join("\n")}` : ""}`,
                         inline: true,
                     });
                 }
@@ -196,16 +197,11 @@ async function logActivityCompletion(pgcrId) {
                 uncompletedUsersCount++;
                 if (uncompletedUsersCount > 12)
                     return;
+                const isUserLeavedActivity = value.timeInActivity + ACTIVITY_LEAVE_TIME < response.entries[0].values.activityDurationSeconds.basic.value;
                 const raidClearsResult = getFormattedRaidClearsForUser(value.bungieId);
                 embed.addFields({
-                    name: "❌" + escapeString(value.bungieName),
-                    value: `${raidClearsResult ? `${raidClearsResult}\n` : ""}${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${value.timeInActivity + 300 < response.entries[0].values.activityDurationSeconds.basic.value
-                        ? `\nВ ${mode === 4
-                            ? "рейде"
-                            : mode === 82
-                                ? "подземелье"
-                                : "задании"}: **${convertSeconds(value.timeInActivity)}**`
-                        : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
+                    name: `❌${escapeString(value.bungieName)}`,
+                    value: `${raidClearsResult ? `${raidClearsResult}\n` : ""}${value.classHash}УП: **${value.kills + value.assists}** С: **${value.deaths}**${isUserLeavedActivity ? `\n${activityModeName}: **${convertSeconds(value.timeInActivity)}**` : ""}${value.misc.length > 0 ? "\n" + value.misc.join("\n") : ""}`,
                     inline: true,
                 });
             });

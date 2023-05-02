@@ -31,12 +31,10 @@ export default new Event("messageDelete", (message) => {
         },
     ]);
     if (message.content?.length > 0)
-        embed.addFields([
-            {
-                name: "Текст",
-                value: `${message.content?.length > 1000 ? "слишком длинное сообщение" : message.content}`,
-            },
-        ]);
+        embed.addFields({
+            name: "Текст",
+            value: `${message.content?.length > 1000 ? "слишком длинное сообщение" : message.content}`,
+        });
     if (message.embeds.length > 0)
         embed.addFields([{ name: "Embed-вложения", value: `${message.embeds.length}` }]);
     if (message.attachments.size !== 0) {

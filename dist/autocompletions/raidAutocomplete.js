@@ -15,7 +15,7 @@ export default {
                 });
             await interaction
                 .respond(raidData.map((data) => ({
-                name: String(data.id),
+                name: `${data.id}`,
                 value: data.id,
             })))
                 .catch((e) => {

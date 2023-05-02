@@ -8,7 +8,7 @@ import { Event } from "../structures/event.js";
 import welcomeMessage from "../utils/discord/welcomeMessage.js";
 import { escapeString } from "../utils/general/utilities.js";
 import { AuthData, InitData, LeavedUsersData, database } from "../utils/persistence/sequelize.js";
-const guildMemberChannel = client.getCachedTextChannel(channelIds.guildMember);
+const guildMemberChannel = await client.getAsyncTextChannel(channelIds.guildMember);
 export default new Event("guildMemberAdd", async (member) => {
     welcomeMessage(member);
     const embed = new EmbedBuilder()
@@ -25,12 +25,12 @@ export default new Event("guildMemberAdd", async (member) => {
     })
         .setThumbnail(member.displayAvatarURL());
     if (member.communicationDisabledUntil != null) {
-        embed.addFields([
-            {
-                name: "Тайм-аут до",
-                value: String(`<t:${Math.round(member.communicationDisabledUntilTimestamp / 1000)}>`),
-            },
-        ]);
+        embed.addFields({
+            name: "Тайм-аут до",
+            value: member.communicationDisabledUntilTimestamp
+                ? `<t:${Math.floor(member.communicationDisabledUntilTimestamp / 1000)}>`
+                : "*не найден*",
+        });
     }
     const message = await guildMemberChannel.send({ embeds: [embed] });
     const data = await LeavedUsersData.findOne({

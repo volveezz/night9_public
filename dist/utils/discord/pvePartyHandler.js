@@ -153,16 +153,14 @@ export async function handlePveParty(message) {
         setTimeout(() => sentMessage.delete(), 5000);
     }
     if (userSettings.activitySettings?.name && userTitle) {
-        embed.addFields([
-            {
-                name: userSettings.activitySettings?.name && embed.data.description !== userDescription && userDescription
-                    ? userTitle
-                    : embed.data.description !== userDescription && userDescription
-                        ? `+${userLimit} в ${userTitle}`
-                        : "⁣",
-                value: embed.data.description !== userDescription && userDescription ? userDescription : `+${userLimit} в ${userTitle}`,
-            },
-        ]);
+        embed.addFields({
+            name: userSettings.activitySettings?.name && embed.data.description !== userDescription && userDescription
+                ? userTitle
+                : embed.data.description !== userDescription && userDescription
+                    ? `+${userLimit} в ${userTitle}`
+                    : "⁣",
+            value: embed.data.description !== userDescription && userDescription ? userDescription : `+${userLimit} в ${userTitle}`,
+        });
     }
     if (userSettings.activitySettings?.lightLevel) {
         embed.addFields([{ name: "Рекомендуемый уровень силы", value: `${userSettings.activitySettings.lightLevel}`, inline: true }]);

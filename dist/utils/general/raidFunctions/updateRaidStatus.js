@@ -75,9 +75,9 @@ async function updateRaidStatus() {
             for await (const memberAuthData of voiceChannelMembersAuthData) {
                 const discordId = memberAuthData.discordId;
                 const userInFireteam = partyMembers.some((member) => member.membershipId === memberAuthData.bungieId);
-                if (raidEvent.joined.includes(discordId) && userInFireteam)
-                    continue;
-                if (raidEvent.hotJoined.includes(discordId) && !userInFireteam)
+                if ((raidEvent.joined.includes(discordId) && userInFireteam) ||
+                    (raidEvent.hotJoined.includes(discordId) && !userInFireteam) ||
+                    (!raidEvent.joined.includes(discordId) && !userInFireteam))
                     continue;
                 const updateRaidDatabase = async (raidEvent) => {
                     const updatedData = userInFireteam && !raidEvent.joined.includes(discordId)

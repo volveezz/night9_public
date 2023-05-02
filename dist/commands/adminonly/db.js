@@ -296,7 +296,7 @@ export default new Command({
                 }
                 embed.addFields({
                     name: "Категория",
-                    value: String(databaseRoleData?.category ?? category ?? NightRoleCategory.Titles),
+                    value: `${databaseRoleData?.category ?? category ?? NightRoleCategory.Titles}`,
                     inline: true,
                 });
                 if (unique && unique >= 1) {

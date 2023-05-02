@@ -19,7 +19,7 @@ export default new Event("guildMemberRemove", async (member) => {
         { name: "Пользователь", value: `${member.displayName}/${member}`, inline: true },
         {
             name: "Дата присоединения к серверу",
-            value: String("<t:" + Math.round(member.joinedTimestamp / 1000) + ">"),
+            value: member.joinedTimestamp ? `<t:${Math.floor(member.joinedTimestamp / 1000)}>` : `*не найдена*`,
             inline: true,
         },
     ])
