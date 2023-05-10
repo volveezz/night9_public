@@ -14,9 +14,6 @@ import { getRaidNameFromHash, removeRaid } from "../general/raidFunctions.js";
 import { escapeString } from "../general/utilities.js";
 import { AuthData, RaidEvent, UserActivityData } from "../persistence/sequelize.js";
 const hashToImageMap = {
-    2381413764: "https://images.contentstack.io/v3/assets/blte410e3b15535c144/bltd95f9a53ce953669/63ffd4b9a7d98e0267ed24eb/Fp_5gnkX0AULoRF.jpg",
-    1191701339: "https://images.contentstack.io/v3/assets/blte410e3b15535c144/bltd95f9a53ce953669/63ffd4b9a7d98e0267ed24eb/Fp_5gnkX0AULoRF.jpg",
-    2918919505: "https://images.contentstack.io/v3/assets/blte410e3b15535c144/bltd95f9a53ce953669/63ffd4b9a7d98e0267ed24eb/Fp_5gnkX0AULoRF.jpg",
     3755529435: "https://cdn.discordapp.com/attachments/679191036849029167/1089133095820722176/season20_exotic_mission.png",
     3083261666: "https://cdn.discordapp.com/attachments/679191036849029167/1089133095820722176/season20_exotic_mission.png",
     700101128: "https://cdn.discordapp.com/attachments/679191036849029167/1089134183386984569/season_20_battleground_exeter.png",

@@ -2,7 +2,7 @@ import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { ClanButtons, RegisterButtons } from "../../configs/Buttons.js";
 import { clan } from "../../configs/channels.js";
 import colors from "../../configs/colors.js";
-import { guildId } from "../../configs/ids.js";
+import { guildId, ownerId } from "../../configs/ids.js";
 import { statusRoles } from "../../configs/roles.js";
 import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
 import { escapeString } from "../general/utilities.js";
@@ -22,11 +22,11 @@ export default async function welcomeMessage(member) {
     const nonClanMemberEmbed = new EmbedBuilder()
         .setColor(colors.invisible)
         .setTitle(" Я хочу ознакомиться с сервером ")
-        .setDescription("Не проблема! Сервер доступен для всех - каждый может заходить во все [голосовые каналы](https://discord.com/channels/604967226243809302/604967226755383300), [записываться и создавать наборы](https://discord.com/channels/604967226243809302/677551388514844682), а также [писать в любом чате](https://discord.com/channels/604967226243809302/959129358314922044)");
+        .setDescription(`Не проблема! Сервер доступен для всех - каждый может заходить во все [голосовые каналы](https://discord.com/channels/${guildId}/604967226755383300), [записываться и создавать наборы](https://discord.com/channels/${guildId}/677551388514844682), а также [писать в любом чате](https://discord.com/channels/${guildId}/959129358314922044)`);
     const questionsEmbed = new EmbedBuilder()
         .setColor(colors.invisible)
         .setTitle(" У меня есть вопросы по клану/серверу ")
-        .setDescription("Вы можете задать их [в канале по вопросам](https://discord.com/channels/604967226243809302/694119710677008425) или написав лично лидеру клана <@298353895258980362> ||(пишите даже если не в сети)||");
+        .setDescription(`Вы можете задать их [в канале по вопросам](https://discord.com/channels/${guildId}/694119710677008425) или написав лично лидеру клана <@${ownerId}> ||(пишите даже если не в сети)||`);
     const components = [
         new ButtonBuilder().setCustomId(RegisterButtons.register).setLabel("Регистрация").setStyle(ButtonStyle.Success),
         new ButtonBuilder().setCustomId(ClanButtons.modal).setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),

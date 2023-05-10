@@ -1,22 +1,19 @@
-import { ActivityType } from "discord.js";
 import { Op } from "sequelize";
 import NightRoleCategory from "../configs/RoleCategory.js";
 import { dungeonsTriumphHashes } from "../configs/roleRequirements.js";
-import { activityRoles, clanJoinDateRoles, dlcRoles, dungeonMasterRole, guardianRankRoles, seasonalRoles, statisticsRoles, statusRoles, titleCategory, trialsRoles, triumphsCategory, } from "../configs/roles.js";
+import { activityRoles, dlcRoles, dungeonMasterRole, guardianRankRoles, seasonalRoles, statisticsRoles, statusRoles, titleCategory, trialsRoles, triumphsCategory, } from "../configs/roles.js";
 import { client } from "../index.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { fetchRequest } from "../utils/api/fetchRequest.js";
 import { destinyActivityChecker } from "../utils/general/destinyActivityChecker.js";
-import nameCleaner from "../utils/general/nameClearer.js";
-import { updateClanRolesWithLogging } from "../utils/logging/logger.js";
 import { AuthData, AutoRoleData, UserActivityData, database } from "../utils/persistence/sequelize.js";
+import clanMembersManagement from "./clanMembersManagement.js";
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 export const userCharactersId = new Map();
 export const longOffline = new Set();
 export const bungieNames = new Map();
 export const userTimezones = new Map();
 export const clanOnline = new Map();
-const clanJoinDateCheck = new Set();
 const throttleSet = new Set();
 const dungeonRoles = await AutoRoleData.findAll({ where: { category: 8 } }).then((rolesData) => {
     return rolesData.filter((roleData) => dungeonsTriumphHashes.includes(Number(roleData.triumphRequirement))).map((r) => r.roleId);
@@ -349,139 +346,6 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
             console.error("[Error code: 1230]", e.error?.stack || e.error || e, e.statusCode);
     }
 }
-async function changeUserNickname(discordId, name) {
-    try {
-        client.getCachedMembers().get(discordId)?.setNickname(name, "GlobalNickname changed");
-    }
-    catch (error) {
-        console.error("[Error code: 1098] Name change error", error);
-    }
-}
-async function manageClanMembers(bungie_array) {
-    try {
-        const clanList = await fetchRequest("Platform/GroupV2/4123712/Members/?memberType=None");
-        if (!clanList) {
-            console.error("[Error code: 1013] [Clan checker]", clanList);
-            return;
-        }
-        if (clanList?.ErrorCode !== undefined && clanList.ErrorCode !== apiStatus.status) {
-            apiStatus.status = clanList.ErrorCode;
-        }
-        else if (apiStatus.status !== 1 && clanList?.results && clanList.results.length >= 1) {
-            apiStatus.status = 1;
-        }
-        if (client.user.presence.activities[0].name.startsWith("🔁")) {
-            client.stopUpdatingPresence();
-        }
-        if (!clanList.results || !clanList.results?.length) {
-            console.error("[Error code: 1118]", clanList.ErrorStatus, clanList.Message);
-            if (clanList.ErrorCode === 5)
-                client.user.setPresence({
-                    activities: [
-                        { name: "BungieAPI отключено", type: ActivityType.Listening },
-                        { name: "Destiny API не отвечает", type: ActivityType.Listening },
-                    ],
-                    status: "online",
-                });
-            return;
-        }
-        if (clanList.results?.length < 5) {
-            console.error("[Error code: 1015]", clanList?.results?.length);
-            return;
-        }
-        clanOnline.clear();
-        const onlineCounter = clanList.results.filter((f) => f.isOnline === true).length;
-        if (onlineCounter === 0) {
-            client.user.setActivity(`${clanList.results.length} участников в клане`, { type: 3 });
-        }
-        else {
-            client.user.setActivity(`${onlineCounter} онлайн из ${clanList.results.length}`, { type: 3 });
-        }
-        const t = await database.transaction();
-        await Promise.all(clanList.results.map(async (result) => {
-            const membershipId = result.destinyUserInfo.membershipId;
-            if (bungie_array.some((e) => e.bungieId === membershipId)) {
-                const [memberAuthData] = bungie_array.splice(bungie_array.findIndex((e) => e.bungieId === membershipId), 1);
-                if (result.isOnline) {
-                    clanOnline.set(memberAuthData.discordId, {
-                        platform: result.destinyUserInfo.membershipType,
-                        membershipId,
-                    });
-                }
-                if (!clanJoinDateCheck.has(membershipId)) {
-                    await timer(1000);
-                    if (!(memberAuthData.roleCategoriesBits & NightRoleCategory.Triumphs))
-                        return clanJoinDateCheck.add(membershipId);
-                    const member = client.getCachedMembers().get(memberAuthData.discordId);
-                    if (!member) {
-                        console.error(`[Error code: 1087] Member not found ${memberAuthData.discordId}/${memberAuthData.displayName}`);
-                        return;
-                    }
-                    for (const step of clanJoinDateRoles.roles) {
-                        if (step.days <= Math.trunc((Date.now() - new Date(result.joinDate).getTime()) / 1000 / 60 / 60 / 24)) {
-                            if (!member.roles.cache.has(step.roleId)) {
-                                try {
-                                    await member.roles.remove(clanJoinDateRoles.allRoles.filter((r) => r !== step.roleId));
-                                    if (!member.roles.cache.has(triumphsCategory)) {
-                                        await member.roles.add([triumphsCategory, step.roleId]);
-                                    }
-                                    else {
-                                        await member.roles.add(step.roleId);
-                                    }
-                                }
-                                catch (error) {
-                                    console.error("[Error code: 1238] Error during clanJoinDate role managment", { error });
-                                }
-                            }
-                            break;
-                        }
-                    }
-                    clanJoinDateCheck.add(membershipId);
-                }
-                if (memberAuthData.displayName !== result.destinyUserInfo.bungieGlobalDisplayName &&
-                    !memberAuthData.displayName.startsWith("⁣")) {
-                    await AuthData.update({
-                        displayName: result.destinyUserInfo.bungieGlobalDisplayName,
-                    }, {
-                        where: {
-                            bungieId: membershipId,
-                        },
-                        transaction: t,
-                    });
-                    changeUserNickname(memberAuthData.discordId, result.destinyUserInfo.bungieGlobalDisplayName);
-                }
-                if (memberAuthData.clan === false) {
-                    await AuthData.update({ clan: true }, {
-                        where: {
-                            bungieId: membershipId,
-                        },
-                        transaction: t,
-                    });
-                    updateClanRolesWithLogging(memberAuthData, true);
-                }
-            }
-        }));
-        await Promise.all(bungie_array.map(async (result) => {
-            if (result.clan === true) {
-                await AuthData.update({ clan: false }, { where: { bungieId: result.bungieId }, transaction: t });
-                updateClanRolesWithLogging(result, false);
-            }
-        }));
-        try {
-            await t.commit();
-        }
-        catch (error) {
-            t.rollback();
-            console.error("[Error code: 1220] Clan checker commit error", { error });
-        }
-    }
-    catch (e) {
-        if (e.statusCode >= 400 || e.statusCode <= 599)
-            console.error(`[Error code: 1221] ${e.statusCode} error during clan checking`);
-        else
-            console.error("[Error code: 1222]", e.error?.stack || e.error || e, e.statusCode);
-    }
-}
 async function checkUserKDRatio({ platform, bungieId, accessToken }, member) {
     try {
         const request = await fetchRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
@@ -630,31 +494,25 @@ async function handleMemberStatistics() {
                 }
             }
         }
-        manageClanMembers(databaseData);
+        await clanMembersManagement(databaseData);
     }, 1000 * 60 * 2);
-    async function updateMemberNicknames() {
-        if (apiStatus.status !== 1)
-            return;
-        const dbData = await AuthData.findAll({
-            attributes: ["discordId", "displayName", "timezone"],
-        });
-        const verifiedGuildMembers = client.getCachedMembers().filter((member) => member.roles.cache.has(statusRoles.verified));
-        verifiedGuildMembers.forEach((member) => {
-            const userDbData = dbData.find((d) => d.discordId === member.id);
-            if (!userDbData)
-                return;
-            const { timezone, displayName: userDbName } = userDbData;
-            if (nameCleaner(member.displayName) !== userDbName && !userDbName.startsWith("⁣")) {
-                if (!member.permissions.has("Administrator")) {
-                    member
-                        .setNickname(userDbData.timezone != null ? `[+${timezone}] ${userDbName}` : userDbName)
-                        .catch((e) => console.error("[Error code: 1030] Name autochange error", e));
-                }
-            }
-        });
-    }
-    setInterval(async () => {
-        await updateMemberNicknames();
-    }, 1000 * 60 * 60);
 }
+async function checkIndiviualUserStatistics(user) {
+    const member = await client.getAsyncMember(typeof user === "string" ? user : user.id);
+    const memberAuthData = await AuthData.findOne({
+        where: { discordId: member.id },
+        include: UserActivityData,
+        attributes: ["discordId", "bungieId", "accessToken", "displayName", "roleCategoriesBits"],
+    });
+    const autoRoleData = await AutoRoleData.findAll();
+    if (!member || !memberAuthData) {
+        console.error(`[Error code: 1737]`, member.id);
+        return;
+    }
+    checkUserStatisticsRoles(memberAuthData, member, autoRoleData);
+    checkUserKDRatio(memberAuthData, member);
+    destinyActivityChecker(memberAuthData, member, 4);
+    destinyActivityChecker(memberAuthData, member, 84);
+}
+export { checkIndiviualUserStatistics };
 export default handleMemberStatistics;

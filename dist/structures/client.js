@@ -5,7 +5,6 @@ import periodicDestinyActivityChecker from "../core/periodicActivityChecker.js";
 import tokenManagment from "../core/tokenManagement.js";
 import handleMemberStatistics from "../core/userStatisticsManagement.js";
 import { clanOnlineMemberActivityChecker } from "../utils/general/activityCompletionChecker.js";
-import { convertSeconds } from "../utils/general/convertSeconds.js";
 import getFiles from "../utils/general/fileReader.js";
 import updateRaidStatus from "../utils/general/raidFunctions/updateRaidStatus.js";
 import { cacheRaidMilestones } from "../utils/general/raidMilestones.js";
@@ -44,6 +43,7 @@ export class ExtendedClient extends Client {
             ],
             partials: [Partials.GuildMember, Partials.Channel, Partials.Message, Partials.User],
         });
+        this.start();
     }
     async start() {
         await this.login(process.env.TOKEN);
@@ -182,10 +182,6 @@ export class ExtendedClient extends Client {
     }
     async registerModules() {
         this.on("ready", async (client) => {
-            setInterval(() => {
-                const time = Math.floor(this.uptime / 1000);
-                console.log(`Client uptime: ${convertSeconds(time, "en")}`);
-            }, 1000 * 60 * 30);
             const guilds = await client.guilds.fetch();
             const fetchGuildsPromises = guilds.map(async (guild) => {
                 const guildFetched = await guild.fetch();
@@ -208,6 +204,7 @@ export class ExtendedClient extends Client {
                 clanOnlineMemberActivityChecker();
                 periodicDestinyActivityChecker();
                 handleMemberStatistics();
+                this.importFile("../core/guildNicknameManagement.js");
             }
             console.log(`${this.user.username} online since ${new Date().toLocaleString()}`);
             setTimeout(() => {

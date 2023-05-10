@@ -211,7 +211,7 @@ async function getPreset(presetName) {
                 new ButtonBuilder().setCustomId("godEvent_sortraids").setLabel("Отсортировка рейдов").setStyle(ButtonStyle.Secondary),
             ];
             const embed = new EmbedBuilder()
-                .setColor("Gold")
+                .setColor("#ff7624")
                 .setDescription("Hex-код для установки собственного цвета роли можно найти [на этом сайте](https://htmlcolorcodes.com/)");
             return { embeds: [embed], components };
         }

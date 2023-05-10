@@ -7,25 +7,18 @@ import { statusRoles } from "../configs/roles.js";
 import { Event } from "../structures/event.js";
 import { manageAdminDMChannel } from "../utils/discord/adminDmManager.js";
 import { handleDm } from "../utils/discord/dmHandler.js";
+import { lfgHandler } from "../utils/discord/lfgSystem/handleLFG.js";
 import { generatePatchNotes } from "../utils/discord/patchnoteGenerator.js";
-import { handlePveParty } from "../utils/discord/pvePartyHandler.js";
 import sendRegistrationLink from "../utils/discord/registration.js";
-import { handleTimeReplacement } from "../utils/discord/twitterMessageParser.js";
 import { cacheUserActivity } from "../utils/discord/userActivityHandler.js";
-const bungieHelpTwitter = "https://twitter.com/BungieHelp/status/";
 async function handleMessage(message) {
-    if (message.content.startsWith(bungieHelpTwitter) && message.channelId === channelIds.externalNewsFeed) {
-        setTimeout(async () => {
-            handleTimeReplacement({ message });
-        }, 1000 * 5);
-    }
     if (!message.author || message.author.bot || message.system || !(message instanceof Message))
         return;
     if (message.channelId === channelIds.patchNoteGenerator) {
         return generatePatchNotes(message);
     }
     if (message.channelId === channelIds.pveParty) {
-        return handlePveParty(message);
+        return lfgHandler(message);
     }
     if (message.channel.isDMBased()) {
         return handleDirectMessage(message);

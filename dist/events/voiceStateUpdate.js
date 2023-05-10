@@ -3,7 +3,8 @@ import colors from "../configs/colors.js";
 import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-import { createdChannelsMap, pvePartyVoiceChatHandler } from "../utils/discord/pvePartyHandler.js";
+import { createdChannelsMap } from "../utils/discord/lfgSystem/handleLFG.js";
+import lfgTextChannelHandler from "../utils/discord/lfgSystem/handleLfgJoin.js";
 import { cacheUserActivity } from "../utils/discord/userActivityHandler.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
 const voiceChannel = client.getCachedTextChannel(channelIds.voice);
@@ -12,7 +13,7 @@ export default new Event("voiceStateUpdate", (oldState, newState) => {
     const embed = new EmbedBuilder().setColor(colors.success);
     if (!oldState.channelId && newState.channelId) {
         if (createdChannelsMap.has(newState.channelId))
-            pvePartyVoiceChatHandler(newState.channelId, newState.member, "join");
+            lfgTextChannelHandler(newState.channelId, newState.member, "join");
         voiceUsers.set(newState.member.id, {
             joinTimestamp: Date.now(),
         });
@@ -32,7 +33,7 @@ export default new Event("voiceStateUpdate", (oldState, newState) => {
     }
     if (!newState.channelId) {
         if (oldState.channelId && createdChannelsMap.has(oldState.channelId))
-            pvePartyVoiceChatHandler(oldState.channelId, oldState.member, "leave");
+            lfgTextChannelHandler(oldState.channelId, oldState.member, "leave");
         const getTimestamp = voiceUsers.get(oldState.member.id)?.joinTimestamp;
         embed
             .setAuthor({
@@ -68,9 +69,9 @@ export default new Event("voiceStateUpdate", (oldState, newState) => {
     }
     if (oldState.channelId && newState.channelId && oldState.channelId !== newState.channelId) {
         if (createdChannelsMap.has(oldState.channelId))
-            pvePartyVoiceChatHandler(oldState.channelId, oldState.member, "leave");
+            lfgTextChannelHandler(oldState.channelId, oldState.member, "leave");
         if (createdChannelsMap.has(newState.channelId))
-            pvePartyVoiceChatHandler(newState.channelId, newState.member, "join");
+            lfgTextChannelHandler(newState.channelId, newState.member, "join");
         embed
             .setAuthor({
             name: `${oldState.member?.displayName || newState.member?.displayName || "пользователь не найден"} сменил голосовой канал`,

@@ -1,6 +1,6 @@
 import { EmbedBuilder } from "discord.js";
+import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
-import { guildId } from "../configs/ids.js";
 import { activityRoles, classRoles, statisticsRoles, titleCategory, trialsRoles, triumphsCategory } from "../configs/roles.js";
 import { timer } from "../utils/general/utilities.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
@@ -10,33 +10,31 @@ export default {
         const defferedReply = interaction.deferReply({ ephemeral: true });
         const commandFull = interaction.customId.split("_").slice(1);
         const commandId = commandFull.shift();
-        const member = (interaction.member ? interaction.member : client.guilds.cache.get(guildId)?.members.cache.get(interaction.user.id));
-        const guild = interaction.guild;
+        const member = await client.getAsyncMember(interaction.user.id);
+        const guild = client.getCachedGuild();
         switch (commandId) {
             case "classRoles": {
                 const className = commandFull.pop();
-                member.roles
-                    .remove(classRoles
+                const removedRoles = classRoles
                     .filter((r) => r.className !== className)
                     .map((r) => {
                     return r.id;
-                }))
-                    .then(async (_) => {
-                    if (className === "disable")
-                        return;
-                    await member.roles.add(classRoles.find((r) => r.className === className).id);
                 });
-                const embed = new EmbedBuilder()
-                    .setColor(colors.success)
-                    .setTitle(className === "disable"
+                await member.roles.remove(removedRoles);
+                if (className !== "disable") {
+                    await member.roles.add(classRoles.find((r) => r.className === className).id);
+                }
+                const embedTitle = className === "disable"
                     ? "Вы отключили основной класс"
                     : `Вы установили ${className === "hunter"
                         ? "<:hunter:995496474978824202>Охотника"
                         : className === "warlock"
                             ? "<:warlock:995496471526920232>Варлока"
-                            : "<:titan:995496472722284596>Титана"} как основной класс`);
+                            : "<:titan:995496472722284596>Титана"} как основной класс`;
+                const embed = new EmbedBuilder().setColor(colors.success).setTitle(embedTitle);
                 await defferedReply;
-                return interaction.editReply({ embeds: [embed] });
+                await interaction.editReply({ embeds: [embed] });
+                return;
             }
             default:
                 {
@@ -44,21 +42,20 @@ export default {
                     const roleStatus = commandFull.pop() === "enable";
                     const dbRow = await AuthData.findOne({ where: { discordId: interaction.user.id }, attributes: ["roleCategoriesBits"] });
                     if (!dbRow)
-                        throw {
-                            name: "Ошибка. Вы не зарегистрированы",
-                            description: "Возможность управления категориями доступна только после регистрации",
-                        };
+                        throw { errorType: UserErrors.DB_USER_NOT_FOUND };
                     let { roleCategoriesBits } = dbRow;
                     const embed = new EmbedBuilder().setColor(colors.default);
                     if ((!(roleCategoriesBits & categoryId) && roleStatus) || (roleCategoriesBits & categoryId && !roleStatus)) {
                         const updated = await AuthData.update({ roleCategoriesBits: roleStatus ? roleCategoriesBits | categoryId : roleCategoriesBits & ~categoryId }, { where: { discordId: interaction.user.id }, returning: ["roleCategoriesBits"] });
                         roleCategoriesBits = updated[1][0].roleCategoriesBits;
                         const messageEmbed = embedPrep().setTitle(`Вы ${roleStatus ? "включили" : "отключили"} категорию`);
-                        defferedReply.then((v) => interaction.editReply({ embeds: [messageEmbed] }));
+                        await defferedReply;
+                        await interaction.editReply({ embeds: [messageEmbed] });
                     }
                     else {
                         const messageEmbed = embedPrep().setTitle(`Категория уже ${roleStatus ? "включена" : "отключена"}`);
-                        defferedReply.then((v) => interaction.editReply({ embeds: [messageEmbed] }));
+                        await defferedReply;
+                        await interaction.editReply({ embeds: [messageEmbed] });
                     }
                     function embedPrep() {
                         const categoryChecker = (categoryId) => {

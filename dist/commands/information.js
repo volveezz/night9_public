@@ -23,7 +23,7 @@ export default new Command({
         type: ApplicationCommandType.User,
         nameLocalizations: { "en-US": "Information", "en-GB": "Information" },
     },
-    run: async ({ interaction: commandInteraction, userMenuInteraction: userInteraction, messageMenuInteraction: messageMenuInteraction, }) => {
+    run: async ({ client, interaction: commandInteraction, userMenuInteraction: userInteraction, messageMenuInteraction: messageMenuInteraction, }) => {
         const interaction = messageMenuInteraction || userInteraction || commandInteraction;
         const deferPromise = interaction.deferReply({ ephemeral: true });
         const optionId = interaction instanceof ChatInputCommandInteraction ? interaction.options.getString("bungiename") : null;
@@ -32,8 +32,9 @@ export default new Command({
                 ? undefined
                 : interaction.user.id
             : interaction.targetId;
-        const targetName = optionId ? [] : interaction.guild.members.cache.get(targetId)?.displayName;
-        const targetAvatar = optionId ? undefined : interaction.guild.members.cache.get(targetId)?.displayAvatarURL();
+        const targetMember = optionId ? undefined : await client.getAsyncMember(targetId);
+        const targetName = targetMember ? (await client.getAsyncMember(targetId))?.displayName : undefined;
+        const targetAvatar = targetMember ? (await client.getAsyncMember(targetId))?.displayAvatarURL() : undefined;
         const embed = new EmbedBuilder()
             .setAuthor({
             name: `Статистика ${targetName}`,
@@ -55,12 +56,10 @@ export default new Command({
         const reportPlatform = platform === 3 ? "pc" : platform === 2 ? "ps" : platform === 1 ? "xb" : platform === 6 ? "epic" : "stadia";
         const fieldUrls = [];
         fieldUrls.push(`[Trials.Report](https://trials.report/report/${platform}/${bungieId})`, `[Raid.Report](https://raid.report/${reportPlatform}/${bungieId})`, `[Dungeon.Report](https://dungeon.report/${reportPlatform}/${bungieId})`, `[Crucible.Report](https://crucible.report/report/${platform}/${bungieId})`, `[Strike.Report](https://strike.report/${reportPlatform}/${bungieId})`, `[DestinyTracker](https://destinytracker.com/destiny-2/profile/${platform === 3 ? "steam" : platform === 2 ? "psn" : platform === 1 ? "xbl" : platform === 6 ? "epic" : "stadia"}/${bungieId}/overview)`, `[WastedonDestiny](https://wastedondestiny.com/${bungieId})`);
-        embed.setColor(colors.success).addFields([
-            {
-                name: "Ссылки",
-                value: fieldUrls.join(", "),
-            },
-        ]);
+        embed.setColor(colors.success).addFields({
+            name: "Ссылки",
+            value: fieldUrls.join(", "),
+        });
         const components = [
             new ButtonBuilder().setCustomId(StatsButton.oldEvents).setLabel("Статистика старых ивентов").setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId(StatsButton.pinnacle).setLabel("Доступная сверхмощка").setStyle(ButtonStyle.Secondary),
@@ -69,12 +68,12 @@ export default new Command({
             embed.addFields([
                 {
                     name: "Статистика на сервере",
-                    value: ` - Отправлено сообщений: ${parsedData.UserActivityData.messages}\n - В голосовых каналах: ${convertSeconds(parsedData.UserActivityData.voice)}`,
+                    value: `Отправлено сообщений: ${parsedData.UserActivityData.messages}\nВ голосовых каналах: ${convertSeconds(parsedData.UserActivityData.voice)}`,
                     inline: true,
                 },
                 {
                     name: "Статистика в игре",
-                    value: ` - Пройдено рейдов с сокланами: ${parsedData.UserActivityData.raids}\n - Пройдено подземелий с сокланами: ${parsedData.UserActivityData.dungeons}`,
+                    value: `Пройдено рейдов с сокланами: ${parsedData.UserActivityData.raids}\nПройдено подземелий с сокланами: ${parsedData.UserActivityData.dungeons}`,
                     inline: true,
                 },
             ]);

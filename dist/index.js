@@ -7,7 +7,6 @@ import webHandler from "./utils/api/webHandler.js";
 import { getOAuthTokens, getOAuthUrl, getUserData, updateMetadata } from "./utils/general/linkedRoles.js";
 import * as storage from "./utils/persistence/webStorage.js";
 export const client = new ExtendedClient();
-await client.start();
 client.rest.on("rateLimited", (rateLimit) => {
     console.error(`Ratelimited for ${rateLimit.timeToReset} ms, route: ${rateLimit.route}${rateLimit.majorParameter ? `, parameter: ${rateLimit.majorParameter}` : ""}`);
 });

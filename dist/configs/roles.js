@@ -185,4 +185,10 @@ const guardianRankRoles = {
     ],
 };
 const dungeonMasterRole = process.env.DUNGEON_MASTER_ROLE;
-export { activityRoles, clanJoinDateRoles, classRoles, dlcRoles, dungeonMasterRole, guardianRankRoles, raidRoles, seasonalRoles, statisticsRoles, statusRoles, titleCategory, trialsRoles, triumphsCategory, };
+const premiumRoles = [
+    { roleId: process.env.PREMIUM_ROLE_1, tier: 1 },
+    { roleId: process.env.PREMIUM_ROLE_2, tier: 2 },
+    { roleId: process.env.PREMIUM_ROLE_3, tier: 3 },
+    { roleId: process.env.PREMIUM_ROLE_4, tier: 4 },
+];
+export { activityRoles, clanJoinDateRoles, classRoles, dlcRoles, dungeonMasterRole, guardianRankRoles, premiumRoles, raidRoles, seasonalRoles, statisticsRoles, statusRoles, titleCategory, trialsRoles, triumphsCategory, };

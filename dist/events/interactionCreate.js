@@ -50,12 +50,11 @@ export default new Event("interactionCreate", async (interaction) => {
     if (interaction.isCommand()) {
         const command = client.commands.get(interaction.commandName);
         if (!command) {
-            const content = "[Error code: 1136] Command not found";
-            console.error(content, { interaction });
-            return interaction.followUp({ content, ephemeral: true });
+            console.error("[Error code: 1136] Command not found", interaction);
+            return interaction.followUp({ content: "Ошибка. Команда не найдена", ephemeral: true });
         }
-        command.run({ args: interaction.options, client, interaction }).catch(async (e) => {
-            await errorResolver({ error: e, interaction, retryOperation: false });
+        command.run({ args: interaction.options, client, interaction }).catch(async (error) => {
+            await errorResolver({ error, interaction, retryOperation: false });
         });
     }
     else if (interaction.isButton() || interaction.isAnySelectMenu() || interaction.isModalSubmit()) {
@@ -65,17 +64,17 @@ export default new Event("interactionCreate", async (interaction) => {
         const buttonInteraction = (interaction.isButton() ? interaction : null);
         const selectMenu = (interaction.isAnySelectMenu() ? interaction : null);
         const modalSubmit = (interaction.isModalSubmit() ? interaction : null);
-        button.run({ client, interaction: buttonInteraction, selectMenu, modalSubmit }).catch(async (e) => {
-            await errorResolver({ error: e, interaction, retryOperation: false });
+        button.run({ client, interaction: buttonInteraction, selectMenu, modalSubmit }).catch(async (error) => {
+            await errorResolver({ error, interaction, retryOperation: false });
         });
     }
     else if (interaction.isAutocomplete()) {
         const autocomplete = client.autocomplete.get(interaction.commandName);
         if (!autocomplete)
-            return console.error("[Error code: 1138] Found unknown autocomplete interaction", { interaction });
+            return console.error("[Error code: 1138] Found unknown autocomplete interaction", interaction);
         autocomplete
             .run({ client, interaction, option: interaction.options.getFocused(true) })
-            .catch((e) => console.error("[Error code: 1139]", { e }));
+            .catch((e) => console.error("[Error code: 1139]", e));
     }
     commandLogger(interaction);
 });

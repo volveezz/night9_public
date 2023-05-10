@@ -1,7 +1,7 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import UserErrors from "../../../configs/UserErrors.js";
 import colors from "../../../configs/colors.js";
-import raidsGuide from "../../../configs/raidguide.json" assert { type: "json" };
+import raidsGuide from "../../../configs/raidguide.js";
 import { addButtonComponentsToMessage } from "../addButtonsToMessage.js";
 async function sendRaidGuide(interaction, raidName, deferredReply) {
     const raidGuide = raidsGuide[raidName];

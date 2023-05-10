@@ -9,13 +9,15 @@ import { channelIds, guildId } from "../configs/ids.js";
 import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { removeRaid } from "../utils/general/raidFunctions.js";
+import { fireteamCheckingSystem } from "../utils/general/raidFunctions/updateRaidStatus.js";
 import { descriptionFormatter, getRandomRaidGIF } from "../utils/general/utilities.js";
 import { RaidEvent } from "../utils/persistence/sequelize.js";
 export async function handleDeleteRaid({ deferredUpdate, interaction, raidEvent, requireMessageReply, }) {
     return new Promise(async (resolve) => {
         const embed = new EmbedBuilder()
             .setColor(colors.warning)
-            .setAuthor({ name: `Подтвердите удаление рейда ${raidEvent.id}-${raidEvent.raid}`, iconURL: icons.warning });
+            .setAuthor({ name: `Подтвердите удаление рейда ${raidEvent.id}-${raidEvent.raid}`, iconURL: icons.warning })
+            .setDescription(`Если Вы хотите изменить рейд, то не удаляйте рейд, а измените его с помощью команды: \`/рейд изменить\` (</рейд изменить:1036145721696600134>)\n\n> **Можно изменить следующие параметры рейда:**\n - Время: \`/рейд изменить новое_время:20 21/06\`\n - Описание: \`/рейд изменить новое_описание:Новое описание для сильных\`\n - Минимальное количество закрытий рейда для записи: \`/рейд изменить новое_требование_закрытий:5\`\n\n> **В одной команде можно изменить сразу несколько параметров:**\n - \`/рейд изменить новый_рейд:Источник кошмаров новая_сложность:Мастер\``);
         const components = [
             new ButtonBuilder().setCustomId(RaidButtons.deleteConfirm).setLabel("Подтвердить").setStyle(ButtonStyle.Danger),
             new ButtonBuilder().setCustomId(RaidButtons.deleteCancel).setLabel("Отменить").setStyle(ButtonStyle.Secondary),
@@ -65,6 +67,7 @@ export default {
             RaidButtons.delete,
             RaidButtons.resend,
             RaidButtons.invite,
+            RaidButtons.fireteamCheckerCancel,
         ].includes(interaction.customId))
             return;
         const deferredUpdate = [RaidButtons.transfer, RaidButtons.delete, RaidButtons.invite, RaidButtons.notify].includes(interaction.customId)
@@ -81,7 +84,10 @@ export default {
                 },
                 attributes,
             })
-            : RaidEvent.findOne({ where: { inChannelMessageId: interaction.message.id }, attributes });
+            : RaidEvent.findOne({
+                where: { [Op.or]: { inChannelMessageId: interaction.message.id, channelId: interaction.channelId } },
+                attributes,
+            });
         const guild = interaction.guild || client.getCachedGuild() || (await client.guilds.fetch(guildId));
         const member = client.getCachedMembers().get(interaction.user.id) || (await guild.members.fetch(interaction.user.id));
         if (!member) {
@@ -109,7 +115,7 @@ export default {
         if (interaction.customId === RaidButtons.notify) {
             await deferredUpdate;
             interaction.editReply({
-                content: "Перейдите в [личные сообщения](https://discord.com/channels/@me/774617169169743872) для настройки и отправки оповещения",
+                content: `Перейдите в [личные сообщения](https://discord.com/channels/@me/${client.user.dmChannel?.id || "774617169169743872"}) для настройки и отправки оповещения`,
             });
             const GIFImage = (await getRandomRaidGIF()) || "https://media.giphy.com/media/cKJZAROeOx7MfU6Kws/giphy.gif";
             let modalTitle = `Рейдовое оповещение ${raidEvent.id}-${raidEvent.raid}`;
@@ -458,8 +464,13 @@ export default {
                 });
             });
         }
-        else if (interaction.customId === RaidButtons.invite) {
-            interaction.editReply({ content: "Under development" });
+        else if (interaction.customId === RaidButtons.fireteamCheckerCancel) {
+            fireteamCheckingSystem.delete(raidEvent.id);
+            const embed = EmbedBuilder.from(interaction.message.embeds[0])
+                .setTitle("Система слежки за боевой группой отключена")
+                .setColor(colors.invisible);
+            await interaction.message.edit({ embeds: [embed], components: [] });
+            return;
         }
     },
 };

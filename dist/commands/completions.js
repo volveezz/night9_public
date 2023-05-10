@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, } from "discord.js";
+import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, MessageContextMenuCommandInteraction } from "discord.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
@@ -49,15 +49,11 @@ export default new Command({
         nameLocalizations: { "en-US": "Raid completions", "en-GB": "Raid completions" },
         type: ApplicationCommandType.User,
     },
-    run: async ({ args, interaction: slashInteraction, userMenuInteraction, messageMenuInteraction }) => {
-        const interaction = messageMenuInteraction || userMenuInteraction || slashInteraction;
+    run: async ({ args, interaction: slashInteraction, userMenuInteraction }) => {
+        const interaction = slashInteraction || userMenuInteraction;
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const category = parseInt(args?.getString("категория") || "") || 4;
-        const targerMember = client
-            .getCachedMembers()
-            .get(interaction.isChatInputCommand()
-            ? interaction.user.id
-            : (interaction || interaction).targetId);
+        const targerMember = await client.getAsyncMember(interaction instanceof MessageContextMenuCommandInteraction ? interaction.targetId : interaction.user.id);
         if (!targerMember) {
             await deferredReply;
             throw { errorType: UserErrors.MEMBER_NOT_FOUND };
@@ -251,11 +247,11 @@ export default new Command({
                 activityDate.firstCompletedClearInstanceId !== "0") {
                 const { firstCompletedClear, firstClear, firstCompletedClearInstanceId, firstClearInstanceId, lastClearInstanceId, lastClear } = activityDate;
                 result.push(`${firstClearInstanceId !== "0" && firstCompletedClear.getTime() > firstClear.getTime()
-                    ? `Впервые [<t:${Math.trunc(firstClear.getTime() / 1000)}>](${activityText.link}${firstClearInstanceId})｜`
+                    ? `Впервые [${convertSeconds(Math.floor(firstClear.getTime() / 1000))}](${activityText.link}${firstClearInstanceId})｜`
                     : ""}${firstCompletedClearInstanceId !== "0"
-                    ? `1 закрытие [<t:${Math.trunc(firstCompletedClear.getTime() / 1000)}>](${activityText.link}${firstCompletedClearInstanceId})`
+                    ? `1 закрытие [${convertSeconds(Math.floor(firstCompletedClear.getTime() / 1000))}](${activityText.link}${firstCompletedClearInstanceId})`
                     : ""}${lastClearInstanceId !== firstCompletedClearInstanceId && lastClearInstanceId !== "0"
-                    ? `｜Последнее закрытие [<t:${Math.trunc(lastClear.getTime() / 1000)}>](${activityText.link}${lastClearInstanceId})`
+                    ? `｜Последнее закрытие [${convertSeconds(Math.floor(lastClear.getTime() / 1000))}](${activityText.link}${lastClearInstanceId})`
                     : ""}`);
             }
             if (activityTime.fastestInstanceId !== "0" ||
@@ -292,19 +288,19 @@ export default new Command({
             embed.addFields(field);
             if (embed.data.fields?.length === 10) {
                 if (i === 9) {
-                    interaction.editReply({ embeds: [embed] });
+                    await interaction.editReply({ embeds: [embed] });
                 }
                 else {
-                    interaction.followUp({ embeds: [embed], ephemeral: true });
+                    await interaction.followUp({ embeds: [embed], ephemeral: true });
                 }
                 embed.data.fields = [];
             }
             if (i === fieldArray.length - 1 && embed.data.fields?.length !== 0) {
                 if (i === 9 || (i === fieldArray.length - 1 && i < 9)) {
-                    interaction.editReply({ embeds: [embed] });
+                    await interaction.editReply({ embeds: [embed] });
                 }
                 else {
-                    interaction.followUp({ embeds: [embed], ephemeral: true });
+                    await interaction.followUp({ embeds: [embed], ephemeral: true });
                 }
             }
         }

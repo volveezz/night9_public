@@ -8,9 +8,10 @@ import colors from "../../configs/colors.js";
 import destinyRaidsChallenges from "../../configs/destinyRaidsChallenges.js";
 import icons from "../../configs/icons.js";
 import { channelIds, guildId } from "../../configs/ids.js";
-import raidsGuide from "../../configs/raidguide.json" assert { type: "json" };
+import raidsGuide from "../../configs/raidguide.js";
 import { dlcRoles, statusRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
+import { apiStatus } from "../../structures/apiStatus.js";
 import { fetchRequest } from "../api/fetchRequest.js";
 import { CachedDestinyActivityModifierDefinition } from "../api/manifestHandler.js";
 import { RaidEvent } from "../persistence/sequelize.js";
@@ -45,7 +46,7 @@ export function getRaidData(raid, difficulty = 1) {
                 raid,
                 raidName: difficulty === 2 ? "Источник кошмаров: Мастер" : "Источник кошмаров",
                 maxDifficulty: 2,
-                raidBanner: "https://images.contentstack.io/v3/assets/blte410e3b15535c144/bltd95f9a53ce953669/63ffd4b9a7d98e0267ed24eb/Fp_5gnkX0AULoRF.jpg",
+                raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/raid_root_of_nightmares.jpg",
                 raidColor: (difficulty === 2 ? "#FF063A" : "#ffa8ae"),
                 channelName: "-источник-кошмаров",
                 requiredRole: dlcRoles.lf,
@@ -299,7 +300,7 @@ function updateField(embed, fieldName, users, usersText, findFieldIndex) {
     }
 }
 export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) {
-    if (difficulty > 2)
+    if (difficulty > 2 || apiStatus.status !== 1)
         return null;
     const barrierEmoji = "<:barrier:1090473007471935519>";
     const overloadEmoji = "<:overload:1090473013398491236>";

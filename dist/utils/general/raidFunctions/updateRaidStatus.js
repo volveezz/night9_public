@@ -1,31 +1,33 @@
-import { ChannelType, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder } from "discord.js";
 import { schedule } from "node-cron";
 import { Op, Sequelize } from "sequelize";
+import { RaidButtons } from "../../../configs/Buttons.js";
 import colors from "../../../configs/colors.js";
 import { client } from "../../../index.js";
+import { apiStatus } from "../../../structures/apiStatus.js";
 import { fetchRequest } from "../../api/fetchRequest.js";
 import { AuthData, RaidEvent } from "../../persistence/sequelize.js";
+import { addButtonComponentsToMessage } from "../addButtonsToMessage.js";
 import nameCleaner from "../nameClearer.js";
-import { updatePrivateRaidMessage, updateRaidMessage } from "../raidFunctions.js";
+import { getRaidNameFromHash, updatePrivateRaidMessage, updateRaidMessage } from "../raidFunctions.js";
 const MINUTES_AFTER_RAID = 5;
-const checkingRaids = new Set();
+export const fireteamCheckingSystem = new Set();
 schedule("0 23 * * *", () => {
     updateRaidStatus();
 });
 async function updateRaidStatus() {
     const ongoingRaids = await getOngoingRaids();
     ongoingRaids.forEach((initialRaidEvent) => {
-        if (checkingRaids.has(initialRaidEvent.id))
+        if (fireteamCheckingSystem.has(initialRaidEvent.id))
             return;
-        checkingRaids.add(initialRaidEvent.id);
+        fireteamCheckingSystem.add(initialRaidEvent.id);
         const startTime = new Date(initialRaidEvent.time * 1000);
         const raidStartTimePlus5 = new Date(startTime.getTime() + MINUTES_AFTER_RAID * 60 * 1000);
-        console.debug(`Added raid ID: ${initialRaidEvent.id} for checking, time: ${initialRaidEvent.time}, time + 5: ${Math.floor(raidStartTimePlus5.getTime() / 1000)}`);
         let isFirstCheck = 0;
         const checkFireteamStatus = async () => {
             const raidEvent = await RaidEvent.findOne({
                 where: { id: initialRaidEvent.id },
-                attributes: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId"],
+                attributes: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId", "raid"],
             });
             if (!raidEvent || raidEvent.time != initialRaidEvent.time) {
                 if (raidEvent && raidEvent.time != initialRaidEvent.time) {
@@ -48,10 +50,10 @@ async function updateRaidStatus() {
             }
             const userIds = [...new Set([...raidEvent.joined, ...raidVoiceChannel.members.map((member) => member.id)])];
             const voiceChannelMembersAuthData = await getVoiceChannelMembersAuthData(userIds);
-            const partyMembers = await checkFireteamRoster(voiceChannelMembersAuthData);
+            const partyMembers = await checkFireteamRoster(voiceChannelMembersAuthData, raidEvent.raid);
             if (!partyMembers) {
-                console.error("[Error code: 1719]", raidEvent.id);
-                if (isFirstCheck < 5) {
+                console.error("[Error code: 1719]", userIds, raidEvent.id);
+                if (isFirstCheck < 3) {
                     isFirstCheck++;
                     return true;
                 }
@@ -146,16 +148,32 @@ async function updateRaidStatus() {
                 }
             }
         };
-        setTimeout(() => {
+        setTimeout(async () => {
             const interval = setInterval(async () => {
-                console.debug(`Checking fireteam status for raid ID: ${initialRaidEvent.id}`);
                 const checkFireteam = await checkFireteamStatus();
-                if (checkFireteam === false) {
+                if (checkFireteam === false || !fireteamCheckingSystem.has(initialRaidEvent.id)) {
                     console.debug(`Interval cleared for raid ID: ${initialRaidEvent.id}`);
                     clearInterval(interval);
-                    checkingRaids.delete(initialRaidEvent.id);
+                    fireteamCheckingSystem.delete(initialRaidEvent.id);
                 }
             }, 1000 * 60 * 5);
+            const fireteamCheckingNotification = new EmbedBuilder().setColor(colors.default).setTitle("Система слежка за составом запущена");
+            const fireTeamCheckingNotificationComponents = new ButtonBuilder()
+                .setCustomId(RaidButtons.fireteamCheckerCancel)
+                .setLabel("Отключить")
+                .setStyle(ButtonStyle.Danger);
+            const privateRaidChannel = await client.getAsyncTextChannel(initialRaidEvent.channelId).catch((e) => {
+                if (e.code === 50001) {
+                    console.error("[Error code: 1739] Missing access to fetch channel");
+                }
+            });
+            if (!privateRaidChannel) {
+                return;
+            }
+            await privateRaidChannel.send({
+                embeds: [fireteamCheckingNotification],
+                components: await addButtonComponentsToMessage([fireTeamCheckingNotificationComponents]),
+            });
         }, raidStartTimePlus5.getTime() - Date.now());
     });
 }
@@ -179,7 +197,9 @@ async function getVoiceChannelMembersAuthData(voiceChannelMemberIds) {
         attributes: ["platform", "bungieId", "discordId", "accessToken"],
     });
 }
-async function checkFireteamRoster(voiceChannelMembersAuthData) {
+async function checkFireteamRoster(voiceChannelMembersAuthData, raidName) {
+    if (apiStatus.status !== 1)
+        return null;
     for await (const authData of voiceChannelMembersAuthData) {
         const destinyProfile = await fetchRequest(`Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=204,1000`, authData.accessToken);
         const partyMembers = destinyProfile?.profileTransitoryData?.data?.partyMembers;
@@ -190,6 +210,9 @@ async function checkFireteamRoster(voiceChannelMembersAuthData) {
             const currentActivityModeHash = characterActivities[characterId].currentActivityModeHash;
             const currentActivityModeType = characterActivities[characterId].currentActivityModeType;
             if (currentActivityModeHash === 2166136261 || currentActivityModeType === 4) {
+                const activityName = getRaidNameFromHash(currentActivityModeHash).replace("Master", "");
+                if (activityName !== raidName)
+                    continue;
                 return destinyProfile.profileTransitoryData.data.partyMembers;
             }
         }

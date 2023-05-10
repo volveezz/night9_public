@@ -16,6 +16,7 @@ export var RaidButtons;
     RaidButtons["notifyCancel"] = "raidAddFunc_notify_cancel";
     RaidButtons["transitionCancel"] = "raidCreatorHandler_cancel";
     RaidButtons["transitionDelete"] = "raidCreatorHandler_delete";
+    RaidButtons["fireteamCheckerCancel"] = "raidInChnButton_fireteamChecker_cancel";
 })(RaidButtons || (RaidButtons = {}));
 export var RaidAdditionalFunctional;
 (function (RaidAdditionalFunctional) {

@@ -21,6 +21,10 @@ export default new Command({
         switch (scriptId) {
             case "activitytop": {
                 const dbData = (await AuthData.findAll({ include: UserActivityData, attributes: ["displayName", "discordId"] })).filter((v) => v.UserActivityData && (v.UserActivityData.messages > 0 || v.UserActivityData.voice > 0));
+                const usersWithoutData = dbData.filter((v) => !v.UserActivityData);
+                if (usersWithoutData.length > 0) {
+                    console.error(`[Error code: 1730]`, usersWithoutData);
+                }
                 const messageTop = dbData
                     .filter((v) => v.UserActivityData.messages > 0)
                     .sort((a, b) => b.UserActivityData.messages - a.UserActivityData.messages);
@@ -40,7 +44,7 @@ export default new Command({
                 const voiceEmbed = new EmbedBuilder()
                     .setColor(colors.default)
                     .setTitle("Топ по голосовому активу")
-                    .setFooter(voiceTop.length > 49 ? { text: `И еще ${voiceTop.length - 50} участников` } : null)
+                    .setFooter(voiceTop.length > 50 ? { text: `И еще ${voiceTop.length - 50} участников` } : null)
                     .setDescription(`${voiceTop
                     .splice(0, 50)
                     .map((v, i) => {
@@ -48,10 +52,13 @@ export default new Command({
                 })
                     .join("\n")
                     .slice(0, 2048)}`);
-                return (await defferedReply) && interaction.editReply({ embeds: [msgEmbed, voiceEmbed] });
+                await defferedReply;
+                await interaction.editReply({ embeds: [msgEmbed, voiceEmbed] });
+                return;
             }
             default:
-                (await defferedReply) && interaction.editReply("Base response");
+                await defferedReply;
+                await interaction.editReply("Base response");
                 break;
         }
     },

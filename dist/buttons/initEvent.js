@@ -15,6 +15,7 @@ export default {
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const embed = await sendRegistrationLink(interaction, deferredReply);
         await deferredReply;
-        return await interaction.editReply({ embeds: [embed] });
+        await interaction.editReply({ embeds: [embed] });
+        return;
     },
 };

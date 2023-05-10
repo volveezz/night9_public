@@ -1,6 +1,7 @@
 import { EmbedBuilder } from "discord.js";
 import UserErrors from "../../configs/UserErrors.js";
 import colors from "../../configs/colors.js";
+import icons from "../../configs/icons.js";
 import { errorMessages } from "./errorMessages.js";
 function createErrorEmbed({ name, description, errorType, errorData }) {
     const type = errorType;
@@ -8,27 +9,14 @@ function createErrorEmbed({ name, description, errorType, errorData }) {
         const { embeds, components } = errorMessages(type, errorData);
         return { embeds, components };
     }
-    else if (name || description) {
+    else {
         const embeds = [new EmbedBuilder().setColor(colors.error).setDescription(description || null)];
-        if (name)
-            embeds[0].setAuthor({
-                name,
-                iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086268847948042300/6426-error.png",
-            });
+        embeds[0].setAuthor({
+            name: name || "Произошла ошибка. Попробуйте позже",
+            iconURL: icons.error,
+        });
         return {
             embeds,
-        };
-    }
-    else {
-        return {
-            embeds: [
-                new EmbedBuilder()
-                    .setAuthor({
-                    name: "Произошла ошибка. Попробуйте позже",
-                    iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086268847948042300/6426-error.png",
-                })
-                    .setColor(colors.error),
-            ],
         };
     }
 }

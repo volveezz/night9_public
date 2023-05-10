@@ -3,9 +3,12 @@ import { ClanButtons } from "../../configs/Buttons.js";
 import UserErrors from "../../configs/UserErrors.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
+import { ownerId } from "../../configs/ids.js";
 import { Command } from "../../structures/command.js";
 import { fetchRequest } from "../../utils/api/fetchRequest.js";
 import { addButtonComponentsToMessage } from "../../utils/general/addButtonsToMessage.js";
+import { convertSeconds } from "../../utils/general/convertSeconds.js";
+import { escapeString } from "../../utils/general/utilities.js";
 import { AuthData, UserActivityData } from "../../utils/persistence/sequelize.js";
 export default new Command({
     name: "clan",
@@ -58,12 +61,10 @@ export default new Command({
         const embed = new EmbedBuilder()
             .setColor(colors.default)
             .setTitle(`Статистика ${destinyRequest.results[0].groupId === "4123712" ? "клана Night 9" : "неизвестного клана"}`)
-            .addFields([
-            {
-                name: "*n* *bungieName* / *discordName* / *platform*/*bungieId*",
-                value: "*bungieNet* | *lastOnline* | *joinDate* | *msgsSent* | *voiceSec* | *clanDungeons/Raids*",
-            },
-        ]);
+            .addFields({
+            name: "*n* *bungieName* / *discordName* / *platform*/*bungieId*",
+            value: "*bungieNet* | *lastOnline* | *joinDate* | *msgsSent* | *voiceSec* | *clanDungeons/Raids*",
+        });
         const fields = mergedMembers.map((member) => {
             const dbData = clanMembers.find((d) => d.bungieId === member.bungieId);
             return {
@@ -90,42 +91,50 @@ export default new Command({
         }
         if (isRemovalSystem) {
             let lastMemberIndex = mergedMembers.length - 1;
-            function memberParser(memberIndex) {
+            async function memberParser(memberIndex) {
                 const destinyUser = mergedMembers[memberIndex];
                 const memberDbData = clanMembers.find((clanMember) => clanMember.bungieId === mergedMembers[memberIndex].bungieId);
+                const memberPromise = client.getAsyncMember(memberDbData?.discordId);
+                memberPromise.catch((err) => {
+                    console.error(`[Error code: 1732]`, err);
+                    return null;
+                });
+                const serverMember = await memberPromise;
                 const lastMember = {
                     ...destinyUser,
                     memberDbData,
-                    serverMember: memberDbData
-                        ? (interaction.guild || client.getCachedGuild()).members.cache.get(memberDbData.discordId)
-                        : undefined,
+                    serverMember,
                 };
                 const removalEmbed = new EmbedBuilder()
                     .setColor(colors.default)
                     .setTitle("Управление пользователем")
-                    .addFields([
-                    {
-                        name: "Пользователь",
-                        value: `${lastMember.serverMember ? `<@${lastMember.serverMember.id}>` : "Отсутствует на сервере"}`,
-                        inline: true,
-                    },
-                    { name: "Ранг", value: `${lastMember.rank}`, inline: true },
-                    {
-                        name: "Id",
-                        value: `${lastMember.memberDbData && lastMember.memberDbData.discordId
-                            ? `DiscordId: ${lastMember.memberDbData.discordId}`
-                            : ""}${lastMember.serverMember?.user.id &&
-                            lastMember.memberDbData &&
-                            lastMember.memberDbData.discordId !== lastMember.serverMember.user.id
-                            ? `(${lastMember.serverMember.user.id})`
-                            : ""}\nBungieId: ${lastMember.bungieId}${lastMember.memberDbData && lastMember.bungieId !== lastMember.memberDbData.bungieId
-                            ? `(${lastMember.memberDbData.bungieId})`
-                            : ""}${lastMember.memberDbData && lastMember.memberDbData.membershipId
-                            ? `\nMembershipId: ${lastMember.memberDbData.membershipId}`
-                            : ""}`,
-                        inline: true,
-                    },
-                ]);
+                    .addFields({
+                    name: "Пользователь",
+                    value: `${lastMember.serverMember ? `<@${lastMember.serverMember.id}>` : "Отсутствует на сервере"}`,
+                    inline: true,
+                }, { name: "Ранг", value: `${lastMember.rank}`, inline: true }, {
+                    name: "Id",
+                    value: `${lastMember.memberDbData && lastMember.memberDbData.discordId
+                        ? `DiscordId: ${lastMember.memberDbData.discordId}`
+                        : ""}${lastMember.serverMember?.user.id &&
+                        lastMember.memberDbData &&
+                        lastMember.memberDbData.discordId !== lastMember.serverMember.user.id
+                        ? `(${lastMember.serverMember.user.id})`
+                        : ""}\nBungieId: ${lastMember.bungieId}${lastMember.memberDbData && lastMember.bungieId !== lastMember.memberDbData.bungieId
+                        ? `(${lastMember.memberDbData.bungieId})`
+                        : ""}${lastMember.memberDbData && lastMember.memberDbData.membershipId
+                        ? `\nMembershipId: ${lastMember.memberDbData.membershipId}`
+                        : ""}`,
+                    inline: true,
+                }, {
+                    name: `Онлайн/Последний/Вступление в клан`,
+                    value: `<t:${lastMember.isOnline}>\n${lastMember.lastOnlineStatusChange}\n${lastMember.joinDate}`,
+                    inline: true,
+                }, {
+                    name: "В голосе/Сообщений",
+                    value: `${convertSeconds(lastMember.memberDbData?.UserActivityData?.voice || 0)} / ${lastMember.memberDbData?.UserActivityData?.messages}`,
+                    inline: true,
+                });
                 if (lastMember.serverMember) {
                     removalEmbed.setAuthor({
                         name: `${lastMember.serverMember.displayName} / ${lastMember.bungieName}${lastMember.memberDbData ? ` / ${lastMember.memberDbData.displayName}` : ""}`,
@@ -137,35 +146,35 @@ export default new Command({
                 }
                 const components = [
                     new ButtonBuilder()
-                        .setCustomId("clanManagment_previous")
-                        .setDisabled(memberIndex <= 0 ? true : false)
+                        .setCustomId("clanManagement_previous")
+                        .setDisabled(memberIndex <= 0)
                         .setLabel("Предыдущий")
                         .setStyle(ButtonStyle.Secondary),
                     new ButtonBuilder()
-                        .setCustomId("clanManagment_demote")
+                        .setCustomId("clanManagement_demote")
                         .setDisabled(lastMember.rank > 1 && lastMember.rank < 4 ? false : true)
                         .setLabel("Понизить")
                         .setStyle(ButtonStyle.Danger),
                     new ButtonBuilder()
-                        .setCustomId("clanManagment_promote")
+                        .setCustomId("clanManagement_promote")
                         .setDisabled(lastMember.rank >= 1 && lastMember.rank < 3 ? false : true)
                         .setLabel("Повысить")
                         .setStyle(ButtonStyle.Success),
                     new ButtonBuilder()
-                        .setCustomId("clanManagment_kick")
+                        .setCustomId("clanManagement_kick")
                         .setLabel("Исключить")
                         .setDisabled(lastMember.rank >= 1 && lastMember.rank < 4 ? false : true)
                         .setStyle(ButtonStyle.Danger),
                     new ButtonBuilder()
-                        .setCustomId("clanManagment_next")
+                        .setCustomId("clanManagement_next")
                         .setDisabled(memberIndex >= mergedMembers.length - 1 ? true : false)
                         .setLabel("Следующий")
                         .setStyle(ButtonStyle.Secondary),
-                    new ButtonBuilder().setCustomId("clanManagment_cancel").setLabel("Отменить").setStyle(ButtonStyle.Danger),
+                    new ButtonBuilder().setCustomId("clanManagement_cancel").setLabel("Отменить").setStyle(ButtonStyle.Danger),
                 ];
                 return { removalEmbed, components, lastMember, index: memberIndex };
             }
-            const { components, removalEmbed } = memberParser(lastMemberIndex);
+            const { components, removalEmbed } = await memberParser(lastMemberIndex);
             await deferredReply;
             const removalMessage = await interaction.followUp({
                 embeds: [removalEmbed],
@@ -177,166 +186,154 @@ export default new Command({
                 filter: (btn) => btn.user.id === interaction.user.id,
                 time: 60 * 60 * 1000,
             });
-            const dbData = await AuthData.findOne({
+            const userAuthData = await AuthData.findOne({
                 where: { discordId: interaction.user.id },
                 attributes: ["accessToken"],
             });
-            if (!dbData)
+            if (!userAuthData) {
                 throw { errorType: UserErrors.DB_USER_NOT_FOUND };
+            }
             collector.on("collect", async (button) => {
                 const { customId, member } = button;
                 if (!member || !member.permissions.has("Administrator"))
                     throw { errorType: UserErrors.MISSING_PERMISSIONS };
-                const { lastMember, index: memberIndex } = memberParser(lastMemberIndex);
+                const { lastMember, index: memberIndex } = await memberParser(lastMemberIndex);
                 if (lastMemberIndex !== memberIndex)
                     return;
                 const buttonDeferredReply = button.deferUpdate();
-                const managmentEmbed = new EmbedBuilder();
-                if (customId === "clanManagment_previous" || customId === "clanManagment_next") {
-                    lastMemberIndex = lastMemberIndex + (customId === "clanManagment_previous" ? -1 : 1);
+                const managementEmbed = new EmbedBuilder();
+                if (customId === "clanManagement_previous" || customId === "clanManagement_next") {
+                    lastMemberIndex = lastMemberIndex + (customId === "clanManagement_previous" ? -1 : 1);
                 }
-                else if (customId === "clanManagment_kick") {
-                    const btnFollowUp = (await buttonDeferredReply) &&
-                        (await button.followUp({
-                            content: `Подтвердите исключение **${lastMember.bungieName}**`,
-                            components: [
-                                {
-                                    type: ComponentType.ActionRow,
-                                    components: [
-                                        new ButtonBuilder()
-                                            .setCustomId("clanManagment_kick_confirm")
-                                            .setLabel("Подтвердить")
-                                            .setStyle(ButtonStyle.Primary),
-                                        new ButtonBuilder()
-                                            .setCustomId("clanManagment_kick_cancel")
-                                            .setLabel("Отменить")
-                                            .setStyle(ButtonStyle.Danger),
-                                    ],
-                                },
-                            ],
-                        }));
+                else if (customId === "clanManagement_kick") {
+                    await buttonDeferredReply;
+                    const btnFollowUp = await button.followUp({
+                        content: `Подтвердите исключение **${escapeString(lastMember.bungieName)}**`,
+                        components: await addButtonComponentsToMessage([
+                            new ButtonBuilder()
+                                .setCustomId("clanManagement_kick_confirm")
+                                .setLabel("Подтвердить")
+                                .setStyle(ButtonStyle.Primary),
+                            new ButtonBuilder().setCustomId("clanManagement_kick_cancel").setLabel("Отменить").setStyle(ButtonStyle.Danger),
+                        ]),
+                    });
                     const confirmationCollector = btnFollowUp.createMessageComponentCollector({
                         filter: (btn) => btn.user.id === interaction.user.id,
                     });
                     confirmationCollector.on("collect", async (confirmationButton) => {
-                        if (confirmationButton.customId === "clanManagment_kick_confirm") {
+                        if (confirmationButton.customId === "clanManagement_kick_confirm") {
                             const query = (await fetch(`https://www.bungie.net/Platform/GroupV2/4123712/Members/${lastMember.membershipType}/${lastMember.bungieId}/Kick/`, {
                                 method: "POST",
-                                headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${dbData.accessToken}` },
+                                headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${userAuthData.accessToken}` },
                             }));
                             const result = (await query.json());
                             if (result.ErrorCode === 1) {
                                 mergedMembers[memberIndex].rank = 0;
-                                button.followUp({ ephemeral: true, content: `**${lastMember.bungieName}** был исключен` });
+                                await button.followUp({ ephemeral: true, content: `**${lastMember.bungieName}** был исключен` });
                                 if (lastMember.serverMember) {
                                     const kickNotify = new EmbedBuilder()
                                         .setColor(colors.default)
                                         .setAuthor({
                                         name: "Уведомление об исключении из клана",
-                                        iconURL: (interaction.guild || client.getCachedGuild()).bannerURL(),
+                                        iconURL: client.getCachedGuild().bannerURL(),
                                     })
-                                        .setDescription("> Вы были исключены из клана [Night 9](https://www.bungie.net/ru/ClanV2?groupid=4123712) в Destiny 2 поскольку не играли долгое время\n — Если вы вернетесь в игру - клан готов будет вас принять снова\n — Вступление в клан для исключенных доступно в <#724592361237381121> или по кнопке ниже");
-                                    lastMember.serverMember.send({
+                                        .setDescription(`> Вы были исключены из клана [Night 9](https://www.bungie.net/ru/ClanV2?groupid=4123712) в Destiny 2 поскольку не играли долгое время\n — Если вы вернетесь в игру - клан готов будет вас принять снова\n — Вступление в клан для исключенных доступно в <#724592361237381121> или по кнопке ниже\n\nПомните - даже после исключения из клана у Вас остается доступ к большинству возможностям сервера\nВы всё ещё можете записываться на рейды, общаться в каналах и т.д.\n\nЕсли у вас есть вопросы - обратитесь к <@${ownerId}>`);
+                                    await lastMember.serverMember.send({
                                         embeds: [kickNotify],
-                                        components: [
-                                            {
-                                                type: ComponentType.ActionRow,
-                                                components: [
-                                                    new ButtonBuilder()
-                                                        .setCustomId(ClanButtons.invite)
-                                                        .setLabel("Отправить приглашение")
-                                                        .setStyle(ButtonStyle.Success),
-                                                    new ButtonBuilder()
-                                                        .setCustomId(ClanButtons.modal)
-                                                        .setLabel("Заполнить форму на вступление")
-                                                        .setStyle(ButtonStyle.Secondary),
-                                                ],
-                                            },
-                                        ],
+                                        components: await addButtonComponentsToMessage([
+                                            new ButtonBuilder()
+                                                .setCustomId(ClanButtons.invite)
+                                                .setLabel("Отправить приглашение")
+                                                .setStyle(ButtonStyle.Success),
+                                            new ButtonBuilder()
+                                                .setCustomId(ClanButtons.modal)
+                                                .setLabel("Заполнить форму на вступление")
+                                                .setStyle(ButtonStyle.Secondary),
+                                        ]),
                                     });
                                 }
-                                btnFollowUp.delete();
+                                await btnFollowUp.delete();
                             }
                             else {
-                                btnFollowUp.delete();
-                                button.followUp({
+                                await btnFollowUp.delete();
+                                await button.followUp({
                                     ephemeral: true,
                                     content: `Произошла ошибка во время исключения **${lastMember.bungieName}**`,
                                 });
                             }
                         }
-                        else if (confirmationButton.customId === "clanManagment_kick_cancel") {
-                            btnFollowUp.delete();
+                        else if (confirmationButton.customId === "clanManagement_kick_cancel") {
+                            await btnFollowUp.delete();
                         }
                         confirmationCollector.stop();
                     });
                 }
-                else if (customId === "clanManagment_demote") {
+                else if (customId === "clanManagement_demote") {
                     const demoteRank = --lastMember.rank;
                     const query = (await fetch(`https://www.bungie.net/Platform/GroupV2/4123712/Members/${lastMember.membershipType}/${lastMember.bungieId}/SetMembershipType/${demoteRank}/`, {
                         method: "POST",
-                        headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${dbData.accessToken}` },
+                        headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${userAuthData.accessToken}` },
                     }));
                     const result = (await query.json());
                     if (result.ErrorCode === 1) {
                         mergedMembers[memberIndex].rank = lastMember.rank;
-                        managmentEmbed
+                        managementEmbed
                             .setColor(colors.success)
                             .setAuthor({ name: `${lastMember.bungieName} был понижен до ${demoteRank} ранга`, iconURL: icons.success });
-                        button.followUp({ ephemeral: true, embeds: [managmentEmbed] });
+                        await button.followUp({ ephemeral: true, embeds: [managementEmbed] });
                     }
                     else {
-                        managmentEmbed.setColor(colors.error).setAuthor({
+                        managementEmbed.setColor(colors.error).setAuthor({
                             name: `Произошла ошибка во время понижения **${lastMember.bungieName}** до ${demoteRank} ранга`,
                             iconURL: icons.close,
                         });
-                        button.followUp({
+                        await button.followUp({
                             ephemeral: true,
-                            embeds: [managmentEmbed],
+                            embeds: [managementEmbed],
                         });
                     }
                 }
-                else if (customId === "clanManagment_promote") {
+                else if (customId === "clanManagement_promote") {
                     const promoteRank = ++lastMember.rank;
-                    managmentEmbed
+                    managementEmbed
                         .setColor(colors.success)
                         .setAuthor({ name: `${lastMember.bungieName} был повышен до ${lastMember.rank} ранга`, iconURL: icons.success });
                     const query = (await fetch(`https://www.bungie.net/Platform/GroupV2/4123712/Members/${lastMember.membershipType}/${lastMember.bungieId}/SetMembershipType/${promoteRank}/`, {
                         method: "POST",
-                        headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${dbData.accessToken}` },
+                        headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${userAuthData.accessToken}` },
                     }));
                     const result = (await query.json());
                     if (result.ErrorCode === 1) {
                         mergedMembers[memberIndex].rank = lastMember.rank;
-                        button.followUp({ ephemeral: true, embeds: [managmentEmbed] });
+                        await button.followUp({ ephemeral: true, embeds: [managementEmbed] });
                     }
                     else {
-                        managmentEmbed.setColor(colors.error).setAuthor({
+                        managementEmbed.setColor(colors.error).setAuthor({
                             name: `Произошла ошибка во время повышения ${lastMember.bungieName} до ${promoteRank} ранга`,
                             iconURL: icons.close,
                         });
                         await button.followUp({
                             ephemeral: true,
-                            embeds: [managmentEmbed],
+                            embeds: [managementEmbed],
                         });
                     }
                 }
-                else if (customId === "clanManagment_cancel") {
+                else if (customId === "clanManagement_cancel") {
                     collector.stop("Cancelled");
-                    removalMessage.delete();
+                    await removalMessage.delete();
                     return;
                 }
-                const { removalEmbed, components, index } = memberParser(lastMemberIndex);
+                const { removalEmbed, components, index } = await memberParser(lastMemberIndex);
                 if ((lastMemberIndex !== index || memberIndex !== index) &&
-                    customId !== "clanManagment_previous" &&
-                    customId !== "clanManagment_next" &&
-                    customId !== "clanManagment_kick")
+                    customId !== "clanManagement_previous" &&
+                    customId !== "clanManagement_next" &&
+                    customId !== "clanManagement_kick")
                     return;
                 try {
                     await button.message.edit({ embeds: [removalEmbed], components: await addButtonComponentsToMessage(components) });
                 }
                 catch (error) {
-                    console.error("Error blyad");
+                    console.error("[Error code: 1731]", error);
                 }
                 return;
             });

@@ -142,6 +142,7 @@ export default {
                 return;
             if (!raidEvent) {
                 await deferredUpdate;
+                console.error("[Error code: 1742]", { updateQuery }, { searchQuery });
                 throw { errorType: UserErrors.RAID_NOT_FOUND };
             }
             updatePrivateRaidMessage({ raidEvent });

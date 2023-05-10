@@ -43,7 +43,7 @@ export async function logUserRegistrationAttempt(state, user, isNewUser) {
     await (await client.getAsyncTextChannel(channelIds.bot)).send({ embeds: [embed] });
 }
 export async function updateClanRolesWithLogging(result, join) {
-    const member = client.getCachedGuild().members.cache.get(result.discordId);
+    const member = await client.getAsyncMember(result.discordId);
     const embed = new EmbedBuilder().addFields([
         { name: "Пользователь", value: `<@${result.discordId}>`, inline: true },
         { name: "BungieId", value: result.bungieId, inline: true },
@@ -54,7 +54,7 @@ export async function updateClanRolesWithLogging(result, join) {
             await (await member.roles.add(statusRoles.clanmember, "Clan join")).roles.remove([statusRoles.kicked, statusRoles.newbie, statusRoles.member]);
             embed
                 .setAuthor({
-                name: `${escapeString(member.displayName)} вступил в клан`,
+                name: `${member.displayName} вступил в клан`,
                 iconURL: member.displayAvatarURL(),
             })
                 .setColor(colors.success);
@@ -64,7 +64,7 @@ export async function updateClanRolesWithLogging(result, join) {
             await setMemberRoles({ member, roles: setRoles, reason: "Member left clan" });
             embed
                 .setAuthor({
-                name: `${escapeString(member.displayName)} покинул клан`,
+                name: `${member.displayName} покинул клан`,
                 iconURL: member.displayAvatarURL(),
             })
                 .setColor(colors.kicked);
