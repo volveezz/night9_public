@@ -4,7 +4,7 @@ import { ClanButtons, TimezoneButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import { channelIds } from "../../configs/ids.js";
 import { statusRoles } from "../../configs/roles.js";
-import updateDiscordNicknameFromDb from "../../core/updateDiscordNicknameFromDb.js";
+import guildNicknameManagement from "../../core/guildNicknameManagement.js";
 import { checkIndiviualUserStatistics } from "../../core/userStatisticsManagement.js";
 import { client } from "../../index.js";
 import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
@@ -155,7 +155,7 @@ export default async function webHandler(code, state, res) {
             .setLabel("Установить часовой пояс")
             .setStyle(ButtonStyle.Secondary);
         try {
-            updateDiscordNicknameFromDb();
+            guildNicknameManagement();
             checkIndiviualUserStatistics(member.id);
         }
         catch (error) {

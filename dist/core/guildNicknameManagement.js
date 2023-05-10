@@ -4,9 +4,9 @@ import { apiStatus } from "../structures/apiStatus.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 setInterval(async () => {
-    await updateDiscordNicknameFromDb();
+    await guildNicknameManagement();
 }, 1000 * 60 * 60);
-async function updateDiscordNicknameFromDb() {
+async function guildNicknameManagement() {
     if (apiStatus.status !== 1)
         return;
     const dbData = await AuthData.findAll({
@@ -27,4 +27,4 @@ async function updateDiscordNicknameFromDb() {
         }
     });
 }
-export default updateDiscordNicknameFromDb;
+export default guildNicknameManagement;
