@@ -501,8 +501,8 @@ async function checkIndiviualUserStatistics(user) {
     const member = await client.getAsyncMember(typeof user === "string" ? user : user.id);
     const memberAuthData = await AuthData.findOne({
         where: { discordId: member.id },
+        attributes: ["discordId", "bungieId", "platform", "accessToken", "displayName", "roleCategoriesBits"],
         include: UserActivityData,
-        attributes: ["discordId", "bungieId", "accessToken", "displayName", "roleCategoriesBits"],
     });
     const autoRoleData = await AutoRoleData.findAll();
     if (!member || !memberAuthData) {

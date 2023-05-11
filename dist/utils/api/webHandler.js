@@ -91,13 +91,13 @@ export default async function webHandler(code, state, res) {
         });
         res.send("<script>location.replace('index.html')</script>").end();
         const clanResponse = await fetchRequest(`Platform/GroupV2/User/${platform}/${bungieId}/0/1/`, body.access_token);
-        const member = client.getCachedMembers().get(json.discordId);
+        const member = await client.getAsyncMember(json.discordId);
         if (!member) {
             return console.error("[Error code: 1012] Member error during webHandling of", json);
         }
         const embed = new EmbedBuilder()
             .setTitle("Вы зарегистрировались")
-            .setDescription("Для удобства на сервере вы можете указать свой часовой пояс введя команду '/timezone'")
+            .setDescription("Для удобства на сервере вы можете указать свой часовой пояс введя команду `/timezone`")
             .setColor(colors.success)
             .addFields({
             name: "Bungie аккаунт",

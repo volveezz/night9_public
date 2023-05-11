@@ -88,7 +88,7 @@ async function clanMembersManagement(userBungieIds) {
                         console.error(`[Error code: 1087] Member not found ${memberAuthData.discordId}/${memberAuthData.displayName}`);
                         return;
                     }
-                    for (const step of clanJoinDateRoles.roles) {
+                    for await (const step of clanJoinDateRoles.roles) {
                         if (step.days <= Math.trunc((Date.now() - new Date(result.joinDate).getTime()) / 1000 / 60 / 60 / 24)) {
                             if (!member.roles.cache.has(step.roleId)) {
                                 try {

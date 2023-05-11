@@ -395,12 +395,10 @@ export default new Command({
                                 role.delete("Got error during creation");
                                 return;
                             }
-                            embed = new EmbedBuilder().setColor(colors.success).addFields([
-                                {
-                                    name: "Роль была создана",
-                                    value: `<@&${role.id}>${gildedRoles.length > 0 ? `, <@&${gildedRoles[0]}>` : ""}`,
-                                },
-                            ]);
+                            embed = new EmbedBuilder().setColor(colors.success).addFields({
+                                name: "Роль была создана",
+                                value: `<@&${role.id}>${gildedRoles.length > 0 ? `, <@&${gildedRoles[0]}>` : ""}`,
+                            });
                         }
                         else {
                             await AutoRoleData.update({
