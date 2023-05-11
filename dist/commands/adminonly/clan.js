@@ -94,12 +94,7 @@ export default new Command({
             async function memberParser(memberIndex) {
                 const destinyUser = mergedMembers[memberIndex];
                 const memberDbData = clanMembers.find((clanMember) => clanMember.bungieId === mergedMembers[memberIndex].bungieId);
-                const memberPromise = client.getAsyncMember(memberDbData?.discordId);
-                memberPromise.catch((err) => {
-                    console.error(`[Error code: 1732]`, err);
-                    return null;
-                });
-                const serverMember = await memberPromise;
+                const serverMember = await client.getAsyncMember(memberDbData?.discordId);
                 const lastMember = {
                     ...destinyUser,
                     memberDbData,
@@ -114,19 +109,7 @@ export default new Command({
                     inline: true,
                 }, { name: "Ранг", value: `${lastMember.rank}`, inline: true }, {
                     name: "Id",
-                    value: `${lastMember.memberDbData && lastMember.memberDbData.discordId
-                        ? `DiscordId: ${lastMember.memberDbData.discordId}`
-                        : ""}${lastMember.serverMember != null &&
-                        lastMember.serverMember.user != null &&
-                        lastMember.serverMember?.user?.id &&
-                        lastMember.memberDbData &&
-                        lastMember.memberDbData.discordId !== lastMember.serverMember.user.id
-                        ? `(${lastMember.serverMember.user.id})`
-                        : ""}\nBungieId: ${lastMember.bungieId}${lastMember.memberDbData && lastMember.bungieId !== lastMember.memberDbData.bungieId
-                        ? `(${lastMember.memberDbData.bungieId})`
-                        : ""}${lastMember.memberDbData && lastMember.memberDbData.membershipId
-                        ? `\nMembershipId: ${lastMember.memberDbData.membershipId}`
-                        : ""}`,
+                    value: `${memberDbData && memberDbData.discordId ? `DiscordId: ${memberDbData.discordId}` : ""}${serverMember && memberDbData && memberDbData.discordId !== serverMember.user.id ? `(${serverMember.user.id})` : ""}\nBungieId: ${lastMember.bungieId}${memberDbData && lastMember.bungieId !== memberDbData.bungieId ? `(${memberDbData.bungieId})` : ""}${memberDbData && memberDbData.membershipId ? `\nMembershipId: ${memberDbData.membershipId}` : ""}`,
                     inline: true,
                 }, {
                     name: `Онлайн/Последний/Вступление в клан`,
@@ -134,14 +117,19 @@ export default new Command({
                     inline: true,
                 }, {
                     name: "В голосе/Сообщений",
-                    value: `${convertSeconds(lastMember.memberDbData?.UserActivityData?.voice || 0)} / ${lastMember.memberDbData?.UserActivityData?.messages}`,
+                    value: `${convertSeconds(memberDbData?.UserActivityData?.voice || 0)} / ${memberDbData?.UserActivityData?.messages}`,
                     inline: true,
                 });
-                if (lastMember.serverMember != null) {
-                    removalEmbed.setAuthor({
-                        name: `${lastMember.serverMember?.displayName} / ${lastMember.bungieName}${lastMember.memberDbData ? ` / ${lastMember.memberDbData.displayName}` : ""}`,
-                        iconURL: lastMember.serverMember?.displayAvatarURL() || lastMember.serverMember?.user?.displayAvatarURL(),
-                    });
+                if (serverMember) {
+                    try {
+                        removalEmbed.setAuthor({
+                            name: `${serverMember.displayName} / ${lastMember.bungieName}${memberDbData ? ` / ${memberDbData.displayName}` : ""}`,
+                            iconURL: serverMember.displayAvatarURL() || serverMember.user.displayAvatarURL(),
+                        });
+                    }
+                    catch (error) {
+                        console.error("[Error code: 1746]", error);
+                    }
                 }
                 else {
                     removalEmbed.setAuthor({ name: `Не на сервере / ${lastMember.bungieName}` });
