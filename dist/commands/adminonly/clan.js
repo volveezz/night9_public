@@ -109,7 +109,7 @@ export default new Command({
                     .setTitle("Управление пользователем")
                     .addFields({
                     name: "Пользователь",
-                    value: `${destinyUser ? `Ник в игре: ${destinyUser.bungieName}` : "Пользователь не найден в игре"}\n${serverMember ? `Пользователь на сервере: <@${serverMember.id}>` : "Отсутствует на сервере"}`,
+                    value: `${destinyUser ? `Ник в игре: ${escapeString(destinyUser.bungieName)}` : "Пользователь в игре не найден"}\n${serverMember != undefined && serverMember.id ? `Пользователь: <@${serverMember.id}>` : "Отсутствует на сервере"}`,
                     inline: true,
                 }, { name: "Ранг", value: `${lastMember.rank}`, inline: true }, {
                     name: "Id",
@@ -119,20 +119,20 @@ export default new Command({
                     inline: true,
                 }, {
                     name: "Клановая информация",
-                    value: `${lastMember.isOnline ? "Пользователь прямо сейчас в игре\n" : ""}${lastMember.lastOnlineStatusChange
-                        ? `Последний раз в игре: <t:${lastMember.lastOnlineStatusChange}>, <t:${lastMember.lastOnlineStatusChange}:R>`
-                        : "Не заходил в игру после вступления в клан"}\nДата вступления в клан: <t:${lastMember.joinDate}>, <t:${lastMember.joinDate}:R>`,
+                    value: `${lastMember.isOnline ? "Прямо сейчас в игре\n" : ""}${lastMember.lastOnlineStatusChange
+                        ? `Посл. онлайн: <t:${lastMember.lastOnlineStatusChange}>, <t:${lastMember.lastOnlineStatusChange}:R>`
+                        : "Не заходил в игру после вступления в клан"}\nВступил в клан: <t:${lastMember.joinDate}>, <t:${lastMember.joinDate}:R>`,
                     inline: true,
                 }, {
                     name: "Актив на сервере",
                     value: `${memberDbData?.UserActivityData?.voice && memberDbData?.UserActivityData?.voice > 0
-                        ? `${convertSeconds(memberDbData.UserActivityData.voice)} (${memberDbData.UserActivityData.voice})`
+                        ? `В голосе: ${convertSeconds(memberDbData.UserActivityData.voice)} (${memberDbData.UserActivityData.voice}сек)`
                         : "Ни разу не заходил в голосовые"}\n${memberDbData?.UserActivityData?.messages && memberDbData?.UserActivityData?.messages > 0
-                        ? memberDbData?.UserActivityData?.messages
+                        ? `Сообщений: ${memberDbData?.UserActivityData?.messages}`
                         : "Ни разу не писал в чатах"}`,
                     inline: true,
                 });
-                if (serverMember) {
+                if (serverMember && serverMember.id) {
                     try {
                         removalEmbed.setAuthor({
                             name: `${serverMember.displayName} / ${lastMember.bungieName}${memberDbData ? ` / ${memberDbData.displayName}` : ""}`,
