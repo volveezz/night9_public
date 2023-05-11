@@ -137,7 +137,7 @@ export default new Command({
                     value: `${convertSeconds(lastMember.memberDbData?.UserActivityData?.voice || 0)} / ${lastMember.memberDbData?.UserActivityData?.messages}`,
                     inline: true,
                 });
-                if (lastMember.serverMember) {
+                if (lastMember.serverMember != null) {
                     removalEmbed.setAuthor({
                         name: `${lastMember.serverMember.displayName} / ${lastMember.bungieName}${lastMember.memberDbData ? ` / ${lastMember.memberDbData.displayName}` : ""}`,
                         iconURL: lastMember.serverMember.displayAvatarURL(),
