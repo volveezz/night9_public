@@ -69,7 +69,11 @@ export default new Command({
             const dbData = clanMembers.find((d) => d.bungieId === member.bungieId);
             return {
                 name: `${member.bungieName} / ${discordMembers.get(dbData?.discordId)?.displayName || "Не зарегистрирован"} / ${member.membershipType + "/" + member.bungieId}`,
-                value: `[Bungie.net](https://www.bungie.net/7/ru/User/Profile/${member.membershipType}/${member.bungieId}) | ${member.isOnline ? "В игре" : `<t:${member.lastOnlineStatusChange}>`} | <t:${member.joinDate}>${dbData && dbData.UserActivityData
+                value: `[Bungie.net](https://www.bungie.net/7/ru/User/Profile/${member.membershipType}/${member.bungieId}) | ${member.isOnline
+                    ? "В игре"
+                    : member.lastOnlineStatusChange
+                        ? `<t:${member.lastOnlineStatusChange}>`
+                        : "Не заходил после вступления"} | <t:${member.joinDate}>${dbData && dbData.UserActivityData
                     ? ` | ${dbData.UserActivityData.messages}:book: | ${dbData.UserActivityData.voice}с:microphone2: | ${dbData.UserActivityData.dungeons}/${dbData.UserActivityData.raids}`
                     : ""}`,
             };
@@ -105,19 +109,27 @@ export default new Command({
                     .setTitle("Управление пользователем")
                     .addFields({
                     name: "Пользователь",
-                    value: `${lastMember.serverMember ? `<@${lastMember.serverMember.id}>` : "Отсутствует на сервере"}`,
+                    value: `${destinyUser ? `Ник в игре: ${destinyUser.bungieName}` : "Пользователь не найден в игре"}\n${serverMember ? `Пользователь на сервере: <@${serverMember.id}>` : "Отсутствует на сервере"}`,
                     inline: true,
                 }, { name: "Ранг", value: `${lastMember.rank}`, inline: true }, {
                     name: "Id",
-                    value: `${memberDbData && memberDbData.discordId ? `DiscordId: ${memberDbData.discordId}` : ""}${serverMember && memberDbData && memberDbData.discordId !== serverMember.user.id ? `(${serverMember.user.id})` : ""}\nBungieId: ${lastMember.bungieId}${memberDbData && lastMember.bungieId !== memberDbData.bungieId ? `(${memberDbData.bungieId})` : ""}${memberDbData && memberDbData.membershipId ? `\nMembershipId: ${memberDbData.membershipId}` : ""}`,
+                    value: `${memberDbData && memberDbData.discordId ? `DiscordId: ${memberDbData.discordId}` : ""}${serverMember && memberDbData && memberDbData.discordId !== serverMember.user.id ? `(${serverMember.user.id})` : ""}\nBungieId: ${lastMember.bungieId}${memberDbData && lastMember.bungieId !== memberDbData.bungieId ? `(${memberDbData.bungieId})` : ""}${memberDbData && memberDbData.membershipId
+                        ? `\nMembershipId: [${memberDbData.membershipId}](https://www.bungie.net/7/ru/User/Profile/254/${memberDbData.membershipId})`
+                        : ""}`,
                     inline: true,
                 }, {
-                    name: `Онлайн/Последний/Вступление в клан`,
-                    value: `<t:${lastMember.isOnline}>\n${lastMember.lastOnlineStatusChange}\n${lastMember.joinDate}`,
+                    name: "Клановая информация",
+                    value: `${lastMember.isOnline ? "Пользователь прямо сейчас в игре\n" : ""}${lastMember.lastOnlineStatusChange
+                        ? `Последний раз в игре: <t:${lastMember.lastOnlineStatusChange}>, <t:${lastMember.lastOnlineStatusChange}:R>`
+                        : "Не заходил в игру после вступления в клан"}\nДата вступления в клан: <t:${lastMember.joinDate}>, <t:${lastMember.joinDate}:R>`,
                     inline: true,
                 }, {
-                    name: "В голосе/Сообщений",
-                    value: `${convertSeconds(memberDbData?.UserActivityData?.voice || 0)} / ${memberDbData?.UserActivityData?.messages}`,
+                    name: "Актив на сервере",
+                    value: `${memberDbData?.UserActivityData?.voice && memberDbData?.UserActivityData?.voice > 0
+                        ? `${convertSeconds(memberDbData.UserActivityData.voice)} (${memberDbData.UserActivityData.voice})`
+                        : "Ни разу не заходил в голосовые"}\n${memberDbData?.UserActivityData?.messages && memberDbData?.UserActivityData?.messages > 0
+                        ? memberDbData?.UserActivityData?.messages
+                        : "Ни разу не писал в чатах"}`,
                     inline: true,
                 });
                 if (serverMember) {
