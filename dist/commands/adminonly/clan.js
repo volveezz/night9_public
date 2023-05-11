@@ -139,8 +139,8 @@ export default new Command({
                 });
                 if (lastMember.serverMember != null) {
                     removalEmbed.setAuthor({
-                        name: `${lastMember.serverMember.displayName} / ${lastMember.bungieName}${lastMember.memberDbData ? ` / ${lastMember.memberDbData.displayName}` : ""}`,
-                        iconURL: lastMember.serverMember.displayAvatarURL(),
+                        name: `${lastMember.serverMember?.displayName} / ${lastMember.bungieName}${lastMember.memberDbData ? ` / ${lastMember.memberDbData.displayName}` : ""}`,
+                        iconURL: lastMember.serverMember?.displayAvatarURL() || lastMember.serverMember?.user?.displayAvatarURL(),
                     });
                 }
                 else {
