@@ -99,44 +99,45 @@ export default new Command({
                 const destinyUser = mergedMembers[memberIndex];
                 const memberDbData = clanMembers.find((clanMember) => clanMember.bungieId === mergedMembers[memberIndex].bungieId);
                 const serverMember = await client.getAsyncMember(memberDbData?.discordId);
+                const memberData = serverMember && serverMember?.id ? serverMember : undefined;
                 const lastMember = {
                     ...destinyUser,
                     memberDbData,
-                    serverMember,
+                    serverMember: memberData,
                 };
                 const removalEmbed = new EmbedBuilder()
                     .setColor(colors.default)
                     .setTitle("Управление пользователем")
                     .addFields({
                     name: "Пользователь",
-                    value: `${destinyUser ? `Ник в игре: ${escapeString(destinyUser.bungieName)}` : "Пользователь в игре не найден"}\n${serverMember != undefined && serverMember.id ? `Пользователь: <@${serverMember.id}>` : "Отсутствует на сервере"}`,
+                    value: `${destinyUser ? `Ник в игре: ${escapeString(destinyUser.bungieName)}` : "Пользователь в игре не найден"}\n${memberData != undefined && memberData.id ? `Пользователь: <@${memberData.id}>` : "Отсутствует на сервере"}`,
                     inline: true,
                 }, { name: "Ранг", value: `${lastMember.rank}`, inline: true }, {
                     name: "Id",
-                    value: `${memberDbData && memberDbData.discordId ? `DiscordId: ${memberDbData.discordId}` : ""}${serverMember && memberDbData && memberDbData.discordId !== serverMember.user.id ? `(${serverMember.user.id})` : ""}\nBungieId: ${lastMember.bungieId}${memberDbData && lastMember.bungieId !== memberDbData.bungieId ? `(${memberDbData.bungieId})` : ""}${memberDbData && memberDbData.membershipId
+                    value: `${memberDbData && memberDbData.discordId ? `DiscordId: ${memberDbData.discordId}` : ""}${memberData && memberDbData && memberDbData.discordId !== memberData.user.id ? `(${memberData.user.id})` : ""}\nBungieId: ${lastMember.bungieId}${memberDbData && lastMember.bungieId !== memberDbData.bungieId ? `(${memberDbData.bungieId})` : ""}${memberDbData && memberDbData.membershipId
                         ? `\nMembershipId: [${memberDbData.membershipId}](https://www.bungie.net/7/ru/User/Profile/254/${memberDbData.membershipId})`
                         : ""}`,
                     inline: true,
                 }, {
                     name: "Клановая информация",
                     value: `${lastMember.isOnline ? "Прямо сейчас в игре\n" : ""}${lastMember.lastOnlineStatusChange
-                        ? `Посл. онлайн: <t:${lastMember.lastOnlineStatusChange}>, <t:${lastMember.lastOnlineStatusChange}:R>`
-                        : "Не заходил в игру после вступления в клан"}\nВступил в клан: <t:${lastMember.joinDate}>, <t:${lastMember.joinDate}:R>`,
+                        ? `П/О: <t:${lastMember.lastOnlineStatusChange}>, <t:${lastMember.lastOnlineStatusChange}:R>`
+                        : "Не заходил в игру после вступления в клан"}\nС нами с: <t:${lastMember.joinDate}>, <t:${lastMember.joinDate}:R>`,
                     inline: true,
                 }, {
                     name: "Актив на сервере",
                     value: `${memberDbData?.UserActivityData?.voice && memberDbData?.UserActivityData?.voice > 0
-                        ? `В голосе: ${convertSeconds(memberDbData.UserActivityData.voice)} (${memberDbData.UserActivityData.voice}сек)`
+                        ? `В голосе: ${convertSeconds(memberDbData.UserActivityData.voice)} (${memberDbData.UserActivityData.voice} сек)`
                         : "Ни разу не заходил в голосовые"}\n${memberDbData?.UserActivityData?.messages && memberDbData?.UserActivityData?.messages > 0
                         ? `Сообщений: ${memberDbData?.UserActivityData?.messages}`
                         : "Ни разу не писал в чатах"}`,
                     inline: true,
                 });
-                if (serverMember && serverMember.id) {
+                if (memberData && memberData.id) {
                     try {
                         removalEmbed.setAuthor({
-                            name: `${serverMember.displayName} / ${lastMember.bungieName}${memberDbData ? ` / ${memberDbData.displayName}` : ""}`,
-                            iconURL: serverMember.displayAvatarURL() || serverMember.user.displayAvatarURL(),
+                            name: `${memberData.displayName} / ${lastMember.bungieName}${memberDbData ? ` / ${memberDbData.displayName}` : ""}`,
+                            iconURL: memberData.displayAvatarURL() || memberData.user.displayAvatarURL(),
                         });
                     }
                     catch (error) {
@@ -240,7 +241,7 @@ export default new Command({
                                         iconURL: client.getCachedGuild().bannerURL(),
                                     })
                                         .setDescription(`> Вы были исключены из клана [Night 9](https://www.bungie.net/ru/ClanV2?groupid=4123712) в Destiny 2 поскольку не играли долгое время\n — Если вы вернетесь в игру - клан готов будет вас принять снова\n — Вступление в клан для исключенных доступно в <#724592361237381121> или по кнопке ниже\n\nПомните - даже после исключения из клана у Вас остается доступ к большинству возможностям сервера\nВы всё ещё можете записываться на рейды, общаться в каналах и т.д.\n\nЕсли у вас есть вопросы - обратитесь к <@${ownerId}>`);
-                                    await lastMember.serverMember.send({
+                                    await lastMember.serverMember?.send({
                                         embeds: [kickNotify],
                                         components: await addButtonComponentsToMessage([
                                             new ButtonBuilder()

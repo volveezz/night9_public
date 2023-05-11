@@ -247,11 +247,11 @@ export default new Command({
                 activityDate.firstCompletedClearInstanceId !== "0") {
                 const { firstCompletedClear, firstClear, firstCompletedClearInstanceId, firstClearInstanceId, lastClearInstanceId, lastClear } = activityDate;
                 result.push(`${firstClearInstanceId !== "0" && firstCompletedClear.getTime() > firstClear.getTime()
-                    ? `Впервые [${convertSeconds(Math.floor(firstClear.getTime() / 1000))}](${activityText.link}${firstClearInstanceId})｜`
+                    ? `Впервые <t:${Math.trunc(firstClear.getTime() / 1000)}:R>, [закрытие](${activityText.link}${firstClearInstanceId})｜`
                     : ""}${firstCompletedClearInstanceId !== "0"
-                    ? `1 закрытие [${convertSeconds(Math.floor(firstCompletedClear.getTime() / 1000))}](${activityText.link}${firstCompletedClearInstanceId})`
+                    ? `1 закрытие <t:${Math.trunc(firstCompletedClear.getTime() / 1000)}:R>, [закрытие](${activityText.link}${firstCompletedClearInstanceId})`
                     : ""}${lastClearInstanceId !== firstCompletedClearInstanceId && lastClearInstanceId !== "0"
-                    ? `｜Последнее закрытие [${convertSeconds(Math.floor(lastClear.getTime() / 1000))}](${activityText.link}${lastClearInstanceId})`
+                    ? `｜Последнее закрытие <t:${Math.trunc(lastClear.getTime() / 1000)}:R>, [закрытие](${activityText.link}${lastClearInstanceId})`
                     : ""}`);
             }
             if (activityTime.fastestInstanceId !== "0" ||
