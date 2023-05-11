@@ -5,7 +5,7 @@ import { RaidNotifyEdit } from "../configs/Modals.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
-import { channelIds, guildId } from "../configs/ids.js";
+import { channelIds } from "../configs/ids.js";
 import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { removeRaid } from "../utils/general/raidFunctions.js";
@@ -88,8 +88,8 @@ export default {
                 where: { [Op.or]: { inChannelMessageId: interaction.message.id, channelId: interaction.channelId } },
                 attributes,
             });
-        const guild = interaction.guild || client.getCachedGuild() || (await client.guilds.fetch(guildId));
-        const member = client.getCachedMembers().get(interaction.user.id) || (await guild.members.fetch(interaction.user.id));
+        const guild = client.getCachedGuild();
+        const member = await client.getAsyncMember(interaction.user.id);
         if (!member) {
             await deferredUpdate;
             throw {

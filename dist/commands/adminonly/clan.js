@@ -116,7 +116,8 @@ export default new Command({
                     name: "Id",
                     value: `${lastMember.memberDbData && lastMember.memberDbData.discordId
                         ? `DiscordId: ${lastMember.memberDbData.discordId}`
-                        : ""}${lastMember.serverMember?.user.id &&
+                        : ""}${lastMember.serverMember &&
+                        lastMember.serverMember.user.id &&
                         lastMember.memberDbData &&
                         lastMember.memberDbData.discordId !== lastMember.serverMember.user.id
                         ? `(${lastMember.serverMember.user.id})`
