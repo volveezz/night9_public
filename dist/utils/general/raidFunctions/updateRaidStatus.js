@@ -210,7 +210,7 @@ async function checkFireteamRoster(voiceChannelMembersAuthData, raidName) {
             const currentActivityModeHash = characterActivities[characterId].currentActivityModeHash;
             const currentActivityModeType = characterActivities[characterId].currentActivityModeType;
             if (currentActivityModeHash === 2166136261 || currentActivityModeType === 4) {
-                const activityName = getRaidNameFromHash(currentActivityModeHash).replace("Master", "");
+                const activityName = getRaidNameFromHash(characterActivities[characterId].currentActivityHash).replace("Master", "");
                 if (activityName !== raidName)
                     continue;
                 return destinyProfile.profileTransitoryData.data.partyMembers;

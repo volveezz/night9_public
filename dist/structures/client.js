@@ -85,7 +85,13 @@ export class ExtendedClient extends Client {
     }
     async getAsyncMessage(inputChannel, messageId) {
         const resolvedChannel = typeof inputChannel === "string" ? await this.getAsyncTextChannel(inputChannel) : inputChannel;
-        return resolvedChannel.messages.cache.get(messageId) || resolvedChannel.messages.fetch(messageId);
+        try {
+            return resolvedChannel.messages.cache.get(messageId) || (await resolvedChannel.messages.fetch(messageId));
+        }
+        catch (error) {
+            console.error(`Error fetching message: ${messageId} in channel: ${resolvedChannel?.name || inputChannel}${resolvedChannel && resolvedChannel.id ? ` with ID: ${resolvedChannel.id}` : ""}`, error);
+            return null;
+        }
     }
     async importFile(filePath) {
         return (await import(filePath))?.default;

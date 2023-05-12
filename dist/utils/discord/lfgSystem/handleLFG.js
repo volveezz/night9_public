@@ -168,7 +168,6 @@ async function lfgHandler(message) {
         await messageErrorHandler("Ошибка цвета", `Не удалось установить ваш цвет: \`${userSettings.color}\``, message);
     }
     if (userSettings.activitySettings?.name && userTitle) {
-        console.debug(userDescription, userSettings.activitySettings?.name, embed.data.description !== userDescription);
         embed.addFields({
             name: userSettings.activitySettings?.name && userDescription && embed.data.description !== userDescription
                 ? userTitle

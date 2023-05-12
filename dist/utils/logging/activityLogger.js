@@ -243,7 +243,7 @@ async function logActivityCompletion(pgcrId) {
                             const startTimeFromGame = new Date(response.period).getTime();
                             const isTimeFromGameValid = startTimeFromGame < encounterData.start;
                             const resolvedStartTime = isTimeFromGameValid ? startTimeFromGame : encounterData.start;
-                            console.debug(startTimeFromGame, isTimeFromGameValid, resolvedStartTime);
+                            console.debug("[Error code: 1747]", startTimeFromGame, isTimeFromGameValid, resolvedStartTime);
                             encountersData.push({
                                 end: encounterData.end,
                                 phase: encounterData.phase,

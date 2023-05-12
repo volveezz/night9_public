@@ -566,6 +566,14 @@ export default new Command({
             const t = await database.transaction();
             const changesForChannel = [];
             const inChannelMessage = await client.getAsyncMessage(raidData.channelId, raidData.inChannelMessageId);
+            if (!raidMessage) {
+                console.error("[Error code: 1750]", raidData);
+                throw { name: "Ошибка", description: "Не удалось найти сообщение рейда" };
+            }
+            if (!inChannelMessage) {
+                console.error("[Error code: 1749]", raidData);
+                throw { name: "Ошибка", description: "Не удалось найти сообщение в канале рейда" };
+            }
             const components = [];
             if ((newRaid && newRaid in raidsGuide) || raidData.raid in raidsGuide) {
                 components.push(new ButtonBuilder()
@@ -622,7 +630,7 @@ export default new Command({
                     if (updatedRaidMessage) {
                         raidEmbed.setFields(updatedRaidMessage.embeds[0].data.fields);
                     }
-                    raidChallenges(raidInfo, await inChannelMessage, raidData.time, newDifficulty != null && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : updatedRaid.difficulty);
+                    raidChallenges(raidInfo, inChannelMessage, raidData.time, newDifficulty != null && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : updatedRaid.difficulty);
                     const channel = await client.getAsyncTextChannel(updatedRaid.channelId);
                     channel.edit({ name: `🔥｜${updatedRaid.id}${raidInfo.channelName}` }).catch((e) => console.error("[Error code: 1696]", e));
                 }
@@ -752,7 +760,7 @@ export default new Command({
                     embeds: [raidEmbed],
                     ...(!newRaid ? { content: "" } : {}),
                 };
-                (await inChannelMessage).edit({
+                inChannelMessage.edit({
                     components: await addButtonComponentsToMessage([...getDefaultComponents(), ...components]),
                 });
                 raidMessage.edit(messageOptions);
@@ -792,7 +800,9 @@ export default new Command({
                     e.code !== 10008 ? console.error(e) : "";
                 }
                 try {
-                    await (await client.getAsyncMessage(raidsChannel, raidData.messageId)).delete();
+                    const message = await client.getAsyncMessage(raidsChannel, raidData.messageId);
+                    if (message)
+                        await message.delete();
                 }
                 catch (e) {
                     console.error(`[Error code: 1070] Message during raid manual delete for raidId ${raidData.id} wasn't found`);

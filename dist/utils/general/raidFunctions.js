@@ -178,7 +178,7 @@ export async function updateRaidMessage(options) {
     const raidChannel = await client.getAsyncTextChannel(channelIds.raid);
     const raidMessage = await client.getAsyncMessage(raidChannel, messageId);
     if (!raidMessage || !raidMessage.embeds || !raidMessage.embeds[0]) {
-        console.error("[Error code: 1219] Error during updateRaidMessage", raidMessage);
+        console.error("[Error code: 1219]", raidMessage);
         return;
     }
     const embed = EmbedBuilder.from(raidMessage.embeds[0]);
