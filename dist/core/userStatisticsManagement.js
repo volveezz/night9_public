@@ -23,6 +23,10 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
     const removeRoles = [];
     const memberRoles = member.roles.cache;
     const destinyProfileResponse = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/?components=100,900,1100`, accessToken);
+    if (!destinyProfileResponse) {
+        console.error(`[Error code: 1751] Received error for ${platform}/${bungieId} [${displayName}]`);
+        return;
+    }
     try {
         if (destinyProfileResponse == null ||
             !destinyProfileResponse?.metrics ||

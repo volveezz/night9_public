@@ -17,7 +17,7 @@ export async function handleDeleteRaid({ deferredUpdate, interaction, raidEvent,
         const embed = new EmbedBuilder()
             .setColor(colors.warning)
             .setAuthor({ name: `Подтвердите удаление рейда ${raidEvent.id}-${raidEvent.raid}`, iconURL: icons.warning })
-            .setDescription(`Если Вы хотите изменить рейд, то не удаляйте рейд, а измените его с помощью команды: \`/рейд изменить\` (</рейд изменить:1036145721696600134>)\n\n> **Можно изменить следующие параметры рейда:**\n - Время: \`/рейд изменить новое_время:20 21/06\`\n - Описание: \`/рейд изменить новое_описание:Новое описание для сильных\`\n - Минимальное количество закрытий рейда для записи: \`/рейд изменить новое_требование_закрытий:5\`\n\n> **В одной команде можно изменить сразу несколько параметров:**\n - \`/рейд изменить новый_рейд:Источник кошмаров новая_сложность:Мастер\``);
+            .setDescription(`Если Вы хотите изменить рейд, то не удаляйте рейд, а измените его с помощью команды: \`/рейд изменить\` (</рейд изменить:1036145721696600134>)\n\n> **Можно изменить следующие параметры рейда:**\n · Время: \`/рейд изменить новое_время:20 21/06\`\n · Описание: \`/рейд изменить новое_описание:Новое описание для сильных\`\n · Минимальное количество закрытий рейда для записи: \`/рейд изменить новое_требование_закрытий:5\`\n\n> **В одной команде можно изменить сразу несколько параметров:**\n · \`/рейд изменить новый_рейд:Источник кошмаров новая_сложность:Мастер\``);
         const components = [
             new ButtonBuilder().setCustomId(RaidButtons.deleteConfirm).setLabel("Подтвердить").setStyle(ButtonStyle.Danger),
             new ButtonBuilder().setCustomId(RaidButtons.deleteCancel).setLabel("Отменить").setStyle(ButtonStyle.Secondary),
@@ -253,7 +253,11 @@ export default {
                     return;
                 try {
                     interactionResponded = true;
-                    interactionSubmit.deferUpdate();
+                    const replyEmbed = new EmbedBuilder()
+                        .setColor(colors.serious)
+                        .setAuthor({ name: "Оповещение изменено", iconURL: icons.notify })
+                        .setDescription("Нажмите на кнопку ` Отправить ` для отправки оповещения участникам рейда");
+                    interactionSubmit.reply({ embeds: [replyEmbed], ephemeral: true });
                 }
                 catch (error) {
                     console.error("[Error code: 1661] Edit button was deferred multiple times");

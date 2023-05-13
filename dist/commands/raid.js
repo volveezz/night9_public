@@ -705,7 +705,7 @@ export default new Command({
                     }
                     changesForChannel.push({
                         name: "Старт рейда перенесен",
-                        value: ` - Прежнее время старта: <t:${raidData.time}>, <t:${raidData.time}:R>\n- Новое время: <t:${changedTime}>, <t:${changedTime}:R>`,
+                        value: ` · Прежнее время старта: <t:${raidData.time}>, <t:${raidData.time}:R>\n · Новое время: <t:${changedTime}>, <t:${changedTime}:R>`,
                     });
                     changes.push("Время старта было изменено");
                     const [_, updatedRaiddata] = await RaidEvent.update({

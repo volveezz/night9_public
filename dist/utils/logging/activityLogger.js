@@ -109,6 +109,7 @@ async function logActivityCompletion(pgcrId) {
             const isUserHunter = entry.player.classHash === 671679327;
             const isUserWarlock = entry.player.classHash === 2271682572;
             completedUsers.set(destinyUserInfo.membershipId, {
+                characterId: isUserCompletedActivity || !userData?.characterId ? entry.characterId : userData?.characterId,
                 bungieId: destinyUserInfo.membershipId,
                 bungieName: destinyUserInfo.bungieGlobalDisplayName,
                 classHash: isUserCompletedActivity
@@ -143,6 +144,7 @@ async function logActivityCompletion(pgcrId) {
             if (mode === 2 &&
                 !((clanMembersInActivity === 1 && membersMembershipIds.length === 1) || clanMembersInActivity > 1))
                 return;
+            console.debug(`[Debug code: 1639] PGCR: ${pgcrId}\n`, JSON.stringify(Array.from(completedPhases.entries())));
             let completedUsersCount = 0;
             let uncompletedUsersCount = 0;
             const raidName = mode === 4 ? getRaidNameFromHash(referenceId) : null;
@@ -157,11 +159,8 @@ async function logActivityCompletion(pgcrId) {
                     return null;
                 const baseRaidName = raidName.endsWith("Master") ? raidName.replace("Master", "") : raidName;
                 const masterRaidName = raidName.endsWith("Master") ? raidName : raidName + "Master";
-                const baseClears = totalRaidClearsForUser[baseRaidName] || 0;
-                const masterClears = totalRaidClearsForUser[masterRaidName] || 0;
-                const baseClearsText = `Закрытий: **${baseClears}**`;
-                const masterClearsText = masterClears > 0 ? `\n+**${masterClears}** на мастере` : "";
-                return baseClearsText + masterClearsText;
+                const baseClears = (totalRaidClearsForUser[baseRaidName] || 0) + (totalRaidClearsForUser[masterRaidName] || 0);
+                return `Закрытий: **${baseClears}**`;
             };
             const activityModeName = `В ${mode === 4 ? "рейде" : mode === 82 ? "подземелье" : "задании"}`;
             completedUsers.forEach((value, key) => {
@@ -205,8 +204,11 @@ async function logActivityCompletion(pgcrId) {
             if (mode === 4) {
                 const preciseEncountersTime = new Map();
                 membersMembershipIds.forEach((bungieId, i1) => {
-                    if (completedPhases.has(bungieId)) {
-                        const completedPhasesForUser = completedPhases.get(bungieId);
+                    const characterId = completedUsers.get(bungieId)?.characterId;
+                    if (!characterId)
+                        return;
+                    if (completedPhases.has(characterId)) {
+                        const completedPhasesForUser = completedPhases.get(characterId);
                         let previousEncounterEndTime = 0;
                         completedPhasesForUser.forEach((completedPhase, i2) => {
                             const { phase: phaseHash, start, end } = completedPhase;
@@ -232,7 +234,7 @@ async function logActivityCompletion(pgcrId) {
                                 previousEncounterEndTime = preciseStoredEncounterTime.end;
                             }
                         });
-                        completedPhases.delete(bungieId);
+                        completedPhases.delete(characterId);
                     }
                 });
                 if (preciseEncountersTime && preciseEncountersTime.size > 0) {
@@ -268,16 +270,14 @@ async function logActivityCompletion(pgcrId) {
                     });
                     if (encountersData.length >= 1) {
                         try {
-                            embed.addFields([
-                                {
-                                    name: "Затраченное время на этапы",
-                                    value: `${encountersData
-                                        .map((encounter) => {
-                                        return `⁣　⁣${encounter.phaseIndex}. <t:${Math.floor(encounter.start / 1000)}:t> — <t:${Math.floor(encounter.end / 1000)}:t>, **${convertSeconds(Math.floor((encounter.end - encounter.start) / 1000))}**`;
-                                    })
-                                        .join("\n")}`,
-                                },
-                            ]);
+                            embed.addFields({
+                                name: "Затраченное время на этапы",
+                                value: `${encountersData
+                                    .map((encounter) => {
+                                    return `⁣　⁣${encounter.phaseIndex}. <t:${Math.floor(encounter.start / 1000)}:t> — <t:${Math.floor(encounter.end / 1000)}:t>, **${convertSeconds(Math.floor((encounter.end - encounter.start) / 1000))}**`;
+                                })
+                                    .join("\n")}`,
+                            });
                         }
                         catch (error) {
                             console.error("[Error code: 1610] Error during adding fields to the raid result", error);
