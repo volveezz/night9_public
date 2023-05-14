@@ -50,7 +50,7 @@ export default new Command({
         type: ApplicationCommandType.User,
     },
     run: async ({ args, interaction: slashInteraction, userMenuInteraction }) => {
-        const interaction = slashInteraction || userMenuInteraction;
+        const interaction = userMenuInteraction || slashInteraction;
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const category = parseInt(args?.getString("категория") || "") || 4;
         const targerMember = await client.getAsyncMember(interaction instanceof MessageContextMenuCommandInteraction ? interaction.targetId : interaction.user.id);
@@ -69,7 +69,8 @@ export default new Command({
             name: `Идет обработка ${characterIdList.length} персонажей...`,
             iconURL: icons.loading,
         });
-        (await deferredReply) && interaction.editReply({ embeds: [embed] });
+        await deferredReply;
+        await interaction.editReply({ embeds: [embed] });
         async function getCompletedActivties() {
             let activities = [];
             let page = 0;

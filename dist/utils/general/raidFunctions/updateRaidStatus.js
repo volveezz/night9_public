@@ -52,7 +52,6 @@ async function updateRaidStatus() {
             const voiceChannelMembersAuthData = await getVoiceChannelMembersAuthData(userIds);
             const partyMembers = await checkFireteamRoster(voiceChannelMembersAuthData, raidEvent.raid);
             if (!partyMembers) {
-                console.error("[Error code: 1719]", userIds, raidEvent.id);
                 if (isFirstCheck < 3) {
                     isFirstCheck++;
                     return true;

@@ -163,6 +163,10 @@ async function logActivityCompletion(pgcrId) {
                 return `Закрытий: **${baseClears}**`;
             };
             const activityModeName = `В ${mode === 4 ? "рейде" : mode === 82 ? "подземелье" : "задании"}`;
+            const raidCharactersIds = new Array();
+            completedUsers.forEach((value) => {
+                raidCharactersIds.push(value.characterId);
+            });
             completedUsers.forEach((value, key) => {
                 if (!value.completed) {
                     return;
@@ -203,10 +207,11 @@ async function logActivityCompletion(pgcrId) {
             });
             if (mode === 4) {
                 const preciseEncountersTime = new Map();
-                membersMembershipIds.forEach((bungieId, i1) => {
-                    const characterId = completedUsers.get(bungieId)?.characterId;
-                    if (!characterId)
+                raidCharactersIds.forEach((characterId, i1) => {
+                    if (!characterId) {
+                        console.error(`[Error code: 1752] ${characterId}/${characterId}`);
                         return;
+                    }
                     if (completedPhases.has(characterId)) {
                         const completedPhasesForUser = completedPhases.get(characterId);
                         let previousEncounterEndTime = 0;
@@ -225,7 +230,7 @@ async function logActivityCompletion(pgcrId) {
                                     preciseStoredEncounterTime.end = end;
                                 }
                                 else if (end <= 1) {
-                                    const resolvedTime = completedPhasesForUser[i2 + 1]?.end || completedPhases.get(membersMembershipIds[i1 + 1])?.[i2 + 1]?.end;
+                                    const resolvedTime = completedPhasesForUser[i2 + 1]?.end || completedPhases.get(raidCharactersIds[i1 + 1])?.[i2 + 1]?.end;
                                     if (resolvedTime && resolvedTime > 1) {
                                         preciseStoredEncounterTime.end = resolvedTime;
                                     }
