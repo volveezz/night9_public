@@ -594,7 +594,7 @@ export default new Command({
             async function updateRequiredClears(newReqClears, raidData, t) {
                 if (newReqClears != null) {
                     const requiredClearsText = newReqClears === 0
-                        ? "Требование для вступления 'отключено'"
+                        ? "Требование для вступления `отключено`"
                         : `Теперь для вступления нужно от \`${newReqClears}\` закрытий`;
                     changesForChannel.push({
                         name: "Требование для вступления",

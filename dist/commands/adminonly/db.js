@@ -503,7 +503,7 @@ export default new Command({
                     interaction.editReply({ embeds: [embed] });
                 }
                 else {
-                    throw { name: `Удалено ${query} авто-ролей', description: 'Hash: ${removeroleid}` };
+                    throw { name: `Удалено ${query} авто-ролей`, description: `Hash: ${removeroleid}` };
                 }
                 return;
             }

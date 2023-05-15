@@ -96,7 +96,7 @@ async function generateTwitterEmbed(twitterData, author, icon) {
     };
     const cleanContent = cleanText(twitterData.content || "");
     if (!cleanContent || cleanContent.length === 0) {
-        console.error("[Error code: 1706]", twitterData);
+        console.error("[Error code: 1754]", twitterData);
         return null;
     }
     const extractedMedia = extractImageUrl(twitterData.content || "")?.replaceAll("&amp;", "&");

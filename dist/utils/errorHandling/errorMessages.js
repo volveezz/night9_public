@@ -24,7 +24,7 @@ function errorMessages(errorType, ...rest) {
                             iconURL: icons.error,
                             name: "Ошибка. Доступно после регистрации",
                         })
-                            .setDescription("Для регистрации нажмите на кнопку ниже или введите '/init'")
+                            .setDescription("Для регистрации нажмите на кнопку ниже или введите `/init`")
                             .setColor(colors.error),
                     ],
                 components: isSelf === false
