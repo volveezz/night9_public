@@ -218,10 +218,7 @@ export class ExtendedClient extends Client {
                 cacheRaidMilestones();
                 updateRaidStatus();
             }, 1000 * 30);
-            console.debug(v8.getHeapStatistics());
-            setTimeout(() => {
-                console.debug(v8.getHeapStatistics());
-            }, 60 * 1000 * 5);
+            setInterval(() => console.log(v8.getHeapStatistics()), 1000 * 60 * 60 * 1);
         });
     }
 }
