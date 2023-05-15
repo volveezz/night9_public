@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, MessageContextMenuCommandInteraction } from "discord.js";
+import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder } from "discord.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
@@ -53,7 +53,7 @@ export default new Command({
         const interaction = userMenuInteraction || slashInteraction;
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const category = parseInt(args?.getString("категория") || "") || 4;
-        const targerMember = await client.getAsyncMember(interaction instanceof MessageContextMenuCommandInteraction ? interaction.targetId : interaction.user.id);
+        const targerMember = await client.getAsyncMember(interaction.targetId ? interaction.targetId : interaction.user.id);
         if (!targerMember) {
             await deferredReply;
             throw { errorType: UserErrors.MEMBER_NOT_FOUND };

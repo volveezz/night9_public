@@ -148,6 +148,12 @@ async function updateRaidStatus() {
             }
         };
         setTimeout(async () => {
+            try {
+                sendPrivateChannelNotify();
+            }
+            catch (error) {
+                console.error("[Error code: 1753]", error);
+            }
             const interval = setInterval(async () => {
                 const checkFireteam = await checkFireteamStatus();
                 if (checkFireteam === false || !fireteamCheckingSystem.has(initialRaidEvent.id)) {
@@ -156,6 +162,8 @@ async function updateRaidStatus() {
                     fireteamCheckingSystem.delete(initialRaidEvent.id);
                 }
             }, 1000 * 60 * 5);
+        }, raidStartTimePlus5.getTime() - Date.now());
+        async function sendPrivateChannelNotify() {
             const fireteamCheckingNotification = new EmbedBuilder().setColor(colors.default).setTitle("Система слежка за составом запущена");
             const fireTeamCheckingNotificationComponents = new ButtonBuilder()
                 .setCustomId(RaidButtons.fireteamCheckerCancel)
@@ -173,7 +181,7 @@ async function updateRaidStatus() {
                 embeds: [fireteamCheckingNotification],
                 components: await addButtonComponentsToMessage([fireTeamCheckingNotificationComponents]),
             });
-        }, raidStartTimePlus5.getTime() - Date.now());
+        }
     });
 }
 async function getOngoingRaids() {

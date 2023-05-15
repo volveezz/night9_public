@@ -30,7 +30,7 @@ export async function clanOnlineMemberActivityChecker() {
                 await timer(2000);
                 continue;
             }
-            if (!activityCompletionCurrentProfiles.has(membershipId)) {
+            if (!activityCompletionCurrentProfiles.has(mostRecentCharacterId)) {
                 const authData = await AuthData.findByPk(discordId, { attributes: ["platform", "bungieId", "accessToken"] });
                 const raidMilestoneHash = raidMilestoneHashes.get(activeCharacter.currentActivityHash);
                 if (!authData) {
@@ -76,7 +76,7 @@ function areAllPhasesComplete(phases) {
 async function fetchCharacterResponse({ bungieId, characterId, platform, }) {
     try {
         const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`).catch((e) => console.error("[Error code: 1654]", e));
-        if (response == null) {
+        if (!response) {
             throw { name: `[Error code: 1653] Got error upon checking ${platform}/${bungieId}` };
         }
         return response;

@@ -513,10 +513,11 @@ async function checkIndiviualUserStatistics(user) {
         console.error(`[Error code: 1737]`, member.id);
         return;
     }
-    checkUserStatisticsRoles(memberAuthData, member, autoRoleData);
-    checkUserKDRatio(memberAuthData, member);
-    destinyActivityChecker(memberAuthData, member, 4);
-    destinyActivityChecker(memberAuthData, member, 84);
+    await checkUserStatisticsRoles(memberAuthData, member, autoRoleData);
+    await timer(1000);
+    await checkUserKDRatio(memberAuthData, member);
+    await destinyActivityChecker(memberAuthData, member, 4);
+    await destinyActivityChecker(memberAuthData, member, 84);
 }
 export { checkIndiviualUserStatistics };
 export default handleMemberStatistics;

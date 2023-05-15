@@ -144,7 +144,6 @@ async function logActivityCompletion(pgcrId) {
             if (mode === 2 &&
                 !((clanMembersInActivity === 1 && membersMembershipIds.length === 1) || clanMembersInActivity > 1))
                 return;
-            console.debug(`[Debug code: 1639] PGCR: ${pgcrId}\n`, JSON.stringify(Array.from(completedPhases.entries())));
             let completedUsersCount = 0;
             let uncompletedUsersCount = 0;
             const raidName = mode === 4 ? getRaidNameFromHash(referenceId) : null;
