@@ -27,7 +27,7 @@ async function clanMembersManagement(userBungieIds) {
     try {
         const clanList = await fetchRequest("Platform/GroupV2/4123712/Members/?memberType=None");
         if (!clanList) {
-            console.error("[Error code: 1013] ", userBungieIds);
+            console.error("[Error code: 1013]", userBungieIds.map((d) => d.bungieId).join(", "));
             return;
         }
         if (clanList.ErrorCode !== undefined && clanList.ErrorCode !== apiStatus.status) {
@@ -101,7 +101,7 @@ async function clanMembersManagement(userBungieIds) {
                                     }
                                 }
                                 catch (error) {
-                                    console.error("[Error code: 1238] Error during clanJoinDate role managment", { error });
+                                    console.error("[Error code: 1238] Error during clanJoinDate role managment", error);
                                 }
                             }
                             break;
@@ -143,7 +143,7 @@ async function clanMembersManagement(userBungieIds) {
         }
         catch (error) {
             t.rollback();
-            console.error("[Error code: 1220] Clan checker commit error", { error });
+            console.error("[Error code: 1220] Clan checker commit error", error);
         }
     }
     catch (e) {

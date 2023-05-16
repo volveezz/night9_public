@@ -57,7 +57,7 @@ export default async function webHandler(code, state, res) {
             request.destinyMemberships[0];
         if (!fetchedData) {
             res.send("<script>location.replace('error.html')</script>");
-            return console.error("[Error code: 1011]", `State: ${state} / Code:${code}`, body, fetchedData, request);
+            return console.error("[Error code: 1011]", `State: ${state} / Code:${code}`, body, request);
         }
         const { membershipType: platform, membershipId: bungieId } = fetchedData;
         const displayName = fetchedData.bungieGlobalDisplayName || fetchedData.LastSeenDisplayName || fetchedData.displayName;
@@ -82,7 +82,7 @@ export default async function webHandler(code, state, res) {
             },
         });
         if (!created) {
-            console.error(`[Error code: 1439] User (${json.discordId}) tried to connect already registered bungieId`, authData?.toJSON());
+            console.error(`[Error code: 1439] User (${json.discordId}) tried to connect already registered bungieId`, authData?.discordId, authData?.bungieId);
             return res.send("<script>location.replace('error.html')</script>");
         }
         InitData.destroy({
@@ -194,6 +194,6 @@ export default async function webHandler(code, state, res) {
         catch (e) {
             console.error("[Error code: 1210]", e);
         }
-        return console.error(`[Error code: 1234] State: ${state} / Code:${code}`, { body }, { error });
+        return console.error(`[Error code: 1234] State: ${state} / Code:${code}`, body, error);
     }
 }

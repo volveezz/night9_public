@@ -22,7 +22,7 @@ export async function requestUpdateTokens({ userId, table = AuthData, refresh_to
         }
     }
     if (!refreshToken) {
-        console.error("[Error code: 1698]", userId, table, refreshToken);
+        console.error("[Error code: 1698]", userId, refreshToken);
         return null;
     }
     const form = new URLSearchParams(Object.entries({

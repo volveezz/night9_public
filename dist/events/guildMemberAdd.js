@@ -95,7 +95,7 @@ export default new Event("guildMemberAdd", async (member) => {
             name: "Ошибка",
             value: "Во время восстановления данных произошла ошибка",
         });
-        console.error("[Error code: 1131]", error, data, transaction);
+        console.error("[Error code: 1131]", error, data?.discordId, data?.bungieId, transaction);
         message.edit({ embeds: [loggedEmbed] });
     }
 });

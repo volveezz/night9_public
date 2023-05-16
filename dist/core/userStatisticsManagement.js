@@ -174,7 +174,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                                             where: { gildedTriumphRequirement: role.gildedTriumphRequirement },
                                         });
                                         if (!dbRoleUpdated)
-                                            return console.error("Информация о роли не найдена в БД", dbRoleUpdated);
+                                            return console.error("[Error code: 1756] No information about role in database");
                                         dbRoleUpdated.gildedRoles[i] = createdRole.id;
                                         for (let i = 0; i < index || i < dbRoleUpdated.gildedRoles.length; i++) {
                                             const element = dbRoleUpdated.gildedRoles ? dbRoleUpdated.gildedRoles[i] : undefined;
@@ -429,7 +429,9 @@ async function handleMemberStatistics() {
             .map((val, ind) => {
             return ind < 5 ? `[Error code: 1021] ${val.displayName}/${val.discordId} not found on server` : null;
         });
-        dbNotFoundUsers.length > 0 && process.env.DEV_BUILD !== "dev" ? console.error(dbNotFoundUsers.filter((val, ind) => ind < 5)) : [];
+        dbNotFoundUsers.length > 0 && process.env.DEV_BUILD !== "dev"
+            ? console.error("[Error code: 1755]", dbNotFoundUsers.filter((val, ind) => ind < 5))
+            : [];
         const databaseData = dbNotFiltred.filter((data) => client.getCachedMembers().has(data.discordId));
         if (!databaseData || (databaseData.length === 0 && !process.env.DEV_BUILD)) {
             return console.error(`[Error code: 1022] DB is ${databaseData ? `${databaseData}${databaseData?.length} size` : "not avaliable"}`);

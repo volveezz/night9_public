@@ -1,6 +1,5 @@
 import { ActivityType, Client, Collection, GatewayIntentBits, Partials, } from "discord.js";
 import { join, resolve } from "path";
-import v8 from "v8";
 import { guildId } from "../configs/ids.js";
 import periodicDestinyActivityChecker from "../core/periodicActivityChecker.js";
 import tokenManagment from "../core/tokenManagement.js";
@@ -218,7 +217,6 @@ export class ExtendedClient extends Client {
                 cacheRaidMilestones();
                 updateRaidStatus();
             }, 1000 * 30);
-            setInterval(() => console.log(v8.getHeapStatistics()), 1000 * 60 * 60 * 1);
         });
     }
 }
