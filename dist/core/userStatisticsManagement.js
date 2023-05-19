@@ -353,6 +353,10 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
 async function checkUserKDRatio({ platform, bungieId, accessToken }, member) {
     try {
         const request = await fetchRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
+        if (request === undefined) {
+            throttleSet.add(member.id);
+            return;
+        }
         if (!request || !request.mergedAllCharacters || !request.mergedAllCharacters.results) {
             throttleSet.add(member.id);
             console.error(`[Error code: 1634] Got error ${request?.ErrorStatus} during checking KD of ${member.displayName}`);

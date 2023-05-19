@@ -8,6 +8,7 @@ import { clanOnlineMemberActivityChecker } from "../utils/general/activityComple
 import getFiles from "../utils/general/fileReader.js";
 import updateRaidStatus from "../utils/general/raidFunctions/updateRaidStatus.js";
 import { cacheRaidMilestones } from "../utils/general/raidMilestones.js";
+import { timer } from "../utils/general/utilities.js";
 import { restoreFetchedPGCRs } from "../utils/logging/activityLogger.js";
 const __dirname = resolve();
 export class ExtendedClient extends Client {
@@ -195,6 +196,7 @@ export class ExtendedClient extends Client {
                     this.guild = guildFetched;
                 }
                 await guildFetched.members.fetch();
+                await timer(1000);
                 await guildFetched.channels.fetch();
             });
             await Promise.all(fetchGuildsPromises);

@@ -26,6 +26,10 @@ let lastLoggedErrorCode = 1;
 async function clanMembersManagement(userBungieIds) {
     try {
         const clanList = await fetchRequest("Platform/GroupV2/4123712/Members/?memberType=None");
+        if (!clanList === undefined) {
+            console.error("[Error code: 1758] Request failed for clanMembersManagement");
+            return;
+        }
         if (!clanList) {
             console.error("[Error code: 1013]", userBungieIds.map((d) => d.bungieId).join(", "));
             return;
