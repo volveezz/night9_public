@@ -1,6 +1,6 @@
 {
 	"name": "nightfuture",
-	"version": "2.10.19",
+	"version": "2.10.20",
 	"engines": {
 		"node": "18.14.2"
 	},
@@ -22,7 +22,7 @@
 		"form-data": "^4.0.0",
 		"node-cron": "^3.0.2",
 		"node-fetch": "^3.3.1",
-		"pg": "^8.10.0",
+		"pg": "^8.11.0",
 		"pg-hstore": "^2.3.4",
 		"rss-parser": "^3.13.0",
 		"sequelize": "^6.31.1"

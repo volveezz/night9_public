@@ -7,7 +7,7 @@ export async function fetchRequest(cleanUrl, authorizationData) {
             Authorization: `${authorizationData ? `Bearer ${authorizationData.accessToken || authorizationData}` : ""}`,
         },
     }).catch((error) => {
-        handleFetchError(error, response);
+        handleFetchError(error);
     });
     if (!response) {
         return undefined;
@@ -29,7 +29,7 @@ export async function fetchRequest(cleanUrl, authorizationData) {
     return jsonResponse.Response ? jsonResponse.Response : jsonResponse;
 }
 function handleFetchError(error, response) {
-    const status = response?.status;
+    const status = response?.status || error.body?.code || error.code || error.statusCode || error.status || error;
     if (status === 524) {
         console.error("[Error code: 1710] A timeout occurred");
     }
