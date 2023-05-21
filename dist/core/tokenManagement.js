@@ -45,6 +45,12 @@ async function bungieGrantRequest(row, table, t, retry = false) {
         const request = await requestUpdateTokens({ refresh_token: row.refreshToken, table: table === 1 ? AuthData : LeavedUsersData });
         if (request && request.access_token) {
             await (table === 1 ? AuthData : LeavedUsersData).update({ accessToken: request.access_token, refreshToken: request.refresh_token }, { where: { bungieId: row.bungieId }, transaction: t });
+            if (request.refresh_expires_in !== 7776000) {
+                let loggableResponse = { ...request };
+                delete loggableResponse.access_token;
+                delete loggableResponse.refresh_token;
+                console.debug(`Found unexpected expire time for refresh token during checking of ${row.bungieId}`, loggableResponse);
+            }
         }
         else {
             handleRequestError(request, row, table, retry, t);

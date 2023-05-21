@@ -12,15 +12,15 @@ class AuthData extends Model {
 }
 AuthData.init({
     discordId: { type: DataTypes.STRING(30), primaryKey: true },
-    bungieId: { type: DataTypes.STRING(30), primaryKey: true },
+    bungieId: { type: DataTypes.STRING(30), unique: true },
     platform: { type: DataTypes.SMALLINT },
     clan: { type: DataTypes.BOOLEAN, values: ["true", "false"], defaultValue: false },
     displayName: { type: DataTypes.STRING(30) },
     accessToken: { type: DataTypes.TEXT },
     refreshToken: { type: DataTypes.TEXT },
     membershipId: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
+        type: DataTypes.STRING(30),
+        unique: true,
     },
     timezone: { type: DataTypes.SMALLINT, allowNull: true },
     roleCategoriesBits: { type: DataTypes.SMALLINT, defaultValue: "31" },
@@ -35,14 +35,14 @@ class LeavedUsersData extends Model {
 }
 LeavedUsersData.init({
     discordId: { type: DataTypes.STRING(30), primaryKey: true },
-    bungieId: { type: DataTypes.STRING(30), primaryKey: true },
+    bungieId: { type: DataTypes.STRING(30), unique: true },
     displayName: { type: DataTypes.STRING(30), allowNull: false },
     platform: { type: DataTypes.SMALLINT, allowNull: false },
     accessToken: { type: DataTypes.TEXT },
     refreshToken: { type: DataTypes.TEXT },
     membershipId: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
+        type: DataTypes.STRING(30),
+        unique: true,
     },
     timezone: { type: DataTypes.SMALLINT, allowNull: true },
 }, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
@@ -59,7 +59,14 @@ AutoRoleData.init({
 class UserActivityData extends Model {
 }
 UserActivityData.init({
-    discordId: { type: DataTypes.STRING(30), primaryKey: true, references: { model: AuthData, key: "discordId" } },
+    discordId: {
+        type: DataTypes.STRING(30),
+        allowNull: false,
+        references: {
+            model: AuthData,
+            key: "discordId",
+        },
+    },
     messages: { type: DataTypes.INTEGER, defaultValue: 0 },
     voice: { type: DataTypes.INTEGER, defaultValue: 0 },
     raids: { type: DataTypes.INTEGER, defaultValue: 0 },
@@ -73,8 +80,8 @@ UserActivityData.init({
     freezeTableName: true,
     name: { singular: "UserActivityData", plural: "UserActivityData" },
 });
-AuthData.belongsTo(UserActivityData, { foreignKey: "discordId", targetKey: "discordId", onDelete: "CASCADE" });
 UserActivityData.belongsTo(AuthData, { foreignKey: "discordId", targetKey: "discordId", onDelete: "CASCADE" });
+AuthData.hasOne(UserActivityData);
 class RaidEvent extends Model {
 }
 RaidEvent.init({
@@ -117,4 +124,23 @@ RaidEvent.init({
         values: ["1", "2", "3"],
     },
 }, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
+class RaidUserNotification extends Model {
+}
+RaidUserNotification.init({
+    discordId: {
+        type: DataTypes.STRING(30),
+        allowNull: false,
+        references: {
+            model: AuthData,
+            key: "discordId",
+        },
+    },
+    notificationTimes: {
+        type: DataTypes.ARRAY(DataTypes.SMALLINT),
+        allowNull: false,
+        defaultValue: [15],
+    },
+}, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
+RaidUserNotification.belongsTo(AuthData, { foreignKey: "discordId", targetKey: "discordId", onDelete: "CASCADE" });
+AuthData.hasOne(RaidUserNotification);
 export { AuthData, AutoRoleData, InitData, LeavedUsersData, RaidEvent, UserActivityData, sequelize as database };
