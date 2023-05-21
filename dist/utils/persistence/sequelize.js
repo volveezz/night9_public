@@ -62,6 +62,7 @@ UserActivityData.init({
     discordId: {
         type: DataTypes.STRING(30),
         allowNull: false,
+        primaryKey: true,
         references: {
             model: AuthData,
             key: "discordId",
@@ -80,8 +81,20 @@ UserActivityData.init({
     freezeTableName: true,
     name: { singular: "UserActivityData", plural: "UserActivityData" },
 });
-UserActivityData.belongsTo(AuthData, { foreignKey: "discordId", targetKey: "discordId", onDelete: "CASCADE" });
-AuthData.hasOne(UserActivityData);
+UserActivityData.belongsTo(AuthData, {
+    foreignKey: {
+        name: "discordId",
+        allowNull: false,
+    },
+    targetKey: "discordId",
+    onDelete: "CASCADE",
+});
+AuthData.hasOne(UserActivityData, {
+    foreignKey: {
+        name: "discordId",
+        allowNull: false,
+    },
+});
 class RaidEvent extends Model {
 }
 RaidEvent.init({
@@ -130,6 +143,7 @@ RaidUserNotification.init({
     discordId: {
         type: DataTypes.STRING(30),
         allowNull: false,
+        primaryKey: true,
         references: {
             model: AuthData,
             key: "discordId",
@@ -141,6 +155,18 @@ RaidUserNotification.init({
         defaultValue: [15],
     },
 }, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
-RaidUserNotification.belongsTo(AuthData, { foreignKey: "discordId", targetKey: "discordId", onDelete: "CASCADE" });
-AuthData.hasOne(RaidUserNotification);
+RaidUserNotification.belongsTo(AuthData, {
+    foreignKey: {
+        name: "discordId",
+        allowNull: false,
+    },
+    targetKey: "discordId",
+    onDelete: "CASCADE",
+});
+AuthData.hasOne(RaidUserNotification, {
+    foreignKey: {
+        name: "discordId",
+        allowNull: false,
+    },
+});
 export { AuthData, AutoRoleData, InitData, LeavedUsersData, RaidEvent, UserActivityData, sequelize as database };
