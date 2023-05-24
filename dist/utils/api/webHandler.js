@@ -92,6 +92,17 @@ export default async function webHandler(code, state, res) {
                     .setAuthor({ name: "Вы обновили данные авторизации", iconURL: icons.success });
                 const member = await client.getAsyncMember(json.discordId);
                 member.send({ embeds: [embed] });
+                try {
+                    const loggedEmbed = new EmbedBuilder()
+                        .setColor(colors.success)
+                        .setAuthor({ name: member.displayName, iconURL: member.displayAvatarURL() })
+                        .setTitle("Пользователь обновил существующую регистрацию");
+                    await (await client.getAsyncTextChannel(channelIds.bot)).send({ embeds: [loggedEmbed] });
+                }
+                catch (error) {
+                    console.error("[Error code: 1808] Failed to send log message", error, json.discordId);
+                }
+                InitData.destroy({ where: { discordId: json.discordId }, limit: 1 });
                 return res.send("<script>location.replace('index.html')</script>").end();
             }
             console.error(`[Error code: 1439] User (${json.discordId}) tried to connect already registered bungieId`, authData?.discordId, authData?.bungieId);
@@ -121,7 +132,7 @@ export default async function webHandler(code, state, res) {
             inline: true,
         });
         const loggedEmbed = new EmbedBuilder()
-            .setColor(colors.serious)
+            .setColor(colors.success)
             .setAuthor({ name: `${member.displayName} зарегистрировался`, iconURL: member.displayAvatarURL() })
             .addFields({ name: "Пользователь", value: `<@${member.id}>`, inline: true }, {
             name: "Bungie аккаунт",
