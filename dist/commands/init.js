@@ -7,7 +7,9 @@ export default new Command({
     global: true,
     run: async ({ interaction }) => {
         const deferredReply = interaction.deferReply({ ephemeral: true });
-        const embeds = [await sendRegistrationLink(interaction, deferredReply)];
-        (await deferredReply) && interaction.editReply({ embeds });
+        const embeds = [await sendRegistrationLink(interaction)];
+        await deferredReply;
+        await interaction.editReply({ embeds });
+        return;
     },
 });

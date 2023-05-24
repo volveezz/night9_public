@@ -2,6 +2,7 @@ import { ApplicationCommandType, ButtonBuilder, ButtonStyle, ChatInputCommandInt
 import { StatsButton } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
+import { apiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
 import { fetchRequest } from "../utils/api/fetchRequest.js";
 import { CachedDestinyRaceDefinition } from "../utils/api/manifestHandler.js";
@@ -24,6 +25,9 @@ export default new Command({
         nameLocalizations: { "en-US": "Information", "en-GB": "Information" },
     },
     run: async ({ client, interaction: commandInteraction, userMenuInteraction: userInteraction, messageMenuInteraction: messageMenuInteraction, }) => {
+        if (apiStatus.status !== 1) {
+            throw { errorType: UserErrors.API_UNAVAILABLE };
+        }
         const interaction = messageMenuInteraction || userInteraction || commandInteraction;
         const deferPromise = interaction.deferReply({ ephemeral: true });
         const optionId = interaction instanceof ChatInputCommandInteraction ? interaction.options.getString("bungiename") : null;
@@ -45,7 +49,7 @@ export default new Command({
             where: {
                 discordId: targetId,
             },
-            include: UserActivityData,
+            include: { model: UserActivityData },
             attributes: ["platform", "bungieId", "accessToken"],
         });
         if (!parsedData) {
@@ -107,7 +111,7 @@ export default new Command({
                     const lastSessionTime = (parseInt(character.minutesPlayedThisSession) || 0) * 60;
                     const totalTime = (parseInt(character.minutesPlayedTotal) || 0) * 60;
                     const raceName = CachedDestinyRaceDefinition[character.raceHash].genderedRaceNamesByGenderHash[character.genderHash];
-                    characterDataArray.push(`${classEmoji}**${raceName}** ${character.light} силы - последний онлайн <t:${Math.floor(new Date(character.dateLastPlayed).getTime() / 1000)}:R>\n　• ${convertSeconds(lastSessionTime)} за последнюю сессию (${convertSeconds(totalTime)})`);
+                    characterDataArray.push(`${classEmoji}**${raceName}** ${character.light} силы - последний онлайн <t:${Math.floor(new Date(character.dateLastPlayed).getTime() / 1000)}:R>\n- ${convertSeconds(lastSessionTime)} за последнюю сессию (${convertSeconds(totalTime)})`);
                     fieldUrls.push(`${classEmoji}[Braytech](https://bray.tech/${platform}/${bungieId}/${character.characterId}/)`);
                 }
                 embed.spliceFields(0, 1, { name: "Ссылки", value: fieldUrls.join(", ") });

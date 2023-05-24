@@ -7,6 +7,7 @@ const roleRequirements = {
     3950599483: "За «Яма ереси»",
     4126703847: "За «Дуальность»",
     4032136335: "За «Шпиль хранителя»",
+    999999999999: "За [REDACTED]",
 };
-const dungeonsTriumphHashes = [3718971745, 3191784400, 3205009787, 3950599483, 4126703847, 4032136335];
+const dungeonsTriumphHashes = [3718971745, 3191784400, 3205009787, 3950599483, 4126703847, 4032136335, 999999999999];
 export { dungeonsTriumphHashes, roleRequirements };

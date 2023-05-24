@@ -3,6 +3,7 @@ import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { client } from "../index.js";
+import { apiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
 import { fetchRequest } from "../utils/api/fetchRequest.js";
 import { CachedDestinyActivityDefinition } from "../utils/api/manifestHandler.js";
@@ -50,6 +51,9 @@ export default new Command({
         type: ApplicationCommandType.User,
     },
     run: async ({ args, interaction: slashInteraction, userMenuInteraction }) => {
+        if (apiStatus.status !== 1) {
+            throw { errorType: UserErrors.API_UNAVAILABLE };
+        }
         const interaction = userMenuInteraction || slashInteraction;
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const category = parseInt(args?.getString("категория") || "") || 4;

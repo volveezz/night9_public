@@ -154,7 +154,14 @@ RaidUserNotification.init({
         allowNull: false,
         defaultValue: [15],
     },
-}, { sequelize, timestamps: false, createdAt: false, updatedAt: false });
+}, {
+    sequelize,
+    timestamps: false,
+    createdAt: false,
+    updatedAt: false,
+    freezeTableName: true,
+    name: { singular: "RaidUserNotification", plural: "RaidUserNotification" },
+});
 RaidUserNotification.belongsTo(AuthData, {
     foreignKey: {
         name: "discordId",
@@ -169,4 +176,4 @@ AuthData.hasOne(RaidUserNotification, {
         allowNull: false,
     },
 });
-export { AuthData, AutoRoleData, InitData, LeavedUsersData, RaidEvent, UserActivityData, sequelize as database };
+export { AuthData, AutoRoleData, InitData, LeavedUsersData, RaidEvent, RaidUserNotification, UserActivityData, sequelize as database };

@@ -2,6 +2,7 @@ import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { StatsButton } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
+import { apiStatus } from "../structures/apiStatus.js";
 import { fetchRequest } from "../utils/api/fetchRequest.js";
 import { CachedDestinyMilestoneDefinition, CachedDestinyProgressionDefinition } from "../utils/api/manifestHandler.js";
 import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
@@ -11,6 +12,9 @@ export default {
     async run({ interaction }) {
         if (interaction.customId !== StatsButton.oldEvents && interaction.customId !== StatsButton.pinnacle)
             return;
+        if (apiStatus.status !== 1) {
+            throw { errorType: UserErrors.API_UNAVAILABLE };
+        }
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const footerText = interaction.message.embeds[0]?.footer?.text || "";
         const id = footerText.slice(4) || interaction.user.id;

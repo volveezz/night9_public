@@ -1,5 +1,4 @@
 import { ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder } from "discord.js";
-import { schedule } from "node-cron";
 import { Op, Sequelize } from "sequelize";
 import { RaidButtons } from "../../../configs/Buttons.js";
 import colors from "../../../configs/colors.js";
@@ -12,10 +11,7 @@ import nameCleaner from "../nameClearer.js";
 import { getRaidNameFromHash, updatePrivateRaidMessage, updateRaidMessage } from "../raidFunctions.js";
 const MINUTES_AFTER_RAID = 5;
 export const fireteamCheckingSystem = new Set();
-schedule("0 23 * * *", () => {
-    updateRaidStatus();
-});
-async function updateRaidStatus() {
+async function raidFireteamChecker() {
     const ongoingRaids = await getOngoingRaids();
     ongoingRaids.forEach((initialRaidEvent) => {
         if (fireteamCheckingSystem.has(initialRaidEvent.id))
@@ -31,7 +27,7 @@ async function updateRaidStatus() {
             });
             if (!raidEvent || raidEvent.time != initialRaidEvent.time) {
                 if (raidEvent && raidEvent.time != initialRaidEvent.time) {
-                    setTimeout(() => updateRaidStatus(), 1000 * 60);
+                    setTimeout(() => raidFireteamChecker(), 1000 * 60);
                     console.debug(`Raid with ID: ${initialRaidEvent.id} has changed time, rescheduling update`);
                     return false;
                 }
@@ -243,4 +239,4 @@ async function updateRaidJoinedRoster(joined, raidEvent, discordId) {
     });
     return updatedData;
 }
-export default updateRaidStatus;
+export default raidFireteamChecker;

@@ -1,6 +1,5 @@
-import { ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, EmbedBuilder, } from "discord.js";
+import { ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, } from "discord.js";
 import { Op } from "sequelize";
-import { raidAnnounceSet } from "../../commands/raid.js";
 import { RaidButtons } from "../../configs/Buttons.js";
 import { RaidNames } from "../../configs/Raids.js";
 import UserErrors from "../../configs/UserErrors.js";
@@ -18,7 +17,7 @@ import { RaidEvent } from "../persistence/sequelize.js";
 import { addButtonComponentsToMessage } from "./addButtonsToMessage.js";
 import { completedRaidsData } from "./destinyActivityChecker.js";
 import nameCleaner from "./nameClearer.js";
-import { getRandomGIF, getRandomRaidGIF } from "./utilities.js";
+import { clearNotifications } from "./raidFunctions/raidNotifications.js";
 const blockedModifierHashesArray = [1123720291, 1783825372, 782039530, 2006149364, 197794292, 3307318061, 438106166, 2288210988];
 const raidsWithoutData = new Set();
 function getDefaultRaidButtons() {
@@ -178,7 +177,7 @@ export async function updateRaidMessage(options) {
     const raidChannel = await client.getAsyncTextChannel(channelIds.raid);
     const raidMessage = await client.getAsyncMessage(raidChannel, messageId);
     if (!raidMessage || !raidMessage.embeds || !raidMessage.embeds[0]) {
-        console.error("[Error code: 1219]", raidMessage);
+        console.error("[Error code: 1803]", raidMessage);
         return;
     }
     const embed = EmbedBuilder.from(raidMessage.embeds[0]);
@@ -524,83 +523,6 @@ export function timeConverter(str, timezoneOffset = 3) {
         date.setDate(date.getDate() + 1);
     return Math.round(date.getTime() / 1000);
 }
-export async function raidAnnounceSystem(raidData) {
-    if (process.env.DEV_BUILD === "dev") {
-        return;
-    }
-    if (raidData.time >= 2147483647) {
-        console.error(`[Error code: 1656] Received too big number (${raidData.time}) for raidAnnounce of ${raidData.id}`, raidData);
-        return;
-    }
-    if (raidAnnounceSet.has(raidData.id)) {
-        return;
-    }
-    raidAnnounceSet.add(raidData.id);
-    const timeUntilRaid = raidData.time - Math.floor(Date.now() / 1000);
-    const timeUntilAnnouncement = timeUntilRaid - 60 * 15;
-    if (timeUntilAnnouncement > 0) {
-        setTimeout(() => raidAnnounce(raidData), timeUntilAnnouncement * 1000);
-    }
-}
-async function raidAnnounce(oldRaidData) {
-    const raidData = await RaidEvent.findByPk(oldRaidData.id);
-    if (!raidData || (raidData && raidData.time !== oldRaidData.time))
-        return;
-    const raidInfo = getRaidData(raidData.raid, raidData.difficulty);
-    const guild = (client.getCachedGuild() || client.guilds.cache.get(guildId) || (await client.guilds.fetch(guildId)));
-    const raidMembers = raidData.joined.map(async (userId) => {
-        return guild.members.cache.get(userId) || (await guild.members.fetch(userId));
-    });
-    const raidMembersNames = (await Promise.all(raidMembers))
-        .sort((a) => (a.id === raidData.creator ? 1 : 0))
-        .map((member, index) => {
-        const raidClears = completedRaidsData.get(member.id);
-        return `⁣　${index + 1}. **${nameCleaner(member.displayName, true)}**${raidClears
-            ? ` — ${generateRaidClearsText(raidClears[raidData.raid])}${raidClears[raidData.raid + "Master"] ? ` (+**${raidClears[raidData.raid + "Master"]}** на мастере)` : ""}`
-            : ""}`;
-    });
-    const embed = new EmbedBuilder()
-        .setColor(raidInfo ? raidInfo.raidColor : colors.default)
-        .setTitle("Уведомление о скором рейде")
-        .setThumbnail(raidInfo?.raidBanner ?? null)
-        .setTimestamp(raidData.time * 1000)
-        .setDescription(`Рейд [${raidData.id}-${raidData.raid}](https://discord.com/channels/${guildId}/${channelIds.raid}/${raidData.messageId}) начнется в течение ${Math.trunc((raidData.time - Math.trunc(Date.now() / 1000)) / 60)} минут!`)
-        .addFields([
-        {
-            name: "Состав группы:",
-            value: raidMembersNames.join("\n") || "⁣　*никого*",
-        },
-    ]);
-    try {
-        embed.setImage((await getRandomRaidGIF()) || (await getRandomGIF("raid time")));
-    }
-    catch (error) {
-        console.error("[Error code: 1631] Error during adding image to the notify message", error);
-    }
-    const raidVoiceChannels = guild.channels.cache
-        .filter((chn) => chn.parentId === channelIds.raidCategory && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"))
-        .reverse();
-    const components = [];
-    for await (const [_, chn] of raidVoiceChannels) {
-        if (chn.userLimit === 0 || chn.userLimit - 6 > chn.members.size || chn.members.has(raidData.creator)) {
-            const invite = await chn.createInvite({ reason: "Raid automatic invite", maxAge: 60 * 120 });
-            invite
-                ? components.push(new ButtonBuilder({
-                    style: ButtonStyle.Link,
-                    url: invite.url,
-                    label: `Перейти ${chn.members.has(raidData.creator) ? "к создателю рейда" : "в рейдовый канал"}`,
-                }))
-                : "";
-            break;
-        }
-    }
-    raidMembers.forEach(async (member) => {
-        (await member).send({
-            embeds: [embed],
-            components: await addButtonComponentsToMessage(components),
-        });
-    });
-}
 export async function checkRaidTimeConflicts(interaction, raidEvent) {
     const member = client.getCachedMembers().get(interaction.user.id) || (await client.getCachedGuild().members.fetch(interaction.user.id));
     const { time: targetRaidTime } = raidEvent;
@@ -627,16 +549,11 @@ export async function checkRaidTimeConflicts(interaction, raidEvent) {
 }
 export async function removeRaid(raid, interaction, requireMessageReply = true, mainInteraction) {
     const deletionResult = await RaidEvent.destroy({ where: { id: raid.id }, limit: 1 });
-    const guild = client.getCachedGuild() || (await client.guilds.fetch(guildId));
-    const privateRaidChannel = guild.channels.cache.get(raid.channelId) || (await guild.channels.fetch(raid.channelId));
-    const mainRaidChannel = (guild.channels.cache.get(channelIds.raid) || (await guild.channels.fetch(channelIds.raid)));
-    const raidMessage = mainRaidChannel.messages.cache.get(raid.messageId) ||
-        (await mainRaidChannel.messages.fetch(raid.messageId).catch((e) => {
-            "[Error code: 1697] Not found raid message";
-        }));
-    const interactingMember = interaction
-        ? guild.members.cache.get(interaction.user.id) || (await guild.members.fetch(interaction.user.id))
-        : null;
+    const privateRaidChannel = await client.getAsyncTextChannel(raid.channelId);
+    const raidMessage = await client.getAsyncMessage(channelIds.raid, raid.messageId).catch((e) => {
+        console.error("[Error code: 1697] Not found raid message", raid.id, e);
+    });
+    const interactingMember = interaction ? await client.getAsyncMember(interaction.user.id) : null;
     const editMessageReply = async (embed) => {
         if (!interaction || !interaction.channel || !interaction.channel.isDMBased() || !requireMessageReply)
             return;
@@ -662,6 +579,7 @@ export async function removeRaid(raid, interaction, requireMessageReply = true, 
         catch (e) {
             console.error("[Error code: 1667]", e);
         }
+        clearNotifications(raid.id);
         if (!interaction)
             return;
         const successEmbed = new EmbedBuilder()

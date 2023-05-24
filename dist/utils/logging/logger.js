@@ -70,7 +70,12 @@ export async function updateClanRolesWithLogging(result, join) {
                 iconURL: member.displayAvatarURL(),
             })
                 .setColor(colors.success);
-            notifyJoinedUser(member);
+            try {
+                notifyJoinedUser(member);
+            }
+            catch (error) {
+                console.error(`[Error code: 1806] Cannot send message to ${member.displayName}`, error);
+            }
         }
         else {
             const setRoles = member.roles.cache.has(statusRoles.verified) ? [statusRoles.kicked, statusRoles.verified] : [statusRoles.kicked];

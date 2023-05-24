@@ -63,7 +63,7 @@ export default {
                                 ? "<:crossmark:1020504750350934026>"
                                 : "<:successCheckmark:1018320951173189743>";
                         };
-                        return embed.setDescription(` • **Общая статистика** — ${categoryChecker(1)}\n • **Статистика Испытаний Осириса** — ${categoryChecker(2)}\n • **Титулы** — ${categoryChecker(4)}\n • **Триумфы** — ${categoryChecker(8)}\n • **Активность на сервере** — ${categoryChecker(16)}`);
+                        return embed.setDescription(`- **Общая статистика** — ${categoryChecker(1)}\n- **Статистика Испытаний Осириса** — ${categoryChecker(2)}\n- **Титулы** — ${categoryChecker(4)}\n- **Триумфы** — ${categoryChecker(8)}\n- **Активность на сервере** — ${categoryChecker(16)}`);
                     }
                     if (roleStatus)
                         return;

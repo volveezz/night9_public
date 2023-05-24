@@ -12,6 +12,7 @@ import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { checkRaidTimeConflicts, getRaidData, sendUserRaidGuideNoti, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
 import { handleRaidCreatorLeaving } from "../utils/general/raidFunctions/raidCreatorHandler.js";
+import { updateNotifications } from "../utils/general/raidFunctions/raidNotifications.js";
 import { RaidEvent } from "../utils/persistence/sequelize.js";
 const raidGuideSentUsers = new Map();
 async function actionMessageHandler({ interaction, raidEvent, target }) {
@@ -63,7 +64,7 @@ async function actionMessageHandler({ interaction, raidEvent, target }) {
 }
 async function joinedFromHotJoined(raidData) {
     const newRaidJoined = raidData.hotJoined.shift();
-    const member = client.getCachedMembers().get(newRaidJoined);
+    const member = await client.getAsyncMember(newRaidJoined);
     if (!member)
         return console.error("[Error code: 1647]", raidData);
     const [_, [updatedRaidData]] = await RaidEvent.update({
@@ -83,9 +84,9 @@ async function joinedFromHotJoined(raidData) {
         .setFooter({
         text: "Пользователь перезаписан системой",
     });
-    client.getCachedTextChannel(updatedRaidData.channelId).send({ embeds: [embed] });
+    (await client.getAsyncTextChannel(updatedRaidData.channelId)).send({ embeds: [embed] });
     const { embeds, components } = (await updateRaidMessage({ raidEvent: updatedRaidData, returnComponents: true }));
-    (await client.getCachedTextChannel(channelIds.raid).messages.fetch(updatedRaidData.messageId)).edit({
+    await (await client.getAsyncMessage(channelIds.raid, updatedRaidData.messageId)).edit({
         embeds,
         components: await addButtonComponentsToMessage(components),
     });
@@ -96,6 +97,7 @@ async function joinedFromHotJoined(raidData) {
     if (!updatedRaidData)
         return console.error("[Error code: 1637]", updatedRaidData);
     await updatePrivateRaidMessage({ raidEvent: updatedRaidData });
+    updateNotifications(member.id, true);
 }
 export default {
     name: "raidButton",
@@ -169,6 +171,7 @@ export default {
             if (raidEvent.creator === interaction.user.id) {
                 await handleRaidCreatorLeaving(raidEvent, raidEvent.creator);
             }
+            updateNotifications(interaction.user.id);
             return;
         }
         let raidEvent = await RaidEvent.findOne({
@@ -263,13 +266,14 @@ export default {
             ViewChannel: true,
         });
         if (interaction.customId === RaidButtons.join) {
+            updateNotifications(interaction.user.id, true);
             checkRaidTimeConflicts(interaction, raidEvent);
         }
-        if (userAlreadyJoined &&
-            interaction.customId === RaidButtons.alt &&
-            raidEvent.joined.length === 5 &&
-            raidEvent.hotJoined.length > 0) {
-            setTimeout(async () => await joinedFromHotJoined(raidEvent), 500);
+        if (interaction.customId === RaidButtons.alt) {
+            updateNotifications(interaction.user.id);
+            if (userAlreadyJoined && raidEvent.joined.length === 5 && raidEvent.hotJoined.length > 0) {
+                setTimeout(async () => await joinedFromHotJoined(raidEvent), 500);
+            }
         }
         return;
     },

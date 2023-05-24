@@ -192,6 +192,16 @@ function errorMessages(errorType, ...rest) {
                 ],
             };
         }
+        case UserErrors.API_UNAVAILABLE: {
+            return {
+                embeds: [
+                    new EmbedBuilder().setColor(colors.error).setAuthor({
+                        name: "Ошибка. API игры недоступно. Попробуйте позже",
+                        iconURL: icons.error,
+                    }),
+                ],
+            };
+        }
         default: {
             return {
                 embeds: [

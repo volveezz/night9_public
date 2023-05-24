@@ -9,7 +9,7 @@ import { channelIds } from "../configs/ids.js";
 import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { removeRaid } from "../utils/general/raidFunctions.js";
-import { fireteamCheckingSystem } from "../utils/general/raidFunctions/updateRaidStatus.js";
+import { fireteamCheckingSystem } from "../utils/general/raidFunctions/raidFireteamChecker.js";
 import { descriptionFormatter, getRandomRaidGIF } from "../utils/general/utilities.js";
 import { RaidEvent } from "../utils/persistence/sequelize.js";
 export async function handleDeleteRaid({ deferredUpdate, interaction, raidEvent, requireMessageReply, }) {
@@ -66,11 +66,10 @@ export default {
             RaidButtons.unlock,
             RaidButtons.delete,
             RaidButtons.resend,
-            RaidButtons.invite,
             RaidButtons.fireteamCheckerCancel,
         ].includes(interaction.customId))
             return;
-        const deferredUpdate = [RaidButtons.transfer, RaidButtons.delete, RaidButtons.invite, RaidButtons.notify].includes(interaction.customId)
+        const deferredUpdate = [RaidButtons.transfer, RaidButtons.delete, RaidButtons.notify].includes(interaction.customId)
             ? interaction.deferReply({ ephemeral: true })
             : interaction.deferUpdate();
         const attributes = ["creator", "id", "raid", "joined", "messageId", "channelId"];

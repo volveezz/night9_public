@@ -39,11 +39,12 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
     });
     const sendedButtons = new Set();
     collector.on("collect", async (button) => {
-        const deferredUpdate = button.deferReply({ ephemeral: true });
-        sendedButtons.add(button);
         if (button.customId === RaidButtons.transitionCancel) {
+            button.deferUpdate();
             return collector.stop("canceled");
         }
+        const deferredUpdate = button.deferReply({ ephemeral: true });
+        sendedButtons.add(button);
         if (button.customId === RaidButtons.transitionDelete) {
             const isRaidDeleted = await handleDeleteRaid({ interaction: button, raidEvent: raid, deferredUpdate, requireMessageReply: false });
             if (isRaidDeleted === 1) {

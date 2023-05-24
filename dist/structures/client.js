@@ -6,7 +6,8 @@ import tokenManagment from "../core/tokenManagement.js";
 import handleMemberStatistics from "../core/userStatisticsManagement.js";
 import { clanOnlineMemberActivityChecker } from "../utils/general/activityCompletionChecker.js";
 import getFiles from "../utils/general/fileReader.js";
-import updateRaidStatus from "../utils/general/raidFunctions/updateRaidStatus.js";
+import raidFireteamChecker from "../utils/general/raidFunctions/raidFireteamChecker.js";
+import { loadNotifications } from "../utils/general/raidFunctions/raidNotifications.js";
 import { cacheRaidMilestones } from "../utils/general/raidMilestones.js";
 import { restoreFetchedPGCRs } from "../utils/logging/activityLogger.js";
 const __dirname = resolve();
@@ -152,7 +153,7 @@ export class ExtendedClient extends Client {
         const eventPromises = eventFiles.map((filePath) => {
             return this.importFile(`../events/${filePath}`).then((event) => {
                 if (!event) {
-                    console.error("[Error code: 1137] Event file not valid", { filePath });
+                    console.error("[Error code: 1805] Event file not valid", { filePath });
                     return;
                 }
                 this.on(event.event, event.run);
@@ -205,6 +206,7 @@ export class ExtendedClient extends Client {
             this.startUpdatingPresence();
             restoreFetchedPGCRs();
             this.importFile("../utils/api/rssHandler.js");
+            loadNotifications();
             if (process.env.DEV_BUILD !== "dev") {
                 tokenManagment();
                 clanOnlineMemberActivityChecker();
@@ -215,7 +217,7 @@ export class ExtendedClient extends Client {
             console.log(`${this.user.username} online since ${new Date().toLocaleString()}`);
             setTimeout(() => {
                 cacheRaidMilestones();
-                updateRaidStatus();
+                raidFireteamChecker();
             }, 1000 * 30);
         });
     }

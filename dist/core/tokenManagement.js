@@ -68,8 +68,11 @@ async function handleRequestError(request, row, table, retry, t) {
         apiStatus.status = 5;
     }
     if (retry === false) {
+        console.error(`[Error code: 1745] First time error for ${row.bungieId} | ${request?.error_description}`);
+        if (request && request.error_description === "SystemDisabled") {
+            return;
+        }
         bungieGrantRequest(row, table, t, true);
-        console.error(`[Error code: 1745] First time error for ${row.bungieId}`);
     }
     else {
         console.error(`[Error code: 1231] Second error in a row for ${row.bungieId}\n`, request);

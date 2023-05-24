@@ -2,6 +2,7 @@ import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import fetch from "node-fetch";
 import { ClanButtons, TimezoneButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
+import icons from "../../configs/icons.js";
 import { channelIds } from "../../configs/ids.js";
 import { statusRoles } from "../../configs/roles.js";
 import guildNicknameManagement from "../../core/guildNicknameManagement.js";
@@ -27,13 +28,13 @@ export default async function webHandler(code, state, res) {
         body: form,
     })).json());
     if (body.error === "invalid_request" || body.error === "invalid_grant") {
-        res.send("<script>location.replace('error.html')</script>");
+        res.send("<script>location.replace('error.html')</script>").end();
         return console.error("[Error code: 1010]", `There is problem with fetching authData from state: ${state}`, body);
     }
     try {
         const request = await fetchRequest("Platform/User/GetMembershipsForCurrentUser/", body.access_token);
         if (!request || !request.destinyMemberships) {
-            res.send("<script>location.replace('error.html')</script>");
+            res.send("<script>location.replace('error.html')</script>").end();
             return console.error(`[Error code: 1034] State: ${state} / Code: ${code}`, body, request);
         }
         const fetchedData = request.destinyMemberships.find((membership) => {
@@ -56,7 +57,7 @@ export default async function webHandler(code, state, res) {
                 })) ||
             request.destinyMemberships[0];
         if (!fetchedData) {
-            res.send("<script>location.replace('error.html')</script>");
+            res.send("<script>location.replace('error.html')</script>").end();
             return console.error("[Error code: 1011]", `State: ${state} / Code:${code}`, body, request);
         }
         const { membershipType: platform, membershipId: bungieId } = fetchedData;
@@ -64,7 +65,7 @@ export default async function webHandler(code, state, res) {
         const ifHasLeaved = await LeavedUsersData.findOne({ where: { bungieId }, attributes: ["discordId"] });
         if (ifHasLeaved) {
             console.error(`[Error code: 1691] User (${json.discordId}) tried to connect already registered bungieId (${bungieId})`);
-            return res.send("<script>location.replace('error.html')</script>");
+            return res.send("<script>location.replace('error.html')</script>").end();
         }
         const [authData, created] = await AuthData.findOrCreate({
             where: {
@@ -82,8 +83,19 @@ export default async function webHandler(code, state, res) {
             },
         });
         if (!created) {
+            if (authData.discordId === json.discordId && authData.bungieId === bungieId) {
+                authData.accessToken = body.access_token;
+                authData.refreshToken = body.refresh_token;
+                await authData.save();
+                const embed = new EmbedBuilder()
+                    .setColor(colors.success)
+                    .setAuthor({ name: "Вы обновили данные авторизации", iconURL: icons.success });
+                const member = await client.getAsyncMember(json.discordId);
+                member.send({ embeds: [embed] });
+                return res.send("<script>location.replace('index.html')</script>").end();
+            }
             console.error(`[Error code: 1439] User (${json.discordId}) tried to connect already registered bungieId`, authData?.discordId, authData?.bungieId);
-            return res.send("<script>location.replace('error.html')</script>");
+            return res.send("<script>location.replace('error.html')</script>").end();
         }
         InitData.destroy({
             where: { discordId: json.discordId },
@@ -189,10 +201,10 @@ export default async function webHandler(code, state, res) {
     }
     catch (error) {
         try {
-            res.send("<script>location.replace('error.html')</script>");
+            res.send("<script>location.replace('error.html')</script>").end();
         }
         catch (e) {
-            console.error("[Error code: 1210]", e);
+            console.error("[Error code: 1802]", e);
         }
         return console.error(`[Error code: 1234] State: ${state} / Code:${code}`, body, error);
     }

@@ -1,5 +1,4 @@
 import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder, } from "discord.js";
-import { schedule } from "node-cron";
 import { Op, Sequelize } from "sequelize";
 import { RaidButtons } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
@@ -12,39 +11,11 @@ import { Command } from "../structures/command.js";
 import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
-import { generateRaidClearsText, getRaidData, getRaidDatabaseInfo, raidAnnounceSystem, raidChallenges, timeConverter, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
-import updateRaidStatus from "../utils/general/raidFunctions/updateRaidStatus.js";
+import { generateRaidClearsText, getRaidData, getRaidDatabaseInfo, raidChallenges, timeConverter, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
+import raidFireteamChecker from "../utils/general/raidFunctions/raidFireteamChecker.js";
+import { clearNotifications, sendNotificationInfo, updateNotifications, updateNotificationsForEntireRaid, } from "../utils/general/raidFunctions/raidNotifications.js";
 import { descriptionFormatter, escapeString } from "../utils/general/utilities.js";
 import { RaidEvent, database } from "../utils/persistence/sequelize.js";
-export const raidAnnounceSet = new Set();
-setTimeout(() => {
-    const currentTime = Math.floor(Date.now() / 1000);
-    const currentDay = new Date(currentTime * 1000);
-    currentDay.setHours(23, 0, 0, 0);
-    const endTime = Math.floor(currentDay.getTime() / 1000);
-    RaidEvent.findAll({
-        where: {
-            [Op.and]: [{ time: { [Op.gte]: currentTime } }, { time: { [Op.lte]: endTime } }],
-        },
-    }).then(async (RaidEvent) => RaidEvent.forEach((raidData) => {
-        console.debug(`Added ${raidData.id} to checking system`);
-        raidAnnounceSystem(raidData);
-    }));
-}, 15000);
-schedule("0 23 * * *", () => {
-    const currentTime = Math.floor(Date.now() / 1000);
-    const currentDay = new Date(currentTime * 1000);
-    currentDay.setHours(23, 0, 0, 0);
-    const endTime = Math.floor(currentDay.getTime() / 1000);
-    RaidEvent.findAll({
-        where: {
-            [Op.and]: [{ time: { [Op.gte]: currentTime } }, { time: { [Op.lte]: endTime } }],
-        },
-    }).then(async (RaidEvent) => RaidEvent.forEach((raidData) => {
-        console.debug(`Added ${raidData.id} to checking system`);
-        raidAnnounceSystem(raidData);
-    }));
-});
 function getDefaultComponents() {
     return [
         new ButtonBuilder().setCustomId(RaidButtons.notify).setLabel("Оповестить участников").setStyle(ButtonStyle.Secondary),
@@ -52,6 +23,7 @@ function getDefaultComponents() {
         new ButtonBuilder().setCustomId(RaidButtons.unlock).setLabel("Закрыть набор").setStyle(ButtonStyle.Danger),
         new ButtonBuilder().setCustomId(RaidButtons.delete).setLabel("Удалить набор").setStyle(ButtonStyle.Danger),
         new ButtonBuilder().setCustomId(RaidButtons.resend).setLabel("Обновить сообщение").setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder().setCustomId(RaidButtons.notificationsStart).setLabel("Настроить свои оповещения").setStyle(ButtonStyle.Secondary),
     ];
 }
 export default new Command({
@@ -406,6 +378,13 @@ export default new Command({
                 },
             ],
         },
+        {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: "оповещения",
+            nameLocalizations: { "en-US": "notifications", "en-GB": "notifications" },
+            description: "Управление настройками уведомлений",
+            descriptionLocalizations: { "en-US": "Manage notification settings", "en-GB": "Manage notification settings" },
+        },
     ],
     run: async ({ client, interaction, args }) => {
         const deferredReply = interaction.deferReply({ ephemeral: true });
@@ -414,8 +393,7 @@ export default new Command({
             interaction.guild ||
             client.guilds.cache.get(guildId) ||
             (await client.guilds.fetch(guildId)));
-        const member = (interaction.member ? interaction.member : guild.members.cache.get(interaction.user.id)) ||
-            (await guild.members.fetch(interaction.user.id));
+        const member = await client.getAsyncMember(interaction.user.id);
         if (subCommand === "создать") {
             const raid = args.getString("рейд", true);
             const time = args.getString("время", true);
@@ -474,8 +452,7 @@ export default new Command({
                 ],
                 reason: `${nameCleaner(member.displayName)} created new raid`,
             });
-            raidAnnounceSystem(raidDb);
-            updateRaidStatus();
+            raidFireteamChecker();
             const premiumEmbed = new EmbedBuilder()
                 .setColor("#F3AD0C")
                 .addFields([{ name: "Испытания этой недели", value: "⁣　⁣*на одном из этапов*\n\n**Модификаторы рейда**\n　*если есть...*" }]);
@@ -538,6 +515,7 @@ export default new Command({
             });
             await updatePrivateRaidMessage({ raidEvent: insertedRaidData[1][0] });
             const privateChannelMessage = (await inChnMsg) || (await privateRaidChannel.messages.fetch((await inChnMsg).id));
+            updateNotifications(interaction.user.id);
             try {
                 raidChallenges(raidData, privateChannelMessage, parsedTime, difficulty);
             }
@@ -606,8 +584,8 @@ export default new Command({
             async function updateRaid(newRaid, raidInfo, raidData, t, raidEmbed, newDifficulty) {
                 if (newRaid !== null) {
                     changesForChannel.push({
-                        name: "Рейд",
-                        value: `Рейд набора был изменен - \`${raidInfo.raidName}\``,
+                        name: "Рейд набора был изменен",
+                        value: `- Новый рейд: \`${raidInfo.raidName}\``,
                     });
                     const [_, [updatedRaid]] = await RaidEvent.update({ raid: raidInfo.raid }, {
                         where: { id: raidData.id },
@@ -705,15 +683,14 @@ export default new Command({
                     }
                     changesForChannel.push({
                         name: "Старт рейда перенесен",
-                        value: ` - Прежнее время старта: <t:${raidData.time}>, <t:${raidData.time}:R>\n - Новое время: <t:${changedTime}>, <t:${changedTime}:R>`,
+                        value: `- Прежнее время старта: <t:${raidData.time}>, <t:${raidData.time}:R>\n- Новое время: <t:${changedTime}>, <t:${changedTime}:R>`,
                     });
                     changes.push("Время старта было изменено");
                     const [_, updatedRaiddata] = await RaidEvent.update({
                         time: changedTime,
                     }, { where: { id: raidData.id }, transaction: t, returning: ["id", "time"] });
-                    raidAnnounceSet.delete(updatedRaiddata[0].id);
-                    raidAnnounceSystem(updatedRaiddata[0]);
-                    updateRaidStatus();
+                    updateNotificationsForEntireRaid(updatedRaiddata[0].id);
+                    raidFireteamChecker();
                 }
                 else {
                     changes.push(`Время старта осталось без изменений\nУказаное время <t:${changedTime}>, <t:${changedTime}:R> находится в прошлом`);
@@ -722,7 +699,7 @@ export default new Command({
             if (newRaidLeader !== null) {
                 if (!newRaidLeader.bot) {
                     const raidPrivateChannel = client.getCachedTextChannel(raidData.channelId);
-                    const raidLeaderName = nameCleaner((interaction.guild || client.getCachedGuild()).members.cache.get(newRaidLeader.id).displayName);
+                    const raidLeaderName = nameCleaner((await client.getAsyncMember(newRaidLeader.id)).displayName);
                     raidPrivateChannel.permissionOverwrites.edit(raidData.creator, { ManageMessages: null, MentionEveryone: null });
                     raidPrivateChannel.permissionOverwrites.edit(newRaidLeader.id, {
                         ManageMessages: true,
@@ -790,6 +767,7 @@ export default new Command({
             const raidData = await getRaidDatabaseInfo(raidId, interaction);
             await RaidEvent.destroy({ where: { id: raidData.id }, limit: 1 })
                 .then(async () => {
+                clearNotifications(raidData.id);
                 const raidsChannel = await client.getAsyncTextChannel(channelIds.raid);
                 const privateRaidChannel = await client.getAsyncTextChannel(raidData.channelId);
                 try {
@@ -894,7 +872,9 @@ export default new Command({
             });
             updateRaidMessage({ raidEvent, interaction });
             updatePrivateRaidMessage({ raidEvent });
-            (await deferredReply) && interaction.editReply({ embeds: [embed] });
+            updateNotifications(addedUser.id);
+            await deferredReply;
+            await interaction.editReply({ embeds: [embed] });
         }
         else if (subCommand === "исключить") {
             const raidData = await getRaidDatabaseInfo(args.getInteger("id_рейда"), interaction);
@@ -928,7 +908,6 @@ export default new Command({
                 }
                 updatePrivateRaidMessage({ raidEvent });
                 updateRaidMessage({ raidEvent, interaction });
-                const guild = interaction.guild || client.getCachedGuild();
                 const kickedUserDisplayName = nameCleaner((await client.getAsyncMember(kickableUser.id)).displayName);
                 const embed = new EmbedBuilder()
                     .setColor(colors.success)
@@ -951,9 +930,14 @@ export default new Command({
                 const raidChn = await client.getAsyncTextChannel(raidData.channelId);
                 await raidChn.send({ embeds: [inChnEmbed] });
                 await raidChn.permissionOverwrites.delete(kickableUser.id);
+                updateNotifications(kickableUser.id);
                 await deferredReply;
                 await interaction.editReply({ embeds: [embed] });
             });
+        }
+        else if (subCommand === "оповещения") {
+            await sendNotificationInfo(interaction, deferredReply);
+            return;
         }
     },
 });
