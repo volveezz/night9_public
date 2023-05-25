@@ -1,10 +1,12 @@
 import { EmbedBuilder } from "discord.js";
+import { Op, Sequelize } from "sequelize";
 import colors from "../configs/colors.js";
 import { channelIds } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import deleteLeavedUserData from "../utils/discord/deleteLeavedUserData.js";
+import { RaidEvent } from "../utils/persistence/sequelize.js";
 const guildMemberChannel = client.getCachedTextChannel(channelIds.guildMember);
 export default new Event("guildMemberRemove", async (member) => {
     if (member.guild.bans.cache.has(member.id))
@@ -40,4 +42,26 @@ export default new Event("guildMemberRemove", async (member) => {
     }
     const message = await guildMemberChannel.send({ embeds: [embed] });
     await deleteLeavedUserData({ member, message });
+    kickLeavedUserFromRaids(member);
 });
+async function kickLeavedUserFromRaids(member) {
+    const updateQuery = {
+        joined: Sequelize.fn("array_remove", Sequelize.col("joined"), `${member.id}`),
+        hotJoined: Sequelize.fn("array_remove", Sequelize.col("hotJoined"), `${member.id}`),
+        alt: Sequelize.fn("array_remove", Sequelize.col("alt"), `${member.id}`),
+    };
+    const searchQuery = {
+        [Op.or]: [
+            { joined: { [Op.contains]: [member.id] } },
+            { hotJoined: { [Op.contains]: [member.id] } },
+            { alt: { [Op.contains]: [member.id] } },
+        ],
+    };
+    const [rowsUpdated, raidEvents] = await RaidEvent.update(updateQuery, {
+        where: searchQuery,
+        returning: ["id", "messageId", "creator", "channelId", "joined", "hotJoined", "alt", "raid", "difficulty"],
+    });
+    if (rowsUpdated > 0) {
+        console.debug(raidEvents);
+    }
+}

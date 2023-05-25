@@ -218,7 +218,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                 }
                 else {
                     const triumphHash = role.triumphRequirement;
-                    if (dungeonsTriumphHashes.includes(Number(triumphHash))) {
+                    if (dungeonsTriumphHashes.includes(triumphHash)) {
                         if (memberRoles.hasAll(...dungeonRoles) && !memberRoles.has(dungeonMasterRole) && !addRoles.includes(dungeonMasterRole)) {
                             addRoles.push(dungeonMasterRole);
                             removeRoles.push(...dungeonRoles);
@@ -231,8 +231,8 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                             return;
                         }
                     }
-                    const triumphRecord = destinyProfileResponse.profileRecords.data.records[Number(triumphHash)] ||
-                        destinyProfileResponse.characterRecords.data[Object.keys(destinyProfileResponse.characterRecords.data)[0]].records[Number(triumphHash)];
+                    const triumphRecord = destinyProfileResponse.profileRecords.data.records[triumphHash] ||
+                        destinyProfileResponse.characterRecords.data[Object.keys(destinyProfileResponse.characterRecords.data)[0]].records[triumphHash];
                     if (triumphRecord) {
                         if ((triumphRecord.objectives && triumphRecord.objectives[triumphRecord.objectives.length - 1].complete === true) ||
                             (triumphRecord.intervalObjectives &&

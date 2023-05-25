@@ -26,7 +26,6 @@ let tasks = [];
 let runningTimeouts = [];
 async function scheduleNextNotification() {
     if (tasks.length === 0) {
-        console.debug(`Size of tasks 2: ${tasks.length}`);
         return console.debug(`[DEBUG 7] No more notifications to send.`);
     }
     tasks.sort((a, b) => a.notifyTime - b.notifyTime);
@@ -81,10 +80,8 @@ export async function loadNotifications() {
     for await (const { discordId, notificationTimes } of raidUserNotifications) {
         console.debug(`[DEBUG 8] Checking notifications of user ${discordId}.`);
         for await (const raid of raidsInNextDay) {
-            console.debug(`[DEBUG 9] Added notifications for raid ${raid.id} to user ${discordId}.`);
             for (const minutesBefore of notificationTimes) {
                 const notifyTime = (raid.time - minutesBefore * 60) * 1000;
-                console.debug(`Checking time: ${raid.time}/${minutesBefore}/${notifyTime}/${Date.now()}/${notifyTime > Date.now()}`);
                 if (notifyTime > Date.now()) {
                     tasks.push({ notifyTime, discordId, raidId: raid.id });
                     console.debug(`[DEBUG 10] Added notification ${minutesBefore}/${notifyTime} for raid ${raid.id} to user ${discordId}.`);
@@ -118,7 +115,6 @@ export async function updateNotifications(discordId, joinStatus) {
             }
         }
     }
-    console.debug(`Unsorted tasks:`, tasks);
     if (tasks.length > 0 && tasks[0].notifyTime > Date.now()) {
         scheduleNextNotification();
     }
@@ -142,7 +138,7 @@ async function notifyUserAboutNotifications(discordId) {
     if (!member)
         return console.error("[Error code: 1801] Member not found", discordId);
     notifiedMembers.add(discordId);
-    await timer(1000 * 30);
+    await timer(1000 * 20);
     member.send({ embeds: [embed], components: await addButtonComponentsToMessage([components]) });
 }
 export function clearNotifications(raidId) {
