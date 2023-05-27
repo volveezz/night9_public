@@ -9,9 +9,9 @@ import { channelIds } from "../configs/ids.js";
 import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { removeRaid } from "../utils/general/raidFunctions.js";
-import { fireteamCheckingSystem } from "../utils/general/raidFunctions/raidFireteamChecker.js";
 import { descriptionFormatter, getRandomRaidGIF } from "../utils/general/utilities.js";
 import { RaidEvent } from "../utils/persistence/sequelize.js";
+export const canceledFireteamCheckingRaids = new Set();
 export async function handleDeleteRaid({ deferredUpdate, interaction, raidEvent, requireMessageReply, }) {
     return new Promise(async (resolve) => {
         const embed = new EmbedBuilder()
@@ -468,7 +468,7 @@ export default {
             });
         }
         else if (interaction.customId === RaidButtons.fireteamCheckerCancel) {
-            fireteamCheckingSystem.delete(raidEvent.id);
+            canceledFireteamCheckingRaids.add(raidEvent.id);
             const embed = EmbedBuilder.from(interaction.message.embeds[0])
                 .setTitle("Система слежки за боевой группой отключена")
                 .setColor(colors.invisible);

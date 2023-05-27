@@ -160,7 +160,7 @@ export default new Command({
                     .setFooter({
                     text: `Запрос занял: ${benchmarkEnd - benchmarkStart}мс`,
                 })
-                    .setDescription(`> ${(userTimezones.get(request.discordId) ?? "no cached TZ").toString()}/${request.timezone} <@${request.discordId}>${raidClears ? ` - ${Object.values(raidClears)}` : ""}`)
+                    .setDescription(`> ${(userTimezones.get(request.discordId) ?? "Timezone not cached").toString()} | ${request.timezone} <@${request.discordId}>${raidClears ? ` - ${Object.values(raidClears)}` : ""}`)
                     .addFields([
                     {
                         name: "BungieId",

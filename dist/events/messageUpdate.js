@@ -6,7 +6,7 @@ import { Event } from "../structures/event.js";
 import { escapeString } from "../utils/general/utilities.js";
 const messageChannel = client.getCachedTextChannel(channelIds.messages);
 export default new Event("messageUpdate", (oldMessage, newMessage) => {
-    if (!oldMessage.content?.length || oldMessage.content === newMessage.content)
+    if (!oldMessage.content?.length || oldMessage.content === newMessage.content || newMessage.author?.id === client.user.id)
         return;
     const embed = new EmbedBuilder()
         .setColor(colors.default)
@@ -19,7 +19,7 @@ export default new Event("messageUpdate", (oldMessage, newMessage) => {
         ? embed.addFields([
             {
                 name: "До изменения",
-                value: oldMessage.content.length <= 0 ? "сообщение не было в кеше" : escapeString(oldMessage.content),
+                value: !oldMessage.content || oldMessage.content.length === 0 ? "сообщение не было в кеше" : escapeString(oldMessage.content),
             },
             { name: "После", value: escapeString(newMessage.content) },
         ])

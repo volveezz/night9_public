@@ -2,7 +2,9 @@ import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import { channelIds } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
+import guildNicknameManagement from "../core/guildNicknameManagement.js";
 import { requestUpdateTokens } from "../core/tokenManagement.js";
+import { checkIndiviualUserStatistics } from "../core/userStatisticsManagement.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import welcomeMessage from "../utils/discord/welcomeMessage.js";
@@ -73,21 +75,24 @@ export default new Event("guildMemberAdd", async (member) => {
             limit: 1,
         });
         InitData.destroy({ where: { discordId: data.discordId }, limit: 1 });
-        loggedEmbed.addFields([
-            {
-                name: "Данные аккаунта восстановлены",
-                value: `${escapeString(data.displayName)} ([${data.platform}/${data.bungieId}](https://www.bungie.net/7/ru/User/Profile/${data.platform}/${data.bungieId}))`,
-            },
-        ]);
-        loggedEmbed.addFields([
-            {
-                name: "Токен авторизации",
-                value: `Обновлен: ${authorizationData.accessToken?.length} / ${authorizationData.refreshToken?.length}`,
-            },
-        ]);
+        loggedEmbed.addFields({
+            name: "Данные аккаунта восстановлены",
+            value: `${escapeString(data.displayName)} ([${data.platform}/${data.bungieId}](https://www.bungie.net/7/ru/User/Profile/${data.platform}/${data.bungieId}))`,
+        });
+        loggedEmbed.addFields({
+            name: "Токен авторизации",
+            value: `Обновлен: ${authorizationData.accessToken?.length} / ${authorizationData.refreshToken?.length}`,
+        });
         await transaction.commit();
         await message.edit({ embeds: [loggedEmbed] });
         await member.roles.set([statusRoles.member, statusRoles.verified]);
+        try {
+            guildNicknameManagement();
+            checkIndiviualUserStatistics(member.id);
+        }
+        catch (error) {
+            console.error("[Error code: 1809]", error);
+        }
     }
     catch (error) {
         await transaction.rollback();
@@ -96,6 +101,6 @@ export default new Event("guildMemberAdd", async (member) => {
             value: "Во время восстановления данных произошла ошибка",
         });
         console.error("[Error code: 1131]", error, data?.discordId, data?.bungieId, transaction);
-        message.edit({ embeds: [loggedEmbed] });
+        await message.edit({ embeds: [loggedEmbed] });
     }
 });

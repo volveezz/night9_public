@@ -14,6 +14,7 @@ import { generateRaidClearsText, getRaidData } from "../raidFunctions.js";
 import { getRandomGIF, getRandomRaidGIF, timer } from "../utilities.js";
 import raidFireteamChecker from "./raidFireteamChecker.js";
 schedule("0 23 * * *", () => {
+    console.debug("DEBUG | Schedule completed");
     raidFireteamChecker();
     tasks = [];
     while (runningTimeouts.length > 0) {
@@ -69,7 +70,6 @@ export async function loadNotifications() {
     });
     const raidUserNotifications = [];
     for await (const raid of raidsInNextDay) {
-        console.debug(`[DEBUG 3] Added raid ${raid.id} to notifications.`);
         const users = [...new Set([...raid.joined])];
         for await (const discordId of users) {
             const userNotification = await RaidUserNotification.findOne({ where: { discordId } });
@@ -78,13 +78,11 @@ export async function loadNotifications() {
         }
     }
     for await (const { discordId, notificationTimes } of raidUserNotifications) {
-        console.debug(`[DEBUG 8] Checking notifications of user ${discordId}.`);
         for await (const raid of raidsInNextDay) {
             for (const minutesBefore of notificationTimes) {
                 const notifyTime = (raid.time - minutesBefore * 60) * 1000;
                 if (notifyTime > Date.now()) {
                     tasks.push({ notifyTime, discordId, raidId: raid.id });
-                    console.debug(`[DEBUG 10] Added notification ${minutesBefore}/${notifyTime} for raid ${raid.id} to user ${discordId}.`);
                 }
             }
         }

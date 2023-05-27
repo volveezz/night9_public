@@ -6,6 +6,7 @@ import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { ownerId } from "../configs/ids.js";
+import { client } from "../index.js";
 import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default {
@@ -54,58 +55,44 @@ export default {
                 headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${inviter_accessToken}` },
                 body: JSON.stringify({ description: "Автоматическое приглашение в клан Night 9" }),
             })).json());
-            if (clanInviteRequest.ErrorCode === 1) {
-                const embed = new EmbedBuilder()
-                    .setColor(colors.success)
-                    .setAuthor({ name: "Приглашение было отправлено", iconURL: icons.success })
-                    .setDescription("Принять приглашение можно в игре или на [сайте Bungie](https://www.bungie.net/ru/ClanV2?groupId=4123712)");
-                (await deferredReply) && interaction.editReply({ embeds: [embed] });
-                if (!interaction.channel?.isDMBased())
-                    return;
-                interaction.channel?.messages
-                    .fetch(interaction.message.id)
-                    .then(async (msg) => {
-                    const reEmbed = EmbedBuilder.from(msg.embeds[0]).setDescription(null);
-                    msg.edit({ embeds: [reEmbed], components: await addButtonComponentsToMessage([timezoneComponent]) });
-                })
-                    .catch((err) => {
-                    if (err.code !== 10008)
-                        console.error("[Error code: 1107]", err);
-                });
-            }
-            else if (clanInviteRequest.ErrorCode === 676) {
-                const embed = new EmbedBuilder().setColor(colors.success).setTitle("Вы уже участник нашего клана :)");
-                (await deferredReply) && interaction.editReply({ embeds: [embed] });
-                if (!interaction.channel?.isDMBased())
-                    return;
-                interaction.channel?.messages.fetch(interaction.message.id).then(async (msg) => {
-                    const reEmbed = EmbedBuilder.from(msg.embeds[0]).setDescription(null);
-                    msg.edit({ embeds: [reEmbed], components: await addButtonComponentsToMessage([timezoneComponent]) });
-                });
+            const embed = getEmbedResponse(clanInviteRequest.ErrorCode);
+            await deferredReply;
+            await interaction.editReply({ embeds: [embed] });
+            if (!interaction.channel?.isDMBased() || clanInviteRequest.ErrorCode === 1626)
                 return;
-            }
-            else if (clanInviteRequest.ErrorCode === 695) {
-                const embed = new EmbedBuilder()
-                    .setColor(colors.error)
-                    .setAuthor({ name: "Ошибка", iconURL: icons.close })
-                    .setDescription("На вашем аккаунте стоит запрет на получение приглашений в клан\nПопробуйте вступить вручную через [bungie.net](https://www.bungie.net/ru/ClanV2?groupid=4123712)");
-                (await deferredReply) &&
-                    interaction.editReply({ embeds: [embed], components: await addButtonComponentsToMessage([timezoneComponent]) });
-                if (!interaction.channel?.isDMBased())
-                    return;
-                interaction.channel?.messages.fetch(interaction.message.id).then(async (msg) => {
-                    const reEmbed = EmbedBuilder.from(msg.embeds[0]).setDescription(null);
-                    msg.edit({ embeds: [reEmbed], components: await addButtonComponentsToMessage([timezoneComponent]) });
-                });
-                return;
-            }
-            else {
-                console.error("[Error code: 1633]", clanInviteRequest);
-                throw { name: "Критическая ошибка", description: "API игры, скорее всего, недоступно в данный момент" };
-            }
+            const message = await interaction.channel.messages.fetch(interaction.message.id);
+            const updatedEmbed = EmbedBuilder.from(message.embeds[0]).setDescription(null);
+            await message.edit({ embeds: [updatedEmbed], components: await addButtonComponentsToMessage([timezoneComponent]) });
         }
         else {
             throw { name: "Произошла неизвестная ошибка", description: "Возможно, вы уже участник нашего клана" };
+        }
+        function getEmbedResponse(code) {
+            const embed = new EmbedBuilder().setColor(colors.error);
+            const bungieNetUrl = "[Bungie.net](https://www.bungie.net/ru/ClanV2?groupid=4123712)";
+            switch (code) {
+                case 1:
+                    return embed
+                        .setColor(colors.success)
+                        .setAuthor({ name: "Приглашение было отправлено", iconURL: icons.success })
+                        .setDescription("Принять приглашение можно в игре или на [сайте Bungie](https://www.bungie.net/ru/ClanV2?groupId=4123712)");
+                case 676:
+                    return embed.setColor(colors.success).setAuthor({ name: "Вы уже участник клана", iconURL: icons.success });
+                case 695:
+                    return embed
+                        .setAuthor({ name: "Ошибка. Приглашение не отправлено", iconURL: icons.error })
+                        .setDescription(`На вашем аккаунте стоит запрет на получение приглашений в клан\nВы всё ещё можете вступить вручную через ${bungieNetUrl} или через участника клана в игре`);
+                case 1626:
+                    return embed
+                        .setAuthor({ name: "Произошла ошибка на стороне Bungie", iconURL: icons.error })
+                        .setDescription("Попробуйте перезайти в игру и удостоверится в том, что игра сейчас стабильна и корректно работает\n\nОшибка гласит о том, что Ваши данные не были обновлены до актуальной версии игры");
+                default:
+                    console.error("[Error code: 1633]", code);
+                    return embed
+                        .setAuthor({ name: "Произошла неизвестная ошибка", iconURL: icons.error })
+                        .setDescription(`Администрация была оповещена об этой ошибке и при необходимости свяжется с Вами\n\n### Если Вы не получили приглашение в клан, то Вы можете вступить в него следующими способами:\n1. Написав лидеру клана в личные сообщения (лидер клана <@${ownerId}>)\n2. Вступив в клан через сайт ${bungieNetUrl}\n3. Вступив через любого участника в игре, который уже в нашем клане\n\nПо любым вопросам Вы можете написать <@${ownerId}> или <@${client.user.id}> в любое время без ограничений`);
+                    break;
+            }
         }
     },
 };

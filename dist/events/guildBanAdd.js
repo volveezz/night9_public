@@ -14,12 +14,10 @@ export default new Event("guildBanAdd", async (member) => {
     })
         .setColor(colors.error)
         .setFooter({ text: `Id: ${member.user.id}` })
-        .addFields([
-        {
-            name: "Дата присоединения к серверу",
-            value: `${isNaN(joinedDate) ? "не найдена" : `<t:${joinedDate}>`}`,
-        },
-    ]);
+        .addFields({
+        name: "Дата присоединения к серверу",
+        value: `${isNaN(joinedDate) ? "не найдена" : `<t:${joinedDate}>`}`,
+    });
     await member.fetch();
     if (member.reason) {
         embed.addFields({

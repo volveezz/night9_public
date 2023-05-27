@@ -1,12 +1,14 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
+import icons from "../configs/icons.js";
 import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { escapeString } from "../utils/general/utilities.js";
+import { AuthData } from "../utils/persistence/sequelize.js";
 const guildMemberChannel = client.getCachedTextChannel(channelIds.guildMember);
-export default new Event("guildMemberUpdate", (oldMember, newMember) => {
+export default new Event("guildMemberUpdate", async (oldMember, newMember) => {
     if (!oldMember.joinedTimestamp || (!oldMember.nickname && oldMember.roles.cache.size === 0))
         return;
     const embed = new EmbedBuilder().setColor(colors.default);
@@ -43,7 +45,7 @@ export default new Event("guildMemberUpdate", (oldMember, newMember) => {
         }
         if (addedRoles.size > 0 || removedRoles.size > 0) {
             embed.setAuthor({ name: `У ${nameCleaner(newMember.displayName)} были обновлены роли`, iconURL: newMember.displayAvatarURL() });
-            guildMemberChannel.send({ embeds: [embed] });
+            await guildMemberChannel.send({ embeds: [embed] });
         }
     }
     if (oldMember.displayName !== newMember.displayName) {
@@ -57,7 +59,8 @@ export default new Event("guildMemberUpdate", (oldMember, newMember) => {
             { name: "До изменения", value: escapeString(oldMember.displayName), inline: true },
             { name: "После", value: escapeString(newMember.displayName), inline: true },
         ]);
-        guildMemberChannel.send({ embeds: [embed] });
+        await guildMemberChannel.send({ embeds: [embed] });
+        testAutonameUserStatus(newMember);
     }
     if (oldMember.communicationDisabledUntilTimestamp !== newMember.communicationDisabledUntilTimestamp) {
         if (!oldMember.communicationDisabledUntilTimestamp) {
@@ -83,6 +86,20 @@ export default new Event("guildMemberUpdate", (oldMember, newMember) => {
             })
                 .setColor(colors.default);
         }
-        guildMemberChannel.send({ embeds: [embed] });
+        await guildMemberChannel.send({ embeds: [embed] });
     }
 });
+const notifiedUsers = new Set();
+async function testAutonameUserStatus(member) {
+    if (notifiedUsers.has(member.id))
+        return;
+    const authData = await AuthData.findOne({ where: { discordId: member.id }, attributes: ["displayName"] });
+    if (!authData || authData.displayName.startsWith("⁣") || nameCleaner(member.displayName) === authData.displayName)
+        return;
+    notifiedUsers.add(member.id);
+    const embed = new EmbedBuilder()
+        .setColor(colors.serious)
+        .setAuthor({ name: "Вы изменили никнейм с включенной системой за слежкой за ником", iconURL: icons.notify })
+        .setDescription(`На сервере работает система слежки за никнеймами пользователей в игре\n\n> Ваш никнейм в игре: ${escapeString(authData.displayName)}\n> Текущий никнейм: ${nameCleaner(member.displayName, true)}\n\nВаш текущий никнейм будет изменен в течение часа на тот, который в игре\nОтключить эту систему Вы можете введя команду \`/autoname\` (работает в любых каналах на сервере Night 9)`);
+    member.send({ embeds: [embed] });
+}

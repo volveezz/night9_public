@@ -14,8 +14,8 @@ import { getRaidNameFromHash, removeRaid } from "../general/raidFunctions.js";
 import { escapeString } from "../general/utilities.js";
 import { AuthData, RaidEvent, UserActivityData } from "../persistence/sequelize.js";
 const hashToImageMap = {
-    3755529435: "https://cdn.discordapp.com/attachments/679191036849029167/1089133095820722176/season20_exotic_mission.png",
-    3083261666: "https://cdn.discordapp.com/attachments/679191036849029167/1089133095820722176/season20_exotic_mission.png",
+    313828469: "https://cdn.discordapp.com/attachments/679191036849029167/1111828224956170290/2023_Ghost_of_the_Deep_Press_Kit_Dungeon_LARGE_002.jpg",
+    2716998124: "https://cdn.discordapp.com/attachments/679191036849029167/1111828224956170290/2023_Ghost_of_the_Deep_Press_Kit_Dungeon_LARGE_002.jpg",
     700101128: "https://cdn.discordapp.com/attachments/679191036849029167/1089134183386984569/season_20_battleground_exeter.png",
     2572988947: "https://cdn.discordapp.com/attachments/679191036849029167/1089134184016130088/season_20_battleground_turnabout.png",
     1368255375: "https://cdn.discordapp.com/attachments/679191036849029167/1089134183747690516/season_20_battleground_bulkhead.png",
@@ -32,12 +32,22 @@ async function restoreFetchedPGCRs() {
         }
     });
 }
+function findCorrectedName(hash) {
+    switch (hash) {
+        case 313828469:
+            return "Призраки Глубин";
+        case 2716998124:
+            return "Призраки Глубин: Мастер";
+        default:
+            return "Засекречено";
+    }
+}
 async function logActivityCompletion(pgcrId) {
     if (!pgcrIds.has(pgcrId)) {
         pgcrIds.add(pgcrId);
         function getActivityImage(hash, manifestImage) {
             const placeholderImage = "/img/theme/destiny/bgs/pgcrs/placeholder.jpg";
-            if (manifestImage === placeholderImage || manifestImage === "/img/destiny_content/pgcr/season_20_mission_avalon.jpg") {
+            if (manifestImage === placeholderImage) {
                 if (hashToImageMap[hash]) {
                     return hashToImageMap[hash];
                 }
@@ -49,6 +59,14 @@ async function logActivityCompletion(pgcrId) {
                 return `https://bungie.net${manifestImage}`;
             }
         }
+        function getActivityTitle(hash, manifestTitle) {
+            const placeholderText1 = ": Нормальный";
+            const placeholderText = "Засекречено";
+            if (!manifestTitle || manifestTitle.length === 0 || manifestTitle === placeholderText || manifestTitle === placeholderText1) {
+                return findCorrectedName(hash);
+            }
+            return manifestTitle;
+        }
         const response = await fetchRequest(`Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`).catch((e) => console.error("[Error code: 1072] activityReporter error", pgcrId, e, e.statusCode));
         if (!response.activityDetails) {
             console.error("[PGCR Checker] [Error code: 1009]", pgcrId, response);
@@ -56,6 +74,11 @@ async function logActivityCompletion(pgcrId) {
         }
         const { mode, referenceId } = response.activityDetails;
         const manifestData = CachedDestinyActivityDefinition[referenceId];
+        const activityTitle = getActivityTitle(referenceId, manifestData.displayProperties.name);
+        const activityReplacedTime = response.entries[0].values.activityDurationSeconds.basic.displayValue
+            .replace("h", "ч")
+            .replace("m", "м")
+            .replace("s", "с");
         const footerText = (mode === 4
             ? "Рейд был закрыт"
             : mode === 82
@@ -77,10 +100,7 @@ async function logActivityCompletion(pgcrId) {
                     ? `https://dungeon.report/pgcr/${pgcrId}`
                     : `https://bray.tech/report/${pgcrId}`,
         })
-            .setTitle(`${manifestData.displayProperties.name} - ${response.entries[0].values.activityDurationSeconds.basic.displayValue
-            .replace("h", "ч")
-            .replace("m", "м")
-            .replace("s", "с")}`)
+            .setTitle(`${activityTitle} - ${activityReplacedTime}`)
             .setFooter({
             text: footerText,
             iconURL: manifestData.displayProperties.hasIcon

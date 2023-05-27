@@ -1,5 +1,6 @@
 import { ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder } from "discord.js";
 import { Op, Sequelize } from "sequelize";
+import { canceledFireteamCheckingRaids } from "../../../buttons/raidInChnButton.js";
 import { RaidButtons } from "../../../configs/Buttons.js";
 import colors from "../../../configs/colors.js";
 import { client } from "../../../index.js";
@@ -10,11 +11,13 @@ import { addButtonComponentsToMessage } from "../addButtonsToMessage.js";
 import nameCleaner from "../nameClearer.js";
 import { getRaidNameFromHash, updatePrivateRaidMessage, updateRaidMessage } from "../raidFunctions.js";
 const MINUTES_AFTER_RAID = 5;
-export const fireteamCheckingSystem = new Set();
-async function raidFireteamChecker() {
-    const ongoingRaids = await getOngoingRaids();
+const fireteamCheckingSystem = new Set();
+async function raidFireteamChecker(id) {
+    if (id)
+        fireteamCheckingSystem.delete(id);
+    const ongoingRaids = await getOngoingRaids(id);
     ongoingRaids.forEach((initialRaidEvent) => {
-        if (fireteamCheckingSystem.has(initialRaidEvent.id))
+        if (fireteamCheckingSystem.has(initialRaidEvent.id) || canceledFireteamCheckingRaids.has(initialRaidEvent.id))
             return;
         fireteamCheckingSystem.add(initialRaidEvent.id);
         const startTime = new Date(initialRaidEvent.time * 1000);
@@ -27,7 +30,9 @@ async function raidFireteamChecker() {
             });
             if (!raidEvent || raidEvent.time != initialRaidEvent.time) {
                 if (raidEvent && raidEvent.time != initialRaidEvent.time) {
-                    setTimeout(() => raidFireteamChecker(), 1000 * 60);
+                    setTimeout(() => {
+                        raidFireteamChecker(raidEvent.id);
+                    }, 1000);
                     console.debug(`Raid with ID: ${initialRaidEvent.id} has changed time, rescheduling update`);
                     return false;
                 }
@@ -180,14 +185,21 @@ async function raidFireteamChecker() {
         }
     });
 }
-async function getOngoingRaids() {
+async function getOngoingRaids(id) {
     const currentDay = new Date();
     currentDay.setHours(23, 0, 0, 0);
     const endTime = Math.floor(currentDay.getTime() / 1000);
-    return await RaidEvent.findAll({
-        where: { time: { [Op.lte]: endTime } },
-        attributes: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId"],
-    });
+    const raidData = id
+        ? [
+            (await RaidEvent.findByPk(id, {
+                attributes: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId"],
+            })),
+        ]
+        : await RaidEvent.findAll({
+            where: { time: { [Op.lte]: endTime } },
+            attributes: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId"],
+        });
+    return raidData;
 }
 async function getVoiceChannelMembersAuthData(voiceChannelMemberIds) {
     console.debug(`Fetching auth data for ${voiceChannelMemberIds.length} members`);

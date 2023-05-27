@@ -452,7 +452,7 @@ export default new Command({
                 ],
                 reason: `${nameCleaner(member.displayName)} created new raid`,
             });
-            raidFireteamChecker();
+            raidFireteamChecker(raidDb.id);
             const premiumEmbed = new EmbedBuilder()
                 .setColor("#F3AD0C")
                 .addFields([{ name: "Испытания этой недели", value: "⁣　⁣*на одном из этапов*\n\n**Модификаторы рейда**\n　*если есть...*" }]);
@@ -688,9 +688,9 @@ export default new Command({
                     changes.push("Время старта было изменено");
                     const [_, updatedRaiddata] = await RaidEvent.update({
                         time: changedTime,
-                    }, { where: { id: raidData.id }, transaction: t, returning: ["id", "time"] });
+                    }, { where: { id: raidData.id }, transaction: t, returning: ["id", "time"], limit: 1 });
                     updateNotificationsForEntireRaid(updatedRaiddata[0].id);
-                    raidFireteamChecker();
+                    raidFireteamChecker(updatedRaiddata[0].id);
                 }
                 else {
                     changes.push(`Время старта осталось без изменений\nУказаное время <t:${changedTime}>, <t:${changedTime}:R> находится в прошлом`);
