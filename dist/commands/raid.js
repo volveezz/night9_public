@@ -690,7 +690,6 @@ export default new Command({
                         time: changedTime,
                     }, { where: { id: raidData.id }, transaction: t, returning: ["id", "time"], limit: 1 });
                     updateNotificationsForEntireRaid(updatedRaiddata[0].id);
-                    raidFireteamChecker(updatedRaiddata[0].id);
                 }
                 else {
                     changes.push(`Время старта осталось без изменений\nУказаное время <t:${changedTime}>, <t:${changedTime}:R> находится в прошлом`);
