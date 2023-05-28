@@ -18,14 +18,6 @@ export async function fetchRequest(cleanUrl, authorizationData) {
     if (jsonResponse == null) {
         return undefined;
     }
-    if ((await jsonResponse?.status) >= 400) {
-        console.error(`[Error code: 1083] ${jsonResponse?.status}`);
-        return undefined;
-    }
-    if (jsonResponse.code === "EHOSTUNREACH" || jsonResponse.code === "ECONNRESET" || jsonResponse.code === "ERPROTO") {
-        console.error(`[Error code: 1109] ${jsonResponse.code}${" " + authorizationData?.displayName || ""}`);
-        return undefined;
-    }
     return jsonResponse.Response ? jsonResponse.Response : jsonResponse;
 }
 function handleFetchError(error, response) {
@@ -50,6 +42,15 @@ function handleFetchError(error, response) {
     }
     else if (status === 500) {
         console.error("[Error code: 1757] Internal server error");
+    }
+    else if (status === "ERPROTO") {
+        console.error("[Error code: 1810] ERPROTO request error");
+    }
+    else if (status === "ECONNRESET") {
+        console.error("[Error code: 1812] ECONNRESET request error");
+    }
+    else if (status === "EHOSTUNREACH") {
+        console.error("[Error code: 1811] EHOSTUNREACH request error");
     }
     else {
         if (status >= 400 && status <= 599 && !logged) {

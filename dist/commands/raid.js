@@ -655,7 +655,7 @@ export default new Command({
                 else {
                     changesForChannel.push({
                         name: "Описание было изменено",
-                        value: newDescription,
+                        value: descriptionFormatter(newDescription),
                     });
                 }
                 changes.push("Описание было изменено");

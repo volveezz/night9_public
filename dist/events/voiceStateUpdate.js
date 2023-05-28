@@ -9,24 +9,27 @@ import { cacheUserActivity } from "../utils/discord/userActivityHandler.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
 const voiceChannel = client.getCachedTextChannel(channelIds.voice);
 const voiceUsers = new Map();
-export default new Event("voiceStateUpdate", (oldState, newState) => {
+export default new Event("voiceStateUpdate", async (oldState, newState) => {
     const embed = new EmbedBuilder().setColor(colors.success);
+    const userId = newState.id || oldState.id;
+    if (!voiceUsers.has(userId) && newState.channelId !== newState.guild.afkChannelId) {
+        voiceUsers.set(userId, {
+            joinTimestamp: Date.now(),
+        });
+    }
     if (!oldState.channelId && newState.channelId) {
         if (createdChannelsMap.has(newState.channelId))
             lfgTextChannelHandler(newState.channelId, newState.member, "join");
-        voiceUsers.set(newState.member.id, {
-            joinTimestamp: Date.now(),
-        });
         embed
             .setAuthor({
             name: `${oldState.member?.displayName || newState.member?.displayName || "пользователь не найден"} присоединился к голосовому каналу`,
             iconURL: oldState.member?.displayAvatarURL() || newState.member?.displayAvatarURL(),
         })
             .setFooter({
-            text: `UId: ${newState.member?.id} | ChnId: ${newState.channelId}`,
+            text: `UId: ${userId} | ChnId: ${newState.channelId}`,
         })
             .addFields([
-            { name: "Пользователь", value: `<@${newState.member.id}>`, inline: true },
+            { name: "Пользователь", value: `<@${userId}>`, inline: true },
             { name: "Канал", value: `<#${newState.channelId}>`, inline: true },
         ]);
         return voiceChannel.send({ embeds: [embed] });
@@ -34,7 +37,6 @@ export default new Event("voiceStateUpdate", (oldState, newState) => {
     if (!newState.channelId) {
         if (oldState.channelId && createdChannelsMap.has(oldState.channelId))
             lfgTextChannelHandler(oldState.channelId, oldState.member, "leave");
-        const getTimestamp = voiceUsers.get(oldState.member.id)?.joinTimestamp;
         embed
             .setAuthor({
             name: `${oldState.member?.displayName || newState.member?.displayName || "пользователь не найден"} вышел из голосового канала`,
@@ -44,28 +46,11 @@ export default new Event("voiceStateUpdate", (oldState, newState) => {
             text: `Chn: ${oldState.channel?.name}`,
         })
             .setColor(colors.error)
-            .addFields([
-            { name: "Пользователь", value: `<@${oldState.member.id}>`, inline: true },
-            {
-                name: "Канал",
-                value: `<#${oldState.channelId}>`,
-                inline: true,
-            },
-        ]);
-        if (getTimestamp) {
-            const difference = Math.trunc((Date.now() - getTimestamp) / 1000);
-            embed.addFields([
-                {
-                    name: "Времени в голосовых",
-                    value: `${convertSeconds(difference)}`,
-                    inline: true,
-                },
-            ]);
-            if (newState.guild.afkChannel?.id !== newState.channelId)
-                cacheUserActivity({ userId: oldState.id, voiceTime: difference });
-        }
-        voiceUsers.delete(oldState.member.id);
-        return voiceChannel.send({ embeds: [embed] });
+            .addFields({ name: "Пользователь", value: `<@${userId}>`, inline: true }, {
+            name: "Канал",
+            value: `<#${oldState.channelId}>`,
+            inline: true,
+        });
     }
     if (oldState.channelId && newState.channelId && oldState.channelId !== newState.channelId) {
         if (createdChannelsMap.has(oldState.channelId))
@@ -78,10 +63,10 @@ export default new Event("voiceStateUpdate", (oldState, newState) => {
             iconURL: oldState.member?.displayAvatarURL() || newState.member?.displayAvatarURL(),
         })
             .setFooter({
-            text: `UId: ${newState.member?.id} | ChnId: ${newState.channelId}`,
+            text: `UId: ${userId} | ChnId: ${newState.channelId}`,
         })
             .addFields([
-            { name: "Пользователь", value: `<@${oldState.member.id}>`, inline: true },
+            { name: "Пользователь", value: `<@${userId}>`, inline: true },
             { name: "До", value: `<#${oldState.channelId}>`, inline: true },
             {
                 name: "После",
@@ -89,6 +74,19 @@ export default new Event("voiceStateUpdate", (oldState, newState) => {
                 inline: true,
             },
         ]);
-        return voiceChannel.send({ embeds: [embed] });
     }
+    if (!newState.channelId || newState.channelId === newState.guild.afkChannelId) {
+        const userJoinTimestamp = voiceUsers.get(userId)?.joinTimestamp;
+        if (!userJoinTimestamp)
+            return;
+        const secondsInVoice = Math.trunc((Date.now() - userJoinTimestamp) / 1000);
+        embed.addFields({
+            name: "Времени в голосовых",
+            value: `${convertSeconds(secondsInVoice)}`,
+            inline: true,
+        });
+        cacheUserActivity({ userId, voiceTime: secondsInVoice });
+        voiceUsers.delete(userId);
+    }
+    await voiceChannel.send({ embeds: [embed] });
 });
