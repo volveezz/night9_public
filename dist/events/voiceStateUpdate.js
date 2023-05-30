@@ -14,7 +14,7 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
         return;
     const embed = new EmbedBuilder().setColor(colors.success);
     const userId = newState.id || oldState.id;
-    if (!voiceUsers.has(userId) && newState.channelId !== newState.guild.afkChannelId) {
+    if (!voiceUsers.has(userId) && newState.channelId !== newState.guild.afkChannelId && newState.channel) {
         voiceUsers.set(userId, Date.now());
     }
     if (!oldState.channelId && newState.channelId) {
