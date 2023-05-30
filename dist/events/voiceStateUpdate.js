@@ -88,5 +88,10 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
         cacheUserActivity({ userId, voiceTime: secondsInVoice });
         voiceUsers.delete(userId);
     }
-    await voiceChannel.send({ embeds: [embed] });
+    try {
+        await voiceChannel.send({ embeds: [embed] });
+    }
+    catch (error) {
+        console.error("[Error code: 1813]", error.message, embed.data);
+    }
 });
