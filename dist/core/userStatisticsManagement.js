@@ -199,8 +199,8 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                                 }
                             }
                         }
-                        else if (destinyProfileResponse.profileRecords.data.records[role.triumphRequirement]) {
-                            const notGuidedTriumphRecord = destinyProfileResponse.profileRecords.data.records[role.triumphRequirement];
+                        else if (destinyProfileResponse.profileRecords.data.records[Number(role.triumphRequirement)]) {
+                            const notGuidedTriumphRecord = destinyProfileResponse.profileRecords.data.records[Number(role.triumphRequirement)];
                             if (notGuidedTriumphRecord.objectives
                                 ? notGuidedTriumphRecord.objectives?.pop()?.complete === true
                                 : notGuidedTriumphRecord.intervalObjectives?.pop()?.complete === true) {
@@ -222,17 +222,14 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                         if (memberRoles.hasAll(...dungeonRoles) && !memberRoles.has(dungeonMasterRole) && !addRoles.includes(dungeonMasterRole)) {
                             addRoles.push(dungeonMasterRole);
                             removeRoles.push(...dungeonRoles);
-                            return;
                         }
                         else if (memberRoles.has(dungeonMasterRole) && memberRoles.hasAny(...dungeonRoles)) {
                             removeRoles.push(...dungeonRoles);
                         }
-                        else if (memberRoles.has(dungeonMasterRole)) {
-                            return;
-                        }
+                        return;
                     }
-                    const triumphRecord = destinyProfileResponse.profileRecords.data.records[triumphHash] ||
-                        destinyProfileResponse.characterRecords.data[Object.keys(destinyProfileResponse.characterRecords.data)[0]].records[triumphHash];
+                    const triumphRecord = destinyProfileResponse.profileRecords.data.records[Number(triumphHash)] ||
+                        destinyProfileResponse.characterRecords.data[Object.keys(destinyProfileResponse.characterRecords.data)[0]].records[Number(triumphHash)];
                     if (triumphRecord) {
                         if ((triumphRecord.objectives && triumphRecord.objectives[triumphRecord.objectives.length - 1].complete === true) ||
                             (triumphRecord.intervalObjectives &&

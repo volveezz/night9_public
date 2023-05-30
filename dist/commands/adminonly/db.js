@@ -68,7 +68,7 @@ export default new Command({
                     description: "ADD",
                     options: [
                         {
-                            type: ApplicationCommandOptionType.Integer,
+                            type: ApplicationCommandOptionType.String,
                             name: "hash",
                             description: "HASH",
                             required: true,
@@ -254,23 +254,24 @@ export default new Command({
                 return;
             }
             case "add": {
-                const hash = args.getInteger("hash", true);
+                const hash = args.getString("hash", true);
                 const roleId = args.getString("roleid");
                 const unique = args.getInteger("unique") ?? -99;
-                if (!CachedDestinyRecordDefinition[hash])
+                const recordDefinition = CachedDestinyRecordDefinition[Number(hash)];
+                if (!recordDefinition)
                     throw { name: "Триумф под таким хешем не найден", description: `Hash: ${hash}` };
                 const databaseRoleData = roleId !== null
                     ? await AutoRoleData.findOne({
                         where: { roleId: roleId },
                     })
                     : null;
-                const title = CachedDestinyRecordDefinition[hash].titleInfo.hasTitle;
-                const guildableTitle = title ? (CachedDestinyRecordDefinition[hash].titleInfo.gildingTrackingRecordHash ? true : false) : false;
+                const title = recordDefinition.titleInfo.hasTitle;
+                const guildableTitle = title ? (recordDefinition.titleInfo.gildingTrackingRecordHash ? true : false) : false;
                 let titleName = title
                     ? guildableTitle
-                        ? "⚜️" + CachedDestinyRecordDefinition[hash].titleInfo.titlesByGender.Male
-                        : CachedDestinyRecordDefinition[hash].titleInfo.titlesByGender.Male
-                    : CachedDestinyRecordDefinition[hash].displayProperties.name;
+                        ? "⚜️" + recordDefinition.titleInfo.titlesByGender.Male
+                        : recordDefinition.titleInfo.titlesByGender.Male
+                    : recordDefinition.displayProperties.name;
                 const category = databaseRoleData
                     ? databaseRoleData.category
                     : title
@@ -284,8 +285,8 @@ export default new Command({
                 else {
                     embed.setTitle("Создание авто-роли");
                 }
-                if (CachedDestinyRecordDefinition[hash].displayProperties.hasIcon) {
-                    embed.setThumbnail(`https://www.bungie.net${CachedDestinyRecordDefinition[hash].displayProperties.icon}`);
+                if (recordDefinition.displayProperties.hasIcon) {
+                    embed.setThumbnail(`https://www.bungie.net${recordDefinition.displayProperties.icon}`);
                 }
                 if (titleName) {
                     embed.addFields({
@@ -302,10 +303,10 @@ export default new Command({
                 if (unique && unique >= 1) {
                     embed.addFields({ name: "Лимит пользователей", value: unique.toString(), inline: true });
                 }
-                if (CachedDestinyRecordDefinition[hash].displayProperties.description) {
+                if (recordDefinition.displayProperties.description) {
                     embed.addFields({
                         name: "Описание роли",
-                        value: CachedDestinyRecordDefinition[hash].displayProperties.description,
+                        value: recordDefinition.displayProperties.description,
                     });
                 }
                 const components = [
@@ -352,16 +353,17 @@ export default new Command({
                                                 : raidRoles.roles[0].roleId)?.position ?? undefined,
                             });
                             if (guildableTitle) {
-                                gildedRoles.push((await interaction.guild.roles.create({
+                                const guildedRole = await interaction.guild.roles.create({
                                     name: titleName + " 1",
                                     reason: "Creating guildable auto-role",
                                     position: role.position,
                                     color: "#ffb300",
-                                })).id);
+                                });
+                                gildedRoles.push(guildedRole.id);
                             }
                         }
                         else {
-                            role = member.guild.roles.cache.get(String(databaseRoleData.roleId));
+                            role = member.guild.roles.cache.get(databaseRoleData.roleId);
                         }
                         if (!databaseRoleData) {
                             try {
@@ -370,7 +372,7 @@ export default new Command({
                                         triumphRequirement: hash,
                                         roleId: role.id,
                                         category: category,
-                                        gildedTriumphRequirement: CachedDestinyRecordDefinition[hash].titleInfo.gildingTrackingRecordHash,
+                                        gildedTriumphRequirement: recordDefinition.titleInfo.gildingTrackingRecordHash,
                                         gildedRoles: gildedRoles,
                                         available: unique,
                                     });
@@ -411,11 +413,11 @@ export default new Command({
                                 .addFields([{ name: "Требования к роли были дополнены", value: `<@&${role.id}>` }]);
                         }
                         collector.stop("Completed");
-                        (await deferredReply) &&
-                            interaction.editReply({
-                                embeds: [embed],
-                                components: [],
-                            });
+                        await deferredReply;
+                        await interaction.editReply({
+                            embeds: [embed],
+                            components: [],
+                        });
                     }
                     else if (collected.customId === "db_roles_add_change_name") {
                         interaction.channel
