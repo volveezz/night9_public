@@ -2,6 +2,7 @@ import { ApplicationCommandType, ButtonBuilder, ButtonStyle, ChatInputCommandInt
 import { StatsButton } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
+import { bungieNames } from "../core/userStatisticsManagement.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
 import { fetchRequest } from "../utils/api/fetchRequest.js";
@@ -39,9 +40,10 @@ export default new Command({
         const targetMember = optionId ? undefined : await client.getAsyncMember(targetId);
         const targetName = targetMember ? (await client.getAsyncMember(targetId))?.displayName : undefined;
         const targetAvatar = targetMember ? (await client.getAsyncMember(targetId))?.displayAvatarURL() : undefined;
+        const bunigeName = bungieNames.get(targetId || interaction.user.id);
         const embed = new EmbedBuilder()
             .setAuthor({
-            name: `Статистика ${targetName}`,
+            name: `Статистика ${targetName}${bunigeName ? ` - ${bunigeName}` : ""}`,
             iconURL: targetAvatar,
         })
             .setFooter({ text: `Id: ${targetId}` });

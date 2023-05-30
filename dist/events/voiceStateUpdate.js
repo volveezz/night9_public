@@ -10,12 +10,12 @@ import { convertSeconds } from "../utils/general/convertSeconds.js";
 const voiceChannel = client.getCachedTextChannel(channelIds.voice);
 const voiceUsers = new Map();
 export default new Event("voiceStateUpdate", async (oldState, newState) => {
+    if (oldState.channelId === newState.channelId)
+        return;
     const embed = new EmbedBuilder().setColor(colors.success);
     const userId = newState.id || oldState.id;
     if (!voiceUsers.has(userId) && newState.channelId !== newState.guild.afkChannelId) {
-        voiceUsers.set(userId, {
-            joinTimestamp: Date.now(),
-        });
+        voiceUsers.set(userId, Date.now());
     }
     if (!oldState.channelId && newState.channelId) {
         if (createdChannelsMap.has(newState.channelId))
@@ -76,7 +76,7 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
         ]);
     }
     if (!newState.channelId || newState.channelId === newState.guild.afkChannelId) {
-        const userJoinTimestamp = voiceUsers.get(userId)?.joinTimestamp;
+        const userJoinTimestamp = voiceUsers.get(userId);
         if (!userJoinTimestamp)
             return;
         const secondsInVoice = Math.trunc((Date.now() - userJoinTimestamp) / 1000);
