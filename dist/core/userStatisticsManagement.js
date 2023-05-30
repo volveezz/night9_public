@@ -16,7 +16,7 @@ export const userTimezones = new Map();
 export const clanOnline = new Map();
 const throttleSet = new Set();
 const dungeonRoles = await AutoRoleData.findAll({ where: { category: 8 } }).then((rolesData) => {
-    return rolesData.filter((roleData) => dungeonsTriumphHashes.includes(Number(roleData.triumphRequirement))).map((r) => r.roleId);
+    return rolesData.filter((roleData) => dungeonsTriumphHashes.includes(roleData.triumphRequirement)).map((r) => r.roleId);
 });
 async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessToken, displayName, roleCategoriesBits, UserActivityData: userActivity }, member, roleDataFromDatabase) {
     const addRoles = [];
