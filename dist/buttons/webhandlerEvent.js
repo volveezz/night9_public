@@ -1,7 +1,7 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import fetch from "node-fetch";
 import { Op } from "sequelize";
-import { TimezoneButtons } from "../configs/Buttons.js";
+import { ClanButtons, TimezoneButtons } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
@@ -61,6 +61,14 @@ export default {
             if (!interaction.channel?.isDMBased() || clanInviteRequest.ErrorCode === 1626)
                 return;
             const message = await interaction.channel.messages.fetch(interaction.message.id);
+            if (message.embeds[0].data.author?.name === "Уведомление об исключении из клана") {
+                await message.edit({
+                    components: await addButtonComponentsToMessage([
+                        new ButtonBuilder().setCustomId(ClanButtons.modal).setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
+                    ]),
+                });
+                return;
+            }
             const updatedEmbed = EmbedBuilder.from(message.embeds[0]).setDescription(null);
             await message.edit({ embeds: [updatedEmbed], components: await addButtonComponentsToMessage([timezoneComponent]) });
         }

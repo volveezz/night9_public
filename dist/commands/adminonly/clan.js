@@ -191,7 +191,6 @@ export default new Command({
             const removalMessage = await interaction.followUp({
                 embeds: [removalEmbed],
                 components: await addButtonComponentsToMessage(components),
-                ephemeral: true,
             });
             const collector = removalMessage.createMessageComponentCollector({
                 componentType: ComponentType.Button,

@@ -18,6 +18,13 @@ export async function cacheUserActivity({ userId, messageId, voiceTime }) {
         }, 60 * 1000 * 5);
     }
 }
+export async function forceUpdateUserActivity() {
+    if (countdown) {
+        clearTimeout(countdown);
+        countdown = null;
+    }
+    userActivityUpdater();
+}
 async function userActivityUpdater() {
     const t = await database.transaction();
     for await (const [userId, value] of messageMap) {

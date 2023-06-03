@@ -53,7 +53,7 @@ export default new Event("guildMemberUpdate", async (oldMember, newMember) => {
             name: `${newMember.displayName} обновил никнейм`,
             iconURL: newMember.displayAvatarURL(),
         })
-            .addFields({ name: "Пользователь", value: `<@${newMember.id}>`, inline: true }, { name: "До изменения", value: escapeString(oldMember.displayName), inline: true }, { name: "После", value: escapeString(newMember.displayName), inline: true });
+            .addFields({ name: "До изменения", value: escapeString(oldMember.displayName), inline: true }, { name: "После", value: escapeString(newMember.displayName), inline: true });
         await guildMemberChannel.send({ embeds: [embed] });
         if (!automaticallyUpdatedUsernames.has(newMember.id)) {
             testAutonameUserStatus(newMember);
@@ -67,7 +67,7 @@ export default new Event("guildMemberUpdate", async (oldMember, newMember) => {
                 iconURL: newMember.displayAvatarURL(),
             })
                 .setColor(colors.default)
-                .addFields({ name: "Пользователь", value: `<@${newMember.id}>`, inline: true }, {
+                .addFields({
                 name: "Тайм-аут до",
                 value: `<t:${Math.round(newMember.communicationDisabledUntilTimestamp / 1000)}>`,
             });
