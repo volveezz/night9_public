@@ -9,7 +9,7 @@ import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import welcomeMessage from "../utils/discord/welcomeMessage.js";
 import { escapeString } from "../utils/general/utilities.js";
-import { AuthData, InitData, LeavedUsersData, database } from "../utils/persistence/sequelize.js";
+import { AuthData, InitData, LeavedUsersData, UserActivityData, database } from "../utils/persistence/sequelize.js";
 const guildMemberChannel = await client.getAsyncTextChannel(channelIds.guildMember);
 export default new Event("guildMemberAdd", async (member) => {
     welcomeMessage(member);
@@ -69,6 +69,7 @@ export default new Event("guildMemberAdd", async (member) => {
         }, {
             transaction,
         });
+        UserActivityData.findOrCreate({ where: { discordId: data.discordId }, defaults: { discordId: data.discordId } });
         await LeavedUsersData.destroy({
             where: { discordId: data.discordId },
             transaction,

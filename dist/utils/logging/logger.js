@@ -1,6 +1,7 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { AdminDMChannelButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
+import icons from "../../configs/icons.js";
 import { channelIds, ownerId } from "../../configs/ids.js";
 import { statusRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
@@ -45,7 +46,6 @@ export async function logUserRegistrationAttempt(state, user, isNewUser) {
 export async function updateClanRolesWithLogging(result, join) {
     const member = await client.getAsyncMember(result.discordId);
     const embed = new EmbedBuilder().addFields([
-        { name: "Пользователь", value: `<@${result.discordId}>`, inline: true },
         { name: "BungieId", value: result.bungieId, inline: true },
         { name: "Ник в игре", value: `${escapeString(result.displayName)}`, inline: true },
     ]);
@@ -100,7 +100,7 @@ export async function updateClanRolesWithLogging(result, join) {
 async function notifyJoinedUser(member) {
     const embed = new EmbedBuilder()
         .setColor(colors.success)
-        .setTitle("Вы были приняты в клан!")
+        .setAuthor({ name: "Вы были приняты в клан!", iconURL: member.guild.iconURL() || icons.success })
         .setDescription(`Вы также получили все необходимые роли для доступа к каналам клана\n\nНа сервере разработано множество различных систем, команд и возможностей. При желании Вы можете ввести \`/\` и Discord вам предложит все слеш-команды сервера\nНа сервере есть несколько различных ботов и их команд, но клановыми являются 2: основной - Night 9, <@${client.user.id}> и музыкальный бот - Alfred Jodl, <@719262521768280074>\n\nПо любым вопросам **в любое время** пишите <@${ownerId}> в личные сообщения или <@${client.user.id}> в этом же чате`);
     await member.send({ embeds: [embed] });
 }
