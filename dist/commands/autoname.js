@@ -58,13 +58,13 @@ export default new Command({
             if (dbInfo.displayName.replace("⁣", "").length <= 0)
                 throw { name: "Ваш ник слишком короткий" };
             if (dbInfo.displayName.startsWith("⁣") && nameStatus) {
-                dbInfo.update({ displayName: dbInfo.displayName.replace("⁣", "") }).then(async (result) => {
+                dbInfo.update({ displayName: dbInfo.displayName.replace("⁣", "") }).then(async () => {
                     embed.setColor(colors.success).setTitle("Вы включили автоматическую смену ника");
                     interaction.editReply({ embeds: [embed], components: [] });
                 });
             }
             else if (!dbInfo.displayName.startsWith("⁣") && !nameStatus) {
-                dbInfo.update({ displayName: "⁣" + dbInfo.displayName }).then(async (result) => {
+                dbInfo.update({ displayName: "⁣" + dbInfo.displayName }).then(async () => {
                     embed.setColor(colors.success).setTitle("Вы отключили автоматическую смену ника");
                     interaction.editReply({ embeds: [embed], components: [] });
                 });

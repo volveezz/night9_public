@@ -6,6 +6,7 @@ import { AuthData } from "../utils/persistence/sequelize.js";
 setInterval(async () => {
     await guildNicknameManagement();
 }, 1000 * 60 * 60);
+export const automaticallyUpdatedUsernames = new Set();
 async function guildNicknameManagement() {
     if (apiStatus.status !== 1)
         return;
@@ -20,6 +21,8 @@ async function guildNicknameManagement() {
         const { timezone, displayName: userDbName } = userDbData;
         if (nameCleaner(member.displayName) !== userDbName && !userDbName.startsWith("⁣")) {
             if (!member.permissions.has("Administrator")) {
+                automaticallyUpdatedUsernames.add(member.id);
+                setTimeout(() => automaticallyUpdatedUsernames.delete(member.id), 1000 * 60 * 2);
                 member
                     .setNickname(userDbData.timezone != null ? `[+${timezone}] ${userDbName}` : userDbName)
                     .catch((e) => console.error("[Error code: 1030] Name autochange error", e));

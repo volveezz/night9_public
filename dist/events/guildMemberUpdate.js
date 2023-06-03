@@ -2,6 +2,7 @@ import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { channelIds } from "../configs/ids.js";
+import { automaticallyUpdatedUsernames } from "../core/guildNicknameManagement.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import nameCleaner from "../utils/general/nameClearer.js";
@@ -54,7 +55,9 @@ export default new Event("guildMemberUpdate", async (oldMember, newMember) => {
         })
             .addFields({ name: "Пользователь", value: `<@${newMember.id}>`, inline: true }, { name: "До изменения", value: escapeString(oldMember.displayName), inline: true }, { name: "После", value: escapeString(newMember.displayName), inline: true });
         await guildMemberChannel.send({ embeds: [embed] });
-        testAutonameUserStatus(newMember);
+        if (!automaticallyUpdatedUsernames.has(newMember.id)) {
+            testAutonameUserStatus(newMember);
+        }
     }
     if (oldMember.communicationDisabledUntilTimestamp !== newMember.communicationDisabledUntilTimestamp) {
         if (!oldMember.communicationDisabledUntilTimestamp) {

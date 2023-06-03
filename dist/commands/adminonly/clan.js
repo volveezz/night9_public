@@ -205,7 +205,6 @@ export default new Command({
                 throw { errorType: UserErrors.DB_USER_NOT_FOUND };
             }
             collector.on("collect", async (button) => {
-                button.deferUpdate();
                 const { customId, member } = button;
                 if (!member || !member.permissions.has("Administrator"))
                     throw { errorType: UserErrors.MISSING_PERMISSIONS };
@@ -214,10 +213,11 @@ export default new Command({
                     return;
                 const managementEmbed = new EmbedBuilder();
                 if (customId === "clanManagement_previous" || customId === "clanManagement_next") {
+                    button.deferUpdate();
                     lastMemberIndex = lastMemberIndex + (customId === "clanManagement_previous" ? -1 : 1);
                 }
                 else if (customId === "clanManagement_kick") {
-                    const btnFollowUp = await button.followUp({
+                    const btnFollowUp = await button.reply({
                         content: `Подтвердите исключение **${escapeString(lastMember.bungieName)}**`,
                         components: await addButtonComponentsToMessage([
                             new ButtonBuilder()
@@ -226,6 +226,7 @@ export default new Command({
                                 .setStyle(ButtonStyle.Primary),
                             new ButtonBuilder().setCustomId("clanManagement_kick_cancel").setLabel("Отменить").setStyle(ButtonStyle.Danger),
                         ]),
+                        ephemeral: true,
                     });
                     const confirmationCollector = btnFollowUp.createMessageComponentCollector({
                         filter: (btn) => btn.user.id === interaction.user.id,
@@ -280,6 +281,7 @@ export default new Command({
                     });
                 }
                 else if (customId === "clanManagement_demote") {
+                    button.deferUpdate();
                     const demoteRank = --lastMember.rank;
                     const query = (await fetch(`https://www.bungie.net/Platform/GroupV2/4123712/Members/${lastMember.membershipType}/${lastMember.bungieId}/SetMembershipType/${demoteRank}/`, {
                         method: "POST",
@@ -305,6 +307,7 @@ export default new Command({
                     }
                 }
                 else if (customId === "clanManagement_promote") {
+                    button.deferUpdate();
                     const promoteRank = ++lastMember.rank;
                     const query = (await fetch(`https://www.bungie.net/Platform/GroupV2/4123712/Members/${lastMember.membershipType}/${lastMember.bungieId}/SetMembershipType/${promoteRank}/`, {
                         method: "POST",
@@ -330,6 +333,7 @@ export default new Command({
                     }
                 }
                 else if (customId === "clanManagement_cancel") {
+                    button.deferUpdate();
                     collector.stop("Cancelled");
                     await removalMessage.delete();
                     return;
