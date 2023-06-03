@@ -223,7 +223,13 @@ async function lfgHandler(message) {
             .setStyle(ButtonStyle.Link));
     const partyMessage = await pvePartyChannel.send({
         embeds: [embed],
-        content: userSettings.ping ? (userSettings.ping === "everyone" ? "@everyone" : `<@&${userSettings.ping}>`) : undefined,
+        content: userSettings.ping
+            ? userSettings.ping === "everyone"
+                ? "@everyone"
+                : userSettings.ping === "@here"
+                    ? "@here"
+                    : `<@&${userSettings.ping}>`
+            : undefined,
         components: await addButtonComponentsToMessage(components),
     });
     createdChannelsMap.set(voiceChannel.id, {

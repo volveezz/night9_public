@@ -519,8 +519,8 @@ async function checkIndiviualUserStatistics(user) {
     await checkUserStatisticsRoles(memberAuthData, member, autoRoleData);
     await timer(1000);
     await checkUserKDRatio(memberAuthData, member);
+    await timer(1000);
     await destinyActivityChecker(memberAuthData, member, 4);
-    await destinyActivityChecker(memberAuthData, member, 84);
 }
 export { checkIndiviualUserStatistics };
 export default handleMemberStatistics;

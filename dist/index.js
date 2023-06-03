@@ -10,6 +10,15 @@ export const client = new ExtendedClient();
 client.rest.on("rateLimited", (rateLimit) => {
     console.error(`Ratelimited for ${rateLimit.timeToReset} ms, route: ${rateLimit.route}${rateLimit.majorParameter ? `, parameter: ${rateLimit.majorParameter}` : ""}`);
 });
+process.on("SIGINT", handleExit);
+process.on("SIGTERM", handleExit);
+function handleExit(signal) {
+    const time = Date.now();
+    console.log(`Received ${signal}. Saving data...`);
+    setInterval(() => {
+        console.debug(`We had ${Date.now() - time}ms to save data`);
+    }, 100);
+}
 process.on("uncaughtException", (error) => {
     console.error("uncaughtException at top level", error);
 });

@@ -20,6 +20,21 @@ const channelIds = {
     pveParty: process.env.PVE_PARTY_CHANNEL_ID,
     pvePartyCategory: process.env.PVE_PARTY_CATEGORY_ID,
     publicBotSpam: process.env.PUBLIC_BOT_CHANNEL_ID,
+    nsfw: process.env.NSFW_CHANNEL_ID,
+    lore: process.env.LORE_CHANNEL_ID,
+};
+const categoryIds = {
+    admin: process.env.ADMIN_CATEGORY,
+    supporters: process.env.SUPPORTERS_CATEGORY,
+    clanJoin: process.env.CLAN_JOIN_CATEGORY,
+    general: process.env.GENERAL_CATEGORY,
+    main: process.env.MAIN_CATEGORY,
+    voiceMain: process.env.MAIN_VOICE_CATEGORY,
+    pveParty: process.env.PVE_PARTY_CATEGORY,
+    raid: process.env.RAID_CATEGORY,
+    bot: process.env.BOT_CATEGORY,
+    technical: process.env.TECHNICAL_CATEGORY,
+    clanReturnal: process.env.CLAN_RETURNAL,
 };
 const forbiddenRaidIds = [
     548750096, 960175301, 3213556450, 757116822, 2693136601, 417231112, 809170886, 3333172150, 119944200, 3446541099, 2693136602, 3879860661,
@@ -31,4 +46,4 @@ const checkedStoryActivities = [
     3083261666,
 ];
 const guildId = process.env.GUILD_ID;
-export { channelIds, checkedStoryActivities, forbiddenRaidIds, guildId, ownerId };
+export { categoryIds, channelIds, checkedStoryActivities, forbiddenRaidIds, guildId, ownerId };

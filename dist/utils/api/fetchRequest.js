@@ -43,8 +43,8 @@ function handleFetchError(error, response) {
     else if (status === 500) {
         console.error("[Error code: 1757] Internal server error");
     }
-    else if (status === "ERPROTO") {
-        console.error("[Error code: 1810] ERPROTO request error");
+    else if (status === "EPROTO") {
+        console.error("[Error code: 1810] EPROTO request error");
     }
     else if (status === "ECONNRESET") {
         console.error("[Error code: 1812] ECONNRESET request error");

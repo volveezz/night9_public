@@ -14,7 +14,7 @@ import { generateRaidClearsText, getRaidData } from "../raidFunctions.js";
 import { getRandomGIF, getRandomRaidGIF, timer } from "../utilities.js";
 import raidFireteamChecker from "./raidFireteamChecker.js";
 schedule("0 23 * * *", () => {
-    console.debug("DEBUG | Schedule completed");
+    raidInvites.clear();
     raidFireteamChecker();
     tasks = [];
     while (runningTimeouts.length > 0) {
@@ -152,6 +152,7 @@ export async function updateNotificationsForEntireRaid(raidId) {
         await updateNotifications(userId);
     }
 }
+const raidInvites = new Map();
 async function raidAnnounce(oldRaidData, discordId) {
     const { id: oldRaidId, time: oldRaidTime } = oldRaidData;
     const raidData = await RaidEvent.findByPk(oldRaidId, {
@@ -177,7 +178,7 @@ async function raidAnnounce(oldRaidData, discordId) {
     const raidTime = Math.round((raidData.time - Math.trunc(Date.now() / 1000)) / 60);
     const embed = new EmbedBuilder()
         .setColor(raidInfo ? raidInfo.raidColor : colors.default)
-        .setTitle("Уведомление о приближающемся рейде")
+        .setTitle("Уведомление о скором рейде")
         .setThumbnail(raidInfo?.raidBanner ?? null)
         .setDescription(`Рейд [${raidData.id}-${raidData.raid}](https://discord.com/channels/${guildId}/${channelIds.raid}/${raidData.messageId}) начнется в течение ${raidTime} минут!\n- <t:${raidData.time}>, <t:${raidData.time}:R>`)
         .addFields({
@@ -194,18 +195,23 @@ async function raidAnnounce(oldRaidData, discordId) {
         .filter((chn) => chn.parentId === channelIds.raidCategory && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"))
         .reverse();
     const components = [];
+    let inviteUrl = raidInvites.get(raidData.id);
     for await (const [_, chn] of raidVoiceChannels) {
-        if (chn.userLimit === 0 || chn.userLimit - 6 > chn.members.size || chn.members.has(raidData.creator)) {
-            const invite = await chn.createInvite({ reason: "Raid automatic invite", maxAge: 60 * 120 });
-            invite
-                ? components.push(new ButtonBuilder({
-                    style: ButtonStyle.Link,
-                    url: invite.url,
-                    label: `Перейти ${chn.members.has(raidData.creator) ? "к создателю рейда" : "в рейдовый канал"}`,
-                }))
-                : "";
+        if (!inviteUrl && (chn.userLimit === 0 || chn.userLimit - 6 > chn.members.size || chn.members.has(raidData.creator))) {
+            const invite = await chn.createInvite({ reason: "Raid automatic invite", maxAge: 60 * 1440 });
+            inviteUrl = invite?.url;
+            if (inviteUrl) {
+                raidInvites.set(raidData.id, inviteUrl);
+            }
             break;
         }
+    }
+    if (inviteUrl) {
+        components.push(new ButtonBuilder({
+            style: ButtonStyle.Link,
+            url: inviteUrl,
+            label: `Перейти в рейдовый канал`,
+        }));
     }
     const member = raidMembers.find((member) => member.id === discordId);
     if (!member) {

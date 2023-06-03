@@ -120,7 +120,7 @@ export default async function webHandler(code, state, res) {
         }
         const embed = new EmbedBuilder()
             .setTitle("Вы зарегистрировались")
-            .setDescription("Для удобства на сервере вы можете указать свой часовой пояс введя команду `/timezone`")
+            .setDescription("Для удобства на сервере вы можете указать свой часовой пояс введя команду `/timezone` (</timezone:1055308734794043503>)")
             .setColor(colors.success)
             .addFields({
             name: "Bungie аккаунт",

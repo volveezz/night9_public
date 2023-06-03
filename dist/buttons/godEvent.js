@@ -1,4 +1,4 @@
-import { ButtonBuilder, ButtonStyle, EmbedBuilder, Role, TextChannel, VoiceChannel } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder, Role, TextChannel, VoiceChannel, } from "discord.js";
 import { Op } from "sequelize";
 import { RaidButtons } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
@@ -143,11 +143,17 @@ export default {
                     const messageOptions = await updateRaidMessage({ raidEvent: raid, returnComponents: true });
                     if (!messageOptions)
                         continue;
-                    const { embeds, components } = messageOptions;
-                    await (await messagePromise).delete();
+                    const { embeds, components: subComponents } = messageOptions;
+                    const message = await messagePromise;
+                    const components = message.components
+                        .map((c) => c.components.map((com) => {
+                        const button = com;
+                        return ButtonBuilder.from(button);
+                    }))
+                        .flat();
                     const updatedRaidMessage = await raidChannel.send({
                         embeds,
-                        components: await addButtonComponentsToMessage(components && components.length > 0 ? components : baseComponents),
+                        components: await addButtonComponentsToMessage(components && components.length > 0 ? components : subComponents ? subComponents : baseComponents),
                     });
                     await raid.update({ messageId: updatedRaidMessage.id });
                     sortedRaidCount++;

@@ -176,4 +176,20 @@ AuthData.hasOne(RaidUserNotification, {
         allowNull: false,
     },
 });
-export { AuthData, AutoRoleData, InitData, LeavedUsersData, RaidEvent, RaidUserNotification, UserActivityData, sequelize as database };
+class VoiceChannels extends Model {
+}
+VoiceChannels.init({
+    channelId: {
+        type: DataTypes.STRING(30),
+        allowNull: false,
+        primaryKey: true,
+    },
+}, {
+    sequelize,
+    timestamps: false,
+    createdAt: false,
+    updatedAt: false,
+    freezeTableName: true,
+    name: { singular: "VoiceChannels", plural: "VoiceChannels" },
+});
+export { AuthData, AutoRoleData, InitData, LeavedUsersData, RaidEvent, RaidUserNotification, UserActivityData, VoiceChannels, sequelize as database, };
