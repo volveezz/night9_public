@@ -5,11 +5,10 @@ import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import { createdChannelsMap } from "../utils/discord/lfgSystem/handleLFG.js";
 import lfgTextChannelHandler from "../utils/discord/lfgSystem/handleLfgJoin.js";
-import { cacheUserActivity } from "../utils/discord/userActivityHandler.js";
+import { cacheUserActivity, voiceChannelJoinTimestamps } from "../utils/discord/userActivityHandler.js";
 import manageVoiceChannels from "../utils/discord/voiceChannelManager.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
 const voiceLogChannel = client.getCachedTextChannel(channelIds.voice);
-export const voiceChannelJoinTimestamps = new Map();
 export default new Event("voiceStateUpdate", async (oldState, newState) => {
     if (oldState.channelId === newState.channelId) {
         return;

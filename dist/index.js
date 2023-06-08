@@ -36,7 +36,7 @@ process.on("unhandledRejection", (error) => {
         return console.error(`[Error code: 1215] ${error.code}`);
     if (error.code === 50035)
         return console.error("[Error code: 1243]", error, error.rawError);
-    console.error("unhandledRejection at top level", { error });
+    console.error("unhandledRejection at top level", error);
 });
 const app = express();
 const port = process.env.PORT || 3000;

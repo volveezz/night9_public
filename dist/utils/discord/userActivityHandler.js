@@ -1,8 +1,8 @@
-import { voiceChannelJoinTimestamps } from "../../events/voiceStateUpdate.js";
 import { database, UserActivityData } from "../persistence/sequelize.js";
 const userMessageSentMap = new Map();
 export const userVoiceTimeMap = new Map();
-var countdown = null;
+export const voiceChannelJoinTimestamps = new Map();
+let countdown = null;
 export async function cacheUserActivity({ userId, messageId, voiceTime }) {
     if (messageId) {
         const userMessages = userMessageSentMap.get(userId) ?? 0;

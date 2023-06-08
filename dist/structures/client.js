@@ -1,9 +1,10 @@
-import { ActivityType, Client, Collection, GatewayIntentBits, Partials, } from "discord.js";
+import { ActivityType, ChannelType, Client, Collection, GatewayIntentBits, Partials, } from "discord.js";
 import { join, resolve } from "path";
 import { guildId } from "../configs/ids.js";
 import periodicDestinyActivityChecker from "../core/periodicActivityChecker.js";
 import tokenManagment from "../core/tokenManagement.js";
 import handleMemberStatistics from "../core/userStatisticsManagement.js";
+import { voiceChannelJoinTimestamps } from "../utils/discord/userActivityHandler.js";
 import { clanOnlineMemberActivityChecker } from "../utils/general/activityCompletionChecker.js";
 import getFiles from "../utils/general/fileReader.js";
 import raidFireteamChecker from "../utils/general/raidFunctions/raidFireteamChecker.js";
@@ -187,37 +188,61 @@ export class ExtendedClient extends Client {
         await Promise.all(autocompleteReading);
     }
     async registerModules() {
-        this.on("ready", async (client) => {
-            const guilds = await client.guilds.fetch();
-            const fetchGuildsPromises = guilds.map(async (guild) => {
-                const guildFetched = await guild.fetch();
-                if (guildFetched.id === guildId) {
-                    this.guild = guildFetched;
-                }
-                await guildFetched.members.fetch();
-                await guildFetched.channels.fetch();
-            });
-            await Promise.all(fetchGuildsPromises);
-            this.loadButtons();
-            this.loadEvents();
-            this.loadCommands();
-            this.loadAutocompletions();
-            this.startUpdatingPresence();
-            restoreFetchedPGCRs();
-            this.importFile("../utils/api/rssHandler.js");
-            loadNotifications();
+        this.once("ready", async (client) => {
+            this.guild = await this.fetchGuild(client);
+            this.loadComponents();
             if (process.env.DEV_BUILD !== "dev") {
-                tokenManagment();
-                clanOnlineMemberActivityChecker();
-                periodicDestinyActivityChecker();
-                handleMemberStatistics();
-                this.importFile("../core/guildNicknameManagement.js");
+                this.loadProdComponents();
             }
-            console.log(`${this.user.username} online since ${new Date().toLocaleString()}`);
+            console.log(`\x1b[32m${this.user.username} online since ${new Date().toLocaleString()}`);
             setTimeout(() => {
-                cacheRaidMilestones();
-                raidFireteamChecker();
+                this.loadDelayedComponents();
             }, 1000 * 30);
+            this.fetchMembersAndMessages();
+        });
+    }
+    async fetchGuild(client) {
+        const guild = await client.guilds.fetch(guildId);
+        await guild.members.fetch();
+        return guild;
+    }
+    loadComponents() {
+        this.loadButtons();
+        this.loadEvents();
+        this.loadCommands();
+        this.loadAutocompletions();
+    }
+    loadProdComponents() {
+        tokenManagment();
+        clanOnlineMemberActivityChecker();
+        periodicDestinyActivityChecker();
+        handleMemberStatistics();
+        this.startUpdatingPresence();
+        restoreFetchedPGCRs();
+        this.importFile("../utils/api/rssHandler.js");
+        this.importFile("../core/guildNicknameManagement.js");
+        loadNotifications();
+    }
+    loadDelayedComponents() {
+        cacheRaidMilestones();
+        raidFireteamChecker();
+    }
+    async fetchMembersAndMessages() {
+        let counter = 1;
+        this.guild.channels.cache.forEach(async (channel) => {
+            if (channel.type === ChannelType.GuildVoice && channel.id !== this.guild.afkChannelId) {
+                channel.members.forEach((member) => {
+                    if (!member.user.bot) {
+                        voiceChannelJoinTimestamps.set(member.id, Date.now());
+                    }
+                });
+            }
+            if (channel.isTextBased()) {
+                setTimeout(async () => {
+                    await channel.messages.fetch({ limit: 10 });
+                }, 10000 * counter);
+                counter++;
+            }
         });
     }
 }
