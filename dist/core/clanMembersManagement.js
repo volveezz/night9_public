@@ -39,7 +39,7 @@ async function clanMembersManagement(userBungieIds) {
         }
         else if (apiStatus.status !== 1 && clanList?.results && clanList.results.length > 1) {
             apiStatus.status = 1;
-            console.info("Bungie API is back online");
+            console.info("\x1b[32mBungie API is back online\x1b[0m");
         }
         if (client.user.presence.activities[0].name.startsWith("🔁")) {
             client.stopUpdatingPresence();

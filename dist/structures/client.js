@@ -194,7 +194,7 @@ export class ExtendedClient extends Client {
             if (process.env.DEV_BUILD !== "dev") {
                 this.loadProdComponents();
             }
-            console.log(`\x1b[32m${this.user.username} online since ${new Date().toLocaleString()}`);
+            console.info(`\x1b[32m${this.user.username} online since ${new Date().toLocaleString()}\x1b[0m`);
             setTimeout(() => {
                 this.loadDelayedComponents();
             }, 1000 * 30);

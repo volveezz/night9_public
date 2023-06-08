@@ -1,4 +1,4 @@
-import { database, UserActivityData } from "../persistence/sequelize.js";
+import { UserActivityData } from "../persistence/sequelize.js";
 const userMessageSentMap = new Map();
 export const userVoiceTimeMap = new Map();
 export const voiceChannelJoinTimestamps = new Map();
@@ -33,20 +33,22 @@ export async function forceUpdateUserActivity() {
     await userActivityUpdater();
 }
 async function userActivityUpdater() {
-    const transaction = await database.transaction();
     for (const [userId, value] of userMessageSentMap) {
         userMessageSentMap.delete(userId);
-        UserActivityData.increment("messages", { by: value ?? 0, where: { discordId: userId }, transaction });
+        try {
+            await UserActivityData.increment("messages", { by: value ?? 0, where: { discordId: userId } });
+        }
+        catch (error) {
+            console.error("[Error code: 1825]", userId, error);
+        }
     }
     for (const [userId, value] of userVoiceTimeMap) {
         userVoiceTimeMap.delete(userId);
-        UserActivityData.increment("voice", { by: value ?? 0, where: { discordId: userId }, transaction });
-    }
-    try {
-        await transaction.commit();
-    }
-    catch (e) {
-        await transaction.rollback();
-        console.error("[Error code: 1201]", e);
+        try {
+            await UserActivityData.increment("voice", { by: value ?? 0, where: { discordId: userId } });
+        }
+        catch (error) {
+            console.error("[Error code: 1824]", userId, error);
+        }
     }
 }
