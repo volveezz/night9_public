@@ -8,8 +8,8 @@ import lfgTextChannelHandler from "../utils/discord/lfgSystem/handleLfgJoin.js";
 import { cacheUserActivity } from "../utils/discord/userActivityHandler.js";
 import manageVoiceChannels from "../utils/discord/voiceChannelManager.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
-const voiceChannel = client.getCachedTextChannel(channelIds.voice);
-const voiceUsers = new Map();
+const voiceLogChannel = client.getCachedTextChannel(channelIds.voice);
+export const voiceChannelJoinTimestamps = new Map();
 export default new Event("voiceStateUpdate", async (oldState, newState) => {
     if (oldState.channelId === newState.channelId) {
         return;
@@ -22,8 +22,8 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
     catch (error) {
         console.error("[Error code: 1814]", error);
     }
-    if (!oldState.member?.user.bot && !voiceUsers.has(userId) && newState.channelId !== newState.guild.afkChannelId && newState.channel) {
-        voiceUsers.set(userId, Date.now());
+    if (!voiceChannelJoinTimestamps.has(userId) && newState.channelId !== newState.guild.afkChannelId && newState.channel) {
+        voiceChannelJoinTimestamps.set(userId, Date.now());
     }
     if (!oldState.channelId && newState.channelId) {
         if (!oldState.member?.user.bot && createdChannelsMap.has(newState.channelId))
@@ -37,7 +37,7 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
             text: `UId: ${userId} | ChnId: ${newState.channelId}`,
         })
             .addFields([{ name: "Канал", value: `<#${newState.channelId}>`, inline: true }]);
-        return voiceChannel.send({ embeds: [embed] });
+        return voiceLogChannel.send({ embeds: [embed] });
     }
     if (!newState.channelId) {
         if (!oldState.member?.user.bot && oldState.channelId && createdChannelsMap.has(oldState.channelId))
@@ -79,17 +79,17 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
             },
         ]);
     }
-    if ((!oldState.member?.user.bot && !newState.channelId) || newState.channelId === newState.guild.afkChannelId) {
+    if (!newState.channelId || newState.channelId === newState.guild.afkChannelId) {
         checkJoinTimestamp();
     }
     try {
-        await voiceChannel.send({ embeds: [embed] });
+        await voiceLogChannel.send({ embeds: [embed] });
     }
     catch (error) {
         console.error("[Error code: 1813]", error.message, embed.data);
     }
     async function checkJoinTimestamp() {
-        const userJoinTimestamp = voiceUsers.get(userId);
+        const userJoinTimestamp = voiceChannelJoinTimestamps.get(userId);
         if (!userJoinTimestamp)
             return;
         const secondsInVoice = Math.trunc((Date.now() - userJoinTimestamp) / 1000);
@@ -99,6 +99,6 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
             inline: true,
         });
         cacheUserActivity({ userId, voiceTime: secondsInVoice });
-        voiceUsers.delete(userId);
+        voiceChannelJoinTimestamps.delete(userId);
     }
 });

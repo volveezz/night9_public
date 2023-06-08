@@ -1,17 +1,18 @@
+import { voiceChannelJoinTimestamps } from "../../events/voiceStateUpdate.js";
 import { database, UserActivityData } from "../persistence/sequelize.js";
-const messageMap = new Map();
-const voiceMap = new Map();
+const userMessageSentMap = new Map();
+export const userVoiceTimeMap = new Map();
 var countdown = null;
 export async function cacheUserActivity({ userId, messageId, voiceTime }) {
     if (messageId) {
-        const userMessages = messageMap.get(userId) ?? 0;
-        messageMap.set(userId, userMessages + 1);
+        const userMessages = userMessageSentMap.get(userId) ?? 0;
+        userMessageSentMap.set(userId, userMessages + 1);
     }
     if (voiceTime) {
-        const userVoice = voiceMap.get(userId) ?? 0;
-        voiceMap.set(userId, userVoice + voiceTime);
+        const userVoice = userVoiceTimeMap.get(userId) ?? 0;
+        userVoiceTimeMap.set(userId, userVoice + voiceTime);
     }
-    if ((messageMap.size > 0 || voiceMap.size > 0) && countdown === null) {
+    if ((userMessageSentMap.size > 0 || userVoiceTimeMap.size > 0) && countdown === null) {
         countdown = setTimeout(() => {
             userActivityUpdater();
             countdown = null;
@@ -23,20 +24,29 @@ export async function forceUpdateUserActivity() {
         clearTimeout(countdown);
         countdown = null;
     }
-    userActivityUpdater();
+    for (const [userId, joinTimestamp] of voiceChannelJoinTimestamps.entries()) {
+        const secondsInVoice = Math.floor((Date.now() - joinTimestamp) / 1000);
+        const existingVoiceTime = userVoiceTimeMap.get(userId) ?? 0;
+        userVoiceTimeMap.set(userId, existingVoiceTime + secondsInVoice);
+    }
+    voiceChannelJoinTimestamps.clear();
+    await userActivityUpdater();
 }
 async function userActivityUpdater() {
-    const t = await database.transaction();
-    for await (const [userId, value] of messageMap) {
-        messageMap.delete(userId);
-        UserActivityData.increment("messages", { by: value ?? 0, where: { discordId: userId }, transaction: t });
+    const transaction = await database.transaction();
+    for (const [userId, value] of userMessageSentMap) {
+        userMessageSentMap.delete(userId);
+        UserActivityData.increment("messages", { by: value ?? 0, where: { discordId: userId }, transaction });
     }
-    for await (const [userId, value] of voiceMap) {
-        voiceMap.delete(userId);
-        UserActivityData.increment("voice", { by: value ?? 0, where: { discordId: userId }, transaction: t });
+    for (const [userId, value] of userVoiceTimeMap) {
+        userVoiceTimeMap.delete(userId);
+        UserActivityData.increment("voice", { by: value ?? 0, where: { discordId: userId }, transaction });
     }
-    await t.commit().catch(async (e) => {
-        await t.rollback();
+    try {
+        await transaction.commit();
+    }
+    catch (e) {
+        await transaction.rollback();
         console.error("[Error code: 1201]", e);
-    });
+    }
 }

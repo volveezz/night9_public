@@ -10,6 +10,9 @@ import * as storage from "./utils/persistence/webStorage.js";
 export const client = new ExtendedClient();
 client.rest.on("rateLimited", (rateLimit) => {
     console.error(`Ratelimited for ${rateLimit.timeToReset} ms, route: ${rateLimit.route}${rateLimit.majorParameter ? `, parameter: ${rateLimit.majorParameter}` : ""}`);
+    if (rateLimit.majorParameter) {
+        console.error(rateLimit.method, rateLimit.url);
+    }
 });
 process.on("SIGINT", handleExit);
 process.on("SIGTERM", handleExit);

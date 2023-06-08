@@ -88,14 +88,17 @@ async function removeChannel(channel) {
 function getCategoryEmoji(categoryId, emoji) {
     let emojis;
     switch (categoryId) {
-        case categoryIds.raid:
-            emojis = ["🏥", "💪", "🩸", "🪖", "💥"];
-            break;
         case categoryIds.voiceMain:
-            emojis = ["🔰", "🔶", "🔷", "🔹", "💦"];
+            emojis = ["🔰", "🔶", "🔷", "🔹", "💦", "🧊", "⚓️"];
+            break;
+        case categoryIds.raid:
+            emojis = ["🏥", "💪", "🩸", "🪖", "💥", "🥩"];
+            break;
+        case categoryIds.pveParty:
+            emojis = ["🦞", "🐸", "🦖", "🐲", "🌪"];
             break;
         default:
-            emojis = ["🌐", "🪢", "💧"];
+            emojis = ["🌐", "🪢", "💧", "🥂", "🍷", "🍸"];
     }
     if (emoji) {
         emojis = emojis.filter((e) => e !== emoji);
