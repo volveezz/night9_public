@@ -22,11 +22,11 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
     catch (error) {
         console.error("[Error code: 1814]", error);
     }
-    if (!voiceUsers.has(userId) && newState.channelId !== newState.guild.afkChannelId && newState.channel) {
+    if (!oldState.member?.user.bot && !voiceUsers.has(userId) && newState.channelId !== newState.guild.afkChannelId && newState.channel) {
         voiceUsers.set(userId, Date.now());
     }
     if (!oldState.channelId && newState.channelId) {
-        if (createdChannelsMap.has(newState.channelId))
+        if (!oldState.member?.user.bot && createdChannelsMap.has(newState.channelId))
             lfgTextChannelHandler(newState.channelId, newState.member, "join");
         embed
             .setAuthor({
@@ -40,7 +40,7 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
         return voiceChannel.send({ embeds: [embed] });
     }
     if (!newState.channelId) {
-        if (oldState.channelId && createdChannelsMap.has(oldState.channelId))
+        if (!oldState.member?.user.bot && oldState.channelId && createdChannelsMap.has(oldState.channelId))
             lfgTextChannelHandler(oldState.channelId, oldState.member, "leave");
         embed
             .setAuthor({
@@ -58,9 +58,9 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
         });
     }
     if (oldState.channelId && newState.channelId && oldState.channelId !== newState.channelId) {
-        if (createdChannelsMap.has(oldState.channelId))
+        if (!oldState.member?.user.bot && createdChannelsMap.has(oldState.channelId))
             lfgTextChannelHandler(oldState.channelId, oldState.member, "leave");
-        if (createdChannelsMap.has(newState.channelId))
+        if (!oldState.member?.user.bot && createdChannelsMap.has(newState.channelId))
             lfgTextChannelHandler(newState.channelId, newState.member, "join");
         embed
             .setAuthor({
@@ -79,7 +79,7 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
             },
         ]);
     }
-    if (!newState.channelId || newState.channelId === newState.guild.afkChannelId) {
+    if ((!oldState.member?.user.bot && !newState.channelId) || newState.channelId === newState.guild.afkChannelId) {
         checkJoinTimestamp();
     }
     try {

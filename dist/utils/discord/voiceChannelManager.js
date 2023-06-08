@@ -2,30 +2,30 @@ import { ChannelType } from "discord.js";
 import { categoryIds } from "../../configs/ids.js";
 import { VoiceChannels } from "../persistence/sequelize.js";
 import { createdChannelsMap } from "./lfgSystem/handleLFG.js";
-const createdChannels = new Set();
+const managedVoiceChannelIds = new Set();
 const ignoredCategories = new Set([categoryIds.admin, categoryIds.technical]);
 const romanNumbers = ["𝐈", "𝐈𝐈", "𝐈𝐈𝐈", "𝐈𝐕", "𝐕", "𝐕𝐈", "𝐕𝐈𝐈", "𝐕𝐈𝐈𝐈", "𝐈𝐗", "𝐗"];
 async function loadChannels() {
     const channels = await VoiceChannels.findAll();
-    channels.forEach((channel) => createdChannels.add(channel.channelId));
+    channels.forEach((channel) => managedVoiceChannelIds.add(channel.channelId));
 }
 loadChannels();
 async function manageVoiceChannels(oldState, newState) {
     const oldChannel = oldState.channel;
     const newChannel = newState.channel;
-    if (oldChannel && oldChannel.parentId && !ignoredCategories.has(oldChannel.parentId) && !createdChannelsMap.has(oldChannel.id)) {
-        const parentChannels = oldChannel.parent?.children.cache.filter((channel) => channel.type === ChannelType.GuildVoice);
+    if (oldChannel && oldChannel.parentId && !ignoredCategories.has(oldChannel.parentId)) {
+        const parentChannels = oldChannel.parent.children.cache.filter((channel) => channel.type === ChannelType.GuildVoice);
         if (!parentChannels)
             return;
         const allChannelsEmpty = parentChannels.every((channel) => channel.members.size === 0);
         if (allChannelsEmpty) {
             parentChannels.forEach(async (channel) => {
-                if (createdChannels.has(channel.id)) {
+                if (managedVoiceChannelIds.has(channel.id)) {
                     await removeChannel(channel);
                 }
             });
         }
-        else if (createdChannels.has(oldChannel.id) && oldChannel.members.size === 0) {
+        else if (managedVoiceChannelIds.has(oldChannel.id) && oldChannel.members.size === 0) {
             const emptyChannels = parentChannels.filter((channel) => channel.members.size === 0);
             if (emptyChannels.size > 1) {
                 await removeChannel(oldChannel);
@@ -49,7 +49,7 @@ async function manageVoiceChannels(oldState, newState) {
             if (numeral) {
                 numeralsInUse.set(numeral[0], true);
             }
-            else if (!createdChannels.has(channel.id)) {
+            else if (!managedVoiceChannelIds.has(channel.id)) {
                 numeralsInUse.set("𝐈", true);
             }
         });
@@ -66,7 +66,7 @@ async function manageVoiceChannels(oldState, newState) {
         }
         const nameWithoutEmoji = newChannel.name.split("｜")[1];
         const baseName = (nameWithoutEmoji || newChannel.name).replace(/[𝐈𝐕𝐗]+$/, "").trim();
-        const emoji = getCategoryEmoji(newChannel.parentId);
+        const emoji = getCategoryEmoji(newChannel.parentId, newChannel.name[0]);
         const newChannelName = `${emoji}｜${baseName} ${numeral}`;
         const channel = (await newChannel.guild.channels.create({
             name: newChannelName,
@@ -74,18 +74,18 @@ async function manageVoiceChannels(oldState, newState) {
             parent: newChannel.parent,
             reason: "Users have filled all existing channels",
         }));
-        createdChannels.add(channel.id);
+        managedVoiceChannelIds.add(channel.id);
         await VoiceChannels.create({ channelId: channel.id });
     }
 }
 async function removeChannel(channel) {
-    if (!createdChannels.has(channel.id))
+    if (!managedVoiceChannelIds.has(channel.id))
         return;
     channel.delete();
-    createdChannels.delete(channel.id);
+    managedVoiceChannelIds.delete(channel.id);
     VoiceChannels.destroy({ where: { channelId: channel.id } });
 }
-function getCategoryEmoji(categoryId) {
+function getCategoryEmoji(categoryId, emoji) {
     let emojis;
     switch (categoryId) {
         case categoryIds.raid:
@@ -96,6 +96,9 @@ function getCategoryEmoji(categoryId) {
             break;
         default:
             emojis = ["🌐", "🪢", "💧"];
+    }
+    if (emoji) {
+        emojis = emojis.filter((e) => e !== emoji);
     }
     const randomIndex = Math.floor(Math.random() * emojis.length);
     return emojis[randomIndex];

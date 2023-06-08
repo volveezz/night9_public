@@ -100,22 +100,6 @@ export async function pushMetadata(userId, tokens, metadata) {
         throw new Error(`Error pushing discord metadata: [${response.status}] ${response.statusText}`);
     }
 }
-export async function getMetadata(userId, tokens) {
-    const url = `https://discord.com/api/v10/users/@me/applications/${client.user.id}/role-connection`;
-    const accessToken = await getAccessToken(userId, tokens);
-    const response = await fetch(url, {
-        headers: {
-            Authorization: `Bearer ${accessToken}`,
-        },
-    });
-    if (response.ok) {
-        const data = await response.json();
-        return data;
-    }
-    else {
-        throw new Error(`Error getting discord metadata: [${response.status}] ${response.statusText}`);
-    }
-}
 export async function updateMetadata(userId) {
     const tokens = await storage.getDiscordTokens(userId);
     let metadata = {};

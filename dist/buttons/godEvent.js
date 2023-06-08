@@ -155,6 +155,22 @@ export default {
                         embeds,
                         components: await addButtonComponentsToMessage(components && components.length > 0 ? components : subComponents ? subComponents : baseComponents),
                     });
+                    try {
+                        await message.delete();
+                    }
+                    catch (error) {
+                        console.error("[Error code: 1818]", error);
+                        const embed = new EmbedBuilder()
+                            .setColor(colors.error)
+                            .setAuthor({ name: "Не удалось удалить сообщение рейда", iconURL: icons.error })
+                            .setDescription("Сообщение рейда, возможно, было удалено");
+                        try {
+                            interaction.followUp({ embeds: [embed], ephemeral: true });
+                        }
+                        catch (e) {
+                            console.error("[Error code: 1819]", e);
+                        }
+                    }
                     await raid.update({ messageId: updatedRaidMessage.id });
                     sortedRaidCount++;
                 }

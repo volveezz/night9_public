@@ -61,33 +61,44 @@ export default {
                 if (!data.characterProgressions.data) {
                     throw { name: "Ошибка", description: "Не найти данные об ваших персонажах" };
                 }
-                const chars = [];
                 const components = [];
                 const charKeys = Object.keys(data.characters.data || {});
+                let embedDescription = null;
                 charKeys.forEach((charKey, i) => {
-                    const char = data.characters.data?.[charKey];
-                    if (!char)
+                    const character = data.characters.data?.[charKey];
+                    if (!character)
                         return;
-                    const classHash = char.classHash;
+                    const { classHash } = character;
+                    const style = classHash === 671679327 ? ButtonStyle.Primary : classHash === 2271682572 ? ButtonStyle.Secondary : ButtonStyle.Danger;
+                    const emoji = classHash === 671679327
+                        ? "<:hunter:995496474978824202>"
+                        : classHash === 2271682572
+                            ? "<:warlock:995496471526920232>"
+                            : "<:titan:995496472722284596>";
                     const label = classHash === 671679327 ? "Охотник" : classHash === 2271682572 ? "Варлок" : "Титан";
                     components[i] = new ButtonBuilder({
-                        style: classHash === 671679327 ? ButtonStyle.Primary : classHash === 2271682572 ? ButtonStyle.Secondary : ButtonStyle.Danger,
+                        style,
                         label,
                         customId: `statsEvent_pinnacle_char_${i}`,
+                        emoji,
                     });
-                    chars[i] = label;
+                    if (!embedDescription) {
+                        embedDescription = `${emoji} ${label}`;
+                    }
+                    else {
+                        embedDescription += `\n${emoji} ${label}`;
+                    }
                 });
-                if (chars.length === 0)
-                    chars.push("персонажи отсутствуют");
-                const embed = new EmbedBuilder()
-                    .setTitle("Выберите персонажа")
-                    .setDescription(chars.join("\n") || "nothing")
-                    .setColor(colors.serious);
+                if (!embedDescription)
+                    embedDescription = "Персонажи отсутствуют";
+                const embed = new EmbedBuilder().setTitle("Выберите персонажа").setDescription(embedDescription).setColor(colors.serious);
                 await deferredReply;
                 const int = await interaction.editReply({ embeds: [embed], components: await addButtonComponentsToMessage(components) });
                 const collector = int.channel.createMessageComponentCollector({
                     message: int,
                     filter: ({ user }) => user.id === interaction.user.id,
+                    time: 60 * 1000 * 2,
+                    max: 1,
                 });
                 collector.on("collect", async (collected) => {
                     collected.deferUpdate();
@@ -110,13 +121,13 @@ export default {
                             return;
                         mile.rewards.forEach((reward) => {
                             reward.entries.forEach((subRew) => {
-                                if (subRew.redeemed === true)
-                                    return;
-                                if (embed.data.fields && embed.data.fields.length >= 25)
+                                if (subRew.redeemed === true || (embed.data.fields && embed.data.fields.length >= 25))
                                     return;
                                 embed.addFields({
                                     name: `${CachedDestinyMilestoneDefinition[mile.milestoneHash].displayProperties.name}\n${CachedDestinyMilestoneDefinition[mile.milestoneHash].displayProperties.description}`,
-                                    value: `Условие ${subRew.earned ? "выполнено" : "не выполнено"}${!subRew.redeemed && subRew.earned ? ", но не получено" : ""}`,
+                                    value: `Условие ${subRew.earned
+                                        ? "выполнено <:successCheckmark:1018320951173189743>"
+                                        : "не выполнено <:crossmark:1020504750350934026>"}${!subRew.redeemed && subRew.earned ? ", но не получено" : ""}`,
                                 });
                             });
                         });
@@ -128,6 +139,11 @@ export default {
                         embed.setTitle("Испытания на сверхмощное снаряжение");
                     }
                     await interaction.editReply({ embeds: [embed], components: [] });
+                });
+                collector.on("end", async (_, reason) => {
+                    if (reason === "time") {
+                        await interaction.deleteReply();
+                    }
                 });
                 return;
             }

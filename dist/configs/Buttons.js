@@ -74,3 +74,7 @@ export var AdminDMChannelButtons;
     AdminDMChannelButtons["reply"] = "adminDMInteractionHandler_reply";
     AdminDMChannelButtons["delete"] = "adminDMInteractionHandler_delete";
 })(AdminDMChannelButtons || (AdminDMChannelButtons = {}));
+export var LfgButtons;
+(function (LfgButtons) {
+    LfgButtons["delete"] = "lfgSystem_delete";
+})(LfgButtons || (LfgButtons = {}));

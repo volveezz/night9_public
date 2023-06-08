@@ -11,7 +11,6 @@ import { addButtonComponentsToMessage } from "../addButtonsToMessage.js";
 import { completedRaidsData } from "../destinyActivityChecker.js";
 import nameCleaner from "../nameClearer.js";
 import { removeRaid } from "../raidFunctions.js";
-export const leavingCreatorCollector = new Map();
 export async function handleRaidCreatorLeaving(raid, creatorId) {
     const creator = client.users.cache.get(creatorId) ||
         (await client.users.fetch(creatorId)) ||

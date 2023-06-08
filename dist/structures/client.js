@@ -74,8 +74,7 @@ export class ExtendedClient extends Client {
         return (this.guild || this.guilds.cache.get(guildId)).members.cache;
     }
     async getAsyncMember(id) {
-        const guildMembers = (this.guild || (await this.guilds.fetch(guildId))).members;
-        return guildMembers.cache.get(id) || (await guildMembers.fetch(id));
+        return this.guild?.members.fetch(id);
     }
     getCachedTextChannel(id) {
         return (this.guild || this.guilds.cache.get(guildId)).channels.cache.get(id);

@@ -20,22 +20,23 @@ const hashToImageMap = {
     2572988947: "https://cdn.discordapp.com/attachments/679191036849029167/1089134184016130088/season_20_battleground_turnabout.png",
     1368255375: "https://cdn.discordapp.com/attachments/679191036849029167/1089134183747690516/season_20_battleground_bulkhead.png",
 };
-const pgcrIds = new Set();
+const checkedPGCRIds = new Set();
 const ACTIVITY_LEAVE_TIME = 300;
+const PLACEHOLDER_TEXTS = [": Нормальный", "Засекречено"];
 async function restoreFetchedPGCRs() {
     const completedActivitiesChannels = await client.getAsyncTextChannel(channelIds.activity);
     (await completedActivitiesChannels.messages.fetch({ limit: 5 })).forEach(async (message) => {
         const url = message.embeds?.[0]?.data?.author?.url;
         const pgcrId = url?.split("/")[4];
         if (pgcrId) {
-            pgcrIds.add(pgcrId);
+            checkedPGCRIds.add(pgcrId);
         }
     });
 }
 function findCorrectedName(hash) {
     switch (hash) {
         case 313828469:
-            return "Призраки Глубин";
+            return "Призраки Глубин: Нормальный";
         case 2716998124:
             return "Призраки Глубин: Мастер";
         default:
@@ -43,26 +44,18 @@ function findCorrectedName(hash) {
     }
 }
 async function logActivityCompletion(pgcrId) {
-    if (pgcrIds.has(pgcrId))
+    if (checkedPGCRIds.has(pgcrId))
         return;
     function getActivityImage(hash, manifestImage) {
-        const placeholderImage = "/img/theme/destiny/bgs/pgcrs/placeholder.jpg";
-        if (manifestImage === placeholderImage) {
-            if (hashToImageMap[hash]) {
-                return hashToImageMap[hash];
-            }
-            else {
-                return `https://bungie.net${placeholderImage}`;
-            }
+        if (hashToImageMap[hash]) {
+            return hashToImageMap[hash];
         }
         else {
             return `https://bungie.net${manifestImage}`;
         }
     }
     function getActivityTitle(hash, manifestTitle) {
-        const placeholderText1 = ": Нормальный";
-        const placeholderText = "Засекречено";
-        if (!manifestTitle || manifestTitle.length === 0 || manifestTitle === placeholderText || manifestTitle === placeholderText1) {
+        if (!manifestTitle || PLACEHOLDER_TEXTS.includes(manifestTitle)) {
             return findCorrectedName(hash);
         }
         return manifestTitle;
@@ -72,9 +65,9 @@ async function logActivityCompletion(pgcrId) {
         console.error("[Error code: 1009]", pgcrId, response);
         return;
     }
-    if (pgcrIds.has(pgcrId))
+    if (checkedPGCRIds.has(pgcrId))
         return;
-    pgcrIds.add(pgcrId);
+    checkedPGCRIds.add(pgcrId);
     const { mode, referenceId } = response.activityDetails;
     const manifestData = CachedDestinyActivityDefinition[referenceId];
     const activityTitle = getActivityTitle(referenceId, manifestData.displayProperties.name);
@@ -228,92 +221,92 @@ async function logActivityCompletion(pgcrId) {
             });
         });
         if (mode === 4) {
-            const preciseEncountersTime = new Map();
-            raidCharactersIds.forEach((characterId, i1) => {
-                if (!characterId) {
-                    console.error(`[Error code: 1752] ${characterId}/${characterId}`);
-                    return;
-                }
-                if (!completedPhases.has(characterId))
-                    return;
-                const completedPhasesForUser = completedPhases.get(characterId);
-                let previousEncounterEndTime = 0;
-                completedPhasesForUser.forEach((completedPhase, i2) => {
-                    const { phase: phaseHash, start, end } = completedPhase;
-                    if (!preciseEncountersTime.has(phaseHash)) {
-                        preciseEncountersTime.set(phaseHash, completedPhase);
-                        previousEncounterEndTime = end;
+            try {
+                const preciseEncountersTime = getCommonEncounterTimes();
+                if (preciseEncountersTime && preciseEncountersTime.length > 0) {
+                    const encountersData = [];
+                    const phasesArray = preciseEncountersTime.sort((a, b) => a.phaseIndex - b.phaseIndex);
+                    phasesArray.forEach((encounterData, i) => {
+                        if (i === 0) {
+                            const startTimeFromGame = new Date(response.period).getTime();
+                            const isTimeFromGameValid = startTimeFromGame < encounterData.start;
+                            const resolvedStartTime = isTimeFromGameValid ? startTimeFromGame : encounterData.start;
+                            console.debug("[Error code: 1747]", startTimeFromGame, isTimeFromGameValid, resolvedStartTime);
+                            encountersData.push({
+                                end: encounterData.end,
+                                phase: encounterData.phase,
+                                phaseIndex: `${isTimeFromGameValid ? "" : "⚠️"}${encounterData.phaseIndex != 1 && response.activityWasStartedFromBeginning
+                                    ? `1-${encounterData.phaseIndex}`
+                                    : encounterData.phaseIndex}`,
+                                start: resolvedStartTime,
+                            });
+                        }
+                        else if (i === phasesArray.length - 1) {
+                            const activityEndTime = new Date(response.period).getTime() + response.entries[0].values.activityDurationSeconds.basic.value * 1000;
+                            encountersData.push({
+                                end: encounterData.end > activityEndTime || encounterData.end <= 1 ? activityEndTime : encounterData.end,
+                                phase: encounterData.phase,
+                                phaseIndex: encounterData.phaseIndex,
+                                start: encounterData.start,
+                            });
+                        }
+                        else {
+                            encountersData.push(encounterData);
+                        }
+                    });
+                    if (encountersData.length >= 1) {
+                        try {
+                            embed.addFields({
+                                name: "Затраченное время на этапы",
+                                value: `${encountersData
+                                    .map((encounter) => {
+                                    return `⁣　⁣${encounter.phaseIndex}. <t:${Math.floor(encounter.start / 1000)}:t> — <t:${Math.floor(encounter.end / 1000)}:t>, **${convertSeconds(Math.floor((encounter.end - encounter.start) / 1000))}**`;
+                                })
+                                    .join("\n")}`,
+                            });
+                        }
+                        catch (error) {
+                            console.error("[Error code: 1610] Error during adding fields to the raid result", error);
+                        }
                     }
                     else {
-                        const preciseStoredEncounterTime = preciseEncountersTime.get(phaseHash);
-                        if (start > 1 && start < preciseStoredEncounterTime.start && previousEncounterEndTime <= start) {
-                            preciseStoredEncounterTime.start = start;
-                        }
-                        if (end > 1 && end < preciseStoredEncounterTime.end && previousEncounterEndTime < end) {
-                            preciseStoredEncounterTime.end = end;
-                        }
-                        else if (end <= 1) {
-                            const resolvedTime = completedPhasesForUser[i2 + 1]?.end || completedPhases.get(raidCharactersIds[i1 + 1])?.[i2 + 1]?.end;
-                            if (resolvedTime && resolvedTime > 1) {
-                                preciseStoredEncounterTime.end = resolvedTime;
+                        console.error("[Error code: 1613]", encountersData, preciseEncountersTime, preciseEncountersTime.length);
+                    }
+                }
+                function getCommonEncounterTimes() {
+                    const filteredCompletedPhases = new Map(Array.from(completedPhases).filter(([characterId]) => raidCharactersIds.includes(characterId)));
+                    const allPhases = new Map();
+                    for (const phases of filteredCompletedPhases.values()) {
+                        for (const phase of phases) {
+                            if (!allPhases.has(phase.phase)) {
+                                allPhases.set(phase.phase, []);
                             }
+                            allPhases.get(phase.phase).push(phase);
                         }
-                        preciseEncountersTime.set(phaseHash, preciseStoredEncounterTime);
-                        previousEncounterEndTime = preciseStoredEncounterTime.end;
                     }
-                });
-                completedPhases.delete(characterId);
-            });
-            if (preciseEncountersTime && preciseEncountersTime.size > 0) {
-                const encountersData = [];
-                const phasesArray = Array.from(preciseEncountersTime.values()).sort((a, b) => a.phaseIndex - b.phaseIndex);
-                phasesArray.forEach((encounterData, i) => {
-                    if (i === 0) {
-                        const startTimeFromGame = new Date(response.period).getTime();
-                        const isTimeFromGameValid = startTimeFromGame < encounterData.start;
-                        const resolvedStartTime = isTimeFromGameValid ? startTimeFromGame : encounterData.start;
-                        console.debug("[Error code: 1747]", startTimeFromGame, isTimeFromGameValid, resolvedStartTime);
-                        encountersData.push({
-                            end: encounterData.end,
-                            phase: encounterData.phase,
-                            phaseIndex: `${isTimeFromGameValid ? "" : "⚠️"}${encounterData.phaseIndex != 1 && response.activityWasStartedFromBeginning
-                                ? `1-${encounterData.phaseIndex}`
-                                : encounterData.phaseIndex}`,
-                            start: resolvedStartTime,
+                    const preciseStoredEncounterTime = [];
+                    let latestEndTime = 0;
+                    for (const [phase, phaseData] of allPhases) {
+                        const phaseStartTimes = phaseData.map((p) => p.start);
+                        const phaseEndTimes = phaseData.map((p) => p.end);
+                        let startTime = Math.min(...phaseStartTimes.filter((time) => time > 300));
+                        const endTime = Math.min(...phaseEndTimes.filter((time) => time > 300));
+                        if (startTime > latestEndTime && preciseStoredEncounterTime.length > 0) {
+                            startTime = latestEndTime;
+                        }
+                        preciseStoredEncounterTime.push({
+                            phaseIndex: phaseData[0].phaseIndex,
+                            phase: phase,
+                            start: startTime,
+                            end: endTime,
                         });
+                        latestEndTime = preciseStoredEncounterTime[preciseStoredEncounterTime.length - 1].end;
                     }
-                    else if (i === phasesArray.length - 1) {
-                        const activityEndTime = new Date(response.period).getTime() + response.entries[0].values.activityDurationSeconds.basic.value * 1000;
-                        encountersData.push({
-                            end: encounterData.end > activityEndTime || encounterData.end <= 1 ? activityEndTime : encounterData.end,
-                            phase: encounterData.phase,
-                            phaseIndex: encounterData.phaseIndex,
-                            start: encounterData.start,
-                        });
-                    }
-                    else {
-                        encountersData.push(encounterData);
-                    }
-                });
-                if (encountersData.length >= 1) {
-                    try {
-                        embed.addFields({
-                            name: "Затраченное время на этапы",
-                            value: `${encountersData
-                                .map((encounter) => {
-                                return `⁣　⁣${encounter.phaseIndex}. <t:${Math.floor(encounter.start / 1000)}:t> — <t:${Math.floor(encounter.end / 1000)}:t>, **${convertSeconds(Math.floor((encounter.end - encounter.start) / 1000))}**`;
-                            })
-                                .join("\n")}`,
-                        });
-                    }
-                    catch (error) {
-                        console.error("[Error code: 1610] Error during adding fields to the raid result", error);
-                    }
+                    return preciseStoredEncounterTime;
                 }
-                else {
-                    console.error("[Error code: 1613]", encountersData, preciseEncountersTime, preciseEncountersTime.size);
-                }
-                preciseEncountersTime.clear();
+            }
+            catch (error) {
+                console.error("[Error code: 1823]", error);
             }
         }
         const msg = (await client.getAsyncTextChannel(channelIds.activity)).send({ embeds: [embed] });

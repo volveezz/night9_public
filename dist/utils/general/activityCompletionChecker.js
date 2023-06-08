@@ -6,7 +6,7 @@ import { AuthData } from "../persistence/sequelize.js";
 import { getRaidData } from "./raidFunctions.js";
 import { raidMilestoneHashes } from "./raidMilestones.js";
 import { timer } from "./utilities.js";
-export const activityCompletionCurrentProfiles = new Map();
+const activityCompletionCurrentProfiles = new Map();
 export const completedPhases = new Map();
 const currentlyRunning = new Map();
 const raidActivityModeHashes = 2043403989;
@@ -98,7 +98,7 @@ async function fetchCharacterResponse({ bungieId, characterId, platform, }) {
         }
     }
 }
-export async function activityCompletionChecker({ bungieId, characterId, id, platform, raid, discordId }) {
+async function activityCompletionChecker({ bungieId, characterId, id, platform, raid, discordId }) {
     const milestoneHash = typeof raid === "string" ? getRaidData(raid).milestoneHash : raid;
     let startTime = Date.now();
     let interval;

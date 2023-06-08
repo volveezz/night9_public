@@ -6,7 +6,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: `Primary`,
+                    style: "Primary",
                     embeds: [
                         {
                             name: "Распределение + Основная механика рейда",

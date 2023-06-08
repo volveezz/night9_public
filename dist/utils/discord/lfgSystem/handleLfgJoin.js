@@ -1,7 +1,32 @@
 import { EmbedBuilder } from "discord.js";
 import { bungieNames } from "../../../core/userStatisticsManagement.js";
+import { client } from "../../../index.js";
 import { escapeString } from "../../general/utilities.js";
 import { createdChannelsMap } from "./handleLFG.js";
+export async function deleteLfgData(channelData) {
+    const lfgData = typeof channelData === "string" ? createdChannelsMap.get(channelData) : channelData;
+    if (!lfgData)
+        return;
+    const lfgChannelId = lfgData.voice.id;
+    if (lfgData.deletable) {
+        try {
+            const userVoiceCount = (await client.getCachedGuild().channels.fetch(lfgChannelId))?.members.size;
+            if (!userVoiceCount || userVoiceCount == 0)
+                lfgData.voice.delete("Last member disconnected");
+        }
+        catch (error) {
+            console.error("[Error code: 1820]", error);
+        }
+    }
+    try {
+        lfgData.message.delete();
+    }
+    catch (error) {
+        console.error("[Error code: 1821]", error);
+    }
+    createdChannelsMap.delete(lfgChannelId);
+    return true;
+}
 async function lfgTextChannelHandler(channelId, member, state) {
     const createdChannel = createdChannelsMap.get(channelId);
     if (!createdChannel)
@@ -13,11 +38,8 @@ async function lfgTextChannelHandler(channelId, member, state) {
         createdChannel.joined.push(member.id);
     }
     if (createdChannel.joined.length === 0) {
-        return createdChannel.message.delete().then((r) => {
-            createdChannelsMap.delete(channelId);
-            if (createdChannel.deletable)
-                createdChannel.voice.delete("Last member disconnected");
-        });
+        await deleteLfgData(createdChannel);
+        return;
     }
     const embed = EmbedBuilder.from(createdChannel.message.embeds[0]);
     if (embed.data.title) {
@@ -40,10 +62,8 @@ async function lfgTextChannelHandler(channelId, member, state) {
         ? embed.data.fields?.splice(joinedUsersFieldIndex, 1, joinedUsersReadyField)
         : embed.addFields(joinedUsersReadyField);
     await createdChannel.message.edit({ embeds: [embed] }).then((message) => createdChannelsMap.set(channelId, {
-        joined: createdChannel.joined,
+        ...createdChannel,
         message,
-        voice: createdChannel.voice,
-        deletable: createdChannel.deletable,
     }));
 }
 export default lfgTextChannelHandler;

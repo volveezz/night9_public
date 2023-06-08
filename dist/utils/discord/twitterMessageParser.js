@@ -163,4 +163,4 @@ function replaceTimeWithEpoch(text) {
     };
     return text.replace(timeRegex, replacement);
 }
-export { generateTwitterEmbed, handleTimeReplacement };
+export { generateTwitterEmbed };

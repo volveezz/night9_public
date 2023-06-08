@@ -23,7 +23,7 @@ function getDefaultComponents() {
         new ButtonBuilder().setCustomId(RaidButtons.unlock).setLabel("Закрыть набор").setStyle(ButtonStyle.Danger),
         new ButtonBuilder().setCustomId(RaidButtons.delete).setLabel("Удалить набор").setStyle(ButtonStyle.Danger),
         new ButtonBuilder().setCustomId(RaidButtons.resend).setLabel("Обновить сообщение").setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(RaidButtons.notificationsStart).setLabel("Настроить свои оповещения").setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder().setCustomId(RaidButtons.notificationsStart).setLabel("Настроить свои оповещения").setStyle(ButtonStyle.Primary),
     ];
 }
 export default new Command({
@@ -469,7 +469,7 @@ export default new Command({
                 .setColor(raidData.raidColor)
                 .setFooter({
                 text: `Создатель рейда: ${nameCleaner(member.displayName)}`,
-                iconURL: "https://www.bungie.net/common/destiny2_content/icons/8b1bfd1c1ce1cab51d23c78235a6e067.png",
+                iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1115800156198146178/bd7a1fc995f87be96698263bc16698e7.png",
             })
                 .setThumbnail(raidData.raidBanner)
                 .addFields([

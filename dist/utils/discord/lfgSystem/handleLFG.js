@@ -1,4 +1,5 @@
 import { ButtonBuilder, ButtonStyle, ChannelType, Colors, EmbedBuilder, resolveColor, } from "discord.js";
+import { LfgButtons } from "../../../configs/Buttons.js";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
 import { channelIds } from "../../../configs/ids.js";
@@ -9,7 +10,8 @@ import { addButtonComponentsToMessage } from "../../general/addButtonsToMessage.
 import nameCleaner from "../../general/nameClearer.js";
 import { escapeString } from "../../general/utilities.js";
 import findActivityForLfg from "./findActivityForLfg.js";
-const createdChannelsMap = new Map();
+import { deleteLfgData } from "./handleLfgJoin.js";
+const createdLfgChannelsMap = new Map();
 class LfgActivitySettings {
     name;
     description;
@@ -32,7 +34,7 @@ class LfgUserSettings {
     color = colors.serious;
     activitySettings = null;
 }
-export const pvePartyChannel = await client.getAsyncTextChannel(channelIds.pveParty);
+const pvePartyChannel = await client.getAsyncTextChannel(channelIds.pveParty);
 async function lfgHandler(message) {
     if (!message.content.startsWith("+"))
         return;
@@ -146,6 +148,8 @@ async function lfgHandler(message) {
     const userTitle = userText.slice(0, separatorIndex !== -1 ? separatorIndex : userText.length).trim();
     const userDescription = separatorIndex !== -1 ? userText.slice(userText.indexOf("|") + 1, userText.length).trim() : null;
     const member = await client.getAsyncMember(message.author.id);
+    const lfgData = member.voice.channel && createdLfgChannelsMap.get(member.voice.channel?.id);
+    let deletable = member.voice.channel ? false : true;
     const embed = new EmbedBuilder().setThumbnail(userSettings.activitySettings?.image ?? null);
     try {
         let userLimitWithCurrentVoiceMembers = userLimit - (member.voice.channel?.members.size || 0);
@@ -204,7 +208,6 @@ async function lfgHandler(message) {
             name: userTitle || userSettings.activitySettings?.name || "⚡｜набор в активность",
             type: ChannelType.GuildVoice,
             parent: pvePartyChannel.parent,
-            position: pvePartyChannel.position,
             permissionOverwrites: [
                 ...pvePartyChannel.permissionOverwrites.cache.toJSON(),
                 { allow: "Connect", id: pvePartyChannel.guild.roles.everyone },
@@ -215,28 +218,38 @@ async function lfgHandler(message) {
         });
     if (!voiceChannel)
         return messageErrorHandler("Ошибка во время создания голосового канала", "Попробуйте позже", message);
-    const components = [];
-    if (userSettings.invite)
-        components.push(new ButtonBuilder()
-            .setURL(`${(await voiceChannel.createInvite({ maxAge: 60 * 120 })).url}`)
-            .setLabel("Перейти в голосовой канал")
-            .setStyle(ButtonStyle.Link));
+    const buttonForLfgDeletion = new ButtonBuilder().setStyle(ButtonStyle.Danger).setLabel("Удалить сбор").setCustomId(LfgButtons.delete);
+    const components = [buttonForLfgDeletion];
+    if (userSettings.invite) {
+        const invite = await voiceChannel.createInvite({ maxAge: 60 * 300 });
+        if (invite) {
+            components.push(new ButtonBuilder().setURL(invite.url).setLabel("Перейти в голосовой канал").setStyle(ButtonStyle.Link));
+        }
+    }
+    const ping = userSettings.ping
+        ? userSettings.ping === "everyone"
+            ? "@everyone"
+            : userSettings.ping === "@here"
+                ? "@here"
+                : `<@&${userSettings.ping}>`
+        : undefined;
     const partyMessage = await pvePartyChannel.send({
         embeds: [embed],
-        content: userSettings.ping
-            ? userSettings.ping === "everyone"
-                ? "@everyone"
-                : userSettings.ping === "@here"
-                    ? "@here"
-                    : `<@&${userSettings.ping}>`
-            : undefined,
+        content: ping,
         components: await addButtonComponentsToMessage(components),
     });
-    createdChannelsMap.set(voiceChannel.id, {
+    if (lfgData) {
+        await deleteLfgData(member.voice.channel.id);
+        if (lfgData.deletable === true) {
+            deletable = true;
+        }
+    }
+    createdLfgChannelsMap.set(voiceChannel.id, {
         joined: member.voice.channel?.members.map((member) => member.id) ?? [],
         message: partyMessage,
         voice: voiceChannel,
-        deletable: member.voice.channel ? false : true,
+        deletable,
+        author: member.id,
     });
     await message.delete();
     return;
@@ -247,4 +260,4 @@ async function messageErrorHandler(name, description, message) {
     setTimeout(async () => await errorMessage.delete(), 5000);
     return;
 }
-export { createdChannelsMap, lfgHandler };
+export { createdLfgChannelsMap as createdChannelsMap, lfgHandler };

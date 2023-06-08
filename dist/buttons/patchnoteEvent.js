@@ -1,4 +1,4 @@
-import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle } from "discord.js";
 import { PatchnoteButtons } from "../configs/Buttons.js";
 import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
@@ -8,7 +8,7 @@ const newsChannel = client.getCachedTextChannel(channelIds.news);
 export default {
     name: "patchnoteEvent",
     run: async ({ interaction }) => {
-        const content = interaction.message.embeds.length > 0 ? EmbedBuilder.from(interaction.message.embeds[0]) : interaction.message.content;
+        const content = interaction.message.content;
         switch (interaction.customId) {
             case PatchnoteButtons.sendToGods: {
                 const components = await addButtonComponentsToMessage([
@@ -17,15 +17,14 @@ export default {
                         .setStyle(ButtonStyle.Success)
                         .setLabel("Опубликовать для всех"),
                 ]);
-                const messageOptions = typeof content == "string" ? { content, components } : { embeds: [content], components };
+                const messageOptions = { content, components };
                 await channelOfGods.send(messageOptions);
                 await interaction.reply({ content: `Отправлено в <#${channelIds.supporters}>`, ephemeral: true });
                 await interaction.message.delete();
                 return;
             }
             case PatchnoteButtons.sendToPublic: {
-                const messageOptions = typeof content == "string" ? { content } : { embeds: [content] };
-                await newsChannel.send(messageOptions);
+                await newsChannel.send(content);
                 await interaction.reply({ content: `Отправлено в <#${channelIds.news}>`, ephemeral: true });
                 await interaction.message.delete();
                 return;
