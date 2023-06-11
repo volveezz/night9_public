@@ -66,7 +66,8 @@ async function manageVoiceChannels(oldState, newState) {
         }
         const nameWithoutEmoji = newChannel.name.split("｜")[1];
         const baseName = (nameWithoutEmoji || newChannel.name).replace(/[𝐈𝐕𝐗]+$/, "").trim();
-        const emoji = getCategoryEmoji(newChannel.parentId, newChannel.name[0]);
+        const firstEmoji = Array.from(newChannel.name)[0];
+        const emoji = getCategoryEmoji(newChannel.parentId, firstEmoji);
         const newChannelName = `${emoji}｜${baseName} ${numeral}`;
         const channel = (await newChannel.guild.channels.create({
             name: newChannelName,

@@ -1,7 +1,7 @@
+const secondsInDay = 86400;
+const secondsInHour = 3600;
+const secondsInMinute = 60;
 function convertSeconds(seconds, language = "ru") {
-    const secondsInDay = 86400;
-    const secondsInHour = 3600;
-    const secondsInMinute = 60;
     let remainingSeconds = Math.trunc(seconds);
     if (isNaN(remainingSeconds)) {
         return language === "en" ? "incorrect time" : "некорректное время";
