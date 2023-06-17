@@ -10,7 +10,6 @@ import { joinDateCheckedClanMembers, nonRegClanMembers } from "../utils/persiste
 import { clanOnline } from "./userStatisticsManagement.js";
 let lastLoggedErrorCode = 1;
 async function clanMembersManagement(databaseData) {
-    console.debug("clan member run");
     try {
         const clanList = await fetchRequest(`Platform/GroupV2/${groupId}/Members/?memberType=None`);
         if (!clanList) {
@@ -99,6 +98,7 @@ async function clanMembersManagement(databaseData) {
                 clanMember.destinyUserInfo.LastSeenDisplayName ||
                 clanMember.destinyUserInfo.displayName;
             if (memberAuthData.displayName.replace("⁣", "") !== destinyUserName) {
+                console.debug("Saved new global name", destinyUserName, "for user", memberAuthData.displayName);
                 memberAuthData.displayName = destinyUserName;
                 await memberAuthData.save();
             }

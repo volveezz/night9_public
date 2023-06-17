@@ -2,7 +2,7 @@ import { statusRoles } from "../configs/roles.js";
 import { client } from "../index.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
-guildNicknameManagement();
+setTimeout(guildNicknameManagement, 1000 * 60);
 async function guildNicknameManagement() {
     if (apiStatus.status !== 1)
         return;
