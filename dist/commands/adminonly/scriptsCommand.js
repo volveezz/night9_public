@@ -1,5 +1,6 @@
 import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
+import { statusRoles } from "../../configs/roles.js";
 import { Command } from "../../structures/command.js";
 import { convertSeconds } from "../../utils/general/convertSeconds.js";
 import { AuthData, UserActivityData } from "../../utils/persistence/sequelize.js";
@@ -15,10 +16,28 @@ export default new Command({
             required: true,
         },
     ],
-    run: async ({ interaction }) => {
+    run: async ({ client, interaction }) => {
         const defferedReply = interaction.deferReply({ ephemeral: true });
         const scriptId = interaction.options.getString("script", true).toLowerCase();
         switch (scriptId) {
+            case "checkrole": {
+                const members = client.getCachedMembers().filter((r) => r.roles.cache.has(statusRoles.verified));
+                const usersInDatabase = await AuthData.findAll({ attributes: ["discordId"] });
+                const discordIdsInDatabase = usersInDatabase.map((user) => user.discordId);
+                for (const [id, member] of members) {
+                    const hasVerifiedRole = member.roles.cache.has(statusRoles.verified);
+                    if (hasVerifiedRole) {
+                        if (!discordIdsInDatabase.includes(member.id)) {
+                            await member.roles.remove(statusRoles.verified);
+                            console.debug(`Removed verified role from ${member.displayName || member.user.username}`);
+                        }
+                    }
+                    else {
+                        console.debug("Checked", member.displayName || member.user.username, "and he had the role correctly");
+                    }
+                }
+                return;
+            }
             case "activitytop": {
                 const dbData = (await AuthData.findAll({ include: UserActivityData, attributes: ["displayName", "discordId"] })).filter((v) => v.UserActivityData && (v.UserActivityData.messages > 0 || v.UserActivityData.voice > 0));
                 const usersWithoutData = dbData.filter((v) => !v.UserActivityData);

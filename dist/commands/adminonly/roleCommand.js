@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
+import { ApplicationCommandOptionType, Collection, EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { Command } from "../../structures/command.js";
@@ -63,7 +63,8 @@ export default new Command({
             case "clear": {
                 let i = 0;
                 const members = interaction.guild.members.cache.filter((m) => m.roles.cache.has(role.id));
-                for (let n = 0; n < members.size; n++) {
+                const cloned = new Collection(members);
+                for (let n = 0; n < cloned.size; n++) {
                     const member = members.at(n);
                     i++;
                     await member.roles.remove(role.id, "Cleaning user role").catch((e) => {
@@ -75,7 +76,8 @@ export default new Command({
                     await timer(i * 450);
                 }
                 const embed = new EmbedBuilder().setColor(colors.success).setDescription(`Роль ${role} была удалена у ${i} участников`);
-                (await deferredReply) && interaction.editReply({ embeds: [embed] });
+                await deferredReply;
+                await interaction.editReply({ embeds: [embed] });
                 return;
             }
             case "set": {

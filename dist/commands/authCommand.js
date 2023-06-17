@@ -1,12 +1,12 @@
 import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import { Op } from "sequelize";
-import UserErrors from "../../configs/UserErrors.js";
-import colors from "../../configs/colors.js";
-import icons from "../../configs/icons.js";
-import { requestUpdateTokens } from "../../core/tokenManagement.js";
-import { Command } from "../../structures/command.js";
-import { isSnowflake } from "../../utils/general/utilities.js";
-import { AuthData } from "../../utils/persistence/sequelize.js";
+import UserErrors from "../configs/UserErrors.js";
+import colors from "../configs/colors.js";
+import icons from "../configs/icons.js";
+import { requestUpdateTokens } from "../core/tokenManagement.js";
+import { Command } from "../structures/command.js";
+import { isSnowflake } from "../utils/general/utilities.js";
+import { AuthData } from "../utils/persistence/sequelize.js";
 export default new Command({
     name: "auth",
     description: "Refresh of the user's authorisation data for the selected user",
