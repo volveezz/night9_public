@@ -220,8 +220,8 @@ const createRosterEmbeds = (users) => {
         const lastOnline = user.lastOnlineStatusChange !== 0 ? `<t:${user.lastOnlineStatusChange}>` : "N/A";
         const fieldContent = [
             `[🔗](https://www.bungie.net/en/Profile/${user.platform}/${user.bungieId})`,
-            `📅${joinDate} | `,
             user.isOnline ? `🟢` : `🔴${lastOnline}`,
+            ` | 📅${joinDate}`,
         ];
         if (user.UserActivityData) {
             fieldContent.push(`| 🎙️${user.UserActivityData.voice}s | 💬${user.UserActivityData.messages} | ${user.UserActivityData.dungeons}/${user.UserActivityData.raids}`);
@@ -277,7 +277,9 @@ const handleManagement = async (interaction, clanMembers, defferedReply) => {
         const isOnline = userData ? userData.isOnline : false;
         fields.push({
             name: "Статистика в клане",
-            value: `${userData.rank !== 0 ? `Вступил в клан: ${joinDate}` : ""}\nОнлайн: ${isOnline ? `🟢 в игре` : `🔴 ${lastOnline}\nРанг: ${getRuntimeGroupMemberTypeName(userData.rank)}`}`,
+            value: `Онлайн: ${isOnline
+                ? `🟢 в игре`
+                : `🔴 ${lastOnline}\n${userData.rank !== 0 ? `Вступил в клан: ${joinDate}` : ""}\nРанг: ${getRuntimeGroupMemberTypeName(userData.rank)}`}`,
         });
         if (userData.UserActivityData) {
             fields.push({

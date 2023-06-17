@@ -110,8 +110,6 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                     }
                 }
             }
-            if (isEasyCheck)
-                return;
             roleDataFromDatabase.forEach(async (role) => {
                 if (role.category === NightRoleCategory.Titles && !(roleCategoriesBits & NightRoleCategory.Titles))
                     return;
@@ -266,57 +264,59 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                 removeRoles.push(seasonalRoles.curSeasonRole);
         }
         dlcChecker(destinyProfileResponse.profile.data.versionsOwned).catch((e) => console.error(`[Error code: 1092] ${member.displayName}`, e));
-        triumphsChecker().catch((e) => console.error(`[Error code: 1093] ${member.displayName}`, e));
-        if (roleCategoriesBits & NightRoleCategory.Trials && !isEasyCheck) {
-            const metrics = destinyProfileResponse.metrics.data.metrics["1765255052"]?.objectiveProgress.progress;
-            if (metrics == null || isNaN(metrics)) {
-                console.error(`[Error code: 1227] ${metrics} ${member.displayName}`, destinyProfileResponse.metrics.data.metrics["1765255052"]?.objectiveProgress);
-                return;
-            }
-            if (metrics >= 1) {
-                for (const step of trialsRoles.roles) {
-                    if (step.totalFlawless <= metrics) {
-                        if (!member.roles.cache.has(trialsRoles.category))
-                            addRoles.push(trialsRoles.category);
-                        if (!member.roles.cache.has(step.roleId)) {
-                            addRoles.push(step.roleId);
-                            removeRoles.push(...trialsRoles.allRoles.filter((r) => r != step.roleId));
+        if (!isEasyCheck) {
+            triumphsChecker().catch((e) => console.error(`[Error code: 1093] ${member.displayName}`, e));
+            if (roleCategoriesBits & NightRoleCategory.Trials) {
+                const metrics = destinyProfileResponse.metrics.data.metrics["1765255052"]?.objectiveProgress.progress;
+                if (metrics == null || isNaN(metrics)) {
+                    console.error(`[Error code: 1227] ${metrics} ${member.displayName}`, destinyProfileResponse.metrics.data.metrics["1765255052"]?.objectiveProgress);
+                    return;
+                }
+                if (metrics >= 1) {
+                    for (const step of trialsRoles.roles) {
+                        if (step.totalFlawless <= metrics) {
+                            if (!member.roles.cache.has(trialsRoles.category))
+                                addRoles.push(trialsRoles.category);
+                            if (!member.roles.cache.has(step.roleId)) {
+                                addRoles.push(step.roleId);
+                                removeRoles.push(...trialsRoles.allRoles.filter((r) => r != step.roleId));
+                            }
+                            break;
                         }
-                        break;
                     }
                 }
             }
-        }
-        if (roleCategoriesBits & NightRoleCategory.Activity && !isEasyCheck) {
-            if (!userActivity) {
-                if (memberRoles.hasAny(...activityRoles.allVoice))
-                    removeRoles.push(...activityRoles.allVoice);
-                if (memberRoles.hasAny(...activityRoles.allMessages))
-                    removeRoles.push(...activityRoles.allMessages);
-                if (memberRoles.has(activityRoles.category))
-                    removeRoles.push(activityRoles.category);
-            }
-            else {
-                for (const step of activityRoles.voice) {
-                    if (step.voiceMinutes <= userActivity.voice) {
-                        if (!member.roles.cache.has(step.roleId)) {
-                            if (!member.roles.cache.has(activityRoles.category))
-                                addRoles.push(activityRoles.category);
-                            addRoles.push(step.roleId);
-                            removeRoles.push(...activityRoles.allVoice.filter((r) => r != step.roleId));
-                        }
-                        break;
-                    }
+            if (roleCategoriesBits & NightRoleCategory.Activity) {
+                if (!userActivity) {
+                    if (memberRoles.hasAny(...activityRoles.allVoice))
+                        removeRoles.push(...activityRoles.allVoice);
+                    if (memberRoles.hasAny(...activityRoles.allMessages))
+                        removeRoles.push(...activityRoles.allMessages);
+                    if (memberRoles.has(activityRoles.category))
+                        removeRoles.push(activityRoles.category);
                 }
-                for (const step of activityRoles.messages) {
-                    if (step.messageCount <= userActivity.messages) {
-                        if (!member.roles.cache.has(step.roleId)) {
-                            if (!member.roles.cache.has(activityRoles.category))
-                                addRoles.push(activityRoles.category);
-                            addRoles.push(step.roleId);
-                            removeRoles.push(activityRoles.allMessages.filter((r) => r != step.roleId).toString());
+                else {
+                    for (const step of activityRoles.voice) {
+                        if (step.voiceMinutes <= userActivity.voice) {
+                            if (!member.roles.cache.has(step.roleId)) {
+                                if (!member.roles.cache.has(activityRoles.category))
+                                    addRoles.push(activityRoles.category);
+                                addRoles.push(step.roleId);
+                                removeRoles.push(...activityRoles.allVoice.filter((r) => r != step.roleId));
+                            }
+                            break;
                         }
-                        break;
+                    }
+                    for (const step of activityRoles.messages) {
+                        if (step.messageCount <= userActivity.messages) {
+                            if (!member.roles.cache.has(step.roleId)) {
+                                if (!member.roles.cache.has(activityRoles.category))
+                                    addRoles.push(activityRoles.category);
+                                addRoles.push(step.roleId);
+                                removeRoles.push(activityRoles.allMessages.filter((r) => r != step.roleId).toString());
+                            }
+                            break;
+                        }
                     }
                 }
             }
