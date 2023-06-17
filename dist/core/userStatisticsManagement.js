@@ -18,7 +18,7 @@ const throttleSet = new Set();
 const dungeonRoles = await AutoRoleData.findAll({ where: { category: 8 } }).then((rolesData) => {
     return rolesData.filter((roleData) => dungeonsTriumphHashes.includes(roleData.triumphRequirement)).map((r) => r.roleId);
 });
-async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessToken, displayName, roleCategoriesBits, UserActivityData: userActivity }, member, roleDataFromDatabase) {
+async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessToken, displayName, roleCategoriesBits, UserActivityData: userActivity }, member, roleDataFromDatabase, isEasyCheck = false) {
     const addRoles = [];
     const removeRoles = [];
     const memberRoles = member.roles.cache;
@@ -70,7 +70,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
         catch (error) {
             console.error("[Error code: 1644]", error);
         }
-        async function DLCChecker(version) {
+        async function dlcChecker(version) {
             if (!version)
                 return;
             if (version > 7 && memberRoles.has(dlcRoles.vanilla)) {
@@ -110,6 +110,8 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                     }
                 }
             }
+            if (isEasyCheck)
+                return;
             roleDataFromDatabase.forEach(async (role) => {
                 if (role.category === NightRoleCategory.Titles && !(roleCategoriesBits & NightRoleCategory.Titles))
                     return;
@@ -263,9 +265,9 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
             if (memberRoles.has(seasonalRoles.curSeasonRole))
                 removeRoles.push(seasonalRoles.curSeasonRole);
         }
-        DLCChecker(destinyProfileResponse.profile.data.versionsOwned).catch((e) => console.error(`[Error code: 1092] ${member.displayName}`, e));
+        dlcChecker(destinyProfileResponse.profile.data.versionsOwned).catch((e) => console.error(`[Error code: 1092] ${member.displayName}`, e));
         triumphsChecker().catch((e) => console.error(`[Error code: 1093] ${member.displayName}`, e));
-        if (roleCategoriesBits & NightRoleCategory.Trials) {
+        if (roleCategoriesBits & NightRoleCategory.Trials && !isEasyCheck) {
             const metrics = destinyProfileResponse.metrics.data.metrics["1765255052"]?.objectiveProgress.progress;
             if (metrics == null || isNaN(metrics)) {
                 console.error(`[Error code: 1227] ${metrics} ${member.displayName}`, destinyProfileResponse.metrics.data.metrics["1765255052"]?.objectiveProgress);
@@ -285,7 +287,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                 }
             }
         }
-        if (roleCategoriesBits & NightRoleCategory.Activity) {
+        if (roleCategoriesBits & NightRoleCategory.Activity && !isEasyCheck) {
             if (!userActivity) {
                 if (memberRoles.hasAny(...activityRoles.allVoice))
                     removeRoles.push(...activityRoles.allVoice);
@@ -392,10 +394,23 @@ async function handleMemberStatistics() {
         try {
             await timer(3000);
             const userDatabaseData = await AuthData.findAll({
-                attributes: ["discordId", "bungieId", "platform", "timezone", "accessToken"],
+                attributes: ["discordId", "platform", "bungieId", "clan", "timezone", "accessToken", "roleCategoriesBits"],
+            });
+            const autoRoleData = await AutoRoleData.findAll({
+                where: {
+                    available: {
+                        [Op.or]: {
+                            [Op.gte]: 1,
+                            [Op.eq]: -99,
+                        },
+                    },
+                },
             });
             for (const userData of userDatabaseData) {
                 const cachedMember = client.getCachedMembers().get(userData.discordId);
+                if (!userData.clan && cachedMember) {
+                    checkUserStatisticsRoles(userData, cachedMember, autoRoleData, true);
+                }
                 if (!cachedMember || !userData.timezone)
                     continue;
                 userTimezones.set(userData.discordId, userData.timezone);
@@ -515,11 +530,7 @@ async function checkIndiviualUserStatistics(user) {
         console.error(`[Error code: 1737]`, member.id);
         return;
     }
-    await checkUserStatisticsRoles(memberAuthData, member, autoRoleData);
-    await timer(1000);
-    await checkUserKDRatio(memberAuthData, member);
-    await timer(1000);
-    await destinyActivityChecker(memberAuthData, member, 4);
+    await checkUserStatisticsRoles(memberAuthData, member, autoRoleData, true);
 }
 export { checkIndiviualUserStatistics };
 export default handleMemberStatistics;

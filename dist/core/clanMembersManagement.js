@@ -6,6 +6,8 @@ import { clanJoinDateRoles, triumphsCategory } from "../configs/roles.js";
 import { client } from "../index.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { fetchRequest } from "../utils/api/fetchRequest.js";
+import kickClanMember from "../utils/api/kickClanMember.js";
+import { updateClanRolesWithLogging } from "../utils/logging/clanEventLogger.js";
 import { joinDateCheckedClanMembers, nonRegClanMembers } from "../utils/persistence/dataStore.js";
 import { clanOnline } from "./userStatisticsManagement.js";
 let lastLoggedErrorCode = 1;
@@ -67,6 +69,7 @@ async function clanMembersManagement(databaseData) {
                     console.debug("UPDATING", member.displayName, "AS HE LEFT THE CLAN");
                     member.clan = false;
                     await member.save();
+                    await updateClanRolesWithLogging(member, false);
                 }
             }));
         }
@@ -93,6 +96,7 @@ async function clanMembersManagement(databaseData) {
             if (memberAuthData.clan === false) {
                 memberAuthData.clan = true;
                 await memberAuthData.save();
+                updateClanRolesWithLogging(memberAuthData, true);
             }
             const destinyUserName = clanMember.destinyUserInfo.bungieGlobalDisplayName ||
                 clanMember.destinyUserInfo.LastSeenDisplayName ||
@@ -137,7 +141,7 @@ async function clanMembersManagement(databaseData) {
                 const randomNumber = Math.floor(Math.random() * 100);
                 if (randomNumber > userKickChance) {
                     const adminAccessToken = (await getAdminAccessToken(ownerId));
-                    console.debug("DEBUG CLAN-NON-REG Should kick", clanMember.destinyUserInfo.bungieGlobalDisplayName);
+                    await kickClanMember(clanMember.destinyUserInfo.membershipType, bungieId, adminAccessToken);
                 }
                 else {
                     nonRegClanMembers.set(bungieId, randomNumber);

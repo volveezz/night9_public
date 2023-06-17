@@ -1,14 +1,20 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
-import { channelIds, ownerId } from "../../configs/ids.js";
+import { channelIds, groupId, ownerId } from "../../configs/ids.js";
 import { statusRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
+import getClanMemberData from "../api/getClanMemberData.js";
 import setMemberRoles from "../discord/setRoles.js";
 import { escapeString } from "../general/utilities.js";
 let clanLogChannel = null;
+const recentlyJoinedMembersIds = new Set();
 export async function updateClanRolesWithLogging(result, join) {
     const member = await client.getAsyncMember(result.discordId);
+    const clanUserData = await getClanMemberData(result);
+    if (clanUserData.member?.groupId !== groupId) {
+        console.error("[Error code: 1919]", clanUserData, member);
+    }
     const embed = new EmbedBuilder().addFields([
         { name: "BungieId", value: result.bungieId, inline: true },
         { name: "Ник в игре", value: `${escapeString(result.displayName)}`, inline: true },
@@ -35,6 +41,9 @@ export async function updateClanRolesWithLogging(result, join) {
             })
                 .setColor(colors.success);
             try {
+                if (recentlyJoinedMembersIds.has(member.id))
+                    return;
+                recentlyJoinedMembersIds.add(member.id);
                 notifyJoinedUser(member);
             }
             catch (error) {
