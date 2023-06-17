@@ -21,20 +21,13 @@ export default new Command({
         const scriptId = interaction.options.getString("script", true).toLowerCase();
         switch (scriptId) {
             case "checkrole": {
-                const members = client.getCachedMembers().filter((r) => r.roles.cache.has(statusRoles.verified));
-                const usersInDatabase = await AuthData.findAll({ attributes: ["discordId"] });
-                const discordIdsInDatabase = usersInDatabase.map((user) => user.discordId);
+                const members = client
+                    .getCachedMembers()
+                    .filter((r) => r.roles.cache.has(statusRoles.member) && !r.roles.cache.has(statusRoles.verified));
                 for (const [id, member] of members) {
-                    const hasVerifiedRole = member.roles.cache.has(statusRoles.verified);
-                    if (hasVerifiedRole) {
-                        if (!discordIdsInDatabase.includes(member.id)) {
-                            await member.roles.remove(statusRoles.verified);
-                            console.debug(`Removed verified role from ${member.displayName || member.user.username}`);
-                        }
-                    }
-                    else {
-                        console.debug("Checked", member.displayName || member.user.username, "and he had the role correctly");
-                    }
+                    await member.roles.remove(statusRoles.member);
+                    await member.roles.add(statusRoles.newbie);
+                    console.debug(`Removed verified role from ${member.displayName || member.user.username}`);
                 }
                 return;
             }

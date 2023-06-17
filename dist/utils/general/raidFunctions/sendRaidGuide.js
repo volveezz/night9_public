@@ -23,6 +23,9 @@ async function sendRaidGuide(interaction, raidName, deferredReply) {
                     .setLabel(button.label || "Кнопка"));
             });
         }
+        if (raidName === "test") {
+            components.push(new ButtonBuilder().setCustomId(`showEditMenu_test_${encounterIndex}`).setStyle(ButtonStyle.Secondary).setLabel("Изменить гайд"));
+        }
         const messageOptions = {
             embeds: [embed],
             components: await addButtonsToMessage(components),

@@ -1,5 +1,5 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
-import { getAdminAccessToken } from "../../commands/adminonly/clanCommand.js";
+import { getAdminAccessToken } from "../../commands/clanCommand.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { groupId } from "../../configs/ids.js";

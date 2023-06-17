@@ -1,4 +1,4 @@
-import { getAdminAccessToken } from "../../commands/adminonly/clanCommand.js";
+import { getAdminAccessToken } from "../../commands/clanCommand.js";
 import { groupId } from "../../configs/ids.js";
 import { parseIdentifierString } from "../general/utilities.js";
 import { fetchPostRequest } from "./fetchRequest.js";

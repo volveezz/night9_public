@@ -525,7 +525,16 @@ async function checkIndiviualUserStatistics(user) {
         attributes: ["discordId", "bungieId", "platform", "accessToken", "displayName", "roleCategoriesBits"],
         include: UserActivityData,
     });
-    const autoRoleData = await AutoRoleData.findAll();
+    const autoRoleData = await AutoRoleData.findAll({
+        where: {
+            available: {
+                [Op.or]: {
+                    [Op.gte]: 1,
+                    [Op.eq]: -99,
+                },
+            },
+        },
+    });
     if (!member || !memberAuthData) {
         console.error(`[Error code: 1737]`, member.id);
         return;

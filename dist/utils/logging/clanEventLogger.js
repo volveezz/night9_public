@@ -78,5 +78,5 @@ async function notifyJoinedUser(member) {
         .setColor(colors.success)
         .setAuthor({ name: "Вы были приняты в клан!", iconURL: member.guild.iconURL() || icons.success })
         .setDescription(`Вы также получили все необходимые роли для доступа к каналам клана\n\nНа сервере разработано множество различных систем, команд и возможностей. При желании Вы можете ввести \`/\` и Discord вам предложит все слеш-команды сервера\nНа сервере есть несколько различных ботов и их команд, но клановыми являются 2: основной - Night 9, <@${client.user.id}> и музыкальный бот - Alfred Jodl, <@719262521768280074>\n\nПо любым вопросам **в любое время** пишите <@${ownerId}> (Вольве) в личные сообщения или <@${client.user.id}> в этом же чате`);
-    console.debug("SHOULD NOTIFY", member.user.username, "ABOUT THE FACT THAT HE JOINED THE CLAN");
+    await member.send({ embeds: [embed] });
 }

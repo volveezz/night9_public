@@ -1,5 +1,5 @@
 import { ActivityType } from "discord.js";
-import { getAdminAccessToken } from "../commands/adminonly/clanCommand.js";
+import { getAdminAccessToken } from "../commands/clanCommand.js";
 import NightRoleCategory from "../configs/RoleCategory.js";
 import { groupId, ownerId } from "../configs/ids.js";
 import { clanJoinDateRoles, triumphsCategory } from "../configs/roles.js";
