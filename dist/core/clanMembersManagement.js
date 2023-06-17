@@ -10,6 +10,7 @@ import { joinDateCheckedClanMembers, nonRegClanMembers } from "../utils/persiste
 import { clanOnline } from "./userStatisticsManagement.js";
 let lastLoggedErrorCode = 1;
 async function clanMembersManagement(databaseData) {
+    console.debug("clan member run");
     try {
         const clanList = await fetchRequest(`Platform/GroupV2/${groupId}/Members/?memberType=None`);
         if (!clanList) {
@@ -105,7 +106,7 @@ async function clanMembersManagement(databaseData) {
                 if (!(memberAuthData.roleCategoriesBits & NightRoleCategory.Triumphs))
                     return;
                 const userJoinDate = new Date(clanMember.joinDate).getTime();
-                const userInClanDays = (Date.now() - userJoinDate) / 1000 / 60 / 24;
+                const userInClanDays = (Date.now() - userJoinDate) / 1000 / 60 / 60 / 24;
                 for (const { days: daysRequiredInClan, roleId } of clanJoinDateRoles.roles) {
                     if (daysRequiredInClan <= userInClanDays) {
                         const member = await client.getAsyncMember(memberAuthData.discordId);

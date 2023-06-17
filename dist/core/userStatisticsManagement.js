@@ -501,7 +501,7 @@ async function handleMemberStatistics() {
         await clanMembersManagement(databaseData);
         setTimeout(startStatisticsChecking, 1000 * 60 * 2);
     }
-    startStatisticsChecking();
+    setTimeout(startStatisticsChecking, 1000 * 60 * 2);
 }
 async function checkIndiviualUserStatistics(user) {
     const member = await client.getAsyncMember(typeof user === "string" ? user : user.id);
