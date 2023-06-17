@@ -32,7 +32,6 @@ export default new Command({
     descriptionLocalizations: {
         ru: "Управление кланом",
     },
-    defaultMemberPermissions: ["Administrator"],
     options: [
         {
             type: ApplicationCommandOptionType.Subcommand,

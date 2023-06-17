@@ -2,7 +2,6 @@ import { AuditLogEvent, EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { channelIds } from "../configs/ids.js";
-import { automaticallyUpdatedUsernames } from "../core/guildNicknameManagement.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import nameCleaner from "../utils/general/nameClearer.js";
@@ -33,9 +32,7 @@ async function generateRoleEmbed(oldMember, newMember) {
     const removedRoles = oldRoles.filter((role) => !newRoles.has(role.id));
     if (addedRoles.size === 0 && removedRoles.size === 0)
         return null;
-    const embed = new EmbedBuilder()
-        .setColor(colors.default)
-        .setAuthor({
+    const embed = new EmbedBuilder().setColor(colors.default).setAuthor({
         name: `У ${nameCleaner(newMember.displayName)} были обновлены роли`,
         iconURL: newMember.displayAvatarURL({ forceStatic: false }),
     });
@@ -73,7 +70,7 @@ async function generateNameEmbed(oldMember, newMember) {
         iconURL: newMember.displayAvatarURL({ forceStatic: false }),
     })
         .addFields({ name: "До изменения", value: escapeString(oldMember.displayName), inline: true }, { name: "После", value: escapeString(newMember.displayName), inline: true });
-    if (!automaticallyUpdatedUsernames.has(newMember.id) && !nameExecutor) {
+    if (!nameExecutor) {
         testAutonameUserStatus(newMember);
     }
     return embed;
@@ -118,6 +115,7 @@ async function testAutonameUserStatus(member) {
     if (checkUserName(authData.displayName, member.displayName, authData.timezone))
         return;
     notifiedUsers.add(member.id);
+    console.debug("Notifing", authData.displayName, "about the fact that he changed his name and should disable autoname");
     const embed = new EmbedBuilder()
         .setColor(colors.serious)
         .setAuthor({ name: "Вы изменили никнейм с включенной системой за слежкой за ником", iconURL: icons.notify })
