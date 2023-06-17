@@ -17,7 +17,8 @@ async function guildNicknameManagement() {
         const { timezone, displayName: userDbName } = userDbData;
         if (userDbName.startsWith("⁣") || member.permissions.has("Administrator"))
             return;
-        if (member.displayName !== `${timezone != null ? `[+${timezone}]` : ""} ${userDbName}`) {
+        if (member.displayName !== `${timezone != null ? `[+${timezone}] ` : ""}${userDbName}`) {
+            console.debug("Updating", member.displayName, "name as it not equal to name in database");
             await member
                 .setNickname(userDbData.timezone != null ? `[+${timezone}] ${userDbName}` : userDbName)
                 .catch((e) => console.error("[Error code: 1030] Name autochange error", e));
