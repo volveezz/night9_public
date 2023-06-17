@@ -17,6 +17,12 @@ async function getClanMemberData(id) {
     }
     const { platform: membershipType, bungieId: membershipId } = typeof id === "object" && !(id instanceof AuthData) ? id : authData;
     const destinyRequest = await fetchRequest(`Platform/GroupV2/User/${membershipType}/${membershipId}/${0}/${1}/`);
+    console.debug("DEBUG 101 User fetched:", {
+        membershipId,
+        membershipType,
+        username: authData?.displayName,
+        groupId: destinyRequest.results?.[0]?.group?.groupId,
+    });
     if (destinyRequest.results && destinyRequest.results.length === 1) {
         const clanData = destinyRequest.results[0];
         return {

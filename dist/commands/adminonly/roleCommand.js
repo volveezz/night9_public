@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, Collection, EmbedBuilder } from "discord.js";
+import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { Command } from "../../structures/command.js";
@@ -61,23 +61,32 @@ export default new Command({
         setMemberRoles;
         switch (subCommand) {
             case "clear": {
-                let i = 0;
+                let successCount = 0;
                 const members = interaction.guild.members.cache.filter((m) => m.roles.cache.has(role.id));
-                const cloned = new Collection(members);
-                for (let n = 0; n < cloned.size; n++) {
+                const fixedDelay = 450;
+                for (let n = 0; n < members.size; n++) {
                     const member = members.at(n);
-                    i++;
-                    await member.roles.remove(role.id, "Cleaning user role").catch((e) => {
-                        i--;
+                    try {
+                        await member.roles.remove(role.id, "Cleaning user role");
+                        successCount++;
+                    }
+                    catch (e) {
                         if (e.code !== 50013) {
                             console.error("[Error code: 1436]", e);
                         }
-                    });
-                    await timer(i * 450);
+                    }
+                    await timer(fixedDelay);
                 }
-                const embed = new EmbedBuilder().setColor(colors.success).setDescription(`Роль ${role} была удалена у ${i} участников`);
-                await deferredReply;
-                await interaction.editReply({ embeds: [embed] });
+                const embed = new EmbedBuilder()
+                    .setColor(colors.success)
+                    .setDescription(`Роль ${role} была удалена у ${successCount} участников`);
+                try {
+                    await deferredReply;
+                    await interaction.editReply({ embeds: [embed] });
+                }
+                catch (e) {
+                    console.error("[Error code: 1920] Couldn't edit the interaction", e);
+                }
                 return;
             }
             case "set": {
