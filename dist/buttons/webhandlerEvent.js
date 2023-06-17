@@ -5,9 +5,9 @@ import { ClanButtons, TimezoneButtons } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
-import { ownerId } from "../configs/ids.js";
+import { groupId, ownerId } from "../configs/ids.js";
 import { client } from "../index.js";
-import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
+import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default {
     name: "webhandlerEvent",
@@ -44,13 +44,13 @@ export default {
             if (invitee_clan === true) {
                 interaction.channel?.isDMBased()
                     ? interaction.channel?.messages.fetch(interaction.message.id).then(async (msg) => {
-                        msg.edit({ components: await addButtonComponentsToMessage([timezoneComponent]) });
+                        msg.edit({ components: await addButtonsToMessage([timezoneComponent]) });
                     })
                     : "";
                 (await deferredReply) && interaction.editReply("Вы уже являетесь участником нашего клана :)");
                 return;
             }
-            const clanInviteRequest = (await (await fetch(`https://www.bungie.net/platform/GroupV2/4123712/Members/IndividualInvite/${invitee_platform}/${invitee_bungieId}/`, {
+            const clanInviteRequest = (await (await fetch(`https://www.bungie.net/platform/GroupV2/${groupId}/Members/IndividualInvite/${invitee_platform}/${invitee_bungieId}/`, {
                 method: "POST",
                 headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${inviter_accessToken}` },
                 body: JSON.stringify({ description: "Автоматическое приглашение в клан Night 9" }),
@@ -63,27 +63,27 @@ export default {
             const message = await interaction.channel.messages.fetch(interaction.message.id);
             if (message.embeds[0].data.author?.name === "Уведомление об исключении из клана") {
                 await message.edit({
-                    components: await addButtonComponentsToMessage([
+                    components: await addButtonsToMessage([
                         new ButtonBuilder().setCustomId(ClanButtons.modal).setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
                     ]),
                 });
                 return;
             }
             const updatedEmbed = EmbedBuilder.from(message.embeds[0]).setDescription(null);
-            await message.edit({ embeds: [updatedEmbed], components: await addButtonComponentsToMessage([timezoneComponent]) });
+            await message.edit({ embeds: [updatedEmbed], components: await addButtonsToMessage([timezoneComponent]) });
         }
         else {
             throw { name: "Произошла неизвестная ошибка", description: "Возможно, вы уже участник нашего клана" };
         }
         function getEmbedResponse(code) {
             const embed = new EmbedBuilder().setColor(colors.error);
-            const bungieNetUrl = "[Bungie.net](https://www.bungie.net/ru/ClanV2?groupid=4123712)";
+            const bungieNetUrl = `[Bungie.net](https://www.bungie.net/ru/ClanV2?groupid=${groupId})`;
             switch (code) {
                 case 1:
                     return embed
                         .setColor(colors.success)
                         .setAuthor({ name: "Приглашение было отправлено", iconURL: icons.success })
-                        .setDescription("Принять приглашение можно в игре или на [сайте Bungie](https://www.bungie.net/ru/ClanV2?groupId=4123712)");
+                        .setDescription(`Принять приглашение можно в игре или на [сайте Bungie](https://www.bungie.net/ru/ClanV2?groupId=${groupId})`);
                 case 676:
                     return embed.setColor(colors.success).setAuthor({ name: "Вы уже участник клана", iconURL: icons.success });
                 case 695:

@@ -2,7 +2,7 @@ import { ButtonBuilder, ButtonStyle } from "discord.js";
 import { PatchnoteButtons } from "../configs/Buttons.js";
 import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
-import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
+import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 const channelOfGods = client.getCachedTextChannel(channelIds.supporters);
 const newsChannel = client.getCachedTextChannel(channelIds.news);
 export default {
@@ -11,7 +11,7 @@ export default {
         const content = interaction.message.content;
         switch (interaction.customId) {
             case PatchnoteButtons.sendToGods: {
-                const components = await addButtonComponentsToMessage([
+                const components = await addButtonsToMessage([
                     new ButtonBuilder()
                         .setCustomId(PatchnoteButtons.sendToPublic)
                         .setStyle(ButtonStyle.Success)

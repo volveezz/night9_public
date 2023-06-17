@@ -117,12 +117,12 @@ export default new Command({
                             throw { name: `Command \`${id}\` not found as global or guild command` };
                         }
                         else {
-                            console.error(e);
+                            console.error("[Error code: 1914]", e);
                         }
                     });
                 }
                 else
-                    console.error(e);
+                    console.error("[Error code: 1915]", e);
             });
         }
         async function fetchCommands(isGlobal) {

@@ -37,7 +37,7 @@ async function periodicDestinyActivityChecker() {
             const member = client.getCachedMembers().get(databaseUser.discordId);
             if (!member) {
                 await client.getCachedGuild().fetch();
-                return console.error("[activityChecker]", "[Error code: 1007]", databaseUser.displayName);
+                return console.error("[Error code: 1007]", databaseUser.displayName);
             }
             const randomValue = Math.floor(Math.random() * 100);
             switch (true) {

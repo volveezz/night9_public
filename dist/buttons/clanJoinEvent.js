@@ -74,13 +74,16 @@ export default {
             modalSubmit.reply({ ephemeral: true, embeds: [replyEmbed], components });
             const loggedEmbed = new EmbedBuilder()
                 .setColor(colors.default)
-                .setAuthor({ name: `${member.displayName} заполнил форму на вступление в клан`, iconURL: member.displayAvatarURL() });
+                .setAuthor({
+                name: `${member.displayName} заполнил форму на вступление в клан`,
+                iconURL: member.displayAvatarURL({ forceStatic: false }),
+            });
             modalSubmit.fields.fields.forEach((c) => {
                 if (!c.value)
                     return;
                 loggedEmbed.addFields({ name: c.customId.split("_").pop() ?? "Заголовок не найден", value: c.value ?? "ничего не указано" });
             });
-            client.getCachedTextChannel(channelIds.clan)?.send({ embeds: [loggedEmbed] });
+            client.getCachedTextChannel(channelIds.clanLogs)?.send({ embeds: [loggedEmbed] });
         }
     },
 };

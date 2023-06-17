@@ -35,7 +35,10 @@ async function generateRoleEmbed(oldMember, newMember) {
         return null;
     const embed = new EmbedBuilder()
         .setColor(colors.default)
-        .setAuthor({ name: `У ${nameCleaner(newMember.displayName)} были обновлены роли`, iconURL: newMember.displayAvatarURL() });
+        .setAuthor({
+        name: `У ${nameCleaner(newMember.displayName)} были обновлены роли`,
+        iconURL: newMember.displayAvatarURL({ forceStatic: false }),
+    });
     addRolesField(addedRoles, "Роль добавлена", "Роли добавлены", embed);
     addRolesField(removedRoles, "Роль удалена", "Роли удалены", embed);
     return embed;
@@ -67,7 +70,7 @@ async function generateNameEmbed(oldMember, newMember) {
         .setColor(colors.default)
         .setAuthor({
         name: authorText,
-        iconURL: newMember.displayAvatarURL(),
+        iconURL: newMember.displayAvatarURL({ forceStatic: false }),
     })
         .addFields({ name: "До изменения", value: escapeString(oldMember.displayName), inline: true }, { name: "После", value: escapeString(newMember.displayName), inline: true });
     if (!automaticallyUpdatedUsernames.has(newMember.id) && !nameExecutor) {
@@ -80,13 +83,15 @@ function generateMuteEmbed(oldMember, newMember) {
         return null;
     const embed = new EmbedBuilder().setColor(colors.default);
     if (!oldMember.communicationDisabledUntilTimestamp) {
-        embed.setAuthor({ name: `${newMember.displayName} был выдан тайм-аут`, iconURL: newMember.displayAvatarURL() }).addFields({
+        embed
+            .setAuthor({ name: `${newMember.displayName} был выдан тайм-аут`, iconURL: newMember.displayAvatarURL({ forceStatic: false }) })
+            .addFields({
             name: "Тайм-аут до",
             value: `<t:${Math.round(newMember.communicationDisabledUntilTimestamp / 1000)}>`,
         });
     }
     else {
-        embed.setAuthor({ name: `${newMember.displayName} был снят тайм-аут`, iconURL: newMember.displayAvatarURL() });
+        embed.setAuthor({ name: `${newMember.displayName} был снят тайм-аут`, iconURL: newMember.displayAvatarURL({ forceStatic: false }) });
     }
     return embed;
 }

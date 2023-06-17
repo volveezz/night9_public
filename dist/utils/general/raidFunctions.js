@@ -14,7 +14,7 @@ import { apiStatus } from "../../structures/apiStatus.js";
 import { fetchRequest } from "../api/fetchRequest.js";
 import { CachedDestinyActivityModifierDefinition } from "../api/manifestHandler.js";
 import { RaidEvent } from "../persistence/sequelize.js";
-import { addButtonComponentsToMessage } from "./addButtonsToMessage.js";
+import { addButtonsToMessage } from "./addButtonsToMessage.js";
 import { completedRaidsData } from "./destinyActivityChecker.js";
 import nameCleaner from "./nameClearer.js";
 import { clearNotifications } from "./raidFunctions/raidNotifications.js";
@@ -139,7 +139,7 @@ export async function getRaidDatabaseInfo(raidId, interaction) {
         }
         else if (raidData[1] !== undefined) {
             throw {
-                name: "Укажите нужный рейд в параметре id_рейда",
+                name: "Укажите нужный рейд в параметре id-рейда",
                 description: `Id рейдов доступные для вас: ${raidData.map((raidData) => raidData.id).join(", ")}`,
             };
         }
@@ -193,7 +193,7 @@ export async function updateRaidMessage(options) {
     if (returnComponents) {
         return { embeds: [embed], components };
     }
-    const messageOptions = { embeds: [embed], components: await addButtonComponentsToMessage(components) };
+    const messageOptions = { embeds: [embed], components: await addButtonsToMessage(components) };
     if (interaction instanceof ButtonInteraction) {
         return await interaction.message.edit(messageOptions);
     }
@@ -653,5 +653,5 @@ export async function sendUserRaidGuideNoti(user, raidName) {
     const components = [
         new ButtonBuilder().setCustomId(`raidGuide_${raidName}`).setLabel("Инструкция по рейду").setStyle(ButtonStyle.Primary),
     ];
-    return await user.send({ embeds: [embed], components: await addButtonComponentsToMessage(components) });
+    return await user.send({ embeds: [embed], components: await addButtonsToMessage(components) });
 }

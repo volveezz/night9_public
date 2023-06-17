@@ -16,6 +16,8 @@ export async function clanOnlineMemberActivityChecker() {
             return;
         const checkingUsers = new Map(clanOnline);
         for (const [discordId, { membershipId, platform }] of checkingUsers) {
+            if (apiStatus.status !== 1)
+                return;
             const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204`);
             if (!response || !response.characterActivities) {
                 console.error(`[Error code: 1612] ${platform}/${membershipId} of ${discordId}`, response);

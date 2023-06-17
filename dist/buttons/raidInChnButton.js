@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, ComponentType, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, ComponentType, EmbedBuilder, ModalBuilder, TextChannel, TextInputBuilder, TextInputStyle, } from "discord.js";
 import { Op } from "sequelize";
 import { RaidAdditionalFunctional, RaidButtons } from "../configs/Buttons.js";
 import { RaidNotifyEdit } from "../configs/Modals.js";
@@ -6,7 +6,7 @@ import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { channelIds } from "../configs/ids.js";
-import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
+import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { removeRaid } from "../utils/general/raidFunctions.js";
 import { descriptionFormatter, getRandomRaidGIF } from "../utils/general/utilities.js";
@@ -17,7 +17,7 @@ export async function handleDeleteRaid({ deferredUpdate, interaction, raidEvent,
         const embed = new EmbedBuilder()
             .setColor(colors.warning)
             .setAuthor({ name: `Подтвердите удаление рейда ${raidEvent.id}-${raidEvent.raid}`, iconURL: icons.warning })
-            .setDescription(`Если Вы хотите изменить рейд, то не удаляйте рейд, а измените его с помощью команды: \`/рейд изменить\` (</рейд изменить:1036145721696600134>)\n### Можно изменить следующие параметры рейда\n - Время: \`/рейд изменить новое_время:20 21/06\`\n - Описание: \`/рейд изменить новое_описание:Новое описание для сильных\`\n - Минимальное количество закрытий рейда для записи: \`/рейд изменить новое_требование_закрытий:5\`\n### В одной команде можно изменить сразу несколько параметров\n - \`/рейд изменить новый_рейд:Источник кошмаров новая_сложность:Мастер\``);
+            .setDescription(`Если Вы хотите изменить рейд, то не удаляйте рейд, а измените его с помощью команды: \`/рейд изменить\` (</рейд изменить:1036145721696600134>)\n### Можно изменить следующие параметры рейда\n - Время: \`/рейд изменить новое-время:20 21/06\`\n - Описание: \`/рейд изменить новое-описание:Новое описание для сильных\`\n - Минимальное количество закрытий рейда для записи: \`/рейд изменить новое-требование-закрытий:5\`\n### В одной команде можно изменить сразу несколько параметров\n - \`/рейд изменить новый-рейд:Источник кошмаров новая-сложность:Мастер\``);
         const components = [
             new ButtonBuilder().setCustomId(RaidButtons.deleteConfirm).setLabel("Подтвердить").setStyle(ButtonStyle.Danger),
             new ButtonBuilder().setCustomId(RaidButtons.deleteCancel).setLabel("Отменить").setStyle(ButtonStyle.Secondary),
@@ -25,7 +25,7 @@ export async function handleDeleteRaid({ deferredUpdate, interaction, raidEvent,
         await deferredUpdate;
         const message = await interaction.editReply({
             embeds: [embed],
-            components: await addButtonComponentsToMessage(components),
+            components: await addButtonsToMessage(components),
         });
         const collector = interaction.channel.createMessageComponentCollector({
             message,
@@ -154,7 +154,7 @@ export default {
                                 await user
                                     .send({
                                     embeds: [notificationEmbed],
-                                    components: await addButtonComponentsToMessage(linkComponent),
+                                    components: await addButtonsToMessage(linkComponent),
                                 })
                                     .then((_) => sendedTo.push(`${nameCleaner(user.displayName, true)} получил оповещение`))
                                     .catch(async (e) => {
@@ -314,7 +314,7 @@ export default {
                 .filter((chn) => chn.parentId === channelIds.raidCategory && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"))
                 .reverse();
             let raidChnInvite = null;
-            for await (const [_, voiceChannel] of raidVoiceChannels) {
+            for (const [_, voiceChannel] of raidVoiceChannels) {
                 if (voiceChannel.members.has(raidEvent.creator)) {
                     if (!invite)
                         invite = await voiceChannel.createInvite({ reason: "Raid invite", maxAge: 60 * 120 });
@@ -344,7 +344,7 @@ export default {
                 .setImage(GIFImage);
             const message = await interaction.user.send({
                 embeds: [raidLeaderEmbed],
-                components: await addButtonComponentsToMessage(components),
+                components: await addButtonsToMessage(components),
             });
             const collector = message.createMessageComponentCollector({
                 filter: (interaction) => interaction.user.id === member.id,
@@ -459,13 +459,10 @@ export default {
             return;
         }
         else if (interaction.customId === RaidButtons.resend) {
-            return interaction.channel
-                .send({ embeds: [interaction.message.embeds[0]], components: interaction.message.components })
-                .then((msg) => {
-                RaidEvent.update({ inChannelMessageId: msg.id }, { where: { channelId: interaction.channelId } }).then(async () => {
-                    await interaction.message.delete();
-                });
-            });
+            const channel = interaction.channel instanceof TextChannel ? interaction.channel : await client.getAsyncTextChannel(interaction.channelId);
+            const message = await channel.send({ embeds: [interaction.message.embeds[0]], components: interaction.message.components });
+            await RaidEvent.update({ inChannelMessageId: message.id }, { where: { channelId: interaction.channelId } });
+            await interaction.message.delete();
         }
         else if (interaction.customId === RaidButtons.fireteamCheckerCancel) {
             canceledFireteamCheckingRaids.add(raidEvent.id);

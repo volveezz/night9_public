@@ -10,6 +10,7 @@ import getFiles from "../utils/general/fileReader.js";
 import raidFireteamChecker from "../utils/general/raidFunctions/raidFireteamChecker.js";
 import { loadNotifications } from "../utils/general/raidFunctions/raidNotifications.js";
 import { cacheRaidMilestones } from "../utils/general/raidMilestones.js";
+import { timer } from "../utils/general/utilities.js";
 import { restoreFetchedPGCRs } from "../utils/logging/activityLogger.js";
 const __dirname = resolve();
 export class ExtendedClient extends Client {
@@ -183,6 +184,11 @@ export class ExtendedClient extends Client {
                     return;
                 }
                 this.autocomplete.set(autocomplete.name, autocomplete);
+                if (autocomplete.aliases) {
+                    autocomplete.aliases.forEach((alias) => {
+                        this.autocomplete.set(alias, autocomplete);
+                    });
+                }
             });
         });
         await Promise.all(autocompleteReading);
@@ -212,7 +218,8 @@ export class ExtendedClient extends Client {
         this.loadCommands();
         this.loadAutocompletions();
     }
-    loadProdComponents() {
+    async loadProdComponents() {
+        await timer(5000);
         tokenManagment();
         clanOnlineMemberActivityChecker();
         periodicDestinyActivityChecker();

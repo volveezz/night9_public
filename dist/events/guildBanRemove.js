@@ -9,7 +9,7 @@ export default new Event("guildBanRemove", (member) => {
         .setColor(colors.success)
         .setAuthor({
         name: `${member.user.username} разбанен`,
-        iconURL: member.user.displayAvatarURL(),
+        iconURL: member.user.displayAvatarURL({ forceStatic: false }),
     })
         .setFooter({ text: `Id: ${member.user.id}` });
     if (member.reason) {

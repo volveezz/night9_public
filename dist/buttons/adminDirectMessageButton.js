@@ -8,7 +8,7 @@ import { descriptionFormatter } from "../utils/general/utilities.js";
 import { sendDmLogMessage } from "../utils/logging/logger.js";
 export const workingCollectors = new Map();
 export default {
-    name: "adminDMInteractionHandler",
+    name: "adminDirectMessageButton",
     run: async ({ client, interaction }) => {
         if (interaction.customId !== AdminDMChannelButtons.delete && interaction.customId !== AdminDMChannelButtons.reply)
             return;
@@ -28,7 +28,7 @@ export default {
                     .setTitle("Введите текст сообщения для ответа")
                     .setAuthor({
                     name: `Отвечаем: ${nameCleaner(replyMember.displayName)}`,
-                    iconURL: replyMember.displayAvatarURL(),
+                    iconURL: replyMember.displayAvatarURL({ forceStatic: false }),
                 });
                 interaction.reply({ embeds: [embed] });
                 const collector = channel.createMessageCollector({
@@ -79,7 +79,7 @@ export default {
                     interaction.message.edit({ embeds: [embed], components: [] });
                 })
                     .catch(async (e) => {
-                    console.error("[Error code: 1112] adminDMInteractionHandler delete msg error", e);
+                    console.error("[Error code: 1112] adminDirectMessageButton delete msg error", e);
                     await deferredUpdate;
                     throw { name: "Произошла ошибка во время удаления сообщения" };
                 });

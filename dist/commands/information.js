@@ -2,6 +2,7 @@ import { ApplicationCommandType, ButtonBuilder, ButtonStyle, ChatInputCommandInt
 import { StatsButton } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
+import { groupId } from "../configs/ids.js";
 import { bungieNames } from "../core/userStatisticsManagement.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
@@ -39,7 +40,7 @@ export default new Command({
             : interaction.targetId;
         const targetMember = optionId ? undefined : await client.getAsyncMember(targetId);
         const targetName = targetMember ? (await client.getAsyncMember(targetId))?.displayName : undefined;
-        const targetAvatar = targetMember ? (await client.getAsyncMember(targetId))?.displayAvatarURL() : undefined;
+        const targetAvatar = targetMember ? (await client.getAsyncMember(targetId))?.displayAvatarURL({ forceStatic: false }) : undefined;
         const bunigeName = bungieNames.get(targetId || interaction.user.id);
         const embed = new EmbedBuilder()
             .setAuthor({
@@ -61,7 +62,7 @@ export default new Command({
         const { platform, bungieId } = parsedData;
         const reportPlatform = platform === 3 ? "pc" : platform === 2 ? "ps" : platform === 1 ? "xb" : platform === 6 ? "epic" : "stadia";
         const fieldUrls = [];
-        fieldUrls.push(`[Trials.Report](https://trials.report/report/${platform}/${bungieId})`, `[Raid.Report](https://raid.report/${reportPlatform}/${bungieId})`, `[Dungeon.Report](https://dungeon.report/${reportPlatform}/${bungieId})`, `[Crucible.Report](https://crucible.report/report/${platform}/${bungieId})`, `[Strike.Report](https://strike.report/${reportPlatform}/${bungieId})`, `[DestinyTracker](https://destinytracker.com/destiny-2/profile/${platform === 3 ? "steam" : platform === 2 ? "psn" : platform === 1 ? "xbl" : platform === 6 ? "epic" : "stadia"}/${bungieId}/overview)`, `[WastedonDestiny](https://wastedondestiny.com/${bungieId})`);
+        fieldUrls.push(`[Trials.Report](https://trials.report/report/${platform}/${bungieId})`, `[Raid.Report](https://raid.report/${reportPlatform}/${bungieId})`, `[Dungeon.Report](https://dungeon.report/${reportPlatform}/${bungieId})`, `[Crucible.Report](https://crucible.report/report/${platform}/${bungieId})`, `[Strike.Report](https://strike.report/${reportPlatform}/${bungieId})`, `[Guardian.Report](https://guardian.report/?guardians=${bungieId})`, `[DestinyTracker](https://destinytracker.com/destiny-2/profile/${platform === 3 ? "steam" : platform === 2 ? "psn" : platform === 1 ? "xbl" : platform === 6 ? "epic" : "stadia"}/${bungieId}/overview)`, `[WastedOnDestiny](https://wastedondestiny.com/${bungieId})`);
         embed.setColor(colors.success).addFields({
             name: "Ссылки",
             value: fieldUrls.join(", "),
@@ -102,7 +103,7 @@ export default new Command({
                         components: [],
                     });
                 }
-                fieldUrls.push(`[Guardian](https://guardian.gg/2/profile/${bungieId}/${data.userInfo.bungieGlobalDisplayName.replace(/\s/g, "%20")})`, `[DestinyKD](https://www.destinykd.com/d2/pc/${data.userInfo.bungieGlobalDisplayName.replace(/\s/g, "%20")}*${data.userInfo.bungieGlobalDisplayNameCode})`);
+                fieldUrls.push(`[Guardian.gg](https://guardian.gg/2/profile/${bungieId}/${data.userInfo.bungieGlobalDisplayName.replace(/\s/g, "%20")})`);
                 for (const characterId in response.characters.data) {
                     const character = response.characters.data[characterId];
                     const classEmoji = character.classHash === 671679327
@@ -128,7 +129,7 @@ export default new Command({
         const fetchClanData = async () => {
             try {
                 const clanBody = await fetchRequest(`Platform/GroupV2/User/${platform}/${bungieId}/0/1/`);
-                const clanStatus = clanBody.results[0]?.group.groupId === "4123712"
+                const clanStatus = clanBody.results[0]?.group.groupId === groupId
                     ? "участник клана"
                     : clanBody.results[0]
                         ? `участник клана ${clanBody.results[0].group.name}`

@@ -7,7 +7,7 @@ import icons from "../configs/icons.js";
 import { channelIds, ownerId } from "../configs/ids.js";
 import { statusRoles } from "../configs/roles.js";
 import { client } from "../index.js";
-import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
+import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { checkRaidTimeConflicts, getRaidData, sendUserRaidGuideNoti, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
@@ -31,7 +31,7 @@ async function actionMessageHandler({ interaction, raidEvent, target }) {
     if (raidEvent.hotJoined.includes(interaction.user.id)) {
         embed.setColor(colors.serious).setAuthor({
             name: `${displayName}: ${resolvedTarget}[Запас]`,
-            iconURL: member.displayAvatarURL(),
+            iconURL: member.displayAvatarURL({ forceStatic: false }),
         });
     }
     else {
@@ -39,25 +39,26 @@ async function actionMessageHandler({ interaction, raidEvent, target }) {
             case RaidButtons.join:
                 embed.setColor(colors.success).setAuthor({
                     name: `${displayName}: ${resolvedTarget}[Участник]`,
-                    iconURL: member.displayAvatarURL(),
+                    iconURL: member.displayAvatarURL({ forceStatic: false }),
                 });
                 break;
             case RaidButtons.alt:
                 embed.setColor(colors.warning).setAuthor({
                     name: `${displayName}: ${resolvedTarget}[Возможный участник]`,
-                    iconURL: member.displayAvatarURL(),
+                    iconURL: member.displayAvatarURL({ forceStatic: false }),
                 });
                 break;
             case RaidButtons.leave:
                 embed.setColor(colors.error).setAuthor({
                     name: `${displayName}: ${resolvedTarget}❌`,
-                    iconURL: member.displayAvatarURL(),
+                    iconURL: member.displayAvatarURL({ forceStatic: false }),
                 });
                 break;
             default:
-                embed
-                    .setColor("NotQuiteBlack")
-                    .setAuthor({ name: `${displayName}: проник на рейд\n<@${ownerId}>`, iconURL: member.displayAvatarURL() });
+                embed.setColor("NotQuiteBlack").setAuthor({
+                    name: `${displayName}: проник на рейд\n<@${ownerId}>`,
+                    iconURL: member.displayAvatarURL({ forceStatic: false }),
+                });
         }
     }
     (await client.getAsyncTextChannel(raidEvent.channelId)).send({ embeds: [embed] });
@@ -79,7 +80,7 @@ async function joinedFromHotJoined(raidData) {
         .setColor(colors.success)
         .setAuthor({
         name: `${nameCleaner(member.displayName)}: [Запас] → [Участник]`,
-        iconURL: member.displayAvatarURL(),
+        iconURL: member.displayAvatarURL({ forceStatic: false }),
     })
         .setFooter({
         text: "Пользователь перезаписан системой",
@@ -88,7 +89,7 @@ async function joinedFromHotJoined(raidData) {
     const { embeds, components } = (await updateRaidMessage({ raidEvent: updatedRaidData, returnComponents: true }));
     await (await client.getAsyncMessage(channelIds.raid, updatedRaidData.messageId)).edit({
         embeds,
-        components: await addButtonComponentsToMessage(components),
+        components: await addButtonsToMessage(components),
     });
     embeds[0]
         .setColor(colors.serious)

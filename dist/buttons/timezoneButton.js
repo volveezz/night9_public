@@ -2,7 +2,7 @@ import { EmbedBuilder, StringSelectMenuBuilder } from "discord.js";
 import { TimezoneButtons } from "../configs/Buttons.js";
 import { timezoneSelectMenuData } from "../configs/SelectMenuOptions.js";
 import colors from "../configs/colors.js";
-import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
+import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 export default {
     name: "timezoneButton",
     run: async ({ interaction }) => {
@@ -20,6 +20,6 @@ export default {
             option.setDescription(`${tzTime.getHours()}:${tzTime.getMinutes()}:${tzTime.getSeconds()} - время сейчас по +${i + 1} часовому поясу`);
             tzTime.setHours(tzTime.getHours() + 1);
         });
-        interaction.reply({ ephemeral: true, embeds: [embed], components: await addButtonComponentsToMessage([tzBlank]) });
+        interaction.reply({ ephemeral: true, embeds: [embed], components: await addButtonsToMessage([tzBlank]) });
     },
 };

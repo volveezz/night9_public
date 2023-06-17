@@ -1,4 +1,5 @@
 const ownerId = process.env.OWNER_ID;
+const groupId = process.env.GROUP_ID;
 const channelIds = {
     admin: process.env.ADMIN_CHANNEL_ID,
     adminVoice: process.env.ADMIN_VOICE_CHANNEL_ID,
@@ -6,7 +7,7 @@ const channelIds = {
     guild: process.env.GUILD_CHANNEL_ID,
     messages: process.env.MESSAGES_CHANNEL_ID,
     voice: process.env.VOICE_CHANNEL_ID,
-    clan: process.env.CLAN_CHANNEL_ID,
+    clanLogs: process.env.CLAN_CHANNEL_ID,
     bot: process.env.BOT_CHANNEL_ID,
     raid: process.env.RAID_CHANNEL_ID,
     raidCategory: process.env.RAID_CHANNEL_CATEGORY_ID,
@@ -22,6 +23,11 @@ const channelIds = {
     publicBotSpam: process.env.PUBLIC_BOT_CHANNEL_ID,
     nsfw: process.env.NSFW_CHANNEL_ID,
     lore: process.env.LORE_CHANNEL_ID,
+    clan: {
+        joinRequests: process.env.JOIN_REQUEST_CHANNEL_ID,
+        guideMessageId: process.env.JOIN_REQUEST_GUILD_MESSAGE_ID,
+        questions: process.env.QUESTIONS_CHANNEL_ID,
+    },
 };
 const categoryIds = {
     admin: process.env.ADMIN_CATEGORY,
@@ -46,4 +52,4 @@ const checkedStoryActivities = [
     3083261666,
 ];
 const guildId = process.env.GUILD_ID;
-export { categoryIds, channelIds, checkedStoryActivities, forbiddenRaidIds, guildId, ownerId };
+export { categoryIds, channelIds, checkedStoryActivities, forbiddenRaidIds, groupId, guildId, ownerId };

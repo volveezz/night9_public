@@ -2,6 +2,7 @@ import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { Command } from "../../structures/command.js";
+import setMemberRoles from "../../utils/discord/setRoles.js";
 import { timer } from "../../utils/general/utilities.js";
 export default new Command({
     name: "role",
@@ -57,6 +58,7 @@ export default new Command({
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const subCommand = args.getSubcommand();
         const role = args.getRole("role", true);
+        setMemberRoles;
         switch (subCommand) {
             case "clear": {
                 let i = 0;
@@ -78,52 +80,14 @@ export default new Command({
             }
             case "set": {
                 const userId = args.getUser("user", true).id;
-                const member = client.getCachedMembers().get(userId) ?? (await client.getCachedGuild().members.fetch(userId));
+                const member = await client.getAsyncMember(userId);
                 const embed = new EmbedBuilder();
-                const success = await member.roles
-                    .set([role.id])
-                    .then(async () => {
-                    embed
-                        .setColor(colors.success)
-                        .setDescription(`Роль ${role} была установлена ${member}`)
-                        .setAuthor({ name: "Роль установлена", iconURL: icons.success });
-                    (await deferredReply) && (await interaction.editReply({ embeds: [embed] }));
-                    return true;
-                })
-                    .catch(async (e) => {
-                    if (e.code === 50013) {
-                        const botHighestRole = member.guild.roles.highest.position;
-                        const removableRoles = member.roles.cache.filter((role) => {
-                            return role.editable && !role.managed && role.position < botHighestRole;
-                        });
-                        await member.roles.remove(removableRoles).catch((e) => {
-                            console.error("[Error code: 1712]", e);
-                        });
-                        embed
-                            .setColor(colors.warning)
-                            .setDescription(`Роль ${role} была установлена ${member} после удаления всех возможных ролей`)
-                            .addFields({
-                            name: "Неудаленные роли",
-                            value: member.roles.cache
-                                .filter((role) => !removableRoles.has(role.id))
-                                .map((role) => `<@&${role.id}>`)
-                                .join(", "),
-                            inline: false,
-                        })
-                            .setAuthor({ name: "Ошибка была исправлена", iconURL: icons.warning });
-                        (await deferredReply) && (await interaction.editReply({ embeds: [embed] }));
-                    }
-                    else {
-                        console.error("[Error code: 1435]", e);
-                        return false;
-                    }
-                });
-                if (success === false) {
-                    throw {
-                        name: "Ошибка",
-                        description: `Недостаточно прав для установки роли ${role} пользователю ${member}`,
-                    };
-                }
+                await setMemberRoles({ member, roles: [role.id], reason: "Admin command action" });
+                embed
+                    .setColor(colors.success)
+                    .setDescription(`Роль ${role} была установлена ${member}`)
+                    .setAuthor({ name: "Роль установлена", iconURL: icons.success });
+                (await deferredReply) && (await interaction.editReply({ embeds: [embed] }));
                 return;
             }
         }

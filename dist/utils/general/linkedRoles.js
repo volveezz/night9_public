@@ -110,7 +110,7 @@ export async function updateMetadata(userId) {
     }
     catch (e) {
         e.message = `Error fetching external data: ${e.message}`;
-        console.error(e);
+        console.error("[Error code: 1917]", e);
     }
     await pushMetadata(userId, tokens, metadata);
 }

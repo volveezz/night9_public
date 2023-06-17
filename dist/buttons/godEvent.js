@@ -5,7 +5,7 @@ import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { channelIds } from "../configs/ids.js";
-import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
+import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { updateRaidMessage } from "../utils/general/raidFunctions.js";
 import { RaidEvent } from "../utils/persistence/sequelize.js";
 export default {
@@ -137,7 +137,7 @@ export default {
                 new ButtonBuilder().setCustomId(RaidButtons.alt).setLabel("Возможно буду").setStyle(ButtonStyle.Secondary),
             ];
             let sortedRaidCount = 0;
-            for await (const raid of currentRaids) {
+            for (const raid of currentRaids) {
                 try {
                     const messagePromise = raidChannel.messages.fetch(raid.messageId);
                     const messageOptions = await updateRaidMessage({ raidEvent: raid, returnComponents: true });
@@ -153,8 +153,9 @@ export default {
                         .flat();
                     const updatedRaidMessage = await raidChannel.send({
                         embeds,
-                        components: await addButtonComponentsToMessage(components && components.length > 0 ? components : subComponents ? subComponents : baseComponents),
+                        components: await addButtonsToMessage(components && components.length > 0 ? components : subComponents ? subComponents : baseComponents),
                     });
+                    raid.messageId = updatedRaidMessage.id;
                     try {
                         await message.delete();
                     }
@@ -171,7 +172,7 @@ export default {
                             console.error("[Error code: 1819]", e);
                         }
                     }
-                    await raid.update({ messageId: updatedRaidMessage.id });
+                    await raid.save();
                     sortedRaidCount++;
                 }
                 catch (error) {

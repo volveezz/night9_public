@@ -5,7 +5,7 @@ import colors from "../configs/colors.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { fetchRequest } from "../utils/api/fetchRequest.js";
 import { CachedDestinyMilestoneDefinition, CachedDestinyProgressionDefinition } from "../utils/api/manifestHandler.js";
-import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
+import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default {
     name: "statsEvent",
@@ -45,13 +45,13 @@ export default {
                         CachedDestinyProgressionDefinition[progressionHash]?.displayProperties?.displayUnitsName ||
                         "blank";
                     const isTrialsOfTheNine = progressionHash === 3468066401;
-                    const value = `${currentProgress} очков, ${level} ранг${levelCap !== -1 ? ` / ${levelCap}` : []}`;
+                    const value = `${currentProgress} очков, ${level} ранг${levelCap !== -1 ? `/${levelCap}` : []}`;
                     return { name: isTrialsOfTheNine ? "Испытания девяти" : embedName, value, inline: true };
                 });
                 const embed = new EmbedBuilder()
                     .setColor(colors.success)
                     .setFooter({ text: `Id: ${interaction.user.id}` })
-                    .addFields(...embedFields);
+                    .addFields(embedFields);
                 await deferredReply;
                 await interaction.editReply({ embeds: [embed] });
                 return;
@@ -83,17 +83,17 @@ export default {
                         emoji,
                     });
                     if (!embedDescription) {
-                        embedDescription = `${emoji} ${label}`;
+                        embedDescription = `${emoji} **${label}**`;
                     }
                     else {
-                        embedDescription += `\n${emoji} ${label}`;
+                        embedDescription += `\n${emoji} **${label}**`;
                     }
                 });
                 if (!embedDescription)
                     embedDescription = "Персонажи отсутствуют";
                 const embed = new EmbedBuilder().setTitle("Выберите персонажа").setDescription(embedDescription).setColor(colors.serious);
                 await deferredReply;
-                const int = await interaction.editReply({ embeds: [embed], components: await addButtonComponentsToMessage(components) });
+                const int = await interaction.editReply({ embeds: [embed], components: await addButtonsToMessage(components) });
                 const collector = int.channel.createMessageComponentCollector({
                     message: int,
                     filter: ({ user }) => user.id === interaction.user.id,
@@ -125,9 +125,7 @@ export default {
                                     return;
                                 embed.addFields({
                                     name: `${CachedDestinyMilestoneDefinition[mile.milestoneHash].displayProperties.name}\n${CachedDestinyMilestoneDefinition[mile.milestoneHash].displayProperties.description}`,
-                                    value: `Условие ${subRew.earned
-                                        ? "выполнено <:successCheckmark:1018320951173189743>"
-                                        : "не выполнено <:crossmark:1020504750350934026>"}${!subRew.redeemed && subRew.earned ? ", но не получено" : ""}`,
+                                    value: `Можно выполнить и получить награду`,
                                 });
                             });
                         });

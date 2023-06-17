@@ -7,7 +7,7 @@ import { client } from "../../../index.js";
 import { apiStatus } from "../../../structures/apiStatus.js";
 import { fetchRequest } from "../../api/fetchRequest.js";
 import { AuthData, RaidEvent } from "../../persistence/sequelize.js";
-import { addButtonComponentsToMessage } from "../addButtonsToMessage.js";
+import { addButtonsToMessage } from "../addButtonsToMessage.js";
 import nameCleaner from "../nameClearer.js";
 import { getRaidNameFromHash, updatePrivateRaidMessage, updateRaidMessage } from "../raidFunctions.js";
 const MINUTES_AFTER_RAID = 5;
@@ -74,7 +74,7 @@ async function raidFireteamChecker(id) {
             if (isFirstCheck != 0) {
                 isFirstCheck = 0;
             }
-            for await (const memberAuthData of voiceChannelMembersAuthData) {
+            for (const memberAuthData of voiceChannelMembersAuthData) {
                 const discordId = memberAuthData.discordId;
                 const userInFireteam = partyMembers.some((member) => member.membershipId === memberAuthData.bungieId);
                 if ((raidEvent.joined.includes(discordId) && userInFireteam) ||
@@ -114,7 +114,7 @@ async function raidFireteamChecker(id) {
                         .setColor(userInFireteam ? colors.success : colors.error)
                         .setAuthor({
                         name: `${nameCleaner(member?.displayName || "неизвестный пользователь")}: ${actionState}`,
-                        iconURL: member?.displayAvatarURL(),
+                        iconURL: member?.displayAvatarURL({ forceStatic: false }),
                     })
                         .setFooter({
                         text: `Пользователь ${footerText} системой слежки за составом`,
@@ -180,7 +180,7 @@ async function raidFireteamChecker(id) {
             }
             await privateRaidChannel.send({
                 embeds: [fireteamCheckingNotification],
-                components: await addButtonComponentsToMessage([fireTeamCheckingNotificationComponents]),
+                components: await addButtonsToMessage([fireTeamCheckingNotificationComponents]),
             });
         }
     });
@@ -215,7 +215,7 @@ async function getVoiceChannelMembersAuthData(voiceChannelMemberIds) {
 async function checkFireteamRoster(voiceChannelMembersAuthData, raidName) {
     if (apiStatus.status !== 1)
         return null;
-    for await (const authData of voiceChannelMembersAuthData) {
+    for (const authData of voiceChannelMembersAuthData) {
         const destinyProfile = await fetchRequest(`Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=204,1000`, authData.accessToken);
         const partyMembers = destinyProfile?.profileTransitoryData?.data?.partyMembers;
         const characterActivities = destinyProfile.characterActivities.data;

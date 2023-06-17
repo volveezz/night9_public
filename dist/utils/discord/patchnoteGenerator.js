@@ -1,7 +1,7 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { PatchnoteButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
-import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
+import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import { descriptionFormatter } from "../general/utilities.js";
 export async function generatePatchNotes(message) {
     const { member, channel } = message;
@@ -24,7 +24,7 @@ export async function generatePatchNotes(message) {
         .send({
         embeds: embed ? [embed] : undefined,
         content: embed ? undefined : patchnoteMessage,
-        components: await addButtonComponentsToMessage(components),
+        components: await addButtonsToMessage(components),
     })
         .then((_r) => {
         message.delete();

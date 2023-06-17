@@ -6,7 +6,7 @@ import { channelIds } from "../../../configs/ids.js";
 import { dlcRoles, seasonalRoles } from "../../../configs/roles.js";
 import { bungieNames } from "../../../core/userStatisticsManagement.js";
 import { client } from "../../../index.js";
-import { addButtonComponentsToMessage } from "../../general/addButtonsToMessage.js";
+import { addButtonsToMessage } from "../../general/addButtonsToMessage.js";
 import nameCleaner from "../../general/nameClearer.js";
 import { escapeString } from "../../general/utilities.js";
 import findActivityForLfg from "./findActivityForLfg.js";
@@ -236,7 +236,7 @@ async function lfgHandler(message) {
     const partyMessage = await pvePartyChannel.send({
         embeds: [embed],
         content: ping,
-        components: await addButtonComponentsToMessage(components),
+        components: await addButtonsToMessage(components),
     });
     if (lfgData) {
         await deleteLfgData(member.voice.channel.id);

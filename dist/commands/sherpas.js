@@ -68,7 +68,7 @@ export default new Command({
         const selectedRaid = args.getString("рейд", true);
         const noviceRaidList = {};
         noviceRaidList[selectedRaid] = [];
-        for await (const [key, value] of completedRaidsData) {
+        for (const [key, value] of completedRaidsData) {
             if (value[selectedRaid] + (value[selectedRaid + "Master"] || 0) === 0) {
                 const member = client.getCachedMembers().get(key);
                 if (!member) {

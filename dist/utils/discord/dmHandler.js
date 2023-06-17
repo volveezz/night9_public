@@ -3,7 +3,7 @@ import { AdminDMChannelButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import { channelIds } from "../../configs/ids.js";
 import { client } from "../../index.js";
-import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
+import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import { escapeString } from "../general/utilities.js";
 const dmChannel = client.getCachedTextChannel(channelIds.directMessages) ||
     (await client.getCachedGuild().channels.fetch(channelIds.directMessages));
@@ -13,7 +13,7 @@ async function sendAdminNotification(message, member) {
         .setTitle("Получено новое сообщение")
         .setAuthor({
         name: `Отправитель: ${member.displayName}${member.user.username !== member.displayName ? ` (${member.user.username})` : ""}`,
-        iconURL: message.author.displayAvatarURL(),
+        iconURL: message.author.displayAvatarURL({ forceStatic: false }),
     })
         .setFooter({ text: `UId: ${message.author.id} | MId: ${message.id}` });
     if (message.cleanContent.length > 0) {
@@ -28,7 +28,7 @@ async function sendAdminNotification(message, member) {
     const buttons = [new ButtonBuilder().setCustomId(AdminDMChannelButtons.reply).setLabel("Reply").setStyle(ButtonStyle.Success)];
     await dmChannel.send({
         embeds: [embed],
-        components: await addButtonComponentsToMessage(buttons),
+        components: await addButtonsToMessage(buttons),
     });
 }
 export async function handleDm(message) {

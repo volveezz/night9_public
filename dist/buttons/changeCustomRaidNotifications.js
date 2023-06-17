@@ -52,7 +52,7 @@ export default {
                 throw { errorType: UserErrors.DB_USER_NOT_FOUND };
             }
             else {
-                console.error(error.code, error.body?.code, error.status, error.body?.status);
+                console.error("[Error code: 1912]", error.code, error.body?.code, error.status, error.body?.status);
             }
         }
     },

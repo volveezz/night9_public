@@ -3,12 +3,12 @@ import fetch from "node-fetch";
 import { ClanButtons, TimezoneButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
-import { channelIds } from "../../configs/ids.js";
+import { channelIds, groupId } from "../../configs/ids.js";
 import { statusRoles } from "../../configs/roles.js";
 import guildNicknameManagement from "../../core/guildNicknameManagement.js";
 import { checkIndiviualUserStatistics } from "../../core/userStatisticsManagement.js";
 import { client } from "../../index.js";
-import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
+import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import { escapeString } from "../general/utilities.js";
 import { AuthData, InitData, LeavedUsersData, UserActivityData } from "../persistence/sequelize.js";
 import { fetchRequest } from "./fetchRequest.js";
@@ -95,7 +95,7 @@ export default async function webHandler(code, state, res) {
                 try {
                     const loggedEmbed = new EmbedBuilder()
                         .setColor(colors.success)
-                        .setAuthor({ name: member.displayName, iconURL: member.displayAvatarURL() })
+                        .setAuthor({ name: member.displayName, iconURL: member.displayAvatarURL({ forceStatic: false }) })
                         .setTitle("Пользователь обновил существующую регистрацию");
                     await (await client.getAsyncTextChannel(channelIds.bot)).send({ embeds: [loggedEmbed] });
                 }
@@ -133,7 +133,7 @@ export default async function webHandler(code, state, res) {
         });
         const loggedEmbed = new EmbedBuilder()
             .setColor(colors.success)
-            .setAuthor({ name: `${member.displayName} зарегистрировался`, iconURL: member.displayAvatarURL() })
+            .setAuthor({ name: `${member.displayName} зарегистрировался`, iconURL: member.displayAvatarURL({ forceStatic: false }) })
             .addFields({ name: "Пользователь", value: `<@${member.id}>`, inline: true }, {
             name: "Bungie аккаунт",
             value: `[bungie.net](https://www.bungie.net/7/ru/User/Profile/254/${body.membership_id})`,
@@ -191,22 +191,22 @@ export default async function webHandler(code, state, res) {
                 : "\n\nПроизошла ошибка во время обработки вашего клана. Скорее всего это связано с недоступностью API игры\n\nКнопка ниже служит для отправки приглашения в клан - она заработает как только сервера игры станут доступны");
             await member.send({
                 embeds: [embed],
-                components: await addButtonComponentsToMessage([clanRequestComponent, timezoneComponent]),
+                components: await addButtonsToMessage([clanRequestComponent, timezoneComponent]),
             });
         }
-        else if (clanResponse.results.length === 0 || !(clanResponse.results?.[0]?.group?.groupId === "4123712")) {
+        else if (clanResponse.results.length === 0 || !(clanResponse.results?.[0]?.group?.groupId === groupId)) {
             embed.setDescription(embed.data.description
                 ? embed.data.description + "\n\nНажмите кнопку для получения приглашения в клан"
                 : "Нажмите кнопку для получения приглашения в клан");
             await member.send({
                 embeds: [embed],
-                components: await addButtonComponentsToMessage([clanRequestComponent, timezoneComponent]),
+                components: await addButtonsToMessage([clanRequestComponent, timezoneComponent]),
             });
         }
         else {
             await member.send({
                 embeds: [embed],
-                components: await addButtonComponentsToMessage(!(clanResponse?.results?.[0]?.group?.groupId === "4123712") ? [clanRequestComponent, timezoneComponent] : [timezoneComponent]),
+                components: await addButtonsToMessage(!(clanResponse?.results?.[0]?.group?.groupId === groupId) ? [clanRequestComponent, timezoneComponent] : [timezoneComponent]),
             });
         }
     }

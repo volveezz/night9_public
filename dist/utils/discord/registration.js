@@ -1,6 +1,6 @@
 import { EmbedBuilder, Message } from "discord.js";
 import colors from "../../configs/colors.js";
-import { logUserRegistrationAttempt } from "../logging/logger.js";
+import { logUserRegistrationAttempt } from "../logging/logUserRegistration.js";
 import { InitData } from "../persistence/sequelize.js";
 async function sendRegistrationLink(interaction) {
     const user = interaction instanceof Message ? interaction.author : interaction.user;

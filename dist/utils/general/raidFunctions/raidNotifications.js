@@ -7,7 +7,7 @@ import icons from "../../../configs/icons.js";
 import { channelIds, guildId } from "../../../configs/ids.js";
 import { client } from "../../../index.js";
 import { RaidEvent, RaidUserNotification } from "../../persistence/sequelize.js";
-import { addButtonComponentsToMessage } from "../addButtonsToMessage.js";
+import { addButtonsToMessage } from "../addButtonsToMessage.js";
 import { completedRaidsData } from "../destinyActivityChecker.js";
 import nameCleaner from "../nameClearer.js";
 import { generateRaidClearsText, getRaidData } from "../raidFunctions.js";
@@ -69,16 +69,16 @@ export async function loadNotifications() {
         },
     });
     const raidUserNotifications = [];
-    for await (const raid of raidsInNextDay) {
+    for (const raid of raidsInNextDay) {
         const users = [...new Set([...raid.joined])];
-        for await (const discordId of users) {
+        for (const discordId of users) {
             const userNotification = await RaidUserNotification.findOne({ where: { discordId } });
             const notificationTimes = userNotification ? userNotification.notificationTimes : [15];
             raidUserNotifications.push({ discordId, notificationTimes });
         }
     }
-    for await (const { discordId, notificationTimes } of raidUserNotifications) {
-        for await (const raid of raidsInNextDay) {
+    for (const { discordId, notificationTimes } of raidUserNotifications) {
+        for (const raid of raidsInNextDay) {
             for (const minutesBefore of notificationTimes) {
                 const notifyTime = (raid.time - minutesBefore * 60) * 1000;
                 if (notifyTime > Date.now()) {
@@ -137,7 +137,7 @@ async function notifyUserAboutNotifications(discordId) {
         return console.error("[Error code: 1801] Member not found", discordId);
     notifiedMembers.add(discordId);
     await timer(1000 * 20);
-    member.send({ embeds: [embed], components: await addButtonComponentsToMessage([components]) });
+    member.send({ embeds: [embed], components: await addButtonsToMessage([components]) });
 }
 export function clearNotifications(raidId) {
     tasks = tasks.filter((task) => task.raidId !== raidId);
@@ -148,7 +148,7 @@ export async function updateNotificationsForEntireRaid(raidId) {
     const raid = await RaidEvent.findByPk(raidId, { attributes: ["joined"] });
     if (!raid)
         return;
-    for await (const userId of raid.joined) {
+    for (const userId of raid.joined) {
         await updateNotifications(userId);
     }
 }
@@ -196,7 +196,7 @@ async function raidAnnounce(oldRaidData, discordId) {
         .reverse();
     const components = [];
     let inviteUrl = raidInvites.get(raidData.id);
-    for await (const [_, chn] of raidVoiceChannels) {
+    for (const [_, chn] of raidVoiceChannels) {
         if (!inviteUrl && (chn.userLimit === 0 || chn.userLimit - 6 > chn.members.size || chn.members.has(raidData.creator))) {
             const invite = await chn.createInvite({ reason: "Raid automatic invite", maxAge: 60 * 1440 });
             inviteUrl = invite?.url;
@@ -222,7 +222,7 @@ async function raidAnnounce(oldRaidData, discordId) {
     console.debug(`[DEBUG 12] Sending notification to ${member.displayName}.`);
     await member.send({
         embeds: [embed],
-        components: await addButtonComponentsToMessage(components),
+        components: await addButtonsToMessage(components),
     });
 }
 export async function sendNotificationInfo(interaction, deferredReply) {
@@ -236,10 +236,10 @@ export async function sendNotificationInfo(interaction, deferredReply) {
         .setStyle(ButtonStyle.Primary);
     if (deferredReply) {
         await deferredReply;
-        await interaction.editReply({ embeds: [embed], components: await addButtonComponentsToMessage([components]) });
+        await interaction.editReply({ embeds: [embed], components: await addButtonsToMessage([components]) });
     }
     else {
-        await interaction.reply({ embeds: [embed], components: await addButtonComponentsToMessage([components]), ephemeral: true });
+        await interaction.reply({ embeds: [embed], components: await addButtonsToMessage([components]), ephemeral: true });
     }
     return;
 }

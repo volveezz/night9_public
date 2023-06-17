@@ -7,7 +7,7 @@ import { channelIds, guildId } from "../../../configs/ids.js";
 import { statusRoles } from "../../../configs/roles.js";
 import { client } from "../../../index.js";
 import { RaidEvent } from "../../persistence/sequelize.js";
-import { addButtonComponentsToMessage } from "../addButtonsToMessage.js";
+import { addButtonsToMessage } from "../addButtonsToMessage.js";
 import { completedRaidsData } from "../destinyActivityChecker.js";
 import nameCleaner from "../nameClearer.js";
 import { removeRaid } from "../raidFunctions.js";
@@ -28,7 +28,7 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
         .setStyle(ButtonStyle.Primary)
         .setCustomId(RaidButtons.transitionCancel);
     const deleteButton = new ButtonBuilder().setLabel("Удалить рейд").setStyle(ButtonStyle.Danger).setCustomId(RaidButtons.transitionDelete);
-    const buttons = await addButtonComponentsToMessage([cancelButton, deleteButton]);
+    const buttons = await addButtonsToMessage([cancelButton, deleteButton]);
     const message = await creator.send({ embeds: [embed], components: buttons });
     const collector = (creator.dmChannel || (await creator.createDM())).createMessageComponentCollector({
         componentType: ComponentType.Button,
@@ -159,10 +159,10 @@ async function raidCreatorTransition(member, raid) {
             .setDescription("Вы получили эти права поскольку предыдущий создатель покинул рейд\n\nСоздатель рейда - участник, который имеет повышенные права в рейде\nСоздатель рейда может:\n　- Изменять рейд, в который идет набор\n　- Изменять время, требования по закрытым рейдам для записи, описание набора")
             .addFields({
             name: "Передача прав на рейд другому участнику",
-            value: "⁣　`/рейд изменить новый_создатель:`\n　`/raid edit new_creator:`",
+            value: "⁣　`/рейд изменить новый-создатель:`\n　`/raid edit new-creator:`",
         }, {
             name: "Изменение времени набора",
-            value: "⁣　`/рейд изменить новое_время:ВРЕМЯ_В_ФОРМАТЕ`\n　`/raid edit new_time:ВРЕМЯ_В_ФОРМАТЕ`\nВместо `ВРЕМЯ_В_ФОРМАТЕ` - необходимо указать время в следующем формате: `ЧАС:МИНУТЫ ДЕНЬ/МЕСЯЦ` (т.е. время разделяется двоеточием `:`, а дата точкой или слешем `/`)",
+            value: "⁣　`/рейд изменить новое-время:ВРЕМЯ_В_ФОРМАТЕ`\n　`/raid edit new-time:ВРЕМЯ_В_ФОРМАТЕ`\nВместо `ВРЕМЯ_В_ФОРМАТЕ` - необходимо указать время в следующем формате: `ЧАС:МИНУТЫ ДЕНЬ/МЕСЯЦ` (т.е. время разделяется двоеточием `:`, а дата точкой или слешем `/`)",
         });
         await member.send({ embeds: [embed] });
     };

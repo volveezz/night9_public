@@ -71,8 +71,8 @@ export var TimezoneButtons;
 })(TimezoneButtons || (TimezoneButtons = {}));
 export var AdminDMChannelButtons;
 (function (AdminDMChannelButtons) {
-    AdminDMChannelButtons["reply"] = "adminDMInteractionHandler_reply";
-    AdminDMChannelButtons["delete"] = "adminDMInteractionHandler_delete";
+    AdminDMChannelButtons["reply"] = "adminDirectMessageButton_reply";
+    AdminDMChannelButtons["delete"] = "adminDirectMessageButton_delete";
 })(AdminDMChannelButtons || (AdminDMChannelButtons = {}));
 export var LfgButtons;
 (function (LfgButtons) {

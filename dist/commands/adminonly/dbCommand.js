@@ -8,7 +8,7 @@ import { activityRoles, raidRoles, statisticsRoles, titleCategory, triumphsCateg
 import { longOffline, userTimezones } from "../../core/userStatisticsManagement.js";
 import { Command } from "../../structures/command.js";
 import { CachedDestinyRecordDefinition } from "../../utils/api/manifestHandler.js";
-import { addButtonComponentsToMessage } from "../../utils/general/addButtonsToMessage.js";
+import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
 import { convertSeconds } from "../../utils/general/convertSeconds.js";
 import { completedRaidsData } from "../../utils/general/destinyActivityChecker.js";
 import { AuthData, AutoRoleData, UserActivityData, database } from "../../utils/persistence/sequelize.js";
@@ -321,7 +321,7 @@ export default new Command({
                 await deferredReply;
                 const interactionReply = await interaction.editReply({
                     embeds: [embed],
-                    components: await addButtonComponentsToMessage(components),
+                    components: await addButtonsToMessage(components),
                 });
                 const collector = interactionReply.createMessageComponentCollector({
                     time: 60 * 2 * 1000,

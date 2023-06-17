@@ -2,8 +2,9 @@ import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder 
 import { ClanButtons, RegisterButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
+import { groupId } from "../../configs/ids.js";
 import { Command } from "../../structures/command.js";
-import { addButtonComponentsToMessage } from "../../utils/general/addButtonsToMessage.js";
+import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
 export default new Command({
     name: "generator",
     description: "Embed or button generator",
@@ -128,7 +129,7 @@ export default new Command({
                     throw { name: "Ошибка", description: `Искомый пресет \`${presetName}\` не найден` };
                 }
                 const { embeds, components } = preset;
-                await channel.send({ embeds, components: await addButtonComponentsToMessage(components) });
+                await channel.send({ embeds, components: await addButtonsToMessage(components) });
                 const responseEmbed = new EmbedBuilder()
                     .setColor(colors.success)
                     .setAuthor({ name: `Пресет ${presetName} отправлен`, iconURL: icons.success });
@@ -146,10 +147,10 @@ export default new Command({
             const components = [new ButtonBuilder().setCustomId(customId).setLabel(label).setStyle(style)];
             await deferredReply;
             if (ephemeral === true) {
-                interaction.editReply({ embeds: [interactionEmbed], components: await addButtonComponentsToMessage(components) });
+                interaction.editReply({ embeds: [interactionEmbed], components: await addButtonsToMessage(components) });
             }
             else {
-                await channel.send({ embeds: [interactionEmbed], components: await addButtonComponentsToMessage(components) });
+                await channel.send({ embeds: [interactionEmbed], components: await addButtonsToMessage(components) });
                 const responseEmbed = new EmbedBuilder()
                     .setColor(colors.success)
                     .setAuthor({ name: `Кнопка ${customId} успешно отправлена`, iconURL: icons.success });
@@ -177,7 +178,7 @@ async function getPreset(presetName) {
                 },
                 {
                     name: "<:drei:1087575479617331253> Вступите в клан",
-                    value: "[Подайте заявку в клан](https://www.bungie.net/ru/ClanV2?groupid=4123712) или отправьте её себе сами нажав `Приглашение в клан`",
+                    value: `[Подайте заявку в клан](https://www.bungie.net/ru/ClanV2?groupid=${groupId}) или отправьте её себе сами нажав \`Приглашение в клан\``,
                 },
             ]);
             const components = [
@@ -237,7 +238,7 @@ async function getPreset(presetName) {
             const embed = new EmbedBuilder()
                 .setColor(colors.default)
                 .setTitle("Возвращение в клан")
-                .setDescription("Нажмите на кнопку ниже для получения приглашения в клан в игре или перейдите на [страницу клана](https://www.bungie.net/ru/ClanV2?groupid=4123712) и вступите там\n -  Приглашение можно принять на [bungie.net](https://bungie.net/) или в игре\n - Доступно **только для зарегистрированных** пользователей");
+                .setDescription(`Нажмите на кнопку ниже для получения приглашения в клан в игре или перейдите на [страницу клана](https://www.bungie.net/ru/ClanV2?groupid=${groupId}) и вступите там\n -  Приглашение можно принять на [bungie.net](https://bungie.net/) или в игре\n - Доступно **только для зарегистрированных** пользователей`);
             return { embeds: [embed], components };
         }
     }

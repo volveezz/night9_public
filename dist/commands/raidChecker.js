@@ -9,10 +9,10 @@ import { AuthData } from "../utils/persistence/sequelize.js";
 export default new Command({
     name: "закрытия_рейдов",
     nameLocalizations: {
-        "en-US": "raid_checker",
-        "en-GB": "raid_checker",
+        "en-US": "raid-checker",
+        "en-GB": "raid-checker",
     },
-    description: "Статистика закрытых рейдов на каждом классе",
+    description: "Статистика закрытых рейдов на каждом классе (это старая команда, новая: /закрытия)",
     descriptionLocalizations: {
         "en-US": "Statistics of completed raids for each character",
         "en-GB": "Statistics of completed raids for each character",
@@ -27,8 +27,8 @@ export default new Command({
         },
         {
             type: ApplicationCommandOptionType.Boolean,
-            name: "все_активности",
-            nameLocalizations: { "en-US": "all_activities", "en-GB": "all_activities" },
+            name: "все-активности",
+            nameLocalizations: { "en-US": "all-activities", "en-GB": "all-activities" },
             description: "Проверить все пройденные активности",
             descriptionLocalizations: { "en-US": "Check all completed activities", "en-GB": "Check all completed activities" },
         },
@@ -53,7 +53,7 @@ export default new Command({
         const characters_list = await fetchRequest(`Platform/Destiny2/${db_data.platform}/Profile/${db_data.bungieId}/?components=200`, db_data);
         if (!characters_list || !characters_list?.characters?.data)
             throw { name: "Произошла ошибка со стороны Bungie" };
-        const manifest = interaction instanceof ChatInputCommandInteraction && interaction.options.getBoolean("все_активности") === true
+        const manifest = interaction instanceof ChatInputCommandInteraction && interaction.options.getBoolean("все-активности") === true
             ? CachedDestinyActivityDefinition
             : Object.keys(CachedDestinyActivityDefinition).reduce(function (acc, val) {
                 if (CachedDestinyActivityDefinition[Number(val)].activityTypeHash === 2043403989)
@@ -123,7 +123,7 @@ export default new Command({
         }));
         const embed = new EmbedBuilder()
             .setColor(colors.success)
-            .setTitle(interaction instanceof ChatInputCommandInteraction && interaction.options.getBoolean("все_активности") === true
+            .setTitle(interaction instanceof ChatInputCommandInteraction && interaction.options.getBoolean("все-активности") === true
             ? "Статистика закрытх активностей по классам"
             : "Статистка закрытых рейдов по классам")
             .setFooter({ text: "Удаленные персонажи не проверяются" });
@@ -131,7 +131,7 @@ export default new Command({
             ? embed.setAuthor({
                 name: interaction.guild?.members.cache.get(interaction.targetId)?.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "") ||
                     interaction.targetUser.username,
-                iconURL: interaction.targetUser.displayAvatarURL(),
+                iconURL: interaction.targetUser.displayAvatarURL({ forceStatic: false }),
             })
             : [];
         const embed_map = new Map([...activity_map].sort());
@@ -168,7 +168,7 @@ export default new Command({
                 ]);
             }
             catch (e) {
-                console.error("Error during addin RaidEvent to embed raidChecker", e.stack);
+                console.error("[Error code: 1835] Error during addin RaidEvent to embed raidChecker", e.stack);
             }
         });
         if (embed.data.fields?.length === 0)
@@ -176,7 +176,7 @@ export default new Command({
         await deferredReply;
         !replied
             ? interaction.editReply({ embeds: [embed] }).catch((e) => {
-                console.error(e);
+                console.error("[Error code: 1834]", e);
                 interaction.editReply({ content: "Ошибка :(" });
             })
             : interaction.followUp({ embeds: [embed], ephemeral: true });

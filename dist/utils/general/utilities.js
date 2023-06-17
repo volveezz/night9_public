@@ -3,6 +3,9 @@ export function isSnowflake(value) {
     const discordSnowflakeRegex = /^[0-9]{17,19}$/;
     return value.match(discordSnowflakeRegex) !== null;
 }
+export function isBungieId(value) {
+    return /^4611686018\d{9,11}$/.test(value);
+}
 export function descriptionFormatter(text) {
     return text
         .replace(/(\\n)|(\\\*)|(\\!)/g, (_match, firstGroup, secondGroup, thirdGroup) => {
@@ -93,4 +96,15 @@ async function updateSavedGif(gifUrl) {
 export function escapeString(str) {
     const specialChars = /[`*~_]/g;
     return str.replace(specialChars, "\\$&");
+}
+export function parseIdentifierString(valueString) {
+    const parts = valueString.split("/");
+    const platform = parts[0] || null;
+    const bungieId = parts[1] || null;
+    const discordId = parts.length > 2 ? parts[2] : null;
+    return {
+        platform,
+        bungieId,
+        discordId,
+    };
 }

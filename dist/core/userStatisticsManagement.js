@@ -6,7 +6,7 @@ import { client } from "../index.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { fetchRequest } from "../utils/api/fetchRequest.js";
 import { destinyActivityChecker } from "../utils/general/destinyActivityChecker.js";
-import { AuthData, AutoRoleData, UserActivityData, database } from "../utils/persistence/sequelize.js";
+import { AuthData, AutoRoleData, UserActivityData } from "../utils/persistence/sequelize.js";
 import clanMembersManagement from "./clanMembersManagement.js";
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 export const userCharactersId = new Map();
@@ -267,8 +267,10 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
         triumphsChecker().catch((e) => console.error(`[Error code: 1093] ${member.displayName}`, e));
         if (roleCategoriesBits & NightRoleCategory.Trials) {
             const metrics = destinyProfileResponse.metrics.data.metrics["1765255052"]?.objectiveProgress.progress;
-            if (metrics == null || isNaN(metrics))
-                return console.error(`[Error code: 1227] ${metrics} ${member.displayName}`, destinyProfileResponse.metrics.data.metrics["1765255052"]?.objectiveProgress);
+            if (metrics == null || isNaN(metrics)) {
+                console.error(`[Error code: 1227] ${metrics} ${member.displayName}`, destinyProfileResponse.metrics.data.metrics["1765255052"]?.objectiveProgress);
+                return;
+            }
             if (metrics >= 1) {
                 for (const step of trialsRoles.roles) {
                     if (step.totalFlawless <= metrics) {
@@ -386,23 +388,26 @@ async function checkUserKDRatio({ platform, bungieId, accessToken }, member) {
     }
 }
 async function handleMemberStatistics() {
-    if (process.env.DEV_BUILD === "dev")
-        return;
-    setTimeout(() => {
-        const firstRun = AuthData.findAll({ attributes: ["discordId", "bungieId", "platform", "timezone", "accessToken"] });
-        firstRun.then(async (authData) => {
-            for (const data of authData) {
-                const member = client.getCachedMembers().get(data.discordId);
-                if (!member)
+    (async () => {
+        try {
+            await timer(3000);
+            const userDatabaseData = await AuthData.findAll({
+                attributes: ["discordId", "bungieId", "platform", "timezone", "accessToken"],
+            });
+            for (const userData of userDatabaseData) {
+                const cachedMember = client.getCachedMembers().get(userData.discordId);
+                if (!cachedMember || !userData.timezone)
                     continue;
-                if (data.timezone)
-                    userTimezones.set(data.discordId, data.timezone);
-                await timer(1000).then((r) => destinyActivityChecker(data, member, 4));
+                userTimezones.set(userData.discordId, userData.timezone);
+                await timer(1000);
+                destinyActivityChecker(userData, cachedMember, 4);
             }
-        });
-    }, 3000);
-    setInterval(async () => {
-        const t = await database.transaction();
+        }
+        catch (error) {
+            console.error("[Error code: 1918]", error);
+        }
+    })();
+    async function startStatisticsChecking() {
         const autoRoleData = await AutoRoleData.findAll({
             where: {
                 available: {
@@ -412,19 +417,11 @@ async function handleMemberStatistics() {
                     },
                 },
             },
-            transaction: t,
         });
         const dbNotFiltred = await AuthData.findAll({
             attributes: ["discordId", "bungieId", "platform", "clan", "displayName", "accessToken", "roleCategoriesBits"],
-            transaction: t,
             include: UserActivityData,
         });
-        try {
-            await t.commit();
-        }
-        catch (error) {
-            return console.error("[Error code: 1020]", error);
-        }
         const dbNotFoundUsers = dbNotFiltred
             .filter((data) => !client.getCachedMembers().has(data.discordId))
             .map((val, ind) => {
@@ -502,7 +499,9 @@ async function handleMemberStatistics() {
             }
         }
         await clanMembersManagement(databaseData);
-    }, 1000 * 60 * 2);
+        setTimeout(startStatisticsChecking, 1000 * 60 * 2);
+    }
+    startStatisticsChecking();
 }
 async function checkIndiviualUserStatistics(user) {
     const member = await client.getAsyncMember(typeof user === "string" ? user : user.id);

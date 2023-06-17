@@ -2,9 +2,10 @@ import { userTimezones } from "../core/userStatisticsManagement.js";
 import { timeConverter } from "../utils/general/raidFunctions.js";
 import { RaidEvent } from "../utils/persistence/sequelize.js";
 export default {
-    name: "рейд",
+    name: "id-рейда",
+    aliases: ["новое-время", "время"],
     run: async ({ interaction, option }) => {
-        if (option.name === "id_рейда") {
+        if (option.name === "id-рейда") {
             const raidData = interaction.memberPermissions?.has("Administrator")
                 ? await RaidEvent.findAll({
                     attributes: ["id", "raid"],
@@ -23,7 +24,7 @@ export default {
                     return console.error("[Error code: 1045]", e);
             });
         }
-        else if (option.name === "новое_время" || option.name === "время") {
+        else if (option.name === "новое-время" || option.name === "время") {
             const pasrsedTime = timeConverter(option.value, userTimezones.get(interaction.user.id));
             const name = pasrsedTime === 0
                 ? "Проверьте корректность времени. Формат даты: ЧЧ:ММ ДД/мм"

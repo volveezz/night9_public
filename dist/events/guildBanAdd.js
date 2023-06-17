@@ -10,7 +10,7 @@ export default new Event("guildBanAdd", async (member) => {
     const embed = new EmbedBuilder()
         .setAuthor({
         name: `${member.user.username} был забанен`,
-        iconURL: member.user.displayAvatarURL(),
+        iconURL: member.user.displayAvatarURL({ forceStatic: false }),
     })
         .setColor(colors.error)
         .setFooter({ text: `Id: ${member.user.id}` })

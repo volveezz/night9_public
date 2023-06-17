@@ -2,7 +2,7 @@ import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import UserErrors from "../../../configs/UserErrors.js";
 import colors from "../../../configs/colors.js";
 import raidsGuide from "../../../configs/raidguide.js";
-import { addButtonComponentsToMessage } from "../addButtonsToMessage.js";
+import { addButtonsToMessage } from "../addButtonsToMessage.js";
 async function sendRaidGuide(interaction, raidName, deferredReply) {
     const raidGuide = raidsGuide[raidName];
     if (!raidGuide) {
@@ -25,7 +25,7 @@ async function sendRaidGuide(interaction, raidName, deferredReply) {
         }
         const messageOptions = {
             embeds: [embed],
-            components: await addButtonComponentsToMessage(components),
+            components: await addButtonsToMessage(components),
             ephemeral: true,
         };
         if (!interaction.deferred)

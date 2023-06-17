@@ -8,13 +8,14 @@ import { channelIds, guildId } from "../configs/ids.js";
 import raidsGuide from "../configs/raidguide.js";
 import { userTimezones } from "../core/userStatisticsManagement.js";
 import { Command } from "../structures/command.js";
-import { addButtonComponentsToMessage } from "../utils/general/addButtonsToMessage.js";
+import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { generateRaidClearsText, getRaidData, getRaidDatabaseInfo, raidChallenges, timeConverter, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
 import raidFireteamChecker from "../utils/general/raidFunctions/raidFireteamChecker.js";
 import { clearNotifications, sendNotificationInfo, updateNotifications, updateNotificationsForEntireRaid, } from "../utils/general/raidFunctions/raidNotifications.js";
 import { descriptionFormatter, escapeString } from "../utils/general/utilities.js";
+import { recentRaidCreators } from "../utils/persistence/dataStore.js";
 import { RaidEvent, database } from "../utils/persistence/sequelize.js";
 function getDefaultComponents() {
     return [
@@ -25,6 +26,25 @@ function getDefaultComponents() {
         new ButtonBuilder().setCustomId(RaidButtons.resend).setLabel("Обновить сообщение").setStyle(ButtonStyle.Secondary),
         new ButtonBuilder().setCustomId(RaidButtons.notificationsStart).setLabel("Настроить свои оповещения").setStyle(ButtonStyle.Primary),
     ];
+}
+function checkIfUserRecentlyCreatedRaid(discordId) {
+    const FIVE_MINUTES_MS = 1000 * 60 * 5;
+    const existingTimeout = recentRaidCreators.get(discordId);
+    if (existingTimeout) {
+        clearTimeout(existingTimeout);
+        setNewTimeout();
+        return true;
+    }
+    else {
+        setNewTimeout();
+        return false;
+    }
+    function setNewTimeout() {
+        const timeout = setTimeout(() => {
+            recentRaidCreators.delete(discordId);
+        }, FIVE_MINUTES_MS);
+        recentRaidCreators.set(discordId, timeout);
+    }
 }
 export default new Command({
     name: "рейд",
@@ -139,7 +159,7 @@ export default new Command({
                     minValue: 0,
                     maxValue: 1000,
                     name: "требуемых_закрытий",
-                    nameLocalizations: { "en-US": "clears_requirement", "en-GB": "clears_requirement" },
+                    nameLocalizations: { "en-US": "clears-requirement", "en-GB": "clears-requirement" },
                     description: "Укажите минимальное количество закрытий этого рейда для записи",
                     descriptionLocalizations: {
                         "en-US": "Specify raid clears requirement for this raid to join LFG",
@@ -159,8 +179,8 @@ export default new Command({
                     type: ApplicationCommandOptionType.Integer,
                     min_value: 1,
                     max_value: 100,
-                    name: "id_рейда",
-                    nameLocalizations: { "en-US": "raid_id", "en-GB": "raid_id" },
+                    name: "id-рейда",
+                    nameLocalizations: { "en-US": "raid-id", "en-GB": "raid-id" },
                     autocomplete: true,
                     description: "Укажите Id редактируемого рейда",
                     descriptionLocalizations: {
@@ -170,8 +190,8 @@ export default new Command({
                 },
                 {
                     type: ApplicationCommandOptionType.String,
-                    name: "новый_рейд",
-                    nameLocalizations: { "en-US": "new_raid", "en-GB": "new_raid" },
+                    name: "новый-рейд",
+                    nameLocalizations: { "en-US": "new-raid", "en-GB": "new-raid" },
                     description: "Если вы хотите изменить рейд набора - укажите новый",
                     descriptionLocalizations: {
                         "en-US": "Specify new raid if you want to change it",
@@ -217,8 +237,8 @@ export default new Command({
                 },
                 {
                     type: ApplicationCommandOptionType.String,
-                    name: "новое_время",
-                    nameLocalizations: { "en-US": "new_time", "en-GB": "new_time" },
+                    name: "новое-время",
+                    nameLocalizations: { "en-US": "new-time", "en-GB": "new-time" },
                     autocomplete: true,
                     description: "Укажите измененное время старта. Формат: ЧАС:МИНУТА ДЕНЬ/МЕСЯЦ",
                     descriptionLocalizations: {
@@ -228,15 +248,15 @@ export default new Command({
                 },
                 {
                     type: ApplicationCommandOptionType.User,
-                    name: "новый_создатель",
-                    nameLocalizations: { "en-US": "new_creator", "en-GB": "new_creator" },
+                    name: "новый-создатель",
+                    nameLocalizations: { "en-US": "new-creator", "en-GB": "new-creator" },
                     description: "Укажите нового создателя рейда",
                     descriptionLocalizations: { "en-US": "Specify new LFG creator", "en-GB": "Specify new LFG creator" },
                 },
                 {
                     type: ApplicationCommandOptionType.String,
-                    name: "новое_описание",
-                    nameLocalizations: { "en-US": "new_description", "en-GB": "new_description" },
+                    name: "новое-описание",
+                    nameLocalizations: { "en-US": "new-description", "en-GB": "new-description" },
                     description: "Укажите измененное описание. Вы можете указать здесь что угодно. Знаки для разметки: \\n \\* \\!",
                     descriptionLocalizations: {
                         "en-US": "Enter a new description. You can enter anything here. Markdown symbols: \\n \\* \\!",
@@ -245,10 +265,10 @@ export default new Command({
                 },
                 {
                     type: ApplicationCommandOptionType.Integer,
-                    name: "новая_сложность",
+                    name: "новая-сложность",
                     minValue: 1,
                     maxValue: 2,
-                    nameLocalizations: { "en-US": "new_difficulty", "en-GB": "new_difficulty" },
+                    nameLocalizations: { "en-US": "new-difficulty", "en-GB": "new-difficulty" },
                     description: "Укажите сложность рейда. По умолч.: нормальный",
                     descriptionLocalizations: {
                         "en-US": "Specify the new difficulty of the raid. Default: Normal",
@@ -271,13 +291,13 @@ export default new Command({
                     type: ApplicationCommandOptionType.Integer,
                     minValue: 0,
                     maxValue: 1000,
-                    name: "новое_требование_закрытий",
+                    name: "новое-требование-закрытий",
                     description: "Укажите новое минимальное количество закрытий этого рейда для записи",
                     descriptionLocalizations: {
                         "en-US": "Specify new raid clears requirement for this raid to join LFG",
                         "en-GB": "Specify new raid clears requirement for this raid to join LFG",
                     },
-                    nameLocalizations: { "en-US": "new_clears_requirement", "en-GB": "new_clears_requirement" },
+                    nameLocalizations: { "en-US": "new-clears-requirement", "en-GB": "new-clears-requirement" },
                 },
                 {
                     type: ApplicationCommandOptionType.Boolean,
@@ -315,8 +335,8 @@ export default new Command({
                     type: ApplicationCommandOptionType.Integer,
                     min_value: 1,
                     max_value: 100,
-                    name: "id_рейда",
-                    nameLocalizations: { "en-US": "raid_id", "en-GB": "raid_id" },
+                    name: "id-рейда",
+                    nameLocalizations: { "en-US": "raid-id", "en-GB": "raid-id" },
                     autocomplete: true,
                     description: "Укажите Id рейда, на который добавляем участника",
                     descriptionLocalizations: {
@@ -345,8 +365,8 @@ export default new Command({
                     type: ApplicationCommandOptionType.Integer,
                     min_value: 1,
                     max_value: 100,
-                    name: "id_рейда",
-                    nameLocalizations: { "en-US": "raid_id", "en-GB": "raid_id" },
+                    name: "id-рейда",
+                    nameLocalizations: { "en-US": "raid-id", "en-GB": "raid-id" },
                     autocomplete: true,
                     description: "Укажите Id рейда, из которого исключаем участника",
                     descriptionLocalizations: {
@@ -367,8 +387,8 @@ export default new Command({
                     type: ApplicationCommandOptionType.Integer,
                     min_value: 1,
                     max_value: 100,
-                    name: "id_рейда",
-                    nameLocalizations: { "en-US": "raid_id", "en-GB": "raid_id" },
+                    name: "id-рейда",
+                    nameLocalizations: { "en-US": "raid-id", "en-GB": "raid-id" },
                     autocomplete: true,
                     description: "Укажите Id удаляемого рейда",
                     descriptionLocalizations: {
@@ -433,7 +453,13 @@ export default new Command({
                 new ButtonBuilder().setCustomId(RaidButtons.leave).setLabel("Выйти").setStyle(ButtonStyle.Danger),
                 new ButtonBuilder().setCustomId(RaidButtons.alt).setLabel("Возможно буду").setStyle(ButtonStyle.Secondary),
             ];
-            const content = `Открыт набор в рейд: ${raidData.raidName} ${raidData.requiredRole !== null ? `<@&${raidData.requiredRole}>` : member.guild.roles.everyone}`;
+            const isUserCreatedRaidRecently = checkIfUserRecentlyCreatedRaid(interaction.user.id);
+            const roleMention = !isUserCreatedRaidRecently
+                ? raidData.requiredRole !== null
+                    ? `<@&${raidData.requiredRole}>`
+                    : member.guild.roles.everyone
+                : "";
+            const content = `Открыт набор в рейд: ${raidData.raidName} ${roleMention}`;
             const raidChannel = guild.channels.cache.get(channelIds.raid) || (await guild.channels.fetch(channelIds.raid));
             const additionalPosition = guild.channels.cache.get(channelIds.raidCategory)?.children?.cache.size || 1;
             const privateRaidChannel = await member.guild.channels.create({
@@ -462,7 +488,7 @@ export default new Command({
             }
             const inChnMsg = privateRaidChannel.send({
                 embeds: [premiumEmbed],
-                components: await addButtonComponentsToMessage(components),
+                components: await addButtonsToMessage(components),
             });
             const embed = new EmbedBuilder()
                 .setTitle(`Рейд: ${raidData.raidName}${reqClears >= 1 ? ` от ${reqClears} закрыт${reqClears === 1 ? "ия" : "ий"}` : ""}`)
@@ -499,7 +525,7 @@ export default new Command({
             const msg = raidChannel.send({
                 content,
                 embeds: [embed],
-                components: await addButtonComponentsToMessage(mainComponents),
+                components: await addButtonsToMessage(mainComponents),
             });
             const insertedRaidData = await RaidEvent.update({
                 channelId: privateRaidChannel.id,
@@ -524,13 +550,13 @@ export default new Command({
             }
         }
         else if (subCommand === "изменить") {
-            const raidId = args.getInteger("id_рейда");
-            const newRaid = args.getString("новый_рейд");
-            const newTime = args.getString("новое_время");
-            const newRaidLeader = args.getUser("новый_создатель");
-            const newDescription = args.getString("новое_описание");
-            const newDifficulty = args.getInteger("новая_сложность");
-            const newReqClears = args.getInteger("новое_требование_закрытий");
+            const raidId = args.getInteger("id-рейда");
+            const newRaid = args.getString("новый-рейд");
+            const newTime = args.getString("новое-время");
+            const newRaidLeader = args.getUser("новый-создатель");
+            const newDescription = args.getString("новое-описание");
+            const newDifficulty = args.getInteger("новая-сложность");
+            const newReqClears = args.getInteger("новое-требование-закрытий");
             const isSilent = args.getBoolean("silent") || false;
             let raidData = await getRaidDatabaseInfo(raidId, interaction);
             if (raidData == null || (Array.isArray(raidData) && raidData.length === 0)) {
@@ -737,7 +763,7 @@ export default new Command({
                     ...(!newRaid ? { content: "" } : {}),
                 };
                 inChannelMessage.edit({
-                    components: await addButtonComponentsToMessage([...getDefaultComponents(), ...components]),
+                    components: await addButtonsToMessage([...getDefaultComponents(), ...components]),
                 });
                 raidMessage.edit(messageOptions);
                 const replyEmbed = new EmbedBuilder()
@@ -757,12 +783,12 @@ export default new Command({
                 throw {
                     name: "Изменения не были внесены",
                     description: `${changes.map((v) => v).join(", ") ||
-                        "Для измнения параметров рейда необходимо их указать\n\nПример:\n`/рейд изменить новое_время:20 12/06`\n`/рейд изменить новая_сложность:Мастер новое_требование_закрытий:5`"}`,
+                        "Для измнения параметров рейда необходимо их указать\n\nПример:\n`/рейд изменить новое-время:20 12/06`\n`/рейд изменить новая-сложность:Мастер новое-требование-закрытий:5`"}`,
                 };
             }
         }
         else if (subCommand === "удалить") {
-            const raidId = args.getInteger("id_рейда");
+            const raidId = args.getInteger("id-рейда");
             const raidData = await getRaidDatabaseInfo(raidId, interaction);
             await RaidEvent.destroy({ where: { id: raidData.id }, limit: 1 })
                 .then(async () => {
@@ -774,7 +800,7 @@ export default new Command({
                 }
                 catch (e) {
                     console.error(`[Error code: 1069] Channel during raid manual delete for raidId ${raidData.id} wasn't found`);
-                    e.code !== 10008 ? console.error(e) : "";
+                    e.code !== 10008 ? console.error("[Error code: 1913]", e) : "";
                 }
                 try {
                     const message = await client.getAsyncMessage(raidsChannel, raidData.messageId);
@@ -792,7 +818,7 @@ export default new Command({
                 .catch((e) => console.error("[Error code: 1206]", e));
         }
         else if (subCommand === "добавить") {
-            const raidId = args.getInteger("id_рейда");
+            const raidId = args.getInteger("id-рейда");
             const raidData = await getRaidDatabaseInfo(raidId, interaction);
             const addedUser = args.getUser("участник", true);
             if (addedUser.bot) {
@@ -854,7 +880,7 @@ export default new Command({
                         : userAlreadyInHotJoined
                             ? "[Запас] → "
                             : "❌ → "}${userTarget === "alt" ? " [Возможный участник]" : userTarget === "hotJoined" ? " [Запас]" : "[Участник]"}`,
-                iconURL: addedUser.displayAvatarURL(),
+                iconURL: addedUser.displayAvatarURL({ forceStatic: false }),
             })
                 .setFooter({
                 text: `Пользователь ${userAlreadyAlt || userAlreadyInHotJoined || userAlreadyJoined ? "перезаписан" : "записан"} ${raidData.creator === interaction.user.id ? "создателем рейда" : "администратором"}`,
@@ -876,7 +902,7 @@ export default new Command({
             await interaction.editReply({ embeds: [embed] });
         }
         else if (subCommand === "исключить") {
-            const raidData = await getRaidDatabaseInfo(args.getInteger("id_рейда"), interaction);
+            const raidData = await getRaidDatabaseInfo(args.getInteger("id-рейда"), interaction);
             const kickableUser = args.getUser("участник", true);
             await RaidEvent.update({
                 joined: Sequelize.fn("array_remove", Sequelize.col("joined"), `${kickableUser.id}`),
@@ -921,7 +947,7 @@ export default new Command({
                             : raidData.hotJoined.includes(kickableUser.id)
                                 ? "[Запас]"
                                 : "[]"} → ❌`,
-                    iconURL: kickableUser.displayAvatarURL(),
+                    iconURL: kickableUser.displayAvatarURL({ forceStatic: false }),
                 })
                     .setFooter({
                     text: `Пользователь исключен ${raidData.creator === interaction.user.id ? "создателем рейда" : "администратором"}`,

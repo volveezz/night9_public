@@ -25,7 +25,7 @@ export default new Event("guildMemberAdd", async (member) => {
         name: "Дата создания аккаунта",
         value: `<t:${Math.round(member.user.createdTimestamp / 1000)}>`,
     })
-        .setThumbnail(member.displayAvatarURL());
+        .setThumbnail(member.displayAvatarURL({ forceStatic: false }));
     if (member.communicationDisabledUntil != null) {
         embed.addFields({
             name: "Тайм-аут до",
@@ -69,7 +69,7 @@ export default new Event("guildMemberAdd", async (member) => {
         }, {
             transaction,
         });
-        UserActivityData.findOrCreate({ where: { discordId: data.discordId }, defaults: { discordId: data.discordId } });
+        UserActivityData.findOrCreate({ where: { discordId: data.discordId }, defaults: { discordId: data.discordId }, transaction });
         await LeavedUsersData.destroy({
             where: { discordId: data.discordId },
             transaction,
@@ -84,7 +84,13 @@ export default new Event("guildMemberAdd", async (member) => {
             name: "Токен авторизации",
             value: `Обновлен: ${authorizationData.accessToken?.length} / ${authorizationData.refreshToken?.length}`,
         });
-        await transaction.commit();
+        try {
+            await transaction.commit();
+        }
+        catch (error) {
+            await transaction.rollback();
+            console.error("[Error code: 1901]", error);
+        }
         await message.edit({ embeds: [loggedEmbed] });
         await member.roles.set([statusRoles.member, statusRoles.verified]);
         try {
@@ -96,12 +102,11 @@ export default new Event("guildMemberAdd", async (member) => {
         }
     }
     catch (error) {
-        await transaction.rollback();
         loggedEmbed.addFields({
             name: "Ошибка",
             value: "Во время восстановления данных произошла ошибка",
         });
-        console.error("[Error code: 1131]", error, data?.discordId, data?.bungieId, transaction);
+        console.error("[Error code: 1131]", error, data?.discordId, data?.bungieId);
         await message.edit({ embeds: [loggedEmbed] });
     }
 });

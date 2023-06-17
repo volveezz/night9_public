@@ -26,7 +26,9 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
         let wtmatches = 0;
         let isPreviousIsTraded = false;
         let isWintrader = false;
-        for await (const character of userCharactersArray) {
+        for (const character of userCharactersArray) {
+            if (apiStatus.status !== 1)
+                return;
             let page = 0;
             await fetchAndProcessActivities();
             async function fetchAndProcessActivities() {
@@ -106,7 +108,7 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                 const votdClears = votd + votdMaster;
                 const vogClears = vog + vogMaster;
                 const totalClears = totalRaidCount;
-                for await (const step of raidRoles.roles) {
+                for (const step of raidRoles.roles) {
                     if (ronClears >= step.individualClears / 2 &&
                         kfClears >= step.individualClears &&
                         votdClears >= step.individualClears &&

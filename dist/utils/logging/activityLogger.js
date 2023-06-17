@@ -7,7 +7,7 @@ import { client } from "../../index.js";
 import { fetchRequest } from "../api/fetchRequest.js";
 import { CachedDestinyActivityDefinition } from "../api/manifestHandler.js";
 import { completedPhases } from "../general/activityCompletionChecker.js";
-import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
+import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import { convertSeconds } from "../general/convertSeconds.js";
 import { completedRaidsData } from "../general/destinyActivityChecker.js";
 import { getRaidNameFromHash, removeRaid } from "../general/raidFunctions.js";
@@ -343,7 +343,7 @@ async function logActivityCompletion(pgcrId) {
                 const raidCompletionNotification = await member
                     .send({
                     embeds: [raidCompletionEmbed],
-                    components: await addButtonComponentsToMessage([deleteRaidButton]),
+                    components: await addButtonsToMessage([deleteRaidButton]),
                 })
                     .catch((e) => console.error("[Error code: 1071] acitvityReporter final error", e));
                 setTimeout(async () => {

@@ -1,10 +1,9 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { ClanButtons, RegisterButtons } from "../../configs/Buttons.js";
-import { clan } from "../../configs/channels.js";
 import colors from "../../configs/colors.js";
-import { guildId, ownerId } from "../../configs/ids.js";
+import { channelIds, groupId, guildId, ownerId } from "../../configs/ids.js";
 import { statusRoles } from "../../configs/roles.js";
-import { addButtonComponentsToMessage } from "../general/addButtonsToMessage.js";
+import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import { escapeString } from "../general/utilities.js";
 import { AuthData } from "../persistence/sequelize.js";
 export default async function welcomeMessage(member) {
@@ -14,11 +13,11 @@ export default async function welcomeMessage(member) {
     const welcomeEmbed = new EmbedBuilder()
         .setColor(colors.invisible)
         .setTitle(" Приветствуем Вас на сервере ")
-        .setDescription("Вы зашли на сервер [клана Night 9](https://www.bungie.net/ru/ClanV2?groupid=4123712)\nСервер доступен для всех желающих вне зависимости от их клана");
+        .setDescription(`Вы зашли на сервер [клана Night 9](https://www.bungie.net/ru/ClanV2?groupid=${groupId})\nСервер доступен для всех желающих вне зависимости от их клана`);
     const clanJoinEmbed = new EmbedBuilder()
         .setColor(colors.invisible)
         .setTitle(" Я хочу вступить в клан ")
-        .setDescription(`Для этого перейдите в канал <#${clan.joinRequest.chnId}> и следуйте [инструкции](https://discord.com/channels/${guildId}/${clan.joinRequest.chnId}/${clan.joinRequest.joinRequestGuideMessageId})`);
+        .setDescription(`Для этого перейдите в канал <#${channelIds.clan.joinRequests}> и следуйте [инструкции](https://discord.com/channels/${guildId}/${channelIds.clan.joinRequests}/${channelIds.clan.guideMessageId})`);
     const nonClanMemberEmbed = new EmbedBuilder()
         .setColor(colors.invisible)
         .setTitle(" Я хочу ознакомиться с сервером ")
@@ -34,7 +33,7 @@ export default async function welcomeMessage(member) {
     const message = await member
         .send({
         embeds: [welcomeEmbed, clanJoinEmbed, nonClanMemberEmbed, questionsEmbed],
-        components: await addButtonComponentsToMessage(components),
+        components: await addButtonsToMessage(components),
     })
         .catch((error) => {
         if (error.code === 50007) {
@@ -64,7 +63,7 @@ export default async function welcomeMessage(member) {
                 new ButtonBuilder().setCustomId(ClanButtons.modal).setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
             ];
             await message.edit({
-                components: await addButtonComponentsToMessage(clanJoinButton),
+                components: await addButtonsToMessage(clanJoinButton),
             });
         }
     }, 2500);

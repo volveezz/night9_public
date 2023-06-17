@@ -1,11 +1,14 @@
 import fetch from "node-fetch";
-let logged = false;
 export async function fetchRequest(cleanUrl, authorizationData) {
+    const headers = {
+        "X-API-KEY": process.env.XAPI,
+        "Content-Type": "application/json",
+    };
+    if (authorizationData) {
+        headers.Authorization = `Bearer ${authorizationData.accessToken || authorizationData}`;
+    }
     const response = await fetch(`https://www.bungie.net/${cleanUrl}`, {
-        headers: {
-            "X-API-KEY": process.env.XAPI,
-            Authorization: `${authorizationData ? `Bearer ${authorizationData.accessToken || authorizationData}` : ""}`,
-        },
+        headers,
     }).catch((error) => {
         handleFetchError(error);
     });
@@ -20,45 +23,58 @@ export async function fetchRequest(cleanUrl, authorizationData) {
     }
     return jsonResponse.Response ? jsonResponse.Response : jsonResponse;
 }
+export async function fetchPostRequest(endpoint, data, accessToken, returnResponse = true) {
+    const url = `https://www.bungie.net/${endpoint}`;
+    const options = {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": process.env.XAPI,
+            ...(accessToken ? { Authorization: `Bearer ${accessToken.accessToken || accessToken}` } : {}),
+        },
+        ...(data ? { body: JSON.stringify(data) } : {}),
+    };
+    const response = await fetch(url, options).catch((error) => {
+        console.error("[Error code: 1831] Error fetching data:", error);
+    });
+    if (!response) {
+        return undefined;
+    }
+    const jsonResponse = await response.json().catch((e) => {
+        console.error("[Error code: 1832] Error parsing JSON response:", e.stack);
+    });
+    if (jsonResponse == null) {
+        return undefined;
+    }
+    return jsonResponse.Response && returnResponse ? jsonResponse.Response : jsonResponse;
+}
 function handleFetchError(error, response) {
     const status = response?.status || error.body?.code || error.code || error.statusCode || error.status || error;
-    if (status === 524) {
-        console.error("[Error code: 1710] A timeout occurred");
-    }
-    else if (status === 503) {
-        console.error("[Error code: 1683] Server is not avaliable");
-    }
-    else if (status === 502) {
-        console.error("[Error code: 1099] Web error");
-    }
-    else if (status === 409) {
-        console.error("[Error code: 1108] Confilt error");
-    }
-    else if (status === 522) {
-        console.error("[Error code: 1117] Timed out error");
-    }
-    else if (status === 401) {
-        console.error("[Error code: 1682] Authorization error");
-    }
-    else if (status === 500) {
-        console.error("[Error code: 1757] Internal server error");
-    }
-    else if (status === "EPROTO") {
-        console.error("[Error code: 1810] EPROTO request error");
-    }
-    else if (status === "ECONNRESET") {
-        console.error("[Error code: 1812] ECONNRESET request error");
-    }
-    else if (status === "EHOSTUNREACH") {
-        console.error("[Error code: 1811] EHOSTUNREACH request error");
+    const errorMessages = {
+        "524": "[Error code: 1710] A timeout occurred",
+        "503": "[Error code: 1683] Server is not avaliable",
+        "502": "[Error code: 1099] Web error",
+        "409": "[Error code: 1108] Confilt error",
+        "522": "[Error code: 1117] Timed out error",
+        "401": "[Error code: 1682] Authorization error",
+        "500": "[Error code: 1757] Internal server error",
+        EPROTO: "[Error code: 1827] EPROTO request error",
+        ECONNRESET: "[Error code: 1828] ECONNRESET request error",
+        EHOSTUNREACH: "[Error code: 1829] EHOSTUNREACH request error",
+        ERR_STREAM_PREMATURE_CLOSE: "[Error code: 1830] ERR_STREAM_PREMATURE_CLOSE request error",
+    };
+    if (errorMessages.hasOwnProperty(status)) {
+        console.error(errorMessages[status]);
     }
     else {
-        if (status >= 400 && status <= 599 && !logged) {
-            console.error(`[Error code: 1228] ${status} web error code\n`, response, response.body);
-            logged = true;
+        if (typeof status === "number" && status >= 400 && status <= 599) {
+            console.error(`[Error code: 1228] ${status} web error code\n`, response, response?.body);
         }
         else {
             console.error(`[Error code: 1064] ${status} statusCode\n`, error);
+            if (error.stack) {
+                console.error("[Error code: 1826] Stack trace:", error.stack);
+            }
         }
     }
     return undefined;

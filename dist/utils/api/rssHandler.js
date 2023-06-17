@@ -44,8 +44,8 @@ async function fetchAndSendLatestTweets(url, latestLink) {
                     continue;
                 }
                 if (processedLinks.has(entry.link)) {
-                    console.error(`[Error code: 1708] Link already processed ${latestLink}`);
-                    console.error(feed.items);
+                    console.error("[Error code: 1708] Link already processed", latestLink);
+                    console.error("[Error code: 1916]", feed.items);
                     return;
                 }
                 const author = getBungieTwitterAuthor(entry.creator);

@@ -16,7 +16,7 @@ export default new Command({
         },
     ],
     run: async ({ interaction }) => {
-        const defferedReply = interaction.deferReply();
+        const defferedReply = interaction.deferReply({ ephemeral: true });
         const scriptId = interaction.options.getString("script", true).toLowerCase();
         switch (scriptId) {
             case "activitytop": {

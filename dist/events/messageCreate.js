@@ -1,5 +1,5 @@
 import { EmbedBuilder, Message } from "discord.js";
-import { workingCollectors } from "../buttons/adminDMInteractionHandler.js";
+import { workingCollectors } from "../buttons/adminDirectMessageButton.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { channelIds } from "../configs/ids.js";
