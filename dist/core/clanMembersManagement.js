@@ -60,8 +60,23 @@ async function clanMembersManagement(databaseData) {
         else {
             client.user.setActivity(`${onlineCounter} онлайн из ${clanList.results.length}`, { type: ActivityType.Watching });
         }
-        processClanMembers(clanList);
-        const processClanMember = async (clanMember) => {
+        processClanMembers();
+        async function handleClanLeftMembers() {
+            await Promise.all(databaseData.map(async (member) => {
+                if (member.clan === true) {
+                    console.debug("UPDATING", member.displayName, "AS HE LEFT THE CLAN");
+                    member.clan = false;
+                    await member.save();
+                }
+            }));
+        }
+        async function processClanMembers() {
+            await Promise.all(clanList.results.map((clanMember) => {
+                return processClanMember(clanMember);
+            }));
+            await handleClanLeftMembers();
+        }
+        async function processClanMember(clanMember) {
             const { membershipId } = clanMember.destinyUserInfo;
             const index = databaseData.findIndex((e) => e.bungieId === membershipId);
             if (index === -1) {
@@ -113,8 +128,8 @@ async function clanMembersManagement(databaseData) {
                 }
                 joinDateCheckedClanMembers.add(membershipId);
             }
-        };
-        const handleNonRegisteredMembers = async (clanMember) => {
+        }
+        async function handleNonRegisteredMembers(clanMember) {
             const bungieId = clanMember.destinyUserInfo.membershipId;
             if (nonRegClanMembers.has(bungieId)) {
                 const userKickChance = nonRegClanMembers.get(bungieId);
@@ -130,19 +145,6 @@ async function clanMembersManagement(databaseData) {
             else {
                 nonRegClanMembers.set(bungieId, 20);
             }
-        };
-        const handleClanLeftMembers = async () => {
-            await Promise.all(databaseData.map(async (member) => {
-                if (member.clan === true) {
-                    console.debug("UPDATING", member.displayName, "AS HE LEFT THE CLAN");
-                    member.clan = false;
-                    await member.save();
-                }
-            }));
-        };
-        async function processClanMembers(clanList) {
-            await Promise.all(clanList.results.map((clanMember) => processClanMember(clanMember)));
-            await handleClanLeftMembers();
         }
     }
     catch (e) {

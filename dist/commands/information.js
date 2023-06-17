@@ -68,7 +68,7 @@ export default new Command({
             value: fieldUrls.join(", "),
         });
         const components = [
-            new ButtonBuilder().setCustomId(StatsButton.oldEvents).setLabel("Статистика старых ивентов").setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder().setCustomId(StatsButton.oldEvents).setLabel("Репутация у торговцев").setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId(StatsButton.pinnacle).setLabel("Доступная сверхмощка").setStyle(ButtonStyle.Secondary),
         ];
         if (parsedData.UserActivityData) {
