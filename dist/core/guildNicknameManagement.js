@@ -18,10 +18,9 @@ async function guildNicknameManagement() {
         if (userDbName.startsWith("⁣") || member.permissions.has("Administrator"))
             return;
         const usernameWithTimezone = `${timezone != null ? `[+${timezone}] ` : ""}${userDbName}`;
-        if (member.displayName !== usernameWithTimezone) {
-            console.debug("Updating", member.displayName, "name as it is not equal to the name in the database");
-            await member.setNickname(usernameWithTimezone).catch((e) => console.error("[Error code: 1030]", e));
-        }
+        if (member.displayName === usernameWithTimezone)
+            return;
+        await member.setNickname(usernameWithTimezone).catch((e) => console.error("[Error code: 1030]", e));
     });
     setTimeout(guildNicknameManagement, 1000 * 60 * 60);
 }

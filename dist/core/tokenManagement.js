@@ -9,6 +9,7 @@ import { apiStatus } from "../structures/apiStatus.js";
 import setMemberRoles from "../utils/discord/setRoles.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../utils/general/nameClearer.js";
+import { recentlyExpiredAuthUsersBungieIds } from "../utils/persistence/dataStore.js";
 import { AuthData, LeavedUsersData } from "../utils/persistence/sequelize.js";
 const BUNGIE_TOKEN_URL = "https://www.bungie.net/Platform/App/OAuth/Token/";
 export async function requestUpdateTokens({ userId, table = AuthData, refresh_token, }) {
@@ -84,6 +85,7 @@ async function handleSpecificError(request, row, table) {
 }
 async function handleAuthorizationRecordExpired(row, table) {
     if (table === 1) {
+        recentlyExpiredAuthUsersBungieIds.add(row.bungieId);
         const { discordId } = (await AuthData.findOne({ where: { bungieId: row.bungieId }, attributes: ["discordId"] }));
         await AuthData.destroy({ where: { bungieId: row.bungieId }, limit: 1 }).then(async (_) => {
             console.log(`The user (${row.bungieId}) was deleted from the main table because his authorization token expired`);
