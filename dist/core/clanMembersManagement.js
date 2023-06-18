@@ -8,7 +8,7 @@ import { apiStatus } from "../structures/apiStatus.js";
 import { fetchRequest } from "../utils/api/fetchRequest.js";
 import kickClanMember from "../utils/api/kickClanMember.js";
 import { updateClanRolesWithLogging } from "../utils/logging/clanEventLogger.js";
-import { joinDateCheckedClanMembers, nonRegClanMembers } from "../utils/persistence/dataStore.js";
+import { joinDateCheckedClanMembers, nonRegClanMembers, recentlyExpiredAuthUsersBungieIds } from "../utils/persistence/dataStore.js";
 import { clanOnline } from "./userStatisticsManagement.js";
 let lastLoggedErrorCode = 1;
 async function clanMembersManagement(databaseData) {
@@ -136,6 +136,8 @@ async function clanMembersManagement(databaseData) {
         }
         async function handleNonRegisteredMembers(clanMember) {
             const bungieId = clanMember.destinyUserInfo.membershipId;
+            if (recentlyExpiredAuthUsersBungieIds.has(bungieId))
+                return;
             if (nonRegClanMembers.has(bungieId)) {
                 const userKickChance = nonRegClanMembers.get(bungieId);
                 const randomNumber = Math.floor(Math.random() * 100);

@@ -1,7 +1,7 @@
 import { EmbedBuilder, StringSelectMenuBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
-import raidsGuide from "../configs/raidguide.js";
+import raidsGuide from "../configs/raidGuideData.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 export default {
     name: "showEditMenu",

@@ -1,3 +1,4 @@
+import { ButtonStyle } from "discord.js";
 const raidGuide = {
     ron: [
         {
@@ -6,7 +7,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     embeds: [
                         {
                             name: "Распределение + Основная механика рейда",
@@ -41,7 +42,7 @@ const raidGuide = {
                 },
                 {
                     label: "Карта этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     name: "Карта 1 этапа",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1086684007116312696/Tl1w4rK.png",
                 },
@@ -53,7 +54,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     embeds: [
                         {
                             name: "Распределение",
@@ -76,7 +77,7 @@ const raidGuide = {
                 },
                 {
                     label: "Карта этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     name: "Карта 2 этапа",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1086684007795806228/P1dxxLy.png",
                 },
@@ -88,7 +89,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     embeds: [
                         {
                             name: "Распределение",
@@ -118,7 +119,7 @@ const raidGuide = {
                 },
                 {
                     label: "Карта этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     name: "Карта 3 этапа",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1086684008781455400/nIhkjxF.png",
                 },
@@ -130,7 +131,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     embeds: [
                         {
                             name: "Распределение",
@@ -157,13 +158,13 @@ const raidGuide = {
                 },
                 {
                     label: "Карта этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     name: "Карта 4 этапа",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1086684010937327830/Q0o5sWn.png",
                 },
                 {
                     label: "Босс во время этапа",
-                    style: "Secondary",
+                    style: ButtonStyle.Secondary,
                     name: "Внешний вид босса при разных условиях",
                     description: "Во время этапа босс будет принимать различные облики:\n - Immune: облик на начало этапа\n - DPS: облик во время нанесения урона по боссу\n - Wipe Casting: облик во время вайпа\n - Light/Dark attunement: облик при всплеске света/тьмы",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1087539084756529222/tobias-kwan-tk-nezarec-05.jpg",
@@ -175,13 +176,13 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Награды за этапы рейда",
-                    style: "Secondary",
+                    style: ButtonStyle.Secondary,
                     name: "Награды за этапы рейда",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1086682163103146156/Root-of-Nightmares-official-loot-table-Destiny-2.png",
                 },
                 {
                     label: "Рекомендуемое снаряжение",
-                    style: "Secondary",
+                    style: ButtonStyle.Secondary,
                     name: "Рекомендуемое снаряжение для рейда Источник кошмаров",
                     description: "> **1 и 2 этапы**\n - Любое оружие на зачистку толп противников\n\n> **3 и 4 этапы**\n - Обязателен 1 (не больше) [Гьяллархорн](https://www.light.gg/db/ru/items/1363886209/%D0%B3%D1%8C%D1%8F%D0%BB%D0%BB%D0%B0%D1%80%D1%85%D0%BE%D1%80%D0%BD) на команду\n - Любые легендарные ракетницы ([Забияка](https://www.light.gg/db/ru/items/4255171531/%D0%B7%D0%B0%D0%B1%D0%B8%D1%8F%D0%BA%D0%B0/), [Пальмира-Б](https://www.light.gg/db/ru/items/3489657138/%D0%BF%D0%B0%D0%BB%D1%8C%D0%BC%D0%B8%D1%80%D0%B0-%D0%B1/), до 1 на команду [Грохот в ночи](https://www.light.gg/db/ru/items/1959650777/%D0%B3%D1%80%D0%BE%D1%85%D0%BE%D1%82-%D0%B2-%D0%BD%D0%BE%D1%87%D0%B8/) с [Леденящее попадание](https://www.light.gg/db/ru/items/2978966579/%D0%BB%D0%B5%D0%B4%D0%B5%D0%BD%D1%8F%D1%89%D0%B5%D0%B5-%D0%BF%D0%BE%D0%BF%D0%B0%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5/))\n - [Бремя идзанаги](https://www.light.gg/db/ru/items/3211806999/%D0%B1%D1%80%D0%B5%D0%BC%D1%8F-%D0%B8%D0%B4%D0%B7%D0%B0%D0%BD%D0%B0%D0%B3%D0%B8/) / до 1 на команду [Горстка пепла](https://www.light.gg/db/ru/items/2357297366/%D0%B3%D0%BE%D1%80%D1%81%D1%82%D0%BA%D0%B0-%D0%BF%D0%B5%D0%BF%D0%BB%D0%B0/) / любая другой экзотик или легендарное оружие на хороший урон не в силовой слот",
                 },
@@ -194,26 +195,26 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Награды за этапы рейда",
-                    style: "Secondary",
+                    style: ButtonStyle.Secondary,
                     name: "Награды за этапы рейда",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1098392978512420965/kingsfall.jpg",
                 },
                 {
                     label: "Руны на секретный сундук",
-                    style: "Secondary",
+                    style: ButtonStyle.Secondary,
                     name: "Карта рун на секретный сундук",
                     description: "Необходимо узнать какие символы будут активны под порталом после активации 6 статуй на входе\nЭти 3 символа активируются в течение рейда\nЕсли активировать не все или активировать и не деактивировать неверный, то сундук не появится\nПосле активации всех нужных рук прозвучит оповещение и появится соответствующая надпись",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1098648030795796551/secret-chest-2048x0.jpg",
                 },
                 {
                     label: "Карта лабиринта",
-                    style: "Secondary",
+                    style: ButtonStyle.Secondary,
                     name: "Карта лабиринта после второго этапа",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1102618292063056012/I6EiFg6.jpeg",
                 },
                 {
                     label: "Рекомендуемое снаряжение",
-                    style: "Secondary",
+                    style: ButtonStyle.Secondary,
                     name: "Рекомендуемое снаряжение для рейда Гибель Короля",
                     description: "> **1 этап**\n - Любое оружие на зачистку толп противников\n\n> **2, 4, 5-ые этапы**\n - Обязателен 1 (не больше) [Гьяллархорн](https://www.light.gg/db/ru/items/1363886209/%D0%B3%D1%8C%D1%8F%D0%BB%D0%BB%D0%B0%D1%80%D1%85%D0%BE%D1%80%D0%BD) на команду\n - Любые легендарные ракетницы ([Забияка](https://www.light.gg/db/ru/items/4255171531/%D0%B7%D0%B0%D0%B1%D0%B8%D1%8F%D0%BA%D0%B0/), [Пальмира-Б](https://www.light.gg/db/ru/items/3489657138/%D0%BF%D0%B0%D0%BB%D1%8C%D0%BC%D0%B8%D1%80%D0%B0-%D0%B1/), до 1 на команду [Грохот в ночи](https://www.light.gg/db/ru/items/1959650777/%D0%B3%D1%80%D0%BE%D1%85%D0%BE%D1%82-%D0%B2-%D0%BD%D0%BE%D1%87%D0%B8/) с [Леденящее попадание](https://www.light.gg/db/ru/items/2978966579/%D0%BB%D0%B5%D0%B4%D0%B5%D0%BD%D1%8F%D1%89%D0%B5%D0%B5-%D0%BF%D0%BE%D0%BF%D0%B0%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5/))\n - [Бремя идзанаги](https://www.light.gg/db/ru/items/3211806999/%D0%B1%D1%80%D0%B5%D0%BC%D1%8F-%D0%B8%D0%B4%D0%B7%D0%B0%D0%BD%D0%B0%D0%B3%D0%B8/) / до 1 на команду [Горстка пепла](https://www.light.gg/db/ru/items/2357297366/%D0%B3%D0%BE%D1%80%D1%81%D1%82%D0%BA%D0%B0-%D0%BF%D0%B5%D0%BF%D0%BB%D0%B0/) / любая другой экзотик или легендарное оружие на хороший урон не в силовой слот\n\n> **3 этап**\n - Для людей, которые занимаются бафом: [Буксировочная пушка](https://www.light.gg/db/ru/items/3580904581/%D0%B1%D1%83%D0%BA%D1%81%D0%B8%D1%80%D0%BE%D0%B2%D0%BE%D1%87%D0%BD%D0%B0%D1%8F-%D0%BF%D1%83%D1%88%D0%BA%D0%B0), любые снайперские винтовки\n - Любые хорошие линейно-плазменные винтовки ([Катаклизм](https://www.light.gg/db/ru/items/999767358/%D0%BA%D0%B0%D1%82%D0%B0%D0%BA%D0%BB%D0%B8%D0%B7%D0%BC/), [Тайпан-4fr](https://www.light.gg/db/ru/items/1911060537/%D1%82%D0%B0%D0%B9%D0%BF%D0%B0%D0%BD-4fr/)) \n - [Бремя идзанаги](https://www.light.gg/db/ru/items/3211806999/%D0%B1%D1%80%D0%B5%D0%BC%D1%8F-%D0%B8%D0%B4%D0%B7%D0%B0%D0%BD%D0%B0%D0%B3%D0%B8/) / до 1 на команду [Горстка пепла](https://www.light.gg/db/ru/items/2357297366/%D0%B3%D0%BE%D1%80%D1%81%D1%82%D0%BA%D0%B0-%D0%BF%D0%B5%D0%BF%D0%BB%D0%B0/) / любая другой экзотик или легендарное оружие на хороший урон не в силовой слот",
                 },
@@ -227,7 +228,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение задачи",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     embeds: [
                         {
                             name: "Открытие прохода",
@@ -244,7 +245,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     embeds: [
                         {
                             name: "Основная задача",
@@ -279,7 +280,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     embeds: [
                         {
                             name: "Задача этапа",
@@ -312,7 +313,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     embeds: [
                         {
                             name: "Эгида",
@@ -338,7 +339,7 @@ const raidGuide = {
                 },
                 {
                     label: "Карта лабиринта",
-                    style: "Secondary",
+                    style: ButtonStyle.Secondary,
                     name: "Карта лабиринта после этапа",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1102433219858681946/iv__gorgon_s_labyrinth_by_a_phantom_moon_deg8aej.jpg",
                 },
@@ -350,7 +351,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     embeds: [
                         {
                             name: "Подготовка",
@@ -388,7 +389,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     embeds: [
                         {
                             name: "Начало этапа и портал",
@@ -425,13 +426,13 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Награды за этапы рейда",
-                    style: "Secondary",
+                    style: ButtonStyle.Secondary,
                     name: "Награды за этапы рейда",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1101228003985477794/image0-1.png",
                 },
                 {
                     label: "Полная карта рейда",
-                    style: "Secondary",
+                    style: ButtonStyle.Secondary,
                     name: "Карта рейда",
                     description: "Откройте карту в полном размере с помощью кнопки снизу в изображении",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1102433217765703741/i__master_map_by_a_phantom_moon_deg8abh.jpg",
@@ -446,7 +447,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Карта этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     name: "Карта 1 этапа",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1098431843264643092/dr81cDh.png",
                 },
@@ -458,7 +459,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Карта этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     name: "Карта 2 этапа",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1098431843784724521/vu1z6vt.png",
                 },
@@ -470,7 +471,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Карта этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     name: "Карта 3 этапа",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1098431844292243466/Gty0cyl.png",
                 },
@@ -482,7 +483,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Карта этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     name: "Карта 4 этапа",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1098431844820729896/IU1aPwx.png",
                 },
@@ -493,13 +494,13 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Награды за этапы рейда",
-                    style: "Secondary",
+                    style: ButtonStyle.Secondary,
                     name: "Награды за этапы рейда",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1098389680019492864/BlueberriesGG-Deep-Stone-Crypt-loot-table-infographic.jpg",
                 },
                 {
                     label: "Рекомендуемое снаряжение",
-                    style: "Secondary",
+                    style: ButtonStyle.Secondary,
                     name: "Рекомендуемое снаряжение для рейда Склеп Глубокого камня",
                     description: "> **1 этап**\n - [Ксенофаг](https://www.light.gg/db/ru/items/1395261499/%D0%BA%D1%81%D0%B5%D0%BD%D0%BE%D1%84%D0%B0%D0%B3/), [Бастион](https://www.light.gg/db/ru/items/2415517654/%D0%B1%D0%B0%D1%81%D1%82%D0%B8%D0%BE%D0%BD/), [Тысяча голосов](https://www.light.gg/db/ru/items/2069224589/%D1%82%D1%8B%D1%81%D1%8F%D1%87%D0%B0-%D0%B3%D0%BE%D0%BB%D0%BE%D1%81%D0%BE%D0%B2/), [Уордклиффская катушка](https://www.light.gg/db/ru/items/1508896098/%D1%83%D0%BE%D1%80%D0%B4%D0%BA%D0%BB%D0%B8%D1%84%D1%84%D1%81%D0%BA%D0%B0%D1%8F-%D0%BA%D0%B0%D1%82%D1%83%D1%88%D0%BA%D0%B0/), легендарные ракетницы, плазменные винтовки и другое оружие, которое наносит большой урон не по криту (т.е. через желтые цифры)\n\n> **2 этап**\n - [Паразит](https://www.light.gg/db/ru/items/2812324400/%D0%BF%D0%B0%D1%80%D0%B0%D0%B7%D0%B8%D1%82/), [Плач](https://www.light.gg/db/ru/items/3487253372/%D0%BF%D0%BB%D0%B0%D1%87/), хороший легендарный меч\n\n> **3 этап**\n - Любое оружие на зачистку толп противников\n\n> **4 этап**\n - Обязателен 1 (не больше) [Гьяллархорн](https://www.light.gg/db/ru/items/1363886209/%D0%B3%D1%8C%D1%8F%D0%BB%D0%BB%D0%B0%D1%80%D1%85%D0%BE%D1%80%D0%BD) на команду\n - Любые легендарные ракетницы ([Забияка](https://www.light.gg/db/ru/items/4255171531/%D0%B7%D0%B0%D0%B1%D0%B8%D1%8F%D0%BA%D0%B0/), [Пальмира-Б](https://www.light.gg/db/ru/items/3489657138/%D0%BF%D0%B0%D0%BB%D1%8C%D0%BC%D0%B8%D1%80%D0%B0-%D0%B1/), до 1 на команду [Грохот в ночи](https://www.light.gg/db/ru/items/1959650777/%D0%B3%D1%80%D0%BE%D1%85%D0%BE%D1%82-%D0%B2-%D0%BD%D0%BE%D1%87%D0%B8/) с [Леденящее попадание](https://www.light.gg/db/ru/items/2978966579/%D0%BB%D0%B5%D0%B4%D0%B5%D0%BD%D1%8F%D1%89%D0%B5%D0%B5-%D0%BF%D0%BE%D0%BF%D0%B0%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5/))\n - [Бремя идзанаги](https://www.light.gg/db/ru/items/3211806999/%D0%B1%D1%80%D0%B5%D0%BC%D1%8F-%D0%B8%D0%B4%D0%B7%D0%B0%D0%BD%D0%B0%D0%B3%D0%B8/) / до 1 на команду [Горстка пепла](https://www.light.gg/db/ru/items/2357297366/%D0%B3%D0%BE%D1%80%D1%81%D1%82%D0%BA%D0%B0-%D0%BF%D0%B5%D0%BF%D0%BB%D0%B0/) / любая другой экзотик или легендарное оружие на хороший урон не в силовой слот",
                 },
@@ -513,7 +514,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     embeds: [
                         {
                             name: "Знакомство с этапом",
@@ -545,12 +546,11 @@ const raidGuide = {
                 },
                 {
                     label: "Альтернативное прохождение этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     embeds: [
                         {
                             name: "Объяснение",
                             description: 'На этом этапе можно "застанить" босса, заставив его стоять всю фазу на одном месте. Благодаря этому, можно убить его буквально за 10 секунд, не выполняя какие-либо механики',
-                            image: "https://media.discordapp.net/attachments/679191036849029167/1117264814557904916/destiny-2-last-wish-kalli-symbols.png",
                         },
                         {
                             name: "Механика стана",
@@ -565,7 +565,7 @@ const raidGuide = {
                 },
                 {
                     label: "Обозначение символов",
-                    style: "Secondary",
+                    style: ButtonStyle.Secondary,
                     name: "Обозначение символов",
                     description: "Знание обозначений символов на этом этапе не так важно, поскольку на этом этапе необходимо лишь занимать соответствующие точки",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1117265576256098354/78be9964c1d938fb.png",
@@ -578,11 +578,11 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     embeds: [
                         {
                             name: "Дебаф-обратный отсчёт этапа",
-                            description: "Как только этап начинается, у вас появляется дебаф `Песнь Шуро Чи` на 4 минуты",
+                            description: "Как только этап начинается, у вас появляется дебаф `Песнь Шуро Чи` на 4 минуты. Когда таймер достигнет 0 секунд, этап вайпнется",
                         },
                         {
                             name: "Основная Задача",
@@ -604,13 +604,13 @@ const raidGuide = {
                         },
                         {
                             name: "Повторение",
-                            description: "После успешного заполнения всех 3х экранов, таймер на дебафе обновляется и игрокам выдвигаются в воздухе платформы, по которым они забираются на второй этаж\nНа втором этаже идет повторение тех же механик с головоломкой в конце и поднятием на 3 этаж\n\nПосле снятия последней и самой большой части здоровья, Шуро Чи умирает, этап завершается, открывая двери дальше",
+                            description: "После успешного заполнения всех 3х экранов, таймер на дебафе обновляется и игрокам выдвигаются в воздухе платформы, по которым они забираются на второй этаж\nНа втором этаже игроки снимают 3 и 4 полоски здоровья, а затем вновь идет повторение тех же механик с головоломкой в конце и поднятием на 3 этаж\nНа третьем этаже игроки снимают 5 полоску здоровья и 6, самую длинную часть\n\nПосле снятия последней части здоровья, Шуро Чи умирает, этап завершается, открывая двери дальше",
                         },
                     ],
                 },
                 {
                     label: "Подсказка по головоломке",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     name: "Инструкция по прохождению калькулятора",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1117271938885230642/fpsp6ce.gif",
                 },
@@ -622,15 +622,23 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     embeds: [
                         {
-                            name: "Основная задача",
-                            description: "Игроки делятся на 2 команды по 3 человека и занимают свою сторону (правую или левую)\nЭтап начинается, когда один из игроков подбирает сферу рядом с Моргетом и у него появляется баф `захваченная сила`",
+                            name: "Распределение и начало этапа",
+                            description: "> **Игроки делятся на следующие роли**\n- 2 игрока, которые берут 1 баф\n- 1 игрока, который берет 2 бафа\n- 2 игрока, которые занимаются разморозкой\n\nЭтап начинается, когда один из игроков подбирает сферу рядом с Моргетом и у него появляется баф `захваченная сила`",
                         },
                         {
-                            name: "Механика этапа",
-                            description: "Игроки чистят мобов, пока на поле не появятся 4 сферы, такие же, как при старте этапа\nКогда кто-то из игроков соберет 2 сферы, Моргет повесит на него заморозку - союзники должны будут разморозить его\nПосле появления второй группы из 4 сфер, человек, которого разморозили, вновь подбирает 2 бафа, слева также подбирают по одному бафу каждый\nВ этот раз может заморозить ЛЮБОГО игрока, у которого `захваченная сила х2`\nЧеловек, стоящий на второй разморозке берет `эссенцию` и размораживает своего союзника\n\nЧтобы начать фазу урона по боссу, нужно почистить мобов, пока не появится сфера на месте той, которая стартовала этап, после чего происходит фаза урона по Моргету",
+                            name: "Игрок, собирающий 2 баффа",
+                            description: "Такой игрок обычно становится на правую сторону. Когда появляются 4 сферы, этот игрок собирает обе сферы с правой стороны. Через некоторое время Моргет повесит на него заморозку, о чем игрок должен сообщить\nПосле того как его разморозили, появляется вторая группа из 4 сфер, и он вновь собирает обе на своей стороне",
+                        },
+                        {
+                            name: "Игрок, собирающий 1 бафф",
+                            description: "Таких игроков должно быть двое, и они идут на левую сторону. Когда появляется первая волна сфер, каждый собирает по 1 сфере\nНа второй волне сфер, игроки вновь подбирают по 1 сфере",
+                        },
+                        {
+                            name: "Вторая заморозка и начало фазы урона",
+                            description: "Во время второй заморозки, может заморозить одного из трёх игроков. Второй размораживающий повторяет действия первого, после чего, в случае если почистили мобов, появляется сфера на месте той, которая стартовала этап. Игрок, который подбирал самую первую, подбирает последнюю и начинается фаза урона по Моргету",
                         },
                         {
                             name: "Разморозка союзников",
@@ -651,7 +659,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     embeds: [
                         {
                             name: "Распределение",
@@ -659,7 +667,7 @@ const raidGuide = {
                         },
                         {
                             name: "Первая фаза",
-                            description: "Начиная с чтеца, стоящего на центре, его задача назвать центральный символ\nЗадача читающих на лесу или камне найти этот символ у себя слева или справа, сказать об этом и назвать свой центральный символ и оставшемуся также назвать где символ находится у него и свой центральный\n\nЛевый символ означает тьму, правый симпол означает свет",
+                            description: "Начиная с чтеца, стоящего на центре, его задача назвать центральный символ\nЗадача читающих на лесу или камне найти этот символ у себя слева или справа, сказать об этом и назвать свой центральный символ и оставшемуся также назвать где символ находится у него и свой центральный\n\nЛевый символ означает тьму, правый символ означает свет",
                         },
                         {
                             name: "Пример фазы",
@@ -690,7 +698,7 @@ const raidGuide = {
                 },
                 {
                     label: "Обозначение символов",
-                    style: "Secondary",
+                    style: ButtonStyle.Secondary,
                     name: "Обозначение символов",
                     description: "",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1117265576256098354/78be9964c1d938fb.png",
@@ -703,7 +711,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     embeds: [
                         {
                             name: "Начало этапа",
@@ -712,6 +720,7 @@ const raidGuide = {
                         {
                             name: "Поиск Ривен",
                             description: "Когда этап начался, игрокам необходимо повернуть голову к синей двери и зайти в эту комнату\nЗатем, когда в чате напишет текст, нужно посмотреть на экран\nВ случае, если её тень проплыла по экрану, остаться в комнате и зачищать мобов\nВ случае, если тени не было, подойти к стене и начать `присоединение к союзникам`, после чего повернуть направо и упасть в другую комнату\n\nПосле зачистки мобов, вам необходимо ждать, пока Ривен не выйдет",
+                            image: "https://cdn.discordapp.com/attachments/679191036849029167/1120134396683493386/251a3a2d302cd4f4.gif",
                         },
                         {
                             name: "Финальная фаза Ривен",
@@ -722,12 +731,12 @@ const raidGuide = {
             ],
         },
         {
-            name: "6 этап - или как там называется этот ваш Квинсволк",
+            name: "6 этап - Сердце Ривен",
             description: "",
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: "Primary",
+                    style: ButtonStyle.Primary,
                     embeds: [
                         {
                             name: "Основная Задача",
@@ -758,13 +767,13 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Награды за этапы рейда",
-                    style: "Secondary",
+                    style: ButtonStyle.Secondary,
                     name: "Награды за этапы рейда",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1115302932146044928/Last-Wish-loot-table.png",
                 },
                 {
                     label: "Рекомендуемое снаряжение",
-                    style: "Secondary",
+                    style: ButtonStyle.Secondary,
                     name: "Рекомендуемое снаряжение для рейда Последнее Желание",
                     description: "> **2, 4, 6 этапы**\n - Любое оружие на зачистку толп противников\n\n> **5 этап**\n- [Плач](https://www.light.gg/db/ru/items/3487253372/%D0%BF%D0%BB%D0%B0%D1%87/) или любой другой хороший легендарный меч\n- До 1 на команду [Буксировочная пушка](https://www.light.gg/db/ru/items/3580904581/%D0%B1%D1%83%D0%BA%D1%81%D0%B8%D1%80%D0%BE%D0%B2%D0%BE%D1%87%D0%BD%D0%B0%D1%8F-%D0%BF%D1%83%D1%88%D0%BA%D0%B0)",
                 },

@@ -1,7 +1,7 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
-import raidsGuide from "../configs/raidguide.js";
+import raidsGuide from "../configs/raidGuideData.js";
 export default {
     name: "editedRaidGuide",
     run: async ({ modalSubmit }) => {

@@ -5,7 +5,7 @@ import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { channelIds, guildId } from "../configs/ids.js";
-import raidsGuide from "../configs/raidguide.js";
+import raidsGuide from "../configs/raidGuideData.js";
 import { userTimezones } from "../core/userStatisticsManagement.js";
 import { Command } from "../structures/command.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";

@@ -1,7 +1,7 @@
 import { ActionRowBuilder, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
-import raidsGuide from "../configs/raidguide.js";
+import raidsGuide from "../configs/raidGuideData.js";
 export default {
     name: "editRaidGuide",
     run: async ({ selectMenu: interaction }) => {
@@ -10,7 +10,6 @@ export default {
         const encounterIndex = parseInt(customIdData[1]);
         const encounterGuideIndex = parseInt(customIdData[2]);
         const embedIndex = parseInt(customIdData[3]);
-        console.debug("DEBUG DATA", interaction.values[0]);
         const raidGuide = raidsGuide[raidName];
         const raidGuideEncounter = raidGuide[encounterIndex].buttons?.[encounterGuideIndex].embeds?.[embedIndex];
         if (!raidGuideEncounter) {

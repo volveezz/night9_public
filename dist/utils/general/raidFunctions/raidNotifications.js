@@ -6,7 +6,7 @@ import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
 import { channelIds, guildId } from "../../../configs/ids.js";
 import { client } from "../../../index.js";
-import { nonRegClanMembers } from "../../persistence/dataStore.js";
+import { nonRegClanMembers, recentlyExpiredAuthUsersBungieIds } from "../../persistence/dataStore.js";
 import { RaidEvent, RaidUserNotification } from "../../persistence/sequelize.js";
 import { addButtonsToMessage } from "../addButtonsToMessage.js";
 import { completedRaidsData } from "../destinyActivityChecker.js";
@@ -17,6 +17,7 @@ import raidFireteamChecker from "./raidFireteamChecker.js";
 schedule("0 23 * * *", () => {
     raidInvites.clear();
     nonRegClanMembers.clear();
+    recentlyExpiredAuthUsersBungieIds.clear();
     raidFireteamChecker();
     tasks = [];
     while (runningTimeouts.length > 0) {

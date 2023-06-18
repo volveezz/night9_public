@@ -1,7 +1,7 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import UserErrors from "../../../configs/UserErrors.js";
 import colors from "../../../configs/colors.js";
-import raidsGuide from "../../../configs/raidguide.js";
+import raidsGuide from "../../../configs/raidGuideData.js";
 import { addButtonsToMessage } from "../addButtonsToMessage.js";
 async function sendRaidGuide(interaction, raidName, deferredReply) {
     const raidGuide = raidsGuide[raidName];
@@ -19,7 +19,7 @@ async function sendRaidGuide(interaction, raidName, deferredReply) {
             encounter.buttons.forEach((button, buttonIndex) => {
                 components.push(new ButtonBuilder()
                     .setCustomId(`raidGuide_${raidName}_${encounterIndex}_${buttonIndex}`)
-                    .setStyle(ButtonStyle[button.style || "Secondary"] || ButtonStyle.Secondary)
+                    .setStyle(button.style || ButtonStyle.Secondary)
                     .setLabel(button.label || "Кнопка"));
             });
         }

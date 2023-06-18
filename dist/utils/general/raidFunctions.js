@@ -7,7 +7,7 @@ import colors from "../../configs/colors.js";
 import destinyRaidsChallenges from "../../configs/destinyRaidsChallenges.js";
 import icons from "../../configs/icons.js";
 import { channelIds, guildId } from "../../configs/ids.js";
-import raidsGuide from "../../configs/raidguide.js";
+import raidsGuide from "../../configs/raidGuideData.js";
 import { dlcRoles, statusRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
 import { apiStatus } from "../../structures/apiStatus.js";

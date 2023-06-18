@@ -3,6 +3,7 @@ import { AuthData } from "../persistence/sequelize.js";
 import { fetchRequest } from "./fetchRequest.js";
 async function getClanMemberData(id) {
     let authData = null;
+    console.debug("Process to get clan member data has started");
     if (id instanceof AuthData && id.bungieId && id.discordId && id.platform && id.accessToken) {
         authData = id;
     }

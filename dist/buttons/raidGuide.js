@@ -1,7 +1,7 @@
 import { EmbedBuilder } from "discord.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
-import raidsGuide from "../configs/raidguide.js";
+import raidsGuide from "../configs/raidGuideData.js";
 import sendRaidGuide from "../utils/general/raidFunctions/sendRaidGuide.js";
 export default {
     name: "raidGuide",
