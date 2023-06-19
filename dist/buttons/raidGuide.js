@@ -46,9 +46,10 @@ export default {
                 });
             }
             if (buttonData.attachments && buttonData.attachments.length > 0) {
-                buttonData.attachments.forEach((url) => {
+                buttonData.attachments.forEach((attachment) => {
+                    const { name, url } = typeof attachment === "string" ? { name: "Видео-прохождение этапа", url: attachment } : attachment;
                     interaction.followUp({
-                        content: `[Видео-прохождение этапа](${url})`,
+                        content: `[${name}](${url})`,
                         ephemeral: true,
                     });
                 });
