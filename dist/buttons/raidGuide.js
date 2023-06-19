@@ -49,7 +49,7 @@ export default {
                 buttonData.attachments.forEach((attachment) => {
                     const { name, url } = typeof attachment === "string" ? { name: "Видео-прохождение этапа", url: attachment } : attachment;
                     interaction.followUp({
-                        content: `[${name}](${url})`,
+                        content: `> ### [${name}](${url})`,
                         ephemeral: true,
                     });
                 });

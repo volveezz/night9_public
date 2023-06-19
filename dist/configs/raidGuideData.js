@@ -507,7 +507,7 @@ const raidGuide = {
             ],
         },
     ],
-    test: [
+    lw: [
         {
             name: "1 этап - Калли, оскверненная",
             description: "Первый босс, на котором фармят шмотки",
@@ -734,6 +734,10 @@ const raidGuide = {
                         },
                     ],
                     attachments: [
+                        {
+                            name: "Пример появления тени Ривен",
+                            url: "https://cdn.discordapp.com/attachments/1115151918839386122/1118109705487790111/c59c4159a1e3e937.mp4",
+                        },
                         {
                             name: "Путь, если Ривен в другой комнате",
                             url: "https://cdn.discordapp.com/attachments/1115151918839386122/1120365163233685574/1.mp4",
