@@ -411,9 +411,11 @@ async function handleMemberStatistics() {
                 if (!userData.clan && cachedMember) {
                     checkUserStatisticsRoles(userData, cachedMember, autoRoleData, true);
                 }
-                if (!cachedMember || !userData.timezone)
+                if (userData.timezone) {
+                    userTimezones.set(userData.discordId, userData.timezone);
+                }
+                if (!cachedMember)
                     continue;
-                userTimezones.set(userData.discordId, userData.timezone);
                 await timer(1000);
                 destinyActivityChecker(userData, cachedMember, 4);
             }

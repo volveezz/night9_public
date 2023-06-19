@@ -1,4 +1,4 @@
-import { EmbedBuilder } from "discord.js";
+import { AttachmentBuilder, EmbedBuilder } from "discord.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import raidsGuide from "../configs/raidGuideData.js";
@@ -43,6 +43,14 @@ export default {
                             .setDescription(data.description || null)
                             .setImage(data.image || null);
                     }),
+                });
+            }
+            if (buttonData.attachments && buttonData.attachments.length > 0) {
+                const attachments = buttonData.attachments.map((url, i) => new AttachmentBuilder(url, { name: `guide-${i}.mp4` }));
+                interaction.followUp({
+                    content: "Видео-прохождение",
+                    files: attachments,
+                    ephemeral: true,
                 });
             }
         }
