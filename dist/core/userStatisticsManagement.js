@@ -425,98 +425,105 @@ async function handleMemberStatistics() {
         }
     })();
     async function startStatisticsChecking() {
-        const autoRoleData = await AutoRoleData.findAll({
-            where: {
-                available: {
-                    [Op.or]: {
-                        [Op.gte]: 1,
-                        [Op.eq]: -99,
+        try {
+            const autoRoleData = await AutoRoleData.findAll({
+                where: {
+                    available: {
+                        [Op.or]: {
+                            [Op.gte]: 1,
+                            [Op.eq]: -99,
+                        },
                     },
                 },
-            },
-        });
-        const dbNotFiltred = await AuthData.findAll({
-            attributes: ["discordId", "bungieId", "platform", "clan", "displayName", "accessToken", "roleCategoriesBits"],
-            include: UserActivityData,
-        });
-        const dbNotFoundUsers = dbNotFiltred
-            .filter((data) => !client.getCachedMembers().has(data.discordId))
-            .map((val, ind) => {
-            return ind < 5 ? `[Error code: 1021] ${val.displayName}/${val.discordId} not found on server` : null;
-        });
-        dbNotFoundUsers.length > 0 && process.env.DEV_BUILD !== "dev"
-            ? console.error("[Error code: 1755]", dbNotFoundUsers.filter((val, ind) => ind < 5))
-            : [];
-        const databaseData = dbNotFiltred.filter((data) => client.getCachedMembers().has(data.discordId));
-        if (!databaseData || (databaseData.length === 0 && !process.env.DEV_BUILD)) {
-            return console.error(`[Error code: 1022] DB is ${databaseData ? `${databaseData}${databaseData?.length} size` : "not avaliable"}`);
-        }
-        if (apiStatus.status === 1) {
-            for (let i = 0; i < databaseData.length; i++) {
-                const userDatabaseData = databaseData[i];
-                const randomValue = Math.floor(Math.random() * 100);
-                if (throttleSet.has(userDatabaseData.discordId))
-                    return throttleSet.delete(userDatabaseData.discordId);
-                if (longOffline.has(userDatabaseData.discordId)) {
-                    if (randomValue >= 90)
-                        longOffline.delete(userDatabaseData.discordId);
-                    continue;
-                }
-                const member = client.getCachedMembers().get(userDatabaseData.discordId);
-                if (member == null) {
-                    await client.getCachedGuild().members.fetch();
-                    console.error("[Error code: 1023] destinyUsestatisticsRolesChecker, member not found", userDatabaseData.displayName);
-                    continue;
-                }
-                if (member.roles.cache.has(statusRoles.clanmember) ||
-                    (userDatabaseData.UserActivityData &&
-                        (userDatabaseData.UserActivityData.voice > 120 || userDatabaseData.UserActivityData.messages > 5))) {
+            });
+            const dbNotFiltred = await AuthData.findAll({
+                attributes: ["discordId", "bungieId", "platform", "clan", "displayName", "accessToken", "roleCategoriesBits"],
+                include: UserActivityData,
+            });
+            const dbNotFoundUsers = dbNotFiltred
+                .filter((data) => !client.getCachedMembers().has(data.discordId))
+                .map((val, ind) => {
+                return ind < 5 ? `[Error code: 1021] ${val.displayName}/${val.discordId} not found on server` : null;
+            });
+            dbNotFoundUsers.length > 0 && process.env.DEV_BUILD !== "dev"
+                ? console.error("[Error code: 1755]", dbNotFoundUsers.filter((val, ind) => ind < 5))
+                : [];
+            const databaseData = dbNotFiltred.filter((data) => client.getCachedMembers().has(data.discordId));
+            if (!databaseData || (databaseData.length === 0 && !process.env.DEV_BUILD)) {
+                return console.error(`[Error code: 1022] DB is ${databaseData ? `${databaseData}${databaseData?.length} size` : "not avaliable"}`);
+            }
+            if (apiStatus.status === 1) {
+                for (let i = 0; i < databaseData.length; i++) {
+                    const userDatabaseData = databaseData[i];
                     const randomValue = Math.floor(Math.random() * 100);
-                    switch (true) {
-                        case randomValue <= 30:
-                            checkUserStats();
-                            checkCompletedRaidStats();
-                            break;
-                        case randomValue <= 45:
-                            checkUserStats();
-                            break;
-                        case randomValue < 60:
-                            checkUserStats();
-                            checkTrialsKDStats();
-                            break;
-                        case randomValue <= 80:
-                            checkUserStats();
-                            break;
-                        default:
-                            checkUserKDRatioStats();
-                            break;
+                    if (throttleSet.has(userDatabaseData.discordId))
+                        return throttleSet.delete(userDatabaseData.discordId);
+                    if (longOffline.has(userDatabaseData.discordId)) {
+                        if (randomValue >= 90)
+                            longOffline.delete(userDatabaseData.discordId);
+                        continue;
                     }
-                    await timer(1000);
-                }
-                function checkUserStats() {
-                    checkUserStatisticsRoles(userDatabaseData, member, autoRoleData);
-                }
-                function checkUserKDRatioStats() {
-                    if (userDatabaseData.roleCategoriesBits & NightRoleCategory.Stats) {
-                        checkUserKDRatio(userDatabaseData, member);
+                    const member = client.getCachedMembers().get(userDatabaseData.discordId);
+                    if (member == null) {
+                        await client.getCachedGuild().members.fetch();
+                        console.error("[Error code: 1023] destinyUsestatisticsRolesChecker, member not found", userDatabaseData.displayName);
+                        continue;
                     }
-                }
-                function checkCompletedRaidStats() {
-                    if (member.roles.cache.hasAny(statusRoles.clanmember, statusRoles.member)) {
-                        destinyActivityChecker(userDatabaseData, member, 4);
+                    if (member.roles.cache.has(statusRoles.clanmember) ||
+                        (userDatabaseData.UserActivityData &&
+                            (userDatabaseData.UserActivityData.voice > 120 || userDatabaseData.UserActivityData.messages > 5))) {
+                        const randomValue = Math.floor(Math.random() * 100);
+                        switch (true) {
+                            case randomValue <= 30:
+                                checkUserStats();
+                                checkCompletedRaidStats();
+                                break;
+                            case randomValue <= 45:
+                                checkUserStats();
+                                break;
+                            case randomValue < 60:
+                                checkUserStats();
+                                checkTrialsKDStats();
+                                break;
+                            case randomValue <= 80:
+                                checkUserStats();
+                                break;
+                            default:
+                                checkUserKDRatioStats();
+                                break;
+                        }
+                        await timer(1000);
                     }
-                }
-                function checkTrialsKDStats() {
-                    if (userDatabaseData.roleCategoriesBits & NightRoleCategory.Trials &&
-                        !member.roles.cache.has(trialsRoles.wintrader) &&
-                        member.roles.cache.has(trialsRoles.category)) {
-                        destinyActivityChecker(userDatabaseData, member, 84);
+                    function checkUserStats() {
+                        checkUserStatisticsRoles(userDatabaseData, member, autoRoleData);
+                    }
+                    function checkUserKDRatioStats() {
+                        if (userDatabaseData.roleCategoriesBits & NightRoleCategory.Stats) {
+                            checkUserKDRatio(userDatabaseData, member);
+                        }
+                    }
+                    function checkCompletedRaidStats() {
+                        if (member.roles.cache.hasAny(statusRoles.clanmember, statusRoles.member)) {
+                            destinyActivityChecker(userDatabaseData, member, 4);
+                        }
+                    }
+                    function checkTrialsKDStats() {
+                        if (userDatabaseData.roleCategoriesBits & NightRoleCategory.Trials &&
+                            !member.roles.cache.has(trialsRoles.wintrader) &&
+                            member.roles.cache.has(trialsRoles.category)) {
+                            destinyActivityChecker(userDatabaseData, member, 84);
+                        }
                     }
                 }
             }
+            await clanMembersManagement(databaseData);
         }
-        await clanMembersManagement(databaseData);
-        setTimeout(startStatisticsChecking, 1000 * 60 * 2);
+        catch (error) {
+            console.error("[Error code: 1921]", error.stack || error);
+        }
+        finally {
+            setTimeout(startStatisticsChecking, 1000 * 60 * 2);
+        }
     }
     setTimeout(startStatisticsChecking, 1000 * 60 * 2);
 }
