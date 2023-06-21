@@ -9,9 +9,13 @@ import setMemberRoles from "../discord/setRoles.js";
 import { escapeString } from "../general/utilities.js";
 let clanLogChannel = null;
 const recentlyJoinedMembersIds = new Set();
+const welcomeMessageIds = new Map();
 export async function updateClanRolesWithLogging(result, join) {
     const member = await client.getAsyncMember(result.discordId);
     const clanUserData = await getClanMemberData(result);
+    if (!clanLogChannel) {
+        clanLogChannel = await client.getAsyncTextChannel(channelIds.clanLogs);
+    }
     if (clanUserData.member?.groupId !== groupId) {
         console.error("[Error code: 1919]", clanUserData, member);
     }
@@ -49,6 +53,14 @@ export async function updateClanRolesWithLogging(result, join) {
             catch (error) {
                 console.error(`[Error code: 1806] ${member.displayName} blocked his DMs`, error);
             }
+            try {
+                const welcomeMessage = await clanLogChannel.send(`<a:d2ghost:732676128094814228> Приветствуем нового участника клана, ${member}!`);
+                await welcomeMessage.react("<:doge_hug:1073864905129721887>");
+                welcomeMessageIds.set(member.id, welcomeMessage);
+            }
+            catch (error) {
+                console.error("[Error code: 1925]", error);
+            }
         }
         else {
             const setRoles = member.roles.cache.has(statusRoles.verified) ? [statusRoles.kicked, statusRoles.verified] : [statusRoles.kicked];
@@ -59,6 +71,11 @@ export async function updateClanRolesWithLogging(result, join) {
                 iconURL: member.displayAvatarURL({ forceStatic: false }),
             })
                 .setColor(colors.kicked);
+            const welcomeMessage = welcomeMessageIds.get(member.id);
+            if (welcomeMessage) {
+                welcomeMessage.edit("https://tenor.com/view/palla-deserto-desert-hot-gif-6014273");
+                welcomeMessageIds.delete(member.id);
+            }
         }
     }
     else {
@@ -67,9 +84,6 @@ export async function updateClanRolesWithLogging(result, join) {
             name: join ? "Неизвестный на сервере пользователь вступил в клан" : "Неизвестный на сервере пользователь покинул клан",
         })
             .setColor(join ? colors.success : colors.kicked);
-    }
-    if (!clanLogChannel) {
-        clanLogChannel = await client.getAsyncTextChannel(channelIds.clanLogs);
     }
     await clanLogChannel.send({ embeds: [embed] });
 }

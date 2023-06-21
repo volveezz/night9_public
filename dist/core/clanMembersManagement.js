@@ -6,6 +6,7 @@ import { clanJoinDateRoles, triumphsCategory } from "../configs/roles.js";
 import { client } from "../index.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { fetchRequest } from "../utils/api/fetchRequest.js";
+import getClanMemberData from "../utils/api/getClanMemberData.js";
 import kickClanMember from "../utils/api/kickClanMember.js";
 import { updateClanRolesWithLogging } from "../utils/logging/clanEventLogger.js";
 import { joinDateCheckedClanMembers, nonRegClanMembers, recentlyExpiredAuthUsersBungieIds } from "../utils/persistence/dataStore.js";
@@ -66,10 +67,16 @@ async function clanMembersManagement(databaseData) {
         async function handleClanLeftMembers() {
             await Promise.all(databaseData.map(async (member) => {
                 if (member.clan === true) {
-                    console.debug("UPDATING", member.displayName, "AS HE LEFT THE CLAN");
-                    member.clan = false;
-                    await member.save();
-                    await updateClanRolesWithLogging(member, false);
+                    const memberData = await getClanMemberData(member);
+                    if (memberData.member?.groupId !== groupId) {
+                        console.debug("UPDATING", member.displayName, "AS HE LEFT THE CLAN");
+                        member.clan = false;
+                        await member.save();
+                        await updateClanRolesWithLogging(member, false);
+                    }
+                    else {
+                        console.error("[Error code: 1923]", memberData);
+                    }
                 }
             }));
         }
@@ -94,6 +101,18 @@ async function clanMembersManagement(databaseData) {
                 });
             }
             if (memberAuthData.clan === false) {
+                try {
+                    const clanMemberData = await getClanMemberData(memberAuthData);
+                    if (clanMemberData.member?.groupId === groupId) {
+                        console.debug("User joined the clan", memberAuthData.displayName);
+                    }
+                    else {
+                        console.debug("User wasn't found in the clan", memberAuthData.displayName, clanMemberData.member);
+                    }
+                }
+                catch (error) {
+                    console.error("[Error code: 1924]", error);
+                }
                 memberAuthData.clan = true;
                 await memberAuthData.save();
                 updateClanRolesWithLogging(memberAuthData, true);
@@ -102,7 +121,6 @@ async function clanMembersManagement(databaseData) {
                 clanMember.destinyUserInfo.LastSeenDisplayName ||
                 clanMember.destinyUserInfo.displayName;
             if (memberAuthData.displayName.replace("⁣", "") !== destinyUserName) {
-                console.debug("Saved new global name", destinyUserName, "for user", memberAuthData.displayName);
                 memberAuthData.displayName = destinyUserName;
                 await memberAuthData.save();
             }

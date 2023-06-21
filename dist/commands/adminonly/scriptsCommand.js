@@ -1,6 +1,5 @@
 import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
-import { statusRoles } from "../../configs/roles.js";
 import { Command } from "../../structures/command.js";
 import { convertSeconds } from "../../utils/general/convertSeconds.js";
 import { AuthData, UserActivityData } from "../../utils/persistence/sequelize.js";
@@ -20,17 +19,6 @@ export default new Command({
         const defferedReply = interaction.deferReply({ ephemeral: true });
         const scriptId = interaction.options.getString("script", true).toLowerCase();
         switch (scriptId) {
-            case "checkrole": {
-                const members = client
-                    .getCachedMembers()
-                    .filter((r) => r.roles.cache.has(statusRoles.member) && !r.roles.cache.has(statusRoles.verified));
-                for (const [id, member] of members) {
-                    await member.roles.remove(statusRoles.member);
-                    await member.roles.add(statusRoles.newbie);
-                    console.debug(`Removed verified role from ${member.displayName || member.user.username}`);
-                }
-                return;
-            }
             case "activitytop": {
                 const dbData = (await AuthData.findAll({ include: UserActivityData, attributes: ["displayName", "discordId"] })).filter((v) => v.UserActivityData && (v.UserActivityData.messages > 0 || v.UserActivityData.voice > 0));
                 const usersWithoutData = dbData.filter((v) => !v.UserActivityData);

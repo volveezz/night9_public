@@ -61,6 +61,7 @@ function handleFetchError(error, response) {
         EPROTO: "[Error code: 1827] EPROTO request error",
         ECONNRESET: "[Error code: 1828] ECONNRESET request error",
         EHOSTUNREACH: "[Error code: 1829] EHOSTUNREACH request error",
+        ETIMEDOUT: "[Error code: 1922] ETIMEDOUT request error",
         ERR_STREAM_PREMATURE_CLOSE: "[Error code: 1830] ERR_STREAM_PREMATURE_CLOSE request error",
     };
     if (errorMessages.hasOwnProperty(status)) {
