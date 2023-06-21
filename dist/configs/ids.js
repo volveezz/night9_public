@@ -28,6 +28,7 @@ const channelIds = {
         guideMessageId: process.env.JOIN_REQUEST_GUILD_MESSAGE_ID,
         questions: process.env.QUESTIONS_CHANNEL_ID,
     },
+    mainText: process.env.MAIN_CHANNEL_ID,
 };
 const categoryIds = {
     admin: process.env.ADMIN_CATEGORY,

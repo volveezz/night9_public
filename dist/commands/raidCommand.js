@@ -461,10 +461,10 @@ export default new Command({
                 : "";
             const content = `Открыт набор в рейд: ${raidData.raidName} ${roleMention}`;
             const raidChannel = guild.channels.cache.get(channelIds.raid) || (await guild.channels.fetch(channelIds.raid));
-            const additionalPosition = guild.channels.cache.get(channelIds.raidCategory)?.children?.cache.size || 1;
+            const additionalPosition = guild.channels.cache.get(channelIds.raid)?.children?.cache.size || 1;
             const privateRaidChannel = await member.guild.channels.create({
                 name: `🔥｜${raidDb.id}-${raidData.channelName}`,
-                parent: channelIds.raidCategory,
+                parent: channelIds.raid,
                 position: raidChannel.rawPosition + additionalPosition,
                 permissionOverwrites: [
                     {

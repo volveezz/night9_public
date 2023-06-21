@@ -3,7 +3,7 @@ import colors from "../configs/colors.js";
 import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-import { createdChannelsMap } from "../utils/discord/lfgSystem/handleLFG.js";
+import { channelDataMap } from "../utils/discord/lfgSystem/handleLFG.js";
 import lfgTextChannelHandler from "../utils/discord/lfgSystem/handleLfgJoin.js";
 import { cacheUserActivity, voiceChannelJoinTimestamps } from "../utils/discord/userActivityHandler.js";
 import manageVoiceChannels from "../utils/discord/voiceChannelManager.js";
@@ -25,7 +25,7 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
         voiceChannelJoinTimestamps.set(userId, Date.now());
     }
     if (!oldState.channelId && newState.channelId) {
-        if (!oldState.member?.user.bot && createdChannelsMap.has(newState.channelId))
+        if (!oldState.member?.user.bot && channelDataMap.has(newState.channelId))
             lfgTextChannelHandler(newState.channelId, newState.member, "join");
         embed
             .setAuthor({
@@ -39,7 +39,7 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
         return voiceLogChannel.send({ embeds: [embed] });
     }
     if (!newState.channelId) {
-        if (!oldState.member?.user.bot && oldState.channelId && createdChannelsMap.has(oldState.channelId))
+        if (!oldState.member?.user.bot && oldState.channelId && channelDataMap.has(oldState.channelId))
             lfgTextChannelHandler(oldState.channelId, oldState.member, "leave");
         embed
             .setAuthor({
@@ -57,9 +57,9 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
         });
     }
     if (oldState.channelId && newState.channelId && oldState.channelId !== newState.channelId) {
-        if (!oldState.member?.user.bot && createdChannelsMap.has(oldState.channelId))
+        if (!oldState.member?.user.bot && channelDataMap.has(oldState.channelId))
             lfgTextChannelHandler(oldState.channelId, oldState.member, "leave");
-        if (!oldState.member?.user.bot && createdChannelsMap.has(newState.channelId))
+        if (!oldState.member?.user.bot && channelDataMap.has(newState.channelId))
             lfgTextChannelHandler(newState.channelId, newState.member, "join");
         embed
             .setAuthor({

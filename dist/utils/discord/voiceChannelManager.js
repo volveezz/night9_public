@@ -1,7 +1,7 @@
 import { ChannelType } from "discord.js";
 import { categoryIds } from "../../configs/ids.js";
 import { VoiceChannels } from "../persistence/sequelize.js";
-import { createdChannelsMap } from "./lfgSystem/handleLFG.js";
+import { channelDataMap } from "./lfgSystem/handleLFG.js";
 const managedVoiceChannelIds = new Set();
 const ignoredCategories = new Set([categoryIds.admin, categoryIds.technical]);
 const romanNumbers = ["𝐈", "𝐈𝐈", "𝐈𝐈𝐈", "𝐈𝐕", "𝐕", "𝐕𝐈", "𝐕𝐈𝐈", "𝐕𝐈𝐈𝐈", "𝐈𝐗", "𝐗"];
@@ -36,7 +36,7 @@ async function manageVoiceChannels(oldState, newState) {
         newChannel.parent &&
         newChannel.parentId &&
         !ignoredCategories.has(newChannel.parentId) &&
-        !createdChannelsMap.has(newChannel.id)) {
+        !channelDataMap.has(newChannel.id)) {
         let categoryChannels = newChannel.parent.children.cache.filter((channel) => channel.type === ChannelType.GuildVoice);
         if (categoryChannels.size >= 10)
             return;

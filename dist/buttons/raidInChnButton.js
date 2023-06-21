@@ -5,7 +5,7 @@ import { RaidNotifyEdit } from "../configs/Modals.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
-import { channelIds } from "../configs/ids.js";
+import { categoryIds, channelIds } from "../configs/ids.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { removeRaid } from "../utils/general/raidFunctions.js";
@@ -146,7 +146,7 @@ export default {
                 const sendedTo = [];
                 const raidMembersLength = interaction.user.id === raidEvent.creator ? raidEvent.joined.length - 1 : raidEvent.joined.length;
                 await Promise.all(allVoiceChannels.map(async (chn) => {
-                    if (!chn.members.has(raidEvent.creator) && chn.parent?.id !== channelIds.raidCategory) {
+                    if (!chn.members.has(raidEvent.creator) && chn.parent?.id !== categoryIds.raid) {
                         await Promise.all(raidEvent.joined.map(async (member) => {
                             if (chn.members.has(member)) {
                                 raidEvent.joined.splice(raidEvent.joined.indexOf(member), 1);
@@ -311,7 +311,7 @@ export default {
                 ? await member.voice.channel?.createInvite({ reason: "Raid invite to raid leader", maxAge: 60 * 120 })
                 : null;
             const raidVoiceChannels = member.guild.channels.cache
-                .filter((chn) => chn.parentId === channelIds.raidCategory && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"))
+                .filter((chn) => chn.parentId === categoryIds.raid && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"))
                 .reverse();
             let raidChnInvite = null;
             for (const [_, voiceChannel] of raidVoiceChannels) {
@@ -379,7 +379,7 @@ export default {
             guildVoiceChannels.forEach((voiceChannel) => {
                 voiceChannel.members.forEach((memb) => membersCollection.push(memb));
             });
-            const raidChns = guild.channels.cache.filter((chn) => chn.parentId === channelIds.raidCategory && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"));
+            const raidChns = guild.channels.cache.filter((chn) => chn.parentId === categoryIds.raid && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"));
             const freeRaidVC = raidChns.find((chn) => chn.type === ChannelType.GuildVoice && chn.members.has(raidEvent.creator)) ||
                 raidChns.find((chn) => chn.type === ChannelType.GuildVoice && chn.userLimit > chn.members.size);
             const movedUsers = [];

@@ -8,6 +8,7 @@ import getClanMemberData from "../api/getClanMemberData.js";
 import setMemberRoles from "../discord/setRoles.js";
 import { escapeString } from "../general/utilities.js";
 let clanLogChannel = null;
+let generalLogChannel = null;
 const recentlyJoinedMembersIds = new Set();
 const welcomeMessageIds = new Map();
 export async function updateClanRolesWithLogging(result, join) {
@@ -54,7 +55,10 @@ export async function updateClanRolesWithLogging(result, join) {
                 console.error(`[Error code: 1806] ${member.displayName} blocked his DMs`, error);
             }
             try {
-                const welcomeMessage = await clanLogChannel.send(`<a:d2ghost:732676128094814228> Приветствуем нового участника клана, ${member}!`);
+                if (!generalLogChannel) {
+                    generalLogChannel = await client.getAsyncTextChannel(channelIds.mainText);
+                }
+                const welcomeMessage = await generalLogChannel.send(`<a:d2ghost:732676128094814228> Приветствуем нового участника клана, ${member}!`);
                 await welcomeMessage.react("<:doge_hug:1073864905129721887>");
                 welcomeMessageIds.set(member.id, welcomeMessage);
             }

@@ -10,8 +10,8 @@ import { addButtonsToMessage } from "../../general/addButtonsToMessage.js";
 import nameCleaner from "../../general/nameClearer.js";
 import { escapeString } from "../../general/utilities.js";
 import findActivityForLfg from "./findActivityForLfg.js";
-import { deleteLfgData } from "./handleLfgJoin.js";
-const createdLfgChannelsMap = new Map();
+import { removeChannelData } from "./handleLfgJoin.js";
+const channelDataMap = new Map();
 class LfgActivitySettings {
     name;
     description;
@@ -148,7 +148,7 @@ async function lfgHandler(message) {
     const userTitle = userText.slice(0, separatorIndex !== -1 ? separatorIndex : userText.length).trim();
     const userDescription = separatorIndex !== -1 ? userText.slice(userText.indexOf("|") + 1, userText.length).trim() : null;
     const member = await client.getAsyncMember(message.author.id);
-    const lfgData = member.voice.channel && createdLfgChannelsMap.get(member.voice.channel?.id);
+    const lfgData = member.voice.channel && channelDataMap.get(member.voice.channel?.id);
     let deletable = member.voice.channel ? false : true;
     const embed = new EmbedBuilder().setThumbnail(userSettings.activitySettings?.image ?? null);
     try {
@@ -239,17 +239,17 @@ async function lfgHandler(message) {
         components: await addButtonsToMessage(components),
     });
     if (lfgData) {
-        await deleteLfgData(member.voice.channel.id);
-        if (lfgData.deletable === true) {
+        await removeChannelData(member.voice.channel.id);
+        if (lfgData.isDeletable === true) {
             deletable = true;
         }
     }
-    createdLfgChannelsMap.set(voiceChannel.id, {
-        joined: member.voice.channel?.members.map((member) => member.id) ?? [],
-        message: partyMessage,
-        voice: voiceChannel,
-        deletable,
-        author: member.id,
+    channelDataMap.set(voiceChannel.id, {
+        members: member.voice.channel?.members.map((member) => member.id) ?? [],
+        channelMessage: partyMessage,
+        voiceChannel: voiceChannel,
+        isDeletable: deletable,
+        creator: member.id,
     });
     await message.delete();
     return;
@@ -260,4 +260,4 @@ async function messageErrorHandler(name, description, message) {
     setTimeout(async () => await errorMessage.delete(), 5000);
     return;
 }
-export { createdLfgChannelsMap as createdChannelsMap, lfgHandler };
+export { channelDataMap, lfgHandler };

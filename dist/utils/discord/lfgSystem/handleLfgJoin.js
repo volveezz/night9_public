@@ -2,68 +2,68 @@ import { EmbedBuilder } from "discord.js";
 import { bungieNames } from "../../../core/userStatisticsManagement.js";
 import { client } from "../../../index.js";
 import { escapeString } from "../../general/utilities.js";
-import { createdChannelsMap } from "./handleLFG.js";
-export async function deleteLfgData(channelData) {
-    const lfgData = typeof channelData === "string" ? createdChannelsMap.get(channelData) : channelData;
-    if (!lfgData)
+import { channelDataMap } from "./handleLFG.js";
+export async function removeChannelData(data) {
+    const channelData = typeof data === "string" ? channelDataMap.get(data) : data;
+    if (!channelData)
         return;
-    const lfgChannelId = lfgData.voice.id;
-    if (lfgData.deletable) {
+    const channelId = channelData.voiceChannel.id;
+    if (channelData.isDeletable) {
         try {
-            const userVoiceCount = (await client.getCachedGuild().channels.fetch(lfgChannelId))?.members.size;
+            const userVoiceCount = (await client.getCachedGuild().channels.fetch(channelId))?.members.size;
             if (!userVoiceCount || userVoiceCount == 0)
-                lfgData.voice.delete("Last member disconnected");
+                channelData.voiceChannel.delete("Last member disconnected");
         }
         catch (error) {
             console.error("[Error code: 1820]", error);
         }
     }
     try {
-        lfgData.message.delete();
+        channelData.channelMessage.delete();
     }
     catch (error) {
         console.error("[Error code: 1821]", error);
     }
-    createdChannelsMap.delete(lfgChannelId);
+    channelDataMap.delete(channelId);
     return true;
 }
-async function lfgTextChannelHandler(channelId, member, state) {
-    const createdChannel = createdChannelsMap.get(channelId);
-    if (!createdChannel)
+async function handleTextChannel(channelId, member, action) {
+    const channelData = channelDataMap.get(channelId);
+    if (!channelData)
         return;
-    if (createdChannel.joined.includes(member.id) && state === "leave") {
-        createdChannel.joined.splice(createdChannel.joined.indexOf(member.id), 1);
+    if (channelData.members.includes(member.id) && action === "leave") {
+        channelData.members.splice(channelData.members.indexOf(member.id), 1);
     }
-    else if (state === "join") {
-        createdChannel.joined.push(member.id);
+    else if (action === "join") {
+        channelData.members.push(member.id);
     }
-    if (createdChannel.joined.length === 0) {
-        await deleteLfgData(createdChannel);
+    if (channelData.members.length === 0) {
+        await removeChannelData(channelData);
         return;
     }
-    const embed = EmbedBuilder.from(createdChannel.message.embeds[0]);
+    const embed = EmbedBuilder.from(channelData.channelMessage.embeds[0]);
     if (embed.data.title) {
-        const joinedCount = parseInt(embed.data.title);
-        const updatedCount = state === "join" ? joinedCount - 1 : joinedCount + 1;
+        const memberCount = parseInt(embed.data.title);
+        const updatedCount = action === "join" ? memberCount - 1 : memberCount + 1;
         embed.setTitle(embed.data.title.replace(/\d+/, `${updatedCount > 0 ? updatedCount : 0}`));
     }
-    const joinedUsersFieldIndex = embed.data.fields?.findIndex((v) => v.name.startsWith("Состав группы"));
-    const joinedUsersUpdatedFieldValue = createdChannel.joined
+    const membersFieldIndex = embed.data.fields?.findIndex((v) => v.name.startsWith("Состав группы"));
+    const updatedMembersFieldValue = channelData.members
         .map((id, i) => {
         const bungieName = bungieNames.get(id);
         return `${i + 1}. <@${id}>${bungieName ? ` — ${escapeString(bungieName)}` : ""}`;
     })
         .join("\n");
-    const joinedUsersReadyField = {
+    const membersReadyField = {
         name: "Состав группы",
-        value: joinedUsersUpdatedFieldValue,
+        value: updatedMembersFieldValue,
     };
-    joinedUsersFieldIndex && joinedUsersFieldIndex >= 1
-        ? embed.data.fields?.splice(joinedUsersFieldIndex, 1, joinedUsersReadyField)
-        : embed.addFields(joinedUsersReadyField);
-    await createdChannel.message.edit({ embeds: [embed] }).then((message) => createdChannelsMap.set(channelId, {
-        ...createdChannel,
-        message,
+    membersFieldIndex && membersFieldIndex >= 1
+        ? embed.data.fields?.splice(membersFieldIndex, 1, membersReadyField)
+        : embed.addFields(membersReadyField);
+    await channelData.channelMessage.edit({ embeds: [embed] }).then((message) => channelDataMap.set(channelId, {
+        ...channelData,
+        channelMessage: message,
     }));
 }
-export default lfgTextChannelHandler;
+export default handleTextChannel;

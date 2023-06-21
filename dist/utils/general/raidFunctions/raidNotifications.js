@@ -4,7 +4,7 @@ import { Op } from "sequelize";
 import { RaidButtons } from "../../../configs/Buttons.js";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
-import { channelIds, guildId } from "../../../configs/ids.js";
+import { categoryIds, channelIds, guildId } from "../../../configs/ids.js";
 import { client } from "../../../index.js";
 import { nonRegClanMembers, recentlyExpiredAuthUsersBungieIds } from "../../persistence/dataStore.js";
 import { RaidEvent, RaidUserNotification } from "../../persistence/sequelize.js";
@@ -195,7 +195,7 @@ async function raidAnnounce(oldRaidData, discordId) {
         console.error("[Error code: 1631] Error during adding image to the notify message", error);
     }
     const raidVoiceChannels = guild.channels.cache
-        .filter((chn) => chn.parentId === channelIds.raidCategory && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"))
+        .filter((chn) => chn.parentId === categoryIds.raid && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"))
         .reverse();
     const components = [];
     let inviteUrl = raidInvites.get(raidData.id);
