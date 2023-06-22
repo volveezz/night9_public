@@ -22,6 +22,9 @@ export default {
             }
             console.debug(`Field: ${v.customId} of raidGuide ${raidEncounter} ${guideIndex} ${encounterEmbed}\nValue: [${v.value}]`);
         });
+        if (guideEncounter.name == "" && guideEncounter.description == "" && guideEncounter.image == "") {
+            raidGuide[raidEncounter].buttons[guideIndex].embeds.splice(encounterEmbed, 1);
+        }
         const embed = new EmbedBuilder().setColor(colors.success).setAuthor({ name: "Гайд был успешно обновлен", iconURL: icons.success });
         modalSubmit.reply({ embeds: [embed], ephemeral: true });
     },

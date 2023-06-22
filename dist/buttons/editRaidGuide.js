@@ -25,7 +25,7 @@ export default {
             .setPlaceholder("Укажите заголовок гайда")
             .setValue(raidGuideEncounter.name)
             .setMaxLength(256)
-            .setRequired(true);
+            .setRequired(false);
         const raidGuide_description = new TextInputBuilder()
             .setLabel("Описание")
             .setStyle(TextInputStyle.Paragraph)

@@ -24,7 +24,13 @@ async function sendRaidGuide(interaction, raidName, deferredReply) {
             });
         }
         if (raidName === "test") {
-            components.push(new ButtonBuilder().setCustomId(`showEditMenu_test_${encounterIndex}`).setStyle(ButtonStyle.Secondary).setLabel("Изменить гайд"));
+            components.push(new ButtonBuilder()
+                .setCustomId(`showEditMenu_${raidName}_${encounterIndex}`)
+                .setStyle(ButtonStyle.Secondary)
+                .setLabel("[ADMIN] Изменить"), new ButtonBuilder()
+                .setCustomId(`addRaidGuideEmbed_${raidName}_${encounterIndex}`)
+                .setStyle(ButtonStyle.Success)
+                .setLabel("[ADMIN] Добавить сообщение"));
         }
         const messageOptions = {
             embeds: [embed],
