@@ -405,8 +405,7 @@ export default {
             (await deferredUpdate) && interaction.editReply({ embeds: [replyEmbed] });
         }
         else if (interaction.customId === RaidButtons.unlock) {
-            const raidChannel = client.getCachedTextChannel(channelIds.raid) ||
-                (await client.getCachedGuild().channels.fetch(channelIds.raid));
+            const raidChannel = await client.getAsyncTextChannel(channelIds.raid);
             const raidMsg = raidChannel.messages.cache.get(raidEvent.messageId) || (await raidChannel.messages.fetch(raidEvent.messageId));
             async function raidButtonsUnlocker() {
                 const inChannelMessageButtonRows = interaction.message.components.map((actionRow) => {
