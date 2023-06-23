@@ -1,8 +1,8 @@
 {
 	"name": "nightfuture",
-	"version": "2.14.21",
+	"version": "2.14.22",
 	"engines": {
-		"node": "18.14.2"
+		"node": "18.x"
 	},
 	"type": "module",
 	"description": "Discord bot developed for Night 9, a Destiny 2 clan Discord server",

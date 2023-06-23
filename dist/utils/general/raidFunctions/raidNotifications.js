@@ -202,8 +202,9 @@ async function raidAnnounce(oldRaidData, discordId) {
     for (const [_, chn] of raidVoiceChannels) {
         if (!inviteUrl && (chn.userLimit === 0 || chn.userLimit - 6 > chn.members.size || chn.members.has(raidData.creator))) {
             const invite = await chn.createInvite({ reason: "Raid automatic invite", maxAge: 60 * 1440 });
-            inviteUrl = invite?.url;
+            console.debug("Created a new raid invite url");
             if (inviteUrl) {
+                inviteUrl = invite?.url;
                 raidInvites.set(raidData.id, inviteUrl);
             }
             break;

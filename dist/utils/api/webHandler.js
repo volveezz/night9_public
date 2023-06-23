@@ -95,7 +95,7 @@ export default async function webHandler(code, state, res) {
                 try {
                     const loggedEmbed = new EmbedBuilder()
                         .setColor(colors.success)
-                        .setAuthor({ name: member.displayName, iconURL: member.displayAvatarURL({ forceStatic: false }) })
+                        .setAuthor({ name: member.displayName, iconURL: member.displayAvatarURL() })
                         .setTitle("Пользователь обновил существующую регистрацию");
                     await (await client.getAsyncTextChannel(channelIds.bot)).send({ embeds: [loggedEmbed] });
                 }
@@ -133,7 +133,7 @@ export default async function webHandler(code, state, res) {
         });
         const loggedEmbed = new EmbedBuilder()
             .setColor(colors.success)
-            .setAuthor({ name: `${member.displayName} зарегистрировался`, iconURL: member.displayAvatarURL({ forceStatic: false }) })
+            .setAuthor({ name: `${member.displayName} зарегистрировался`, iconURL: member.displayAvatarURL() })
             .addFields({ name: "Пользователь", value: `<@${member.id}>`, inline: true }, {
             name: "Bungie аккаунт",
             value: `[bungie.net](https://www.bungie.net/7/ru/User/Profile/254/${body.membership_id})`,

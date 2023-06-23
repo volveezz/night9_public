@@ -28,7 +28,7 @@ export default {
                     .setTitle("Введите текст сообщения для ответа")
                     .setAuthor({
                     name: `Отвечаем: ${nameCleaner(replyMember.displayName)}`,
-                    iconURL: replyMember.displayAvatarURL({ forceStatic: false }),
+                    iconURL: replyMember.displayAvatarURL(),
                 });
                 interaction.reply({ embeds: [embed] });
                 const collector = channel.createMessageCollector({

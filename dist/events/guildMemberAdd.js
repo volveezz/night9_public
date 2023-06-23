@@ -25,7 +25,7 @@ export default new Event("guildMemberAdd", async (member) => {
         name: "Дата создания аккаунта",
         value: `<t:${Math.round(member.user.createdTimestamp / 1000)}>`,
     })
-        .setThumbnail(member.displayAvatarURL({ forceStatic: false }));
+        .setThumbnail(member.displayAvatarURL());
     if (member.communicationDisabledUntil != null) {
         embed.addFields({
             name: "Тайм-аут до",

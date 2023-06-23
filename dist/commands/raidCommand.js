@@ -880,7 +880,7 @@ export default new Command({
                         : userAlreadyInHotJoined
                             ? "[Запас] → "
                             : "❌ → "}${userTarget === "alt" ? " [Возможный участник]" : userTarget === "hotJoined" ? " [Запас]" : "[Участник]"}`,
-                iconURL: addedUser.displayAvatarURL({ forceStatic: false }),
+                iconURL: addedUser.displayAvatarURL(),
             })
                 .setFooter({
                 text: `Пользователь ${userAlreadyAlt || userAlreadyInHotJoined || userAlreadyJoined ? "перезаписан" : "записан"} ${raidData.creator === interaction.user.id ? "создателем рейда" : "администратором"}`,
@@ -947,7 +947,7 @@ export default new Command({
                             : raidData.hotJoined.includes(kickableUser.id)
                                 ? "[Запас]"
                                 : "[]"} → ❌`,
-                    iconURL: kickableUser.displayAvatarURL({ forceStatic: false }),
+                    iconURL: kickableUser.displayAvatarURL(),
                 })
                     .setFooter({
                     text: `Пользователь исключен ${raidData.creator === interaction.user.id ? "создателем рейда" : "администратором"}`,

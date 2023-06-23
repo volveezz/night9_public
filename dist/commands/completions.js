@@ -286,7 +286,7 @@ export default new Command({
         }
         embed.setColor(colors.success).setAuthor({
             name: `${nameCleaner(targerMember.displayName)} завершил ${filteredActivities.activtitiesTotal.completed} из ${filteredActivities.activtitiesTotal.total} ${activityText.activity}`,
-            iconURL: targerMember.displayAvatarURL({ forceStatic: false }) || targerMember.user.displayAvatarURL({ forceStatic: false }),
+            iconURL: targerMember.displayAvatarURL() || targerMember.user.displayAvatarURL(),
         });
         for (let i = 0; i < fieldArray.length; i++) {
             const field = fieldArray[i];

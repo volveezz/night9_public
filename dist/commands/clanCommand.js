@@ -263,7 +263,7 @@ const handleManagement = async (interaction, clanMembers, defferedReply) => {
         const embed = new EmbedBuilder().setColor(member ? colors.default : colors.kicked).setAuthor(member
             ? {
                 name: `${member.displayName} - ${userData.displayName}`,
-                iconURL: member.displayAvatarURL({ forceStatic: false }),
+                iconURL: member.displayAvatarURL(),
                 url: `https://www.bungie.net/en/Profile/${userData.platform}/${userData.bungieId}`,
             }
             : {

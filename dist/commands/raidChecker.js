@@ -5,6 +5,7 @@ import { apiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
 import { fetchRequest } from "../utils/api/fetchRequest.js";
 import { CachedDestinyActivityDefinition } from "../utils/api/manifestHandler.js";
+import nameCleaner from "../utils/general/nameClearer.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default new Command({
     name: "закрытия_рейдов",
@@ -129,9 +130,9 @@ export default new Command({
             .setFooter({ text: "Удаленные персонажи не проверяются" });
         interaction instanceof UserContextMenuCommandInteraction
             ? embed.setAuthor({
-                name: interaction.guild?.members.cache.get(interaction.targetId)?.displayName.replace(/\[[+](?:\d|\d\d)]\s?/, "") ||
+                name: nameCleaner(interaction.guild?.members.cache.get(interaction.targetId)?.displayName || "") ||
                     interaction.targetUser.username,
-                iconURL: interaction.targetUser.displayAvatarURL({ forceStatic: false }),
+                iconURL: interaction.targetUser.displayAvatarURL(),
             })
             : [];
         const embed_map = new Map([...activity_map].sort());

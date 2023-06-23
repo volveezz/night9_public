@@ -21,7 +21,7 @@ async function sendDirectMessage(member, isEmbed, content, originatingMessage) {
             .setTitle("Произошла ошибка во время отправки сообщения")
             .setAuthor({
             name: `Пытались отправить: ${member.displayName || member.user.username}${member.user.username !== member.displayName ? ` (${member.user.username})` : ""}`,
-            iconURL: member.displayAvatarURL({ forceStatic: false }),
+            iconURL: member.displayAvatarURL(),
         })
             .setDescription(content)
             .setFooter({ text: `UId: ${member.id}` });

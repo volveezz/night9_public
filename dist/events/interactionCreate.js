@@ -2,6 +2,7 @@ import { AutocompleteInteraction } from "discord.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import createErrorEmbed from "../utils/errorHandling/createErrorEmbed.js";
+import nameCleaner from "../utils/general/nameClearer.js";
 import { timer } from "../utils/general/utilities.js";
 const optionParser = (option) => option
     .map((v) => (v ? `${v.name}${v.value ? `:${v.value}` : ""}${v.options?.length ? ` ${optionParser(v.options)}` : ""}` : ""))
@@ -13,8 +14,8 @@ const commandLogger = async (interaction) => {
     if (interaction instanceof AutocompleteInteraction)
         return;
     const discordId = interaction.user.id;
-    const member = await client.getAsyncMember(discordId);
-    const username = member?.displayName || interaction.user.username;
+    const memberDisplayName = client.getCachedMembers().get(discordId)?.displayName || (await client.getAsyncMember(discordId)).displayName;
+    const username = nameCleaner(memberDisplayName) || interaction.user.username;
     const embedInfo = interaction.isMessageComponent() && interaction.message && interaction.message.embeds
         ? getEmbedTitleOrAuthor(interaction.message.embeds)
         : "";

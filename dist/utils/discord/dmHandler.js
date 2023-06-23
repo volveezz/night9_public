@@ -13,7 +13,7 @@ async function sendAdminNotification(message, member) {
         .setTitle("Получено новое сообщение")
         .setAuthor({
         name: `Отправитель: ${member.displayName}${member.user.username !== member.displayName ? ` (${member.user.username})` : ""}`,
-        iconURL: message.author.displayAvatarURL({ forceStatic: false }),
+        iconURL: message.author.displayAvatarURL(),
     })
         .setFooter({ text: `UId: ${message.author.id} | MId: ${message.id}` });
     if (message.cleanContent.length > 0) {

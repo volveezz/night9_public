@@ -31,7 +31,7 @@ async function actionMessageHandler({ interaction, raidEvent, target }) {
     if (raidEvent.hotJoined.includes(interaction.user.id)) {
         embed.setColor(colors.serious).setAuthor({
             name: `${displayName}: ${resolvedTarget}[Запас]`,
-            iconURL: member.displayAvatarURL({ forceStatic: false }),
+            iconURL: member.displayAvatarURL(),
         });
     }
     else {
@@ -39,25 +39,25 @@ async function actionMessageHandler({ interaction, raidEvent, target }) {
             case RaidButtons.join:
                 embed.setColor(colors.success).setAuthor({
                     name: `${displayName}: ${resolvedTarget}[Участник]`,
-                    iconURL: member.displayAvatarURL({ forceStatic: false }),
+                    iconURL: member.displayAvatarURL(),
                 });
                 break;
             case RaidButtons.alt:
                 embed.setColor(colors.warning).setAuthor({
                     name: `${displayName}: ${resolvedTarget}[Возможный участник]`,
-                    iconURL: member.displayAvatarURL({ forceStatic: false }),
+                    iconURL: member.displayAvatarURL(),
                 });
                 break;
             case RaidButtons.leave:
                 embed.setColor(colors.error).setAuthor({
                     name: `${displayName}: ${resolvedTarget}❌`,
-                    iconURL: member.displayAvatarURL({ forceStatic: false }),
+                    iconURL: member.displayAvatarURL(),
                 });
                 break;
             default:
                 embed.setColor("NotQuiteBlack").setAuthor({
                     name: `${displayName}: проник на рейд\n<@${ownerId}>`,
-                    iconURL: member.displayAvatarURL({ forceStatic: false }),
+                    iconURL: member.displayAvatarURL(),
                 });
         }
     }
@@ -80,7 +80,7 @@ async function joinedFromHotJoined(raidData) {
         .setColor(colors.success)
         .setAuthor({
         name: `${nameCleaner(member.displayName)}: [Запас] → [Участник]`,
-        iconURL: member.displayAvatarURL({ forceStatic: false }),
+        iconURL: member.displayAvatarURL(),
     })
         .setFooter({
         text: "Пользователь перезаписан системой",

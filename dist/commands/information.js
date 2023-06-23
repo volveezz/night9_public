@@ -40,7 +40,7 @@ export default new Command({
             : interaction.targetId;
         const targetMember = optionId ? undefined : await client.getAsyncMember(targetId);
         const targetName = targetMember ? (await client.getAsyncMember(targetId))?.displayName : undefined;
-        const targetAvatar = targetMember ? (await client.getAsyncMember(targetId))?.displayAvatarURL({ forceStatic: false }) : undefined;
+        const targetAvatar = targetMember ? (await client.getAsyncMember(targetId))?.displayAvatarURL() : undefined;
         const bunigeName = bungieNames.get(targetId || interaction.user.id);
         const embed = new EmbedBuilder()
             .setAuthor({

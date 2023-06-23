@@ -82,7 +82,7 @@ export default new Command({
                 noviceRaidList[selectedRaid].push(key);
             }
         }
-        function formatRaidUserData(discordId) {
+        async function formatRaidUserData(discordId) {
             const raidUserData = completedRaidsData.get(discordId);
             if (!raidUserData)
                 return "нет данных по закрытиям";
@@ -102,10 +102,10 @@ export default new Command({
                 raidClears.push(`${raidUserData.gos} СС`);
             if (raidUserData.lw > 0)
                 raidClears.push(`${raidUserData.lw} ПЖ`);
-            return ` **${nameCleaner(member?.displayName ||
-                client.getCachedMembers().get(member?.id || "")?.displayName ||
-                member?.user.username ||
-                "Пользователь не на сервере", true)}** ${raidClears.length > 0
+            const memberDisplayName = member && member.id
+                ? nameCleaner((client.getCachedMembers().get(member.id) || (await client.getAsyncMember(member.id))).displayName)
+                : "Неизвстный пользователь";
+            return ` **${memberDisplayName}** ${raidClears.length > 0
                 ? `завершил: ${raidClears.join(", ")}`
                 : raidUserData?.totalRaidCount === 0
                     ? "не проходил ранее рейды"
@@ -128,8 +128,8 @@ export default new Command({
             }
         }
         const maxLength = 2048;
-        const raidClearsList = await noviceRaidList[selectedRaid].map((userId, index) => {
-            const raidDataClears = formatRaidUserData(userId);
+        const raidClearsList = await noviceRaidList[selectedRaid].map(async (userId, index) => {
+            const raidDataClears = await formatRaidUserData(userId);
             return `${index + 1}.${raidDataClears}`;
         });
         if (raidClearsList.length > 0) {

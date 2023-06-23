@@ -30,7 +30,7 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
         embed
             .setAuthor({
             name: `${oldState.member?.displayName || newState.member?.displayName || "пользователь не найден"} присоединился к голосовому каналу`,
-            iconURL: oldState.member?.displayAvatarURL({ forceStatic: false }) || newState.member?.displayAvatarURL({ forceStatic: false }),
+            iconURL: oldState.member?.displayAvatarURL() || newState.member?.displayAvatarURL(),
         })
             .setFooter({
             text: `UId: ${userId} | ChnId: ${newState.channelId}`,
@@ -44,7 +44,7 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
         embed
             .setAuthor({
             name: `${oldState.member?.displayName || newState.member?.displayName || "пользователь не найден"} вышел из голосового канала`,
-            iconURL: oldState.member?.displayAvatarURL({ forceStatic: false }) || newState.member?.displayAvatarURL({ forceStatic: false }),
+            iconURL: oldState.member?.displayAvatarURL() || newState.member?.displayAvatarURL(),
         })
             .setFooter({
             text: `Chn: ${oldState.channel?.name}`,
@@ -64,7 +64,7 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
         embed
             .setAuthor({
             name: `${oldState.member?.displayName || newState.member?.displayName || "пользователь не найден"} сменил голосовой канал`,
-            iconURL: oldState.member?.displayAvatarURL({ forceStatic: false }) || newState.member?.displayAvatarURL({ forceStatic: false }),
+            iconURL: oldState.member?.displayAvatarURL() || newState.member?.displayAvatarURL(),
         })
             .setFooter({
             text: `UId: ${userId} | ChnId: ${newState.channelId}`,

@@ -109,7 +109,7 @@ async function handleAuthorizationRecordExpired(row, table) {
                     const botChannel = await client.getAsyncTextChannel(channelIds.publicBotSpam);
                     embed.setAuthor({
                         name: `${nameCleaner(member.displayName)}`,
-                        iconURL: member.displayAvatarURL({ forceStatic: false }),
+                        iconURL: member.displayAvatarURL(),
                     });
                     await botChannel.send({ embeds: [embed], components });
                 }

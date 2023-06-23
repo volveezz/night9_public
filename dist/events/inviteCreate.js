@@ -11,7 +11,7 @@ export default new Event("inviteCreate", async (invite) => {
     const embed = new EmbedBuilder()
         .setAuthor({
         name: `${member?.displayName || invite.inviter?.username} создал приглашение`,
-        iconURL: member?.displayAvatarURL({ forceStatic: false }) || invite.inviter?.displayAvatarURL({ forceStatic: false }),
+        iconURL: member?.displayAvatarURL() || invite.inviter?.displayAvatarURL(),
     })
         .setFooter({ text: `Id: ${invite.inviterId}` })
         .addFields([

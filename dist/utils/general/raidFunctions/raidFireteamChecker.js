@@ -115,7 +115,7 @@ async function raidFireteamChecker(id) {
                         .setColor(userInFireteam ? colors.success : colors.error)
                         .setAuthor({
                         name: `${nameCleaner(member?.displayName || "неизвестный пользователь")}: ${actionState}`,
-                        iconURL: member?.displayAvatarURL({ forceStatic: false }),
+                        iconURL: member?.displayAvatarURL(),
                     })
                         .setFooter({
                         text: `Пользователь ${footerText} системой слежки за составом`,

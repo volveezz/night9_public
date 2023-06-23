@@ -42,7 +42,7 @@ export async function updateClanRolesWithLogging(result, join) {
             embed
                 .setAuthor({
                 name: `${member.displayName} вступил в клан`,
-                iconURL: member.displayAvatarURL({ forceStatic: false }),
+                iconURL: member.displayAvatarURL(),
             })
                 .setColor(colors.success);
             try {
@@ -72,7 +72,7 @@ export async function updateClanRolesWithLogging(result, join) {
             embed
                 .setAuthor({
                 name: `${member.displayName} покинул клан`,
-                iconURL: member.displayAvatarURL({ forceStatic: false }),
+                iconURL: member.displayAvatarURL(),
             })
                 .setColor(colors.kicked);
             const welcomeMessage = welcomeMessageIds.get(member.id);

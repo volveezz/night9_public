@@ -11,7 +11,7 @@ export async function sendDmLogMessage(member, text, id, interaction) {
         .setTitle("Отправлено сообщение")
         .setAuthor({
         name: `Отправлено: ${member.displayName || member.user.username}${member.user.username !== member.displayName ? ` (${member.user.username})` : ""}`,
-        iconURL: member.displayAvatarURL({ forceStatic: false }),
+        iconURL: member.displayAvatarURL(),
     })
         .setDescription(text || "nothing")
         .setFooter({ text: `UId: ${member.id} | MId: ${id}` });

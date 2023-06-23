@@ -15,7 +15,7 @@ export default new Command({
             required: true,
         },
     ],
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
         const defferedReply = interaction.deferReply({ ephemeral: true });
         const scriptId = interaction.options.getString("script", true).toLowerCase();
         switch (scriptId) {
