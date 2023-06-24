@@ -27,7 +27,7 @@ function getDefaultRaidButtons() {
         new ButtonBuilder().setCustomId(RaidButtons.alt).setLabel("Возможно буду").setStyle(ButtonStyle.Secondary),
     ];
 }
-export function generateRaidClearsText(clears = 0) {
+export function generateRaidCompletionText(clears = 0) {
     const baseText = `**${clears}** закрыт`;
     let ending = "ий";
     if (clears === 1) {
@@ -38,7 +38,7 @@ export function generateRaidClearsText(clears = 0) {
     }
     return baseText + ending;
 }
-export function getRaidData(raid, difficulty = 1) {
+export function getRaidDetails(raid, difficulty = 1) {
     switch (raid) {
         case "ron":
             return {
@@ -207,7 +207,7 @@ export async function updateRaidMessage(options) {
             const userName = await cleanMemberName(userId);
             const raidClears = completedRaidsData.get(userId);
             if (raidClears) {
-                const clearsText = generateRaidClearsText(raidClears[raidName]);
+                const clearsText = generateRaidCompletionText(raidClears[raidName]);
                 const masterClearsText = raidClears[raidName + "Master"] ? ` (+**${raidClears[raidName + "Master"]}** на мастере)` : "";
                 return `⁣　${index + 1}. **${userName}** — ${clearsText}${masterClearsText}`;
             }
@@ -241,7 +241,7 @@ function updateComponents(embed, raidMessage, joined, raidName, raidDifficulty, 
         });
     }
     else if (embed.data.color == null || embed.data.color === 2829617) {
-        embed.setColor(getRaidData(raidName, raidDifficulty).raidColor);
+        embed.setColor(getRaidDetails(raidName, raidDifficulty).raidColor);
         components = raidMessage.components[0].components.map((button) => {
             const btn = ButtonBuilder.from(button);
             if (button.customId === RaidButtons.join) {

@@ -10,7 +10,7 @@ import { client } from "../index.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
-import { checkRaidTimeConflicts, getRaidData, sendUserRaidGuideNoti, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
+import { checkRaidTimeConflicts, getRaidDetails, sendUserRaidGuideNoti, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
 import { handleRaidCreatorLeaving } from "../utils/general/raidFunctions/raidCreatorHandler.js";
 import { updateNotifications } from "../utils/general/raidFunctions/raidNotifications.js";
 import { RaidEvent } from "../utils/persistence/sequelize.js";
@@ -196,7 +196,7 @@ export default {
             await deferredUpdate;
             throw { errorType: UserErrors.RAID_NOT_FOUND };
         }
-        const raidData = getRaidData(raidEvent.raid, raidEvent.difficulty);
+        const raidData = getRaidDetails(raidEvent.raid, raidEvent.difficulty);
         const member = await client.getAsyncMember(interaction.user.id);
         if (raidData.requiredRole && member.roles.cache.has(statusRoles.verified) && !member.roles.cache.has(raidData.requiredRole)) {
             await deferredUpdate;

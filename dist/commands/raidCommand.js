@@ -11,7 +11,7 @@ import { Command } from "../structures/command.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
-import { generateRaidClearsText, getRaidData, getRaidDatabaseInfo, raidChallenges, timeConverter, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
+import { generateRaidCompletionText, getRaidDatabaseInfo, getRaidDetails, raidChallenges, timeConverter, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
 import raidFireteamChecker from "../utils/general/raidFunctions/raidFireteamChecker.js";
 import { clearNotifications, sendNotificationInfo, updateNotifications, updateNotificationsForEntireRaid, } from "../utils/general/raidFunctions/raidNotifications.js";
 import { descriptionFormatter, escapeString } from "../utils/general/utilities.js";
@@ -420,7 +420,7 @@ export default new Command({
             const raidDescription = args.getString("описание");
             const difficulty = (args.getInteger("сложность") ?? 1);
             const reqClears = args.getInteger("требуемых_закрытий") ?? 0;
-            const raidData = getRaidData(raid, difficulty);
+            const raidData = getRaidDetails(raid, difficulty);
             const parsedTime = timeConverter(time, userTimezones.get(interaction.user.id));
             if (parsedTime <= Math.trunc(Date.now() / 1000)) {
                 await deferredReply;
@@ -478,7 +478,6 @@ export default new Command({
                 ],
                 reason: `${nameCleaner(member.displayName)} created new raid`,
             });
-            raidFireteamChecker(raidDb.id);
             const premiumEmbed = new EmbedBuilder()
                 .setColor("#F3AD0C")
                 .addFields([{ name: "Испытания этой недели", value: "⁣　⁣*на одном из этапов*\n\n**Модификаторы рейда**\n　*если есть...*" }]);
@@ -512,7 +511,7 @@ export default new Command({
                 {
                     name: "Участник: 1/6",
                     value: `⁣　1. **${nameCleaner(member.displayName, true)}**${raidClears
-                        ? ` — ${generateRaidClearsText(raidClears[raidData.raid])}${raidClears[raidData.raid + "Master"] ? ` (+**${raidClears[raidData.raid + "Master"]}** на мастере)` : ""}`
+                        ? ` — ${generateRaidCompletionText(raidClears[raidData.raid])}${raidClears[raidData.raid + "Master"] ? ` (+**${raidClears[raidData.raid + "Master"]}** на мастере)` : ""}`
                         : ""}`,
                 },
             ]);
@@ -542,6 +541,7 @@ export default new Command({
             await updatePrivateRaidMessage({ raidEvent: insertedRaidData[1][0] });
             const privateChannelMessage = (await inChnMsg) || (await privateRaidChannel.messages.fetch((await inChnMsg).id));
             updateNotifications(interaction.user.id);
+            raidFireteamChecker(raidDb.id);
             try {
                 raidChallenges(raidData, privateChannelMessage, parsedTime, difficulty);
             }
@@ -563,7 +563,7 @@ export default new Command({
                 await deferredReply;
                 throw { errorType: UserErrors.RAID_NOT_FOUND };
             }
-            const raidInfo = getRaidData((newRaid || raidData.raid), newDifficulty ?? raidData.difficulty);
+            const raidInfo = getRaidDetails((newRaid || raidData.raid), newDifficulty ?? raidData.difficulty);
             const changes = [];
             const raidMessage = await client.getAsyncMessage(channelIds.raid, raidData.messageId);
             const raidEmbed = EmbedBuilder.from(raidMessage?.embeds[0]);

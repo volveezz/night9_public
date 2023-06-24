@@ -11,7 +11,7 @@ import { RaidEvent, RaidUserNotification } from "../../persistence/sequelize.js"
 import { addButtonsToMessage } from "../addButtonsToMessage.js";
 import { completedRaidsData } from "../destinyActivityChecker.js";
 import nameCleaner from "../nameClearer.js";
-import { generateRaidClearsText, getRaidData } from "../raidFunctions.js";
+import { generateRaidCompletionText, getRaidDetails } from "../raidFunctions.js";
 import { getRandomGIF, getRandomRaidGIF, timer } from "../utilities.js";
 import raidFireteamChecker from "./raidFireteamChecker.js";
 schedule("0 23 * * *", () => {
@@ -30,7 +30,7 @@ let tasks = [];
 let runningTimeouts = [];
 async function scheduleNextNotification() {
     if (tasks.length === 0) {
-        return console.debug(`[DEBUG 7] No more notifications to send.`);
+        return;
     }
     tasks.sort((a, b) => a.notifyTime - b.notifyTime);
     const nextTask = tasks.shift();
@@ -59,7 +59,7 @@ async function sendNotification(task) {
     if (!raid.joined.includes(task.discordId)) {
         return;
     }
-    await raidAnnounce(raid, task.discordId);
+    await announceRaidEvent(raid, task.discordId);
     scheduleNextNotification();
 }
 export async function loadNotifications() {
@@ -156,77 +156,79 @@ export async function updateNotificationsForEntireRaid(raidId) {
     }
 }
 const raidInvites = new Map();
-async function raidAnnounce(oldRaidData, discordId) {
-    const { id: oldRaidId, time: oldRaidTime } = oldRaidData;
-    const raidData = await RaidEvent.findByPk(oldRaidId, {
-        attributes: ["id", "raid", "difficulty", "joined", "messageId", "creator", "time"],
+async function announceRaidEvent(previousRaidEvent, discordUserId) {
+    const { id: previousRaidId, time: previousRaidTime } = previousRaidEvent;
+    const currentRaidEvent = await RaidEvent.findByPk(previousRaidId, {
+        attributes: ["id", "raid", "difficulty", "participants", "messageId", "creator", "time"],
     });
-    if (!raidData || (raidData && raidData.time !== oldRaidTime)) {
-        console.error(`[Error code: 1807] Raid ${oldRaidId} not found.`, raidData?.time, oldRaidTime, oldRaidId, discordId);
+    if (!currentRaidEvent || (currentRaidEvent && currentRaidEvent.time !== previousRaidTime)) {
+        console.error(`[Error code: 1807] Raid ${previousRaidId} not found.`, currentRaidEvent?.time, previousRaidTime, previousRaidId, discordUserId);
         return;
     }
-    const raidInfo = getRaidData(raidData.raid, raidData.difficulty);
+    const raidDetails = getRaidDetails(currentRaidEvent.raid, currentRaidEvent.difficulty);
     const guild = client.getCachedGuild();
-    const raidMembers = await Promise.all(raidData.joined.map(async (userId) => {
+    const raidParticipants = await Promise.all(currentRaidEvent.joined.map(async (userId) => {
         return client.getAsyncMember(userId);
     }));
-    const raidMembersNames = raidMembers
-        .sort((a) => (a.id === raidData.creator ? 1 : 0))
-        .map((member, index) => {
-        const raidClears = completedRaidsData.get(member.id);
-        return `⁣ ${index + 1}. **${nameCleaner(member.displayName, true)}**${raidClears
-            ? ` — ${generateRaidClearsText(raidClears[raidData.raid])}${raidClears[raidData.raid + "Master"] ? ` (+**${raidClears[raidData.raid + "Master"]}** на мастере)` : ""}`
+    const participantNames = raidParticipants
+        .sort((participant) => (participant.id === currentRaidEvent.creator ? 1 : 0))
+        .map((participant, index) => {
+        const raidCompletionData = completedRaidsData.get(participant.id);
+        return `⁣ ${index + 1}. **${nameCleaner(participant.displayName, true)}**${raidCompletionData
+            ? ` — ${generateRaidCompletionText(raidCompletionData[currentRaidEvent.raid])}${raidCompletionData[currentRaidEvent.raid + "Master"]
+                ? ` (+**${raidCompletionData[currentRaidEvent.raid + "Master"]}** на мастере)`
+                : ""}`
             : ""}`;
     });
-    const raidTime = Math.round((raidData.time - Math.trunc(Date.now() / 1000)) / 60);
-    const embed = new EmbedBuilder()
-        .setColor(raidInfo ? raidInfo.raidColor : colors.default)
-        .setTitle("Уведомление о скором рейде")
-        .setThumbnail(raidInfo?.raidBanner ?? null)
-        .setDescription(`Рейд [${raidData.id}-${raidData.raid}](https://discord.com/channels/${guildId}/${channelIds.raid}/${raidData.messageId}) начнется в течение ${raidTime} минут!\n- <t:${raidData.time}>, <t:${raidData.time}:R>`)
+    const timeUntilRaid = Math.round((currentRaidEvent.time - Math.trunc(Date.now() / 1000)) / 60);
+    const raidEmbed = new EmbedBuilder()
+        .setColor(raidDetails ? raidDetails.raidColor : colors.default)
+        .setTitle("Upcoming Raid Notification")
+        .setThumbnail(raidDetails?.raidBanner ?? null)
+        .setDescription(`Рейд [${currentRaidEvent.id}-${currentRaidEvent.raid}](https://discord.com/channels/${guildId}/${channelIds.raid}/${currentRaidEvent.messageId}) начнется в течение ${timeUntilRaid} минут!\nВ: <t:${currentRaidEvent.time}>, <t:${currentRaidEvent.time}:R>`)
         .addFields({
         name: "Текущий состав группы:",
-        value: raidMembersNames.join("\n") || "⁣　*никого*",
+        value: participantNames.join("\n") || "⁣　*никого*",
     });
     try {
-        embed.setImage((await getRandomRaidGIF()) || (await getRandomGIF("raid time")));
+        raidEmbed.setImage((await getRandomRaidGIF()) || (await getRandomGIF("raid time")));
     }
     catch (error) {
-        console.error("[Error code: 1631] Error during adding image to the notify message", error);
+        console.error("[Error code: 1631] Error during adding image to the notification message", error);
     }
     const raidVoiceChannels = guild.channels.cache
-        .filter((chn) => chn.parentId === categoryIds.raid && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"))
+        .filter((channel) => channel.parentId === categoryIds.raid && channel.type === ChannelType.GuildVoice && channel.name.includes("Raid"))
         .reverse();
-    const components = [];
-    let inviteUrl = raidInvites.get(raidData.id);
-    for (const [_, chn] of raidVoiceChannels) {
-        if (!inviteUrl && (chn.userLimit === 0 || chn.userLimit - 6 > chn.members.size || chn.members.has(raidData.creator))) {
-            const invite = await chn.createInvite({ reason: "Raid automatic invite", maxAge: 60 * 1440 });
-            console.debug("Created a new raid invite url");
-            if (inviteUrl) {
-                inviteUrl = invite?.url;
-                raidInvites.set(raidData.id, inviteUrl);
+    const buttonComponents = [];
+    let raidInviteUrl = raidInvites.get(currentRaidEvent.id);
+    if (!raidInviteUrl) {
+        for (const [_, channel] of raidVoiceChannels) {
+            if (channel.userLimit === 0 || channel.userLimit - 6 > channel.members.size || channel.members.has(currentRaidEvent.creator)) {
+                const invite = await channel.createInvite({ reason: "Raid automatic invite", maxAge: 60 * 1440 });
+                console.debug("Created a new raid invite url");
+                raidInviteUrl = invite.url;
+                raidInvites.set(currentRaidEvent.id, raidInviteUrl);
+                break;
             }
-            break;
         }
     }
-    if (inviteUrl) {
-        components.push(new ButtonBuilder({
+    if (raidInviteUrl) {
+        buttonComponents.push(new ButtonBuilder({
             style: ButtonStyle.Link,
-            url: inviteUrl,
-            label: `Перейти в рейдовый канал`,
+            url: raidInviteUrl,
+            label: "Перейти в рейдовый канал",
         }));
     }
-    const member = raidMembers.find((member) => member.id === discordId);
-    if (!member) {
-        console.error("[Error code: 1760]", raidMembers);
-        clearNotifications(raidData.id);
+    const discordUser = raidParticipants.find((participant) => participant.id === discordUserId);
+    if (!discordUser) {
+        console.error("[Error code: 1760]", raidParticipants);
+        clearNotifications(currentRaidEvent.id);
         return;
     }
-    console.debug(`[DEBUG 12] Sending notification to ${member.displayName}.`);
-    await member.send({
-        embeds: [embed],
-        components: await addButtonsToMessage(components),
+    console.debug(`[DEBUG 12] Sending notification to ${discordUser.displayName}.`);
+    await discordUser.send({
+        embeds: [raidEmbed],
+        components: await addButtonsToMessage(buttonComponents),
     });
 }
 export async function sendNotificationInfo(interaction, deferredReply) {

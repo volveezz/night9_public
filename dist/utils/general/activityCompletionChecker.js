@@ -3,7 +3,7 @@ import { apiStatus } from "../../structures/apiStatus.js";
 import { fetchRequest } from "../api/fetchRequest.js";
 import { CachedDestinyActivityDefinition } from "../api/manifestHandler.js";
 import { AuthData } from "../persistence/sequelize.js";
-import { getRaidData } from "./raidFunctions.js";
+import { getRaidDetails } from "./raidFunctions.js";
 import { raidMilestoneHashes } from "./raidMilestones.js";
 import { timer } from "./utilities.js";
 const activityCompletionCurrentProfiles = new Map();
@@ -101,7 +101,7 @@ async function fetchCharacterResponse({ bungieId, characterId, platform, }) {
     }
 }
 async function activityCompletionChecker({ bungieId, characterId, id, platform, raid, discordId }) {
-    const milestoneHash = typeof raid === "string" ? getRaidData(raid).milestoneHash : raid;
+    const milestoneHash = typeof raid === "string" ? getRaidDetails(raid).milestoneHash : raid;
     let startTime = Date.now();
     let interval;
     let previousActivityHash;

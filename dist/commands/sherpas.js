@@ -4,7 +4,7 @@ import { client } from "../index.js";
 import { Command } from "../structures/command.js";
 import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
-import { getRaidData } from "../utils/general/raidFunctions.js";
+import { getRaidDetails } from "../utils/general/raidFunctions.js";
 export default new Command({
     name: "новички",
     nameLocalizations: { "en-GB": "sherpas", "en-US": "sherpas" },
@@ -75,7 +75,7 @@ export default new Command({
                     console.error(`[Error code: 1692] No member ${key}`);
                     continue;
                 }
-                const raidRole = getRaidData(selectedRaid).requiredRole || client.getCachedGuild().roles.everyone.id;
+                const raidRole = getRaidDetails(selectedRaid).requiredRole || client.getCachedGuild().roles.everyone.id;
                 const hasRaidRole = member.roles.cache.has(raidRole);
                 if (hasRaidRole === false)
                     continue;
@@ -114,7 +114,7 @@ export default new Command({
         async function sendEmbed(raidEmbedData, embedCountIndex = 0) {
             const embed = new EmbedBuilder()
                 .setColor(colors.success)
-                .setTitle(`Новички в ${getRaidData(selectedRaid).raidName}`)
+                .setTitle(`Новички в ${getRaidDetails(selectedRaid).raidName}`)
                 .setDescription(raidEmbedData);
             await deferredReply;
             if (embedCountIndex === 0) {
