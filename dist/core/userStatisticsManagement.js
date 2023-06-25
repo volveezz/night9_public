@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import NightRoleCategory from "../configs/RoleCategory.js";
+import { ownerId } from "../configs/ids.js";
 import { dungeonsTriumphHashes } from "../configs/roleRequirements.js";
 import { activityRoles, dlcRoles, dungeonMasterRole, guardianRankRoles, seasonalRoles, statisticsRoles, statusRoles, titleCategory, trialsRoles, triumphsCategory, } from "../configs/roles.js";
 import { client } from "../index.js";
@@ -248,7 +249,8 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                         else {
                             if (memberRoles.has(role.roleId))
                                 removeRoles.push(role.roleId);
-                            console.debug("Member has this role and we are removing it", !!triumphRecord.objectives, triumphRecord?.objectives?.[triumphRecord.objectives.length - 1], triumphHash, typeof triumphHash, !!triumphRecord.intervalObjectives, triumphRecord?.intervalObjectives?.[triumphRecord.intervalObjectives.length - 1]?.complete);
+                            if (member.id === ownerId)
+                                console.debug("Member has this role and we are removing it", !!triumphRecord.objectives, triumphRecord?.objectives?.[triumphRecord.objectives.length - 1], triumphHash, typeof triumphHash, !!triumphRecord.intervalObjectives, triumphRecord?.intervalObjectives?.[triumphRecord.intervalObjectives.length - 1]?.complete);
                         }
                     }
                 }
