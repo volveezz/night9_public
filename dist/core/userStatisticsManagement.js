@@ -236,10 +236,11 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                     const triumphRecord = destinyProfileResponse.profileRecords.data.records[triumphHash] ||
                         destinyProfileResponse.characterRecords.data[Object.keys(destinyProfileResponse.characterRecords.data)[0]].records[triumphHash];
                     if (triumphRecord) {
-                        console.debug("Found the triumph", role.roleId, triumphRecord.objectives, triumphRecord.intervalObjectives);
-                        if ((triumphRecord.objectives && triumphRecord.objectives[triumphRecord.objectives.length - 1].complete === true) ||
-                            (triumphRecord.intervalObjectives &&
-                                triumphRecord.intervalObjectives[triumphRecord.intervalObjectives.length - 1].complete === true)) {
+                        const objective = triumphRecord.objectives
+                            ? triumphRecord.objectives[triumphRecord.objectives.length - 1]
+                            : triumphRecord.intervalObjectives[triumphRecord.intervalObjectives.length - 1];
+                        console.debug("Found the triumph", role.roleId, objective, objective.complete, objective.complete === true);
+                        if (objective.complete === true) {
                             if (role.category === NightRoleCategory.Triumphs && !memberRoles.has(triumphsCategory)) {
                                 console.debug("Adding the triumph category to the user");
                                 addRoles.push(triumphsCategory);
