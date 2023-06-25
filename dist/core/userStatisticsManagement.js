@@ -222,15 +222,12 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                         if (memberRoles.hasAll(...dungeonRoles) && !memberRoles.has(dungeonMasterRole) && !addRoles.includes(dungeonMasterRole)) {
                             addRoles.push(dungeonMasterRole);
                             removeRoles.push(...dungeonRoles);
-                            console.debug("Adding and removing roles from the member");
                         }
                         else if (memberRoles.has(dungeonMasterRole) && memberRoles.hasAny(...dungeonRoles)) {
                             removeRoles.push(...dungeonRoles);
-                            console.debug("Removing roles from the member");
                         }
-                        return console.debug("Returning for the role", triumphHash, typeof triumphHash);
+                        return;
                     }
-                    console.debug("Went past main checking");
                     const triumphRecord = destinyProfileResponse.profileRecords.data.records[Number(triumphHash)] ||
                         destinyProfileResponse.characterRecords.data[Object.keys(destinyProfileResponse.characterRecords.data)[0]].records[Number(triumphHash)];
                     if (triumphRecord) {
@@ -243,16 +240,16 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                                 addRoles.push(triumphsCategory);
                             if (role.category === NightRoleCategory.Activity && !memberRoles.has(activityRoles.category))
                                 addRoles.push(activityRoles.category);
-                            if (!memberRoles.has(role.roleId))
+                            if (!memberRoles.has(role.roleId)) {
+                                console.debug("Adding the role to a user");
                                 addRoles.push(role.roleId);
+                            }
                         }
                         else {
                             if (memberRoles.has(role.roleId))
                                 removeRoles.push(role.roleId);
+                            console.debug("Member has this role and we are removing it");
                         }
-                    }
-                    else {
-                        console.error("[Error code: 1927] Found broken triumph for", member.displayName, triumphRecord, typeof triumphHash);
                     }
                 }
             });
