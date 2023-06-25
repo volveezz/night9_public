@@ -113,7 +113,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
             }
             roleDataFromDatabase.forEach(async (role) => {
                 console.debug("Starting checking", role.roleId);
-                if (role.category === NightRoleCategory.Titles && !(roleCategoriesBits & NightRoleCategory.Titles))
+                if (role.category === NightRoleCategory.Titles)
                     return;
                 if (role.category === NightRoleCategory.Triumphs && !(roleCategoriesBits & NightRoleCategory.Triumphs))
                     return;
@@ -236,14 +236,10 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                     const triumphRecord = destinyProfileResponse.profileRecords.data.records[triumphHash] ||
                         destinyProfileResponse.characterRecords.data[Object.keys(destinyProfileResponse.characterRecords.data)[0]].records[triumphHash];
                     if (triumphRecord) {
-                        console.debug("Found the triumph", role.roleId);
+                        console.debug("Found the triumph", role.roleId, triumphRecord.objectives, triumphRecord.intervalObjectives);
                         if ((triumphRecord.objectives && triumphRecord.objectives[triumphRecord.objectives.length - 1].complete === true) ||
                             (triumphRecord.intervalObjectives &&
                                 triumphRecord.intervalObjectives[triumphRecord.intervalObjectives.length - 1].complete === true)) {
-                            if (role.category === NightRoleCategory.Titles && !memberRoles.has(titleCategory)) {
-                                console.debug("Adding the title category to the user");
-                                addRoles.push(titleCategory);
-                            }
                             if (role.category === NightRoleCategory.Triumphs && !memberRoles.has(triumphsCategory)) {
                                 console.debug("Adding the triumph category to the user");
                                 addRoles.push(triumphsCategory);
