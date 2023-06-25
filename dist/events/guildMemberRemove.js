@@ -62,6 +62,6 @@ async function kickLeavedUserFromRaids(member) {
         returning: ["id", "messageId", "creator", "channelId", "joined", "hotJoined", "alt", "raid", "difficulty"],
     });
     if (rowsUpdated > 0) {
-        console.debug(raidEvents);
+        console.debug("[Error code: 1929]", raidEvents);
     }
 }

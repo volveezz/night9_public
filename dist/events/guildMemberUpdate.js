@@ -113,7 +113,6 @@ async function testAutonameUserStatus(member) {
     if (checkUserName(authData.displayName, member.displayName, authData.timezone))
         return;
     notifiedUsers.add(member.id);
-    console.debug("Notifing", authData.displayName, "about the fact that he changed his name and should disable autoname");
     const embed = new EmbedBuilder()
         .setColor(colors.serious)
         .setAuthor({ name: "Вы изменили никнейм с включенной системой за слежкой за ником", iconURL: icons.notify })

@@ -11,7 +11,8 @@ import { Command } from "../structures/command.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
-import { generateRaidCompletionText, getRaidDatabaseInfo, getRaidDetails, raidChallenges, timeConverter, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
+import { generateRaidCompletionText, getRaidDatabaseInfo, getRaidDetails, raidChallenges, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
+import convertTimeStringToNumber from "../utils/general/raidFunctions/convertTimeStringToNumber.js";
 import raidFireteamChecker from "../utils/general/raidFunctions/raidFireteamChecker.js";
 import { clearNotifications, sendNotificationInfo, updateNotifications, updateNotificationsForEntireRaid, } from "../utils/general/raidFunctions/raidNotifications.js";
 import { descriptionFormatter, escapeString } from "../utils/general/utilities.js";
@@ -421,7 +422,7 @@ export default new Command({
             const difficulty = (args.getInteger("сложность") ?? 1);
             const reqClears = args.getInteger("требуемых_закрытий") ?? 0;
             const raidData = getRaidDetails(raid, difficulty);
-            const parsedTime = timeConverter(time, userTimezones.get(interaction.user.id));
+            const parsedTime = convertTimeStringToNumber(time, userTimezones.get(interaction.user.id));
             if (parsedTime <= Math.trunc(Date.now() / 1000)) {
                 await deferredReply;
                 throw {
@@ -521,7 +522,7 @@ export default new Command({
                     value: descriptionFormatter(raidDescription),
                 });
             }
-            const msg = raidChannel.send({
+            const msg = await raidChannel.send({
                 content,
                 embeds: [embed],
                 components: await addButtonsToMessage(mainComponents),
@@ -529,13 +530,13 @@ export default new Command({
             const insertedRaidData = await RaidEvent.update({
                 channelId: privateRaidChannel.id,
                 inChannelMessageId: (await inChnMsg).id,
-                messageId: (await msg).id,
+                messageId: msg.id,
             }, { where: { channelId: member.id }, returning: true });
             deferredReply.then(async (_) => {
                 const embed = new EmbedBuilder()
                     .setColor(colors.success)
                     .setAuthor({ name: "Рейд создан!", iconURL: icons.success })
-                    .setDescription(`Канал рейда: <#${privateRaidChannel.id}>, [ссылка на сообщение набора](https://discord.com/channels/${guild.id}/${privateRaidChannel.id}/${(await msg).id})`);
+                    .setDescription(`Канал рейда: <#${privateRaidChannel.id}>, [ссылка на сообщение набора](https://discord.com/channels/${guild.id}/${channelIds.raid}/${msg.id})`);
                 interaction.editReply({ embeds: [embed] });
             });
             await updatePrivateRaidMessage({ raidEvent: insertedRaidData[1][0] });
@@ -596,7 +597,7 @@ export default new Command({
                 }
             };
             async function updateRequiredClears(newReqClears, raidData, t) {
-                if (newReqClears != null) {
+                if (newReqClears != null && raidData.requiredClears != newReqClears) {
                     const requiredClearsText = newReqClears === 0
                         ? "Требование для вступления `отключено`"
                         : `Теперь для вступления нужно от \`${newReqClears}\` закрытий`;
@@ -639,7 +640,9 @@ export default new Command({
                     channel.edit({ name: `🔥｜${updatedRaid.id}${raidInfo.channelName}` }).catch((e) => console.error("[Error code: 1696]", e));
                 }
             }
-            if (newRaid != null || newDifficulty != null || newReqClears != null) {
+            if ((newRaid != null && newRaid != raidData.raid) ||
+                (newDifficulty != null && newDifficulty != raidData.difficulty) ||
+                (newReqClears != null && newReqClears != raidData.requiredClears)) {
                 changes.push("Рейд был измнен");
                 await updateDifficulty(newDifficulty, raidInfo, raidData, t);
                 await updateRequiredClears(newReqClears, raidData, t);
@@ -687,7 +690,7 @@ export default new Command({
                 changes.push("Описание было изменено");
             }
             if (newTime !== null) {
-                const changedTime = timeConverter(newTime, userTimezones.get(interaction.user.id));
+                const changedTime = convertTimeStringToNumber(newTime, userTimezones.get(interaction.user.id));
                 if (changedTime === raidData.time) {
                     changes.push("Время старта осталось без изменений т.к. оно соответствует предыдущему");
                 }
@@ -698,7 +701,7 @@ export default new Command({
                         description: `Вы указали время <t:${changedTime}>, <t:${changedTime}:R>...`,
                     };
                 }
-                else if (changedTime > Math.round(Date.now() / 1000)) {
+                else if (changedTime > Math.floor(Date.now() / 1000)) {
                     const timeFieldIndex = raidEmbed.data.fields?.findIndex((field) => field.name.startsWith("Начало"));
                     if (timeFieldIndex && timeFieldIndex !== -1) {
                         raidEmbed.spliceFields(timeFieldIndex, 1, {

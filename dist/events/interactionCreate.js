@@ -1,29 +1,8 @@
-import { AutocompleteInteraction } from "discord.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import createErrorEmbed from "../utils/errorHandling/createErrorEmbed.js";
-import nameCleaner from "../utils/general/nameClearer.js";
 import { timer } from "../utils/general/utilities.js";
-const optionParser = (option) => option
-    .map((v) => (v ? `${v.name}${v.value ? `:${v.value}` : ""}${v.options?.length ? ` ${optionParser(v.options)}` : ""}` : ""))
-    .join(" ");
-const getEmbedTitleOrAuthor = (embeds) => embeds?.[0]?.title ? ` on ${embeds[0].title}` : embeds?.[0]?.author?.name ? ` on ${embeds[0].author.name}` : "";
-const getOptionsData = (optionsData) => optionsData?.length ? ` ${optionParser(optionsData)}` : "";
-const getChannelName = (channel) => (channel && !channel.isDMBased() ? ` in ${channel.name}` : "");
-const commandLogger = async (interaction) => {
-    if (interaction instanceof AutocompleteInteraction)
-        return;
-    const discordId = interaction.user.id;
-    const memberDisplayName = client.getCachedMembers().get(discordId)?.displayName || (await client.getAsyncMember(discordId)).displayName;
-    const username = nameCleaner(memberDisplayName) || interaction.user.username;
-    const embedInfo = interaction.isMessageComponent() && interaction.message && interaction.message.embeds
-        ? getEmbedTitleOrAuthor(interaction.message.embeds)
-        : "";
-    const optionsData = interaction.isCommand() ? getOptionsData(interaction.options?.data || []) : "";
-    const channelName = getChannelName(interaction.channel);
-    const interactionName = interaction.isCommand() ? `\x1b[36m${interaction.commandName}` : `\x1b[33m${interaction.customId}`;
-    console.info(`\x1b[37m${username}\x1b[0m used ${interactionName}\x1b[0m${embedInfo}${optionsData}${channelName}`);
-};
+import logCommandInteraction from "../utils/logging/commandLogger.js";
 const errorResolver = async ({ error, interaction, retryOperation }) => {
     if (retryOperation)
         await timer(200);
@@ -61,7 +40,7 @@ export default new Event("interactionCreate", async (interaction) => {
     else if (interaction.isButton() || interaction.isAnySelectMenu() || interaction.isModalSubmit()) {
         const button = client.buttons.get(interaction.customId.split("_").shift());
         if (!button)
-            return commandLogger(interaction);
+            return logCommandInteraction(interaction);
         const buttonInteraction = (interaction.isButton() ? interaction : null);
         const selectMenu = (interaction.isAnySelectMenu() ? interaction : null);
         const modalSubmit = (interaction.isModalSubmit() ? interaction : null);
@@ -79,5 +58,5 @@ export default new Event("interactionCreate", async (interaction) => {
             return console.error("[Error code: 1138] Found unknown autocomplete interaction", interaction);
         autocomplete.run({ client, interaction, option }).catch((e) => console.error("[Error code: 1139]", e));
     }
-    commandLogger(interaction);
+    logCommandInteraction(interaction);
 });

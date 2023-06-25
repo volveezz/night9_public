@@ -1,11 +1,10 @@
-import { ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, UserContextMenuCommandInteraction } from "discord.js";
+import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
 import { fetchRequest } from "../utils/api/fetchRequest.js";
 import { CachedDestinyActivityDefinition } from "../utils/api/manifestHandler.js";
-import nameCleaner from "../utils/general/nameClearer.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default new Command({
     name: "закрытия_рейдов",
@@ -34,89 +33,77 @@ export default new Command({
             descriptionLocalizations: { "en-US": "Check all completed activities", "en-GB": "Check all completed activities" },
         },
     ],
-    run: async ({ interaction }) => {
+    run: async ({ interaction, args }) => {
         if (apiStatus.status !== 1) {
             throw { errorType: UserErrors.API_UNAVAILABLE };
         }
-        const deferredReply = interaction.deferReply({ ephemeral: true });
-        const user = interaction instanceof ChatInputCommandInteraction ? interaction.options.getUser("пользователь") : interaction.targetUser;
-        const db_data = await AuthData.findOne({
-            where: { discordId: user ? user.id : interaction.user.id },
+        const ephemeralReply = interaction.deferReply({ ephemeral: true });
+        const targetUser = args.getUser("пользователь")?.id || interaction.user.id;
+        const authData = await AuthData.findOne({
+            where: { discordId: targetUser },
             attributes: ["bungieId", "platform", "accessToken"],
         });
-        if (db_data === null) {
-            if (interaction instanceof UserContextMenuCommandInteraction ||
-                interaction.options.getUser("пользователь")?.id !== interaction.user.id) {
-                throw { name: "Выбранный пользователь не зарегистрирован" };
-            }
-            throw { name: "Эта команда доступна после регистрации" };
+        if (!authData) {
+            throw { errorType: UserErrors.DB_USER_NOT_FOUND, errorData: { isSelf: targetUser === interaction.user.id } };
         }
-        const characters_list = await fetchRequest(`Platform/Destiny2/${db_data.platform}/Profile/${db_data.bungieId}/?components=200`, db_data);
-        if (!characters_list || !characters_list?.characters?.data)
-            throw { name: "Произошла ошибка со стороны Bungie" };
-        const manifest = interaction instanceof ChatInputCommandInteraction && interaction.options.getBoolean("все-активности") === true
+        const profileUrl = `Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=200`;
+        const userProfile = await fetchRequest(profileUrl, authData.accessToken);
+        if (!userProfile || !userProfile?.characters?.data)
+            throw { name: "Произошла ошибка на стороне Bungie" };
+        const activityManifest = args.getBoolean("все-активности") === true
             ? CachedDestinyActivityDefinition
-            : Object.keys(CachedDestinyActivityDefinition).reduce(function (acc, val) {
-                if (CachedDestinyActivityDefinition[Number(val)].activityTypeHash === 2043403989)
-                    acc[Number(val)] = CachedDestinyActivityDefinition[Number(val)];
-                return acc;
+            : Object.keys(CachedDestinyActivityDefinition).reduce((accumulator, current) => {
+                if (CachedDestinyActivityDefinition[Number(current)].activityTypeHash === 2043403989)
+                    accumulator[String(current)] = CachedDestinyActivityDefinition[Number(current)];
+                return accumulator;
             }, {});
-        const arr = [];
-        Object.keys(manifest).forEach(async (key) => {
-            arr.push({
+        const activityArray = [];
+        Object.keys(activityManifest).forEach(async (key) => {
+            activityArray.push({
                 activity: key,
-                acitivty_name: manifest[key].displayProperties.name,
+                activityName: activityManifest[Number(key)].displayProperties.name,
                 clears: 0,
             });
         });
-        const characters = Object.keys(characters_list.characters.data);
-        const activity_map = new Map();
-        const set = [
-            [
-                new Map(),
-                characters_list.characters.data[characters[0]]?.classHash === 671679327
-                    ? "<:hunter:995496474978824202>"
-                    : characters_list.characters.data[characters[0]]?.classHash === 2271682572
-                        ? "<:warlock:995496471526920232>"
-                        : "<:titan:995496472722284596>",
-            ],
-            [
-                new Map(),
-                characters_list.characters.data[characters[1]]?.classHash === 671679327
-                    ? "<:hunter:995496474978824202>"
-                    : characters_list.characters.data[characters[1]]?.classHash === 2271682572
-                        ? "<:warlock:995496471526920232>"
-                        : "<:titan:995496472722284596>",
-            ],
-            [
-                new Map(),
-                characters_list.characters.data[characters[2]]?.classHash === 671679327
-                    ? "<:hunter:995496474978824202>"
-                    : characters_list.characters.data[characters[2]]?.classHash === 2271682572
-                        ? "<:warlock:995496471526920232>"
-                        : "<:titan:995496472722284596>",
-            ],
-        ];
-        await Promise.all(characters.map(async (character, index) => {
-            const { activities: activity_fresh } = await fetchRequest(`Platform/Destiny2/${db_data.platform}/Account/${db_data.bungieId}/Character/${character}/Stats/AggregateActivityStats/`, db_data);
-            if (!activity_fresh)
-                throw { name: "Произошла ошибка со стороны Bungie" };
-            arr.forEach(async (activity_data) => {
-                const clears = activity_fresh.filter((d) => d.activityHash === Number(activity_data.activity))[0]?.values.activityCompletions
-                    .basic.value;
-                if (clears !== undefined && clears >= 1) {
-                    activity_map.set(activity_data.acitivty_name, {
-                        activity: activity_data.acitivty_name,
+        const characterKeys = Object.keys(userProfile.characters.data);
+        const activityMap = new Map();
+        const characterSet = characterKeys.map((characterKey) => {
+            const characterClassHash = userProfile.characters.data[characterKey]?.classHash;
+            let characterClass;
+            switch (characterClassHash) {
+                case 671679327:
+                    characterClass = "<:hunter:995496474978824202>";
+                    break;
+                case 2271682572:
+                    characterClass = "<:warlock:995496471526920232>";
+                    break;
+                default:
+                    characterClass = "<:titan:995496472722284596>";
+            }
+            return [new Map(), characterClass];
+        });
+        await Promise.all(characterKeys.map(async (characterKey, index) => {
+            const activityStatsUrl = `Platform/Destiny2/${authData.platform}/Account/${authData.bungieId}/Character/${characterKey}/Stats/AggregateActivityStats/`;
+            const { activities: freshActivities } = await fetchRequest(activityStatsUrl, authData);
+            if (!freshActivities)
+                throw { name: "Произошла ошибка на стороне Bungie" };
+            activityArray.forEach(async (activityData) => {
+                const activityCompletion = freshActivities.filter((activity) => activity.activityHash === Number(activityData.activity))[0]
+                    ?.values.activityCompletions.basic.value;
+                if (activityCompletion !== undefined && activityCompletion >= 1) {
+                    activityMap.set(activityData.activityName, {
+                        activity: activityData.activityName,
                     });
-                    if (set[index][0].has(activity_data.acitivty_name)) {
-                        set[index][0].set(activity_data.acitivty_name, {
-                            clears: clears +
-                                set[index][0].get(activity_data.acitivty_name)?.clears,
+                    const characterMap = characterSet[index][0];
+                    if (characterMap.has(activityData.activityName)) {
+                        const previousClears = characterMap.get(activityData.activityName)?.clears || 0;
+                        characterMap.set(activityData.activityName, {
+                            clears: activityCompletion + previousClears,
                         });
                     }
                     else {
-                        set[index][0].set(activity_data.acitivty_name, {
-                            clears: clears,
+                        characterMap.set(activityData.activityName, {
+                            clears: activityCompletion,
                         });
                     }
                 }
@@ -124,62 +111,57 @@ export default new Command({
         }));
         const embed = new EmbedBuilder()
             .setColor(colors.success)
-            .setTitle(interaction instanceof ChatInputCommandInteraction && interaction.options.getBoolean("все-активности") === true
+            .setTitle(args.getBoolean("все-активности") === true
             ? "Статистика закрытх активностей по классам"
             : "Статистка закрытых рейдов по классам")
             .setFooter({ text: "Удаленные персонажи не проверяются" });
-        interaction instanceof UserContextMenuCommandInteraction
-            ? embed.setAuthor({
-                name: nameCleaner(interaction.guild?.members.cache.get(interaction.targetId)?.displayName || "") ||
-                    interaction.targetUser.username,
-                iconURL: interaction.targetUser.displayAvatarURL(),
-            })
-            : [];
-        const embed_map = new Map([...activity_map].sort());
-        let replied = false, i = 0;
-        const e = embed;
-        embed_map.forEach(async (_activity_name, key) => {
-            i++;
-            if (embed.data.fields?.length === 25) {
-                if (i === 26) {
-                    await deferredReply;
-                    interaction.editReply({ embeds: [e] });
-                    e.data.fields = [];
-                    e.data.footer = undefined;
-                    e.data.title = undefined;
-                    replied = true;
-                }
-                else {
-                    interaction.followUp({ embeds: [e], ephemeral: true });
-                    e.data.fields = [];
-                }
-            }
+        const sortedActivityMap = new Map([...activityMap.entries()].sort());
+        let hasReplied = false;
+        for (let [key, _activityName] of sortedActivityMap) {
             try {
+                const fieldValues = characterSet
+                    .map((character) => {
+                    const characterClears = character[0]?.get(key)?.clears;
+                    return characterClears ? `${character[1]} ${characterClears}` : "";
+                })
+                    .join(" ");
                 embed.addFields([
                     {
                         name: key || "blankNameOrNameNotFound",
-                        value: `${set[0][0]?.get(key)?.clears
-                            ? set[0][1] + " " + set[0][0]?.get(key)?.clears
-                            : ""} ${set[1][0]?.get(key)?.clears
-                            ? set[1][1] + " " + set[1][0]?.get(key)?.clears
-                            : ""} ${set[2][0]?.get(key)?.clears
-                            ? set[2][1] + " " + set[2][0]?.get(key)?.clears
-                            : ""}`,
+                        value: fieldValues,
                     },
                 ]);
+                if (embed.data.fields?.length === 25) {
+                    await ephemeralReply;
+                    if (!hasReplied) {
+                        await interaction.editReply({ embeds: [embed] });
+                        hasReplied = true;
+                    }
+                    else {
+                        await interaction.followUp({ embeds: [embed], ephemeral: true });
+                    }
+                    embed.data.fields = [];
+                }
             }
-            catch (e) {
-                console.error("[Error code: 1835] Error during addin RaidEvent to embed raidChecker", e.stack);
+            catch (error) {
+                console.error("[Error code: 1835]", error);
             }
-        });
-        if (embed.data.fields?.length === 0)
+        }
+        if (embed.data.fields?.length || 0 > 0) {
+            await ephemeralReply;
+            if (!hasReplied) {
+                await interaction.editReply({ embeds: [embed] }).catch((error) => {
+                    console.error("[Error code: 1834]", error);
+                    interaction.editReply({ content: "Ошибка :(" });
+                });
+            }
+            else {
+                await interaction.followUp({ embeds: [embed], ephemeral: true });
+            }
+        }
+        else {
             embed.setDescription("Нет данных по закрытым рейдам\nВозможно, пользователь не закрыл ни одного рейда");
-        await deferredReply;
-        !replied
-            ? interaction.editReply({ embeds: [embed] }).catch((e) => {
-                console.error("[Error code: 1834]", e);
-                interaction.editReply({ content: "Ошибка :(" });
-            })
-            : interaction.followUp({ embeds: [embed], ephemeral: true });
+            await interaction.editReply({ embeds: [embed] });
+        }
     },
 });

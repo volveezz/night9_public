@@ -36,7 +36,6 @@ async function scheduleNextNotification() {
     const nextTask = tasks.shift();
     const sleepDuration = nextTask.notifyTime - Date.now();
     if (sleepDuration > 0) {
-        console.debug(`[DEBUG 2] Next notification in ${sleepDuration}ms.`);
         const timeout = setTimeout(async () => {
             await sendNotification(nextTask);
         }, sleepDuration);
@@ -52,7 +51,7 @@ async function sendNotification(task) {
     }
     const raid = await RaidEvent.findByPk(task.raidId, { attributes: ["id", "time", "joined"] });
     if (!raid) {
-        console.debug(`[DEBUG 11] Raid ${task.raidId} not found.`);
+        console.debug(`[DEBUG] Raid ${task.raidId} not found.`);
         clearNotifications(task.raidId);
         return;
     }
@@ -144,7 +143,6 @@ async function notifyUserAboutNotifications(discordId) {
 }
 export function clearNotifications(raidId) {
     tasks = tasks.filter((task) => task.raidId !== raidId);
-    console.debug(`[DEBUG 6] Cleared notifications for raid ${raidId}.`);
 }
 export async function updateNotificationsForEntireRaid(raidId) {
     clearNotifications(raidId);
@@ -159,7 +157,7 @@ const raidInvites = new Map();
 async function announceRaidEvent(previousRaidEvent, discordUserId) {
     const { id: previousRaidId, time: previousRaidTime } = previousRaidEvent;
     const currentRaidEvent = await RaidEvent.findByPk(previousRaidId, {
-        attributes: ["id", "raid", "difficulty", "participants", "messageId", "creator", "time"],
+        attributes: ["id", "raid", "difficulty", "joined", "messageId", "creator", "time"],
     });
     if (!currentRaidEvent || (currentRaidEvent && currentRaidEvent.time !== previousRaidTime)) {
         console.error(`[Error code: 1807] Raid ${previousRaidId} not found.`, currentRaidEvent?.time, previousRaidTime, previousRaidId, discordUserId);
@@ -183,8 +181,8 @@ async function announceRaidEvent(previousRaidEvent, discordUserId) {
     const timeUntilRaid = Math.round((currentRaidEvent.time - Math.trunc(Date.now() / 1000)) / 60);
     const raidEmbed = new EmbedBuilder()
         .setColor(raidDetails ? raidDetails.raidColor : colors.default)
-        .setTitle("Upcoming Raid Notification")
-        .setThumbnail(raidDetails?.raidBanner ?? null)
+        .setTitle("Уведомление о скором рейде")
+        .setThumbnail(raidDetails?.raidBanner || null)
         .setDescription(`Рейд [${currentRaidEvent.id}-${currentRaidEvent.raid}](https://discord.com/channels/${guildId}/${channelIds.raid}/${currentRaidEvent.messageId}) начнется в течение ${timeUntilRaid} минут!\nВ: <t:${currentRaidEvent.time}>, <t:${currentRaidEvent.time}:R>`)
         .addFields({
         name: "Текущий состав группы:",
@@ -225,7 +223,7 @@ async function announceRaidEvent(previousRaidEvent, discordUserId) {
         clearNotifications(currentRaidEvent.id);
         return;
     }
-    console.debug(`[DEBUG 12] Sending notification to ${discordUser.displayName}.`);
+    console.debug(`[DEBUG] Sending notification to ${discordUser.displayName}.`);
     await discordUser.send({
         embeds: [raidEmbed],
         components: await addButtonsToMessage(buttonComponents),

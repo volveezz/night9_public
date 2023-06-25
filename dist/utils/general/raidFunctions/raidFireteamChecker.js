@@ -14,6 +14,8 @@ const MINUTES_AFTER_RAID = 5;
 const fireteamCheckingSystem = new Set();
 const previouslyCheckedMembers = new Map();
 async function raidFireteamChecker(id) {
+    if (process.env.DEV_BUILD === "dev")
+        return;
     if (id)
         fireteamCheckingSystem.delete(id);
     const ongoingRaids = await getOngoingRaids(id);
@@ -37,7 +39,6 @@ async function raidFireteamChecker(id) {
                     console.debug(`Raid with ID: ${initialRaidEvent.id} has changed time, rescheduling update`);
                     return false;
                 }
-                console.debug(`Raid with ID: ${initialRaidEvent.id} was deleted`);
                 return false;
             }
             const voiceChannels = (await client.getCachedGuild().channels.fetch()).filter((channel) => channel && channel.type === ChannelType.GuildVoice);
@@ -179,7 +180,7 @@ async function raidFireteamChecker(id) {
                 }
             });
             if (!privateRaidChannel) {
-                console.error("[Error code: 1926] Channel not found", initialRaidEvent.channelId, new Error().stack);
+                console.error("[Error code: 1926] Channel not found.");
                 return;
             }
             await privateRaidChannel.send({
@@ -209,13 +210,11 @@ async function getVoiceChannelMembersAuthData(raidId, voiceChannelMemberIds) {
     const previouslyCheckedRaid = previouslyCheckedMembers.get(raidId);
     if (previouslyCheckedRaid?.length === voiceChannelMemberIds.length &&
         previouslyCheckedRaid.every((r) => voiceChannelMemberIds.includes(r.discordId))) {
-        console.debug("Returning already cached data");
         return previouslyCheckedRaid;
     }
     else if (previouslyCheckedRaid) {
         previouslyCheckedMembers.delete(raidId);
     }
-    console.debug(`Fetching auth data for ${voiceChannelMemberIds.length} members`);
     const usersData = await AuthData.findAll({
         where: {
             discordId: {

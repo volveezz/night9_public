@@ -1,51 +1,29 @@
 import { userTimezones } from "../core/userStatisticsManagement.js";
-import { timeConverter } from "../utils/general/raidFunctions.js";
-import { RaidEvent } from "../utils/persistence/sequelize.js";
+import convertTimeStringToNumber from "../utils/general/raidFunctions/convertTimeStringToNumber.js";
 export default {
-    name: "id-рейда",
-    aliases: ["новое-время", "время"],
+    name: "время",
+    aliases: ["новое-время"],
     run: async ({ interaction, option }) => {
-        if (option.name === "id-рейда") {
-            const raidData = interaction.memberPermissions?.has("Administrator")
-                ? await RaidEvent.findAll({
-                    attributes: ["id", "raid"],
-                })
-                : await RaidEvent.findAll({
-                    where: { creator: interaction.user.id },
-                    attributes: ["id", "raid"],
-                });
-            await interaction
-                .respond(raidData.map((data) => ({
-                name: `${data.id}`,
-                value: data.id,
-            })))
-                .catch((e) => {
-                if (e.code !== 10062)
-                    return console.error("[Error code: 1045]", e);
+        const pasrsedTime = convertTimeStringToNumber(option.value, userTimezones.get(interaction.user.id));
+        const name = pasrsedTime === 0
+            ? "Проверьте корректность времени. Формат даты: ЧЧ:ММ ДД/мм"
+            : new Date(pasrsedTime * 1000 + (userTimezones.get(interaction.user.id) ?? 3) * 60 * 60 * 1000).toLocaleString("ru-RU", {
+                weekday: "long",
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
             });
-        }
-        else if (option.name === "новое-время" || option.name === "время") {
-            const pasrsedTime = timeConverter(option.value, userTimezones.get(interaction.user.id));
-            const name = pasrsedTime === 0
-                ? "Проверьте корректность времени. Формат даты: ЧЧ:ММ ДД/мм"
-                : new Date(pasrsedTime * 1000 + (userTimezones.get(interaction.user.id) ?? 3) * 60 * 60 * 1000).toLocaleString("ru-RU", {
-                    weekday: "long",
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                });
-            await interaction
-                .respond([
-                {
-                    name,
-                    value: pasrsedTime.toString(),
-                },
-            ])
-                .catch((e) => {
-                return console.error("[Error code: 1681]", e);
-            });
-        }
+        await interaction
+            .respond([
+            {
+                name,
+                value: pasrsedTime.toString(),
+            },
+        ])
+            .catch((e) => {
+            return console.error("[Error code: 1681]", e);
+        });
     },
 };

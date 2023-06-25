@@ -476,54 +476,6 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
         embed.spliceFields(3, 0, { name: "Закрытия рейдов у возможных участников", value: (await Promise.all(alt)).join("\n") });
     return await inChnMsg.edit({ embeds: [embed] });
 }
-export function timeConverter(str, timezoneOffset = 3) {
-    if (!str || str.length === 0)
-        return 0;
-    if (!isNaN(+str) && str.length === 10)
-        return +str;
-    if (str.length > 20) {
-        const parts = str.replace(/\s+/g, " ").split(/[ ,г.]/);
-        if (parts.length <= 1)
-            throw { errorType: UserErrors.RAID_TIME_ERROR };
-        const day = parseInt(parts[2]);
-        const month = new Date().getMonth();
-        const time = parts.pop().split(":");
-        const hours = parseInt(time[0]);
-        const minutes = parseInt(time[1]) ?? 0;
-        const date = new Date();
-        date.setMonth(month, day);
-        date.setHours(hours, minutes, 0, 0);
-        date.setTime(date.getTime() - timezoneOffset * 60 * 60 * 1000);
-        if (date < new Date())
-            date.setDate(date.getDate() + 1);
-        return Math.round(date.getTime() / 1000);
-    }
-    const date = new Date();
-    const parts = str.replace(/\s+/, " ").split(" ");
-    for (let part of parts) {
-        const datePart = part.match(/\d+[\.\/]\d+/);
-        const timePart = part.match(/\d+:\d+/);
-        if (datePart) {
-            const [day, month] = datePart[0].split(/[\.\/]/);
-            date.setMonth(parseInt(month) - 1, parseInt(day) ?? new Date().getDate());
-        }
-        else if (timePart) {
-            const [hours, minutes] = timePart[0].split(":");
-            date.setHours(parseInt(hours), parseInt(minutes) ?? 0);
-        }
-        else {
-            const hour = parseInt(part);
-            if (hour) {
-                date.setHours(hour, 0);
-            }
-        }
-    }
-    date.setSeconds(0, 0);
-    date.setTime(date.getTime() - timezoneOffset * 60 * 60 * 1000);
-    if (date < new Date())
-        date.setDate(date.getDate() + 1);
-    return Math.round(date.getTime() / 1000);
-}
 export async function checkRaidTimeConflicts(interaction, raidEvent) {
     const member = client.getCachedMembers().get(interaction.user.id) || (await client.getCachedGuild().members.fetch(interaction.user.id));
     const { time: targetRaidTime } = raidEvent;
