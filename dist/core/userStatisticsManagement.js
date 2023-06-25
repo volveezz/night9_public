@@ -222,20 +222,24 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                     const objective = triumphRecord.objectives
                         ? triumphRecord.objectives[triumphRecord.objectives.length - 1]
                         : triumphRecord.intervalObjectives[triumphRecord.intervalObjectives.length - 1];
-                    if (dungeonsTriumphHashes.includes(triumphHash) && objective.complete === true) {
-                        if (member.roles.cache.hasAll(...dungeonRoles) &&
-                            !member.roles.cache.has(dungeonMasterRole) &&
-                            !addRoles.includes(dungeonMasterRole)) {
-                            addRoles.push(dungeonMasterRole);
-                            removeRoles.push(...dungeonRoles);
+                    if (dungeonsTriumphHashes.includes(triumphHash)) {
+                        if (objective.complete === true) {
+                            if (member.roles.cache.has(dungeonMasterRole)) {
+                                return;
+                            }
+                            if (member.roles.cache.hasAll(...dungeonRoles) && !addRoles.includes(dungeonMasterRole)) {
+                                addRoles.push(dungeonMasterRole);
+                                removeRoles.push(...dungeonRoles);
+                            }
                         }
-                        else if (member.roles.cache.has(dungeonMasterRole) && member.roles.cache.hasAny(...dungeonRoles)) {
-                            removeRoles.push(...dungeonRoles);
+                        else {
+                            if (member.roles.cache.has(dungeonMasterRole)) {
+                                removeRoles.push(dungeonMasterRole);
+                                if (!addRoles.includes(role.roleId)) {
+                                    addRoles.push(role.roleId);
+                                }
+                            }
                         }
-                        else if (!addRoles.includes(role.roleId)) {
-                            addRoles.push(role.roleId);
-                        }
-                        return;
                     }
                     if (objective && objective.complete === true) {
                         if (role.category === NightRoleCategory.Titles && !member.roles.cache.has(titleCategory))
