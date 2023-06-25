@@ -111,8 +111,6 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                     }
                 }
             }
-            if (member.id !== ownerId)
-                return;
             roleDataFromDatabase.forEach(async (role) => {
                 console.debug("Starting checking", role.roleId);
                 if (role.category === NightRoleCategory.Titles && !(roleCategoriesBits & NightRoleCategory.Titles))
@@ -285,7 +283,9 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
         }
         dlcChecker(destinyProfileResponse.profile.data.versionsOwned).catch((e) => console.error(`[Error code: 1092] ${member.displayName}`, e));
         if (!isEasyCheck) {
-            triumphsChecker().catch((e) => console.error(`[Error code: 1093] ${member.displayName}`, e));
+            if (member.id === ownerId) {
+                triumphsChecker().catch((e) => console.error(`[Error code: 1093] ${member.displayName}`, e));
+            }
             if (roleCategoriesBits & NightRoleCategory.Trials) {
                 const metrics = destinyProfileResponse.metrics.data.metrics["1765255052"]?.objectiveProgress.progress;
                 if (metrics == null || isNaN(metrics)) {
