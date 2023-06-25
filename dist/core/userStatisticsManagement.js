@@ -248,7 +248,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                         else {
                             if (memberRoles.has(role.roleId))
                                 removeRoles.push(role.roleId);
-                            console.debug("Member has this role and we are removing it");
+                            console.debug("Member has this role and we are removing it", !!triumphRecord.objectives, triumphRecord?.objectives?.[triumphRecord.objectives.length - 1]?.complete, triumphHash, typeof triumphHash, !!triumphRecord.intervalObjectives, triumphRecord?.intervalObjectives?.[triumphRecord.intervalObjectives.length - 1]?.complete);
                         }
                     }
                 }
