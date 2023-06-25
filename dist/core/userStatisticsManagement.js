@@ -228,8 +228,8 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                         }
                         return;
                     }
-                    const triumphRecord = destinyProfileResponse.profileRecords.data.records[Number(triumphHash)] ||
-                        destinyProfileResponse.characterRecords.data[Object.keys(destinyProfileResponse.characterRecords.data)[0]].records[Number(triumphHash)];
+                    const triumphRecord = destinyProfileResponse.profileRecords.data.records[triumphHash] ||
+                        destinyProfileResponse.characterRecords.data[Object.keys(destinyProfileResponse.characterRecords.data)[0]].records[triumphHash];
                     if (triumphRecord) {
                         if ((triumphRecord.objectives && triumphRecord.objectives[triumphRecord.objectives.length - 1].complete === true) ||
                             (triumphRecord.intervalObjectives &&
@@ -248,7 +248,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                         else {
                             if (memberRoles.has(role.roleId))
                                 removeRoles.push(role.roleId);
-                            console.debug("Member has this role and we are removing it", !!triumphRecord.objectives, triumphRecord?.objectives?.[triumphRecord.objectives.length - 1]?.complete, triumphHash, typeof triumphHash, !!triumphRecord.intervalObjectives, triumphRecord?.intervalObjectives?.[triumphRecord.intervalObjectives.length - 1]?.complete);
+                            console.debug("Member has this role and we are removing it", !!triumphRecord.objectives, triumphRecord?.objectives?.[triumphRecord.objectives.length - 1], triumphHash, typeof triumphHash, !!triumphRecord.intervalObjectives, triumphRecord?.intervalObjectives?.[triumphRecord.intervalObjectives.length - 1]?.complete);
                         }
                     }
                 }
