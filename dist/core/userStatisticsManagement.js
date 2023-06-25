@@ -248,6 +248,9 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                                 removeRoles.push(role.roleId);
                         }
                     }
+                    else {
+                        console.error("[Error code: 1927] Found broken triumph for", member.displayName, triumphRecord, typeof triumphHash);
+                    }
                 }
             });
         }
