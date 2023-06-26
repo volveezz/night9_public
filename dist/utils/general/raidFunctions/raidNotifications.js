@@ -6,7 +6,7 @@ import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
 import { categoryIds, channelIds, guildId } from "../../../configs/ids.js";
 import { client } from "../../../index.js";
-import { nonRegClanMembers, recentlyExpiredAuthUsersBungieIds } from "../../persistence/dataStore.js";
+import { nonRegClanMembers, recentlyCreatedRaidInvites, recentlyExpiredAuthUsersBungieIds } from "../../persistence/dataStore.js";
 import { RaidEvent, RaidUserNotification } from "../../persistence/sequelize.js";
 import { addButtonsToMessage } from "../addButtonsToMessage.js";
 import { completedRaidsData } from "../destinyActivityChecker.js";
@@ -15,7 +15,7 @@ import { generateRaidCompletionText, getRaidDetails } from "../raidFunctions.js"
 import { getRandomGIF, getRandomRaidGIF, timer } from "../utilities.js";
 import raidFireteamChecker from "./raidFireteamChecker.js";
 schedule("0 23 * * *", () => {
-    raidInvites.clear();
+    recentlyCreatedRaidInvites.clear();
     nonRegClanMembers.clear();
     recentlyExpiredAuthUsersBungieIds.clear();
     raidFireteamChecker();
@@ -153,7 +153,6 @@ export async function updateNotificationsForEntireRaid(raidId) {
         await updateNotifications(userId);
     }
 }
-const raidInvites = new Map();
 async function announceRaidEvent(previousRaidEvent, discordUserId) {
     const { id: previousRaidId, time: previousRaidTime } = previousRaidEvent;
     const currentRaidEvent = await RaidEvent.findByPk(previousRaidId, {
@@ -198,14 +197,22 @@ async function announceRaidEvent(previousRaidEvent, discordUserId) {
         .filter((channel) => channel.parentId === categoryIds.raid && channel.type === ChannelType.GuildVoice && channel.name.includes("Raid"))
         .reverse();
     const buttonComponents = [];
-    let raidInviteUrl = raidInvites.get(currentRaidEvent.id);
+    let raidInviteUrl = recentlyCreatedRaidInvites.get(currentRaidEvent.id);
     if (!raidInviteUrl) {
         for (const [_, channel] of raidVoiceChannels) {
+            if (raidInviteUrl) {
+                break;
+            }
+            else {
+                raidInviteUrl = recentlyCreatedRaidInvites.get(currentRaidEvent.id);
+                if (raidInviteUrl)
+                    break;
+            }
             if (channel.userLimit === 0 || channel.userLimit - 6 > channel.members.size || channel.members.has(currentRaidEvent.creator)) {
                 const invite = await channel.createInvite({ reason: "Raid automatic invite", maxAge: 60 * 1440 });
                 console.debug("Created a new raid invite url");
                 raidInviteUrl = invite.url;
-                raidInvites.set(currentRaidEvent.id, raidInviteUrl);
+                recentlyCreatedRaidInvites.set(currentRaidEvent.id, raidInviteUrl);
                 break;
             }
         }

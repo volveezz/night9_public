@@ -27,7 +27,7 @@ async function periodicDestinyActivityChecker() {
             .map((d) => {
             return `[Error code: 1008] ${d.displayName}/${d.discordId} not found on server`;
         });
-        if (dbNotFoundUsers.length > 0 && process.env.DEV_BUILD !== "dev")
+        if (dbNotFoundUsers.length > 0)
             await client.getCachedGuild().fetch(), console.error("[Error code: 1005]", dbNotFoundUsers);
         const databaseData = unfilteredDatabase.filter((data) => client.getCachedMembers().has(data.discordId));
         if (!databaseData)

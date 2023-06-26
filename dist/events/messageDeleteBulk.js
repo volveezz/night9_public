@@ -12,11 +12,13 @@ const createFieldValue = (message) => {
         fieldValue = "*неполное сообщение*";
     }
     else {
+        const title = message.embeds?.[0]?.title;
+        const authorName = message.embeds?.[0].author?.name;
         if (message.content.length > 0) {
             fieldValue = message.content.length > 1020 ? "*в сообщении слишком много текста*" : message.content;
         }
-        else if (message.embeds[0]?.title || message.embeds[0].author?.name) {
-            fieldValue += `\n\`${message.embeds[0]?.title || message.embeds[0].author?.name}\``;
+        else if (title || authorName) {
+            fieldValue += `\n\`${title || authorName}\``;
         }
         else {
             fieldValue += "\n*в сообщении нет текста*";
@@ -63,7 +65,7 @@ export default new Event("messageDeleteBulk", async (messages) => {
         const displayName = nameCleaner(message.member?.displayName || "неизвестный пользователь", true);
         const memberId = message.member?.id;
         const fieldValue = createFieldValue(message);
-        const fieldSize = `Сообщение ${displayName} (${memberId})`.length + fieldValue.length;
+        const fieldSize = `Сообщение ${displayName}`.length + fieldValue.length;
         if ((embed.data.fields || []).length >= 25 || getTotalEmbedsSize(embeds) + fieldSize > 6000) {
             if (embeds.length < 10) {
                 embed = createNewEmbed();
@@ -74,7 +76,7 @@ export default new Event("messageDeleteBulk", async (messages) => {
             }
         }
         embed.addFields({
-            name: `Сообщение ${displayName} (${memberId})`,
+            name: `Сообщение ${displayName}`,
             value: fieldValue,
         });
     }

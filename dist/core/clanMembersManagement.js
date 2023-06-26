@@ -20,16 +20,21 @@ async function clanMembersManagement(databaseData) {
             return;
         }
         const errorCode = clanList.ErrorCode;
-        if (errorCode !== undefined) {
-            if (errorCode !== apiStatus.status) {
+        if (errorCode != null || lastLoggedErrorCode !== 1) {
+            if (errorCode && errorCode != apiStatus.status) {
                 apiStatus.status = errorCode;
             }
-            else if (apiStatus.status !== 1 &&
+            else if (errorCode &&
+                apiStatus.status !== 1 &&
                 clanList.results &&
                 clanList.results.length > 1 &&
                 errorCode === 1) {
                 apiStatus.status = 1;
                 console.info("\x1b[32mBungie API is back online\x1b[0m");
+            }
+            else if (errorCode && lastLoggedErrorCode !== 1) {
+                lastLoggedErrorCode = errorCode;
+                console.error("[Error code: 1930] Logged error code was changed");
             }
         }
         if (client.user.presence.activities[0].name.startsWith("🔁")) {
