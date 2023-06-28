@@ -3,4 +3,4 @@ export var RaidNotifyEdit;
     RaidNotifyEdit["title"] = "RaidNotifyEdit_title";
     RaidNotifyEdit["description"] = "RaidNotifyEdit_description";
     RaidNotifyEdit["imageURL"] = "RaidNotifyEdit_image";
-})(RaidNotifyEdit = RaidNotifyEdit || (RaidNotifyEdit = {}));
+})(RaidNotifyEdit || (RaidNotifyEdit = {}));

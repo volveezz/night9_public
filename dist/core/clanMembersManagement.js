@@ -20,39 +20,32 @@ async function clanMembersManagement(databaseData) {
             return;
         }
         const errorCode = clanList.ErrorCode;
-        if (errorCode != null || lastLoggedErrorCode !== 1) {
-            if (errorCode && errorCode != apiStatus.status) {
-                apiStatus.status = errorCode;
-            }
-            else if (errorCode &&
-                apiStatus.status !== 1 &&
-                clanList.results &&
-                clanList.results.length > 1 &&
-                errorCode === 1) {
-                apiStatus.status = 1;
-                console.info("\x1b[32mBungie API is back online\x1b[0m");
-            }
-            else if (errorCode && lastLoggedErrorCode !== 1) {
-                lastLoggedErrorCode = errorCode;
-                console.error("[Error code: 1930] Logged error code was changed");
-            }
+        if (lastLoggedErrorCode !== 1) {
+            lastLoggedErrorCode = errorCode ?? 1;
+        }
+        if (errorCode != null && errorCode != apiStatus.status) {
+            apiStatus.status = errorCode;
+        }
+        if (apiStatus.status != 1 && clanList.results && clanList.results.length > 1) {
+            apiStatus.status = 1;
+            console.info("\x1b[32mBungie API is back online\x1b[0m");
         }
         if (client.user.presence.activities[0].name.startsWith("🔁")) {
             client.stopUpdatingPresence();
         }
         if (!clanList.results || !clanList.results?.length) {
+            if (errorCode === 5) {
+                client.user.setPresence({
+                    activities: [
+                        { name: "Bungie API отключено", type: ActivityType.Listening },
+                        { name: "Destiny API не отвечает", type: ActivityType.Watching },
+                    ],
+                    status: "idle",
+                });
+            }
             if (errorCode != null && lastLoggedErrorCode !== errorCode) {
                 console.error("[Error code: 1118]", clanList.ErrorStatus, clanList.Message);
                 lastLoggedErrorCode = errorCode;
-                if (errorCode === 5) {
-                    client.user.setPresence({
-                        activities: [
-                            { name: "Bungie API отключено", type: ActivityType.Listening },
-                            { name: "Destiny API не отвечает", type: ActivityType.Watching },
-                        ],
-                        status: "online",
-                    });
-                }
             }
             return;
         }

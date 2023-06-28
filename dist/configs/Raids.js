@@ -7,9 +7,9 @@ export var RaidNames;
     RaidNames["dsc"] = "dsc";
     RaidNames["gos"] = "gos";
     RaidNames["lw"] = "lw";
-})(RaidNames = RaidNames || (RaidNames = {}));
+})(RaidNames || (RaidNames = {}));
 export var RaidDifficulty;
 (function (RaidDifficulty) {
     RaidDifficulty[RaidDifficulty["normal"] = 1] = "normal";
     RaidDifficulty[RaidDifficulty["master"] = 2] = "master";
-})(RaidDifficulty = RaidDifficulty || (RaidDifficulty = {}));
+})(RaidDifficulty || (RaidDifficulty = {}));

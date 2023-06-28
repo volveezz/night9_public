@@ -94,6 +94,10 @@ export default {
                     return embed
                         .setAuthor({ name: "Произошла ошибка на стороне Bungie", iconURL: icons.error })
                         .setDescription("Попробуйте перезайти в игру и удостоверится в том, что игра сейчас стабильна и корректно работает\n\nОшибка гласит о том, что Ваши данные не были обновлены до актуальной версии игры");
+                case 5:
+                    return embed
+                        .setAuthor({ name: "API в данный момент недоступно", iconURL: icons.error })
+                        .setDescription(`Попробуйте повторить попытку позже, или напишите в личные сообщения лидеру клана <@${ownerId}> ||(ему можно писать даже когда он не в сети)||`);
                 default:
                     console.error("[Error code: 1633]", code);
                     return embed

@@ -20,7 +20,7 @@ export var RaidButtons;
     RaidButtons["transitionCancel"] = "raidCreatorHandler_cancel";
     RaidButtons["transitionDelete"] = "raidCreatorHandler_delete";
     RaidButtons["fireteamCheckerCancel"] = "raidInChnButton_fireteamChecker_cancel";
-})(RaidButtons = RaidButtons || (RaidButtons = {}));
+})(RaidButtons || (RaidButtons = {}));
 export var RaidAdditionalFunctional;
 (function (RaidAdditionalFunctional) {
     RaidAdditionalFunctional["confirm"] = "raidAddFunc_notify_confirm";
@@ -28,12 +28,12 @@ export var RaidAdditionalFunctional;
     RaidAdditionalFunctional["modalEdit"] = "raidAddFunc_modal_edit";
     RaidAdditionalFunctional["modalConfrim"] = "raidAddFunc_modal_confirm";
     RaidAdditionalFunctional["cancel"] = "raidAddFunc_notify_cancel";
-})(RaidAdditionalFunctional = RaidAdditionalFunctional || (RaidAdditionalFunctional = {}));
+})(RaidAdditionalFunctional || (RaidAdditionalFunctional = {}));
 export var ClanButtons;
 (function (ClanButtons) {
     ClanButtons["invite"] = "webhandlerEvent_clan_request";
     ClanButtons["modal"] = "clanJoinEvent_modalBtn";
-})(ClanButtons = ClanButtons || (ClanButtons = {}));
+})(ClanButtons || (ClanButtons = {}));
 export var ClanJoinButtons;
 (function (ClanJoinButtons) {
     ClanJoinButtons["SubmitModal"] = "clanJoinEvent_modal_submit";
@@ -42,39 +42,39 @@ export var ClanJoinButtons;
     ClanJoinButtons["modalMicrophone"] = "clanJoinEvent_modal_microphone";
     ClanJoinButtons["modalPowerlite"] = "clanJoinEvent_modal_power";
     ClanJoinButtons["modalUserInfo"] = "clanJoinEvent_modal_userInfo";
-})(ClanJoinButtons = ClanJoinButtons || (ClanJoinButtons = {}));
+})(ClanJoinButtons || (ClanJoinButtons = {}));
 export var RegisterButtons;
 (function (RegisterButtons) {
     RegisterButtons["register"] = "initEvent_register";
     RegisterButtons["why"] = "initEvent_why";
-})(RegisterButtons = RegisterButtons || (RegisterButtons = {}));
+})(RegisterButtons || (RegisterButtons = {}));
 export var PatchnoteButtons;
 (function (PatchnoteButtons) {
     PatchnoteButtons["sendToGods"] = "patchnoteEvent_sendToGods";
     PatchnoteButtons["sendToPublic"] = "patchnoteEvent_sendToPublic";
     PatchnoteButtons["cancel"] = "patchnoteEvent_cancel";
-})(PatchnoteButtons = PatchnoteButtons || (PatchnoteButtons = {}));
+})(PatchnoteButtons || (PatchnoteButtons = {}));
 export var AutonameButtons;
 (function (AutonameButtons) {
     AutonameButtons["enable"] = "autoname_enable";
     AutonameButtons["disable"] = "autoname_disable";
-})(AutonameButtons = AutonameButtons || (AutonameButtons = {}));
+})(AutonameButtons || (AutonameButtons = {}));
 export var StatsButton;
 (function (StatsButton) {
     StatsButton["oldEvents"] = "statsEvent_old_events";
     StatsButton["pinnacle"] = "statsEvent_pinnacle";
-})(StatsButton = StatsButton || (StatsButton = {}));
+})(StatsButton || (StatsButton = {}));
 export var TimezoneButtons;
 (function (TimezoneButtons) {
     TimezoneButtons["selectMenu"] = "tzEvent_selectmenu";
     TimezoneButtons["button"] = "timezoneButton";
-})(TimezoneButtons = TimezoneButtons || (TimezoneButtons = {}));
+})(TimezoneButtons || (TimezoneButtons = {}));
 export var AdminDMChannelButtons;
 (function (AdminDMChannelButtons) {
     AdminDMChannelButtons["reply"] = "adminDirectMessageButton_reply";
     AdminDMChannelButtons["delete"] = "adminDirectMessageButton_delete";
-})(AdminDMChannelButtons = AdminDMChannelButtons || (AdminDMChannelButtons = {}));
+})(AdminDMChannelButtons || (AdminDMChannelButtons = {}));
 export var LfgButtons;
 (function (LfgButtons) {
     LfgButtons["delete"] = "lfgSystem_delete";
-})(LfgButtons = LfgButtons || (LfgButtons = {}));
+})(LfgButtons || (LfgButtons = {}));
