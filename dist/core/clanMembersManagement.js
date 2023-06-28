@@ -23,12 +23,12 @@ async function clanMembersManagement(databaseData) {
         if (lastLoggedErrorCode !== 1) {
             lastLoggedErrorCode = errorCode ?? 1;
         }
-        if (errorCode != null && errorCode != apiStatus.status) {
-            apiStatus.status = errorCode;
-        }
         if (apiStatus.status != 1 && clanList.results && clanList.results.length > 1) {
             apiStatus.status = 1;
             console.info("\x1b[32mBungie API is back online\x1b[0m");
+        }
+        if (errorCode != null && errorCode != apiStatus.status) {
+            apiStatus.status = errorCode;
         }
         if (client.user.presence.activities[0].name.startsWith("🔁")) {
             client.stopUpdatingPresence();
