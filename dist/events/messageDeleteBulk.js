@@ -13,7 +13,7 @@ const createFieldValue = (message) => {
     }
     else {
         const title = message.embeds?.[0]?.title;
-        const authorName = message.embeds?.[0].author?.name;
+        const authorName = message.embeds?.[0]?.author?.name;
         if (message.content.length > 0) {
             fieldValue = message.content.length > 1020 ? "*в сообщении слишком много текста*" : message.content;
         }
@@ -63,7 +63,6 @@ export default new Event("messageDeleteBulk", async (messages) => {
         if (!message)
             continue;
         const displayName = nameCleaner(message.member?.displayName || "неизвестный пользователь", true);
-        const memberId = message.member?.id;
         const fieldValue = createFieldValue(message);
         const fieldSize = `Сообщение ${displayName}`.length + fieldValue.length;
         if ((embed.data.fields || []).length >= 25 || getTotalEmbedsSize(embeds) + fieldSize > 6000) {

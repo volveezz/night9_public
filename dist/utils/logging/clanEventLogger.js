@@ -17,7 +17,7 @@ export async function updateClanRolesWithLogging(result, join) {
     if (!clanLogChannel) {
         clanLogChannel = await client.getAsyncTextChannel(channelIds.clanLogs);
     }
-    if (clanUserData.member?.groupId !== groupId) {
+    if (clanUserData?.member?.groupId && clanUserData.member.groupId !== groupId) {
         console.error("[Error code: 1919]", clanUserData);
         console.error(member.displayName, "wasn't updated due an error. Need manual assistance");
         return;

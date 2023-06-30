@@ -73,7 +73,7 @@ async function clanMembersManagement(databaseData) {
                         await updateClanRolesWithLogging(member, false);
                     }
                     else {
-                        console.error("[Error code: 1923]", memberData);
+                        console.error("[Error code: 1923]", memberData.member);
                     }
                 }
             }));
