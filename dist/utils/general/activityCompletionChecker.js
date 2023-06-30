@@ -4,12 +4,13 @@ import { fetchRequest } from "../api/fetchRequest.js";
 import { CachedDestinyActivityDefinition } from "../api/manifestHandler.js";
 import { AuthData } from "../persistence/sequelize.js";
 import { getRaidDetails } from "./raidFunctions.js";
+import { getWeeklyRaidActivityHashes } from "./raidFunctions/gerWeeklyRaid.js";
 import { raidMilestoneHashes } from "./raidMilestones.js";
 import { timer } from "./utilities.js";
 const activityCompletionCurrentProfiles = new Map();
 export const completedPhases = new Map();
 const currentlyRunning = new Map();
-const raidActivityModeHashes = 2043403989;
+const raidActivityModeHash = 2043403989;
 export async function clanOnlineMemberActivityChecker() {
     setInterval(async () => {
         if (apiStatus.status !== 1)
@@ -28,7 +29,7 @@ export async function clanOnlineMemberActivityChecker() {
                 continue;
             const mostRecentCharacterId = findMostRecentCharacterId(characterActivities);
             const activeCharacter = characterActivities[mostRecentCharacterId];
-            if (!isRaidActivity(activeCharacter)) {
+            if (!isRaidActivity(activeCharacter) || isRaidIsWeekly(activeCharacter)) {
                 await timer(2000);
                 continue;
             }
@@ -66,11 +67,15 @@ function findMostRecentCharacterId(characterActivities) {
 function isRaidActivity(activeCharacter) {
     return (activeCharacter.currentActivityModeType === 4 ||
         activeCharacter.currentActivityModeTypes?.includes(4) ||
-        false ||
-        raidActivityModeHashes === activeCharacter.currentActivityModeHash ||
+        raidActivityModeHash === activeCharacter.currentActivityModeHash ||
         (activeCharacter.currentActivityHash &&
-            CachedDestinyActivityDefinition[activeCharacter.currentActivityHash]?.activityTypeHash === raidActivityModeHashes) ||
+            CachedDestinyActivityDefinition[activeCharacter.currentActivityHash]?.activityTypeHash === raidActivityModeHash) ||
         false);
+}
+function isRaidIsWeekly(activeCharacter) {
+    const activityHash = activeCharacter.currentActivityHash;
+    const { normal, master } = getWeeklyRaidActivityHashes();
+    return activityHash === normal || activityHash === master ? true : false;
 }
 function areAllPhasesComplete(phases) {
     return phases.every((phase) => phase.complete);
@@ -134,7 +139,7 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
             response.activities?.data == null ||
             (currentActivityHash !== previousActivityHash && previousActivityHash !== undefined) ||
             currentActivityHash === 82913930 ||
-            CachedDestinyActivityDefinition[currentActivityHash]?.activityTypeHash !== raidActivityModeHashes ||
+            CachedDestinyActivityDefinition[currentActivityHash]?.activityTypeHash !== raidActivityModeHash ||
             (previousActivityHash !== undefined &&
                 !response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash)) ||
             (discordId && !clanOnline.has(discordId))) {

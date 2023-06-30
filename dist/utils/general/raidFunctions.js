@@ -18,7 +18,9 @@ import { addButtonsToMessage } from "./addButtonsToMessage.js";
 import { completedRaidsData } from "./destinyActivityChecker.js";
 import nameCleaner from "./nameClearer.js";
 import { clearNotifications } from "./raidFunctions/raidNotifications.js";
-const blockedModifierHashesArray = [1123720291, 1783825372, 782039530, 2006149364, 197794292, 3307318061, 438106166, 2288210988];
+const blockedModifierHashesArray = [
+    1123720291, 1783825372, 782039530, 2006149364, 197794292, 3307318061, 438106166, 2288210988, 3282103678, 3119632620,
+];
 const raidsWithoutData = new Set();
 function getDefaultRaidButtons() {
     return [
@@ -339,6 +341,8 @@ export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) 
     });
     function findModifierDescription(modifier) {
         switch (modifier) {
+            case 3303073618:
+                return "⁣　⁣**Испытания рейда:** все испытания активированы";
             case 4038464106:
                 return `⁣　⁣**Противники-воители:** ${barrierEmoji}барьерные, ${overloadEmoji}перегруженные и ${unstoppableEmoji}неудержимые воители`;
             case 2116552995:
@@ -383,6 +387,8 @@ export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) 
                 return "⁣　⁣**Сверхзаряженная линейно-плазменная винтовка:** линейки наносят повышенный урон";
             case 1651706850:
                 return "⁣　⁣**Враги со щитами:** в этом рейде встречаются электрические, солнечные и пустотные щиты";
+            case 3230561446:
+                return "⁣　⁣**Враги со щитами:** в этом рейде встречаются электрические и солнечные щиты";
             default:
                 return null;
         }

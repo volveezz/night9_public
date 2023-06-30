@@ -25,6 +25,8 @@ schedule("0 23 * * *", () => {
         clearTimeout(timeout.timeout);
     }
     loadNotifications();
+}, {
+    timezone: "GMT",
 });
 let tasks = [];
 let runningTimeouts = [];
