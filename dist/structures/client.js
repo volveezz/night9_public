@@ -227,11 +227,11 @@ export class ExtendedClient extends Client {
         handleMemberStatistics();
         this.startUpdatingPresence();
         restoreFetchedPGCRs();
-        this.importFile("../utils/api/rssHandler.js");
         this.importFile("../core/guildNicknameManagement.js");
         loadNotifications();
     }
     loadDelayedComponents() {
+        this.importFile("../utils/api/rssHandler.js");
         cacheRaidMilestones();
         raidFireteamChecker();
     }

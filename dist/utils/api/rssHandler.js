@@ -127,10 +127,10 @@ function isValidTweet(author, guid) {
         (author === BungieTwitterAuthor.Destiny2Team && guidLowerCase.startsWith("https://twitter.com/destiny2team/")));
 }
 (async () => {
-    latestBungieHelpTweetLink = await getLatestLinkFromDatabase("bungieHelp");
-    latestBungieTweetLink = await getLatestLinkFromDatabase("bungie");
-    latestDestinyTheGameTweetLink = await getLatestLinkFromDatabase("destinyTheGame");
-    latestDestinyTeamTweetLink = await getLatestLinkFromDatabase("destinyTeam");
+    latestBungieHelpTweetLink = await getLatestLinkFromDatabase(TwitterAccountNames.BungieHelp);
+    latestBungieTweetLink = await getLatestLinkFromDatabase(TwitterAccountNames.Bungie);
+    latestDestinyTheGameTweetLink = await getLatestLinkFromDatabase(TwitterAccountNames.DestinyTheGame);
+    latestDestinyTeamTweetLink = await getLatestLinkFromDatabase(TwitterAccountNames.Destiny2Team);
     if (!latestBungieHelpTweetLink) {
         latestBungieHelpTweetLink = await fetchAndSendLatestTweets(rssBungieHelpUrl, latestBungieHelpTweetLink, TwitterAccountNames.BungieHelp);
     }
