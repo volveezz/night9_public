@@ -1,17 +1,25 @@
 import Parser from "rss-parser";
 import { BungieTwitterAuthor } from "../../configs/BungieTwitterAuthor.js";
 import { generateTwitterEmbed } from "../discord/twitterMessageParser.js";
+import { ProcessedLink } from "../persistence/sequelize.js";
 const parser = new Parser();
-const rssBungieHelpUrl = "https://rsshub.app/twitter/user/BUNGIEHELP?readable=0&limit=10";
-const rssBungieUrl = "https://rsshub.app/twitter/user/bungie?readable=0&limit=10";
-const rssDestinyTheGameUrl = "https://rsshub.app/twitter/user/Destinythegame?readable=0&limit=10";
-const rssDestinyTeamUrl = "https://rsshub.app/twitter/user/destiny2team?readable=0&limit=10";
+var TwitterAccountNames;
+(function (TwitterAccountNames) {
+    TwitterAccountNames["BungieHelp"] = "bungiehelp";
+    TwitterAccountNames["Bungie"] = "bungie";
+    TwitterAccountNames["DestinyTheGame"] = "destinythegame";
+    TwitterAccountNames["Destiny2Team"] = "destiny2team";
+})(TwitterAccountNames || (TwitterAccountNames = {}));
+const rssBungieHelpUrl = `https://rsshub.app/twitter/user/${TwitterAccountNames.BungieHelp}?readable=0&limit=10`;
+const rssBungieUrl = `https://rsshub.app/twitter/user/${TwitterAccountNames.Bungie}?readable=0&limit=10`;
+const rssDestinyTheGameUrl = `https://rsshub.app/twitter/user/${TwitterAccountNames.DestinyTheGame}?readable=0&limit=10`;
+const rssDestinyTeamUrl = `https://rsshub.app/twitter/user/${TwitterAccountNames.Destiny2Team}?readable=0&limit=10`;
 let latestBungieHelpTweetLink;
 let latestBungieTweetLink;
 let latestDestinyTheGameTweetLink;
 let latestDestinyTeamTweetLink;
 const processedLinks = new Set();
-async function fetchAndSendLatestTweets(url, latestLink) {
+async function fetchAndSendLatestTweets(url, latestLink, routeName) {
     try {
         const feed = await parser.parseURL(url).catch((e) => {
             console.error("[Error code: 1706] Error fetching RSS feed:", e.message, e.status, url.split("/")?.[5]);
@@ -66,13 +74,23 @@ async function fetchAndSendLatestTweets(url, latestLink) {
                     console.error("[Error code: 1705]", entry);
                 }
             }
-            return newEntries[newEntries.length - 1].link;
+            const finalLink = newEntries.length > 0 ? newEntries[newEntries.length - 1].link : latestLink;
+            if (finalLink) {
+                await updateLatestLinkInDatabase(routeName, finalLink);
+            }
+            return finalLink;
         }
     }
     catch (error) {
         console.error("[Error code: 1704] Error fetching RSS feed:", error);
     }
     return latestLink;
+}
+async function updateLatestLinkInDatabase(route, link) {
+    await ProcessedLink.upsert({
+        route,
+        link,
+    });
 }
 function getBungieTwitterAuthor(creator) {
     switch (creator) {
@@ -109,20 +127,44 @@ function isValidTweet(author, guid) {
         (author === BungieTwitterAuthor.Destiny2Team && guidLowerCase.startsWith("https://twitter.com/destiny2team/")));
 }
 (async () => {
-    latestBungieHelpTweetLink = await fetchAndSendLatestTweets(rssBungieHelpUrl, latestBungieHelpTweetLink);
-    latestBungieTweetLink = await fetchAndSendLatestTweets(rssBungieUrl, latestBungieTweetLink);
-    latestDestinyTheGameTweetLink = await fetchAndSendLatestTweets(rssDestinyTheGameUrl, latestDestinyTheGameTweetLink);
-    latestDestinyTeamTweetLink = await fetchAndSendLatestTweets(rssDestinyTeamUrl, latestDestinyTeamTweetLink);
+    latestBungieHelpTweetLink = await getLatestLinkFromDatabase("bungieHelp");
+    latestBungieTweetLink = await getLatestLinkFromDatabase("bungie");
+    latestDestinyTheGameTweetLink = await getLatestLinkFromDatabase("destinyTheGame");
+    latestDestinyTeamTweetLink = await getLatestLinkFromDatabase("destinyTeam");
+    if (!latestBungieHelpTweetLink) {
+        latestBungieHelpTweetLink = await fetchAndSendLatestTweets(rssBungieHelpUrl, latestBungieHelpTweetLink, TwitterAccountNames.BungieHelp);
+    }
+    if (!latestBungieTweetLink) {
+        latestBungieTweetLink = await fetchAndSendLatestTweets(rssBungieUrl, latestBungieTweetLink, TwitterAccountNames.Bungie);
+    }
+    if (!latestDestinyTheGameTweetLink) {
+        latestDestinyTheGameTweetLink = await fetchAndSendLatestTweets(rssDestinyTheGameUrl, latestDestinyTheGameTweetLink, TwitterAccountNames.DestinyTheGame);
+    }
+    if (!latestDestinyTeamTweetLink) {
+        latestDestinyTeamTweetLink = await fetchAndSendLatestTweets(rssDestinyTeamUrl, latestDestinyTeamTweetLink, TwitterAccountNames.Destiny2Team);
+    }
 })();
+async function getLatestLinkFromDatabase(route) {
+    try {
+        const record = await ProcessedLink.findOne({
+            where: { route },
+        });
+        return record?.link;
+    }
+    catch (error) {
+        console.error("Error retrieving the latest link from the database:", error);
+    }
+}
 setInterval(async () => {
-    latestBungieHelpTweetLink = await fetchAndSendLatestTweets(rssBungieHelpUrl, latestBungieHelpTweetLink);
+    latestBungieHelpTweetLink = await fetchAndSendLatestTweets(rssBungieHelpUrl, latestBungieHelpTweetLink, TwitterAccountNames.BungieHelp);
 }, 1000 * 60);
 setInterval(async () => {
-    latestBungieTweetLink = await fetchAndSendLatestTweets(rssBungieUrl, latestBungieTweetLink);
+    latestBungieTweetLink = await fetchAndSendLatestTweets(rssBungieUrl, latestBungieTweetLink, TwitterAccountNames.Bungie);
 }, 1000 * 60);
 setInterval(async () => {
-    latestDestinyTheGameTweetLink = await fetchAndSendLatestTweets(rssDestinyTheGameUrl, latestDestinyTheGameTweetLink);
+    latestDestinyTheGameTweetLink = await fetchAndSendLatestTweets(rssDestinyTheGameUrl, latestDestinyTheGameTweetLink, TwitterAccountNames.DestinyTheGame);
 }, 1000 * 60);
 setInterval(async () => {
-    latestDestinyTeamTweetLink = await fetchAndSendLatestTweets(rssDestinyTeamUrl, latestDestinyTeamTweetLink);
+    latestDestinyTeamTweetLink = await fetchAndSendLatestTweets(rssDestinyTeamUrl, latestDestinyTeamTweetLink, TwitterAccountNames.Destiny2Team);
 }, 1000 * 60);
+//# sourceMappingURL=rssHandler.js.map

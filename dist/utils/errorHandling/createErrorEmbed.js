@@ -21,3 +21,4 @@ function createErrorEmbed({ name, description, errorType, errorData }) {
     }
 }
 export default createErrorEmbed;
+//# sourceMappingURL=createErrorEmbed.js.map

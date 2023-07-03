@@ -15,3 +15,4 @@ const getFiles = async (dir, insideDir) => {
     return jsFiles;
 };
 export default getFiles;
+//# sourceMappingURL=fileReader.js.map

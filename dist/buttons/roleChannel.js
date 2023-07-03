@@ -1,7 +1,7 @@
 import { EmbedBuilder } from "discord.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
-import { activityRoles, classRoles, statisticsRoles, titleCategory, trialsRoles, triumphsCategory } from "../configs/roles.js";
+import { activityRoles, classRoles, statisticsRoles, trialsRoles } from "../configs/roles.js";
 import { timer } from "../utils/general/utilities.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default {
@@ -70,18 +70,18 @@ export default {
                     let rolesToRemove = [];
                     switch (categoryId) {
                         case 1:
-                            rolesToRemove = [...statisticsRoles.allActive, ...statisticsRoles.allKd, statisticsRoles.category];
+                            rolesToRemove = [...statisticsRoles.allActive, ...statisticsRoles.allKd, process.env.STATISTICS_CATEGORY];
                             break;
                         case 2:
                             rolesToRemove = [...trialsRoles.allKd, ...trialsRoles.allRoles, trialsRoles.category, trialsRoles.wintrader];
                             break;
                         case 4:
-                            const topPos4 = guild.roles.cache.find((r) => r.id === titleCategory).position;
-                            const botPos4 = guild.roles.cache.find((r) => r.id === triumphsCategory).position;
+                            const topPos4 = guild.roles.cache.find((r) => r.id === process.env.TITLE_CATEGORY).position;
+                            const botPos4 = guild.roles.cache.find((r) => r.id === process.env.TRIUMPHS_CATEGORY).position;
                             rolesToRemove = Array.from(guild.roles.cache.filter((r) => r.position > botPos4 && r.position <= topPos4).map((r) => r.id));
                             break;
                         case 8:
-                            const topPos8 = guild.roles.cache.find((r) => r.id === triumphsCategory).position;
+                            const topPos8 = guild.roles.cache.find((r) => r.id === process.env.TRIUMPHS_CATEGORY).position;
                             const botPos8 = guild.roles.cache.find((r) => r.id === activityRoles.category).position;
                             rolesToRemove = Array.from(guild.roles.cache.filter((r) => r.position > botPos8 && r.position <= topPos8).map((r) => r.id));
                             break;
@@ -100,3 +100,4 @@ export default {
         }
     },
 };
+//# sourceMappingURL=roleChannel.js.map

@@ -6,3 +6,4 @@ export class Event {
         this.run = run;
     }
 }
+//# sourceMappingURL=event.js.map

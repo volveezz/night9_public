@@ -1,9 +1,9 @@
 import { schedule } from "node-cron";
-import { fetchRequest } from "../../api/fetchRequest.js";
+import { sendApiRequest } from "../../api/sendApiRequest.js";
 let raidActivityHashes = { normal: null, master: null };
 const fetchWeeklyRaid = async (retryCount = 0) => {
     try {
-        const milestonesObj = await fetchRequest("Platform/Destiny2/Milestones/");
+        const milestonesObj = await sendApiRequest("Platform/Destiny2/Milestones/");
         const milestones = Object.values(milestonesObj);
         const raidMilestone = milestones.find((milestone) => milestone.activities && milestone.activities.some((activity) => activity.challengeObjectiveHashes.includes(406803827)));
         if (raidMilestone && raidMilestone.activities) {
@@ -17,7 +17,7 @@ const fetchWeeklyRaid = async (retryCount = 0) => {
     }
     catch (error) {
         raidActivityHashes = { normal: null, master: null };
-        console.error("[Error code: 1933] Error fetching weekly raid:", error);
+        console.error("[Error code: 1933] Error fetching weekly raid:", error.stack || error);
         const retryInterval = retryCount === 0 ? 5 * 1000 : 30 * 60 * 1000;
         setTimeout(() => fetchWeeklyRaid(retryCount + 1), retryInterval);
     }
@@ -30,3 +30,4 @@ schedule("1 17 * * 4", () => {
 });
 export const getWeeklyRaidActivityHashes = () => raidActivityHashes;
 fetchWeeklyRaid();
+//# sourceMappingURL=gerWeeklyRaid.js.map

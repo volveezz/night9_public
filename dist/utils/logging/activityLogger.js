@@ -2,10 +2,10 @@ import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { Op } from "sequelize";
 import { RaidButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
-import { channelIds } from "../../configs/ids.js";
+import { activityIcons } from "../../configs/icons.js";
 import { client } from "../../index.js";
-import { fetchRequest } from "../api/fetchRequest.js";
 import { CachedDestinyActivityDefinition } from "../api/manifestHandler.js";
+import { sendApiRequest } from "../api/sendApiRequest.js";
 import { completedPhases } from "../general/activityCompletionChecker.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import { convertSeconds } from "../general/convertSeconds.js";
@@ -24,7 +24,7 @@ const checkedPGCRIds = new Set();
 const ACTIVITY_LEAVE_TIME = 300;
 const PLACEHOLDER_TEXTS = [": Нормальный", "Засекречено"];
 async function restoreFetchedPGCRs() {
-    const completedActivitiesChannels = await client.getAsyncTextChannel(channelIds.activity);
+    const completedActivitiesChannels = await client.getAsyncTextChannel(process.env.ACTIVITY_CHANNEL_ID);
     (await completedActivitiesChannels.messages.fetch({ limit: 5 })).forEach(async (message) => {
         const url = message.embeds?.[0]?.data?.author?.url;
         const pgcrId = url?.split("/")[4];
@@ -60,7 +60,7 @@ async function logActivityCompletion(pgcrId) {
         }
         return manifestTitle;
     }
-    const response = await fetchRequest(`Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`).catch((e) => console.error("[Error code: 1072] activityReporter error", pgcrId, e, e.statusCode));
+    const response = await sendApiRequest(`Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`).catch((e) => console.error("[Error code: 1072] activityReporter error", pgcrId, e, e.statusCode));
     if (!response || !response.activityDetails) {
         console.error("[Error code: 1009]", pgcrId, response);
         return;
@@ -104,7 +104,7 @@ async function logActivityCompletion(pgcrId) {
                 ? `https://bungie.net${manifestData.displayProperties.highResIcon}`
                 : `https://bungie.net${manifestData.displayProperties.icon}`
             : mode === 82
-                ? "https://cdn.discordapp.com/attachments/679191036849029167/1089153433543651408/dungeon.png"
+                ? activityIcons.dungeon
                 : undefined,
     })
         .setThumbnail(thumbnailUrl);
@@ -308,7 +308,7 @@ async function logActivityCompletion(pgcrId) {
                 console.error("[Error code: 1823]", error);
             }
         }
-        const msg = (await client.getAsyncTextChannel(channelIds.activity)).send({ embeds: [embed] });
+        const msg = (await client.getAsyncTextChannel(process.env.ACTIVITY_CHANNEL_ID)).send({ embeds: [embed] });
         const currentTime = Math.floor(Date.now() / 1000);
         databaseData.forEach(async (dbMemberData) => {
             if (mode === 82 && clanMembersInActivity > 1)
@@ -365,3 +365,4 @@ async function logActivityCompletion(pgcrId) {
     }
 }
 export { logActivityCompletion, restoreFetchedPGCRs };
+//# sourceMappingURL=activityLogger.js.map

@@ -1,9 +1,7 @@
 import { EmbedBuilder } from "discord.js";
 import { BungieTwitterAuthor } from "../../configs/BungieTwitterAuthor.js";
-import { channelIds } from "../../configs/ids.js";
 import { client } from "../../index.js";
-import { timer } from "../general/utilities.js";
-const publicNewsChannel = client.getCachedTextChannel(channelIds.externalNewsFeed) || (await client.getCachedGuild().channels.fetch(channelIds.externalNewsFeed));
+let publicNewsChannel = null;
 function extractImageUrl(content) {
     const imgRegex = /<img.*?src="(.*?)".*?>/i;
     const videoRegex = /<video.*?poster="(.*?)".*?>/i;
@@ -16,40 +14,6 @@ function extractImageUrl(content) {
         return videoMatch[1];
     }
     return null;
-}
-async function handleTimeReplacement({ message: oldMessage }) {
-    const fetchMessage = async () => {
-        let message = await oldMessage.fetch();
-        const messageEmbed = message.embeds[0];
-        return messageEmbed ? message : null;
-    };
-    let message = await fetchMessage();
-    if (!message) {
-        await timer(1000 * 10);
-        message = await fetchMessage();
-    }
-    if (!message || !message.embeds[0].description == null)
-        return;
-    const messageEmbed = message.embeds[0];
-    const messageDescription = messageEmbed.description;
-    const replacedDescription = replaceTimeWithEpoch(messageDescription);
-    if (!replacedDescription || replacedDescription.length < 5) {
-        console.error("[Error code: 1699]", message);
-        return;
-    }
-    const embed = new EmbedBuilder().setColor("#FFA500").setDescription(replacedDescription).setFooter({ text: "BungieHelp notification" });
-    if (messageEmbed.author)
-        embed.setAuthor(messageEmbed.author);
-    if (messageEmbed.title)
-        embed.setTitle(messageEmbed.title);
-    if (messageEmbed.timestamp)
-        embed.setTimestamp(new Date(messageEmbed.timestamp));
-    if (messageEmbed.image)
-        embed.setImage(messageEmbed.image.url);
-    if (messageEmbed.thumbnail)
-        embed.setImage(messageEmbed.thumbnail.url);
-    await publicNewsChannel.send({ embeds: [embed] });
-    await message.delete();
 }
 function cleanText(content) {
     content = content.replace(/<br\s*\/?>/gi, "\n");
@@ -106,6 +70,10 @@ async function generateTwitterEmbed(twitterData, author, icon) {
     if (extractedMedia) {
         embed.setImage(extractedMedia);
     }
+    if (!publicNewsChannel)
+        publicNewsChannel =
+            client.getCachedTextChannel(process.env.PUBLIC_NEWS_CHANNEL_ID) ||
+                (await client.getCachedGuild().channels.fetch(process.env.PUBLIC_NEWS_CHANNEL_ID));
     await publicNewsChannel.send({ embeds: [embed] });
     return;
 }
@@ -164,3 +132,4 @@ function replaceTimeWithEpoch(text) {
     return text.replace(timeRegex, replacement);
 }
 export { generateTwitterEmbed };
+//# sourceMappingURL=twitterMessageParser.js.map

@@ -7,3 +7,4 @@ var NightRoleCategory;
     NightRoleCategory[NightRoleCategory["Activity"] = 16] = "Activity";
 })(NightRoleCategory || (NightRoleCategory = {}));
 export default NightRoleCategory;
+//# sourceMappingURL=RoleCategory.js.map

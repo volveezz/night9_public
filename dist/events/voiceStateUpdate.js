@@ -1,14 +1,13 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
-import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-import { channelDataMap } from "../utils/discord/lfgSystem/handleLFG.js";
 import lfgTextChannelHandler from "../utils/discord/lfgSystem/handleLfgJoin.js";
 import { cacheUserActivity, voiceChannelJoinTimestamps } from "../utils/discord/userActivityHandler.js";
 import manageVoiceChannels from "../utils/discord/voiceChannelManager.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
-const voiceLogChannel = client.getCachedTextChannel(channelIds.voice);
+import { channelDataMap, channelsForDeletion } from "../utils/persistence/dataStore.js";
+let voiceLogChannel = null;
 export default new Event("voiceStateUpdate", async (oldState, newState) => {
     if (oldState.channelId === newState.channelId) {
         return;
@@ -24,6 +23,10 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
     if (!voiceChannelJoinTimestamps.has(userId) && newState.channelId !== newState.guild.afkChannelId && newState.channel) {
         voiceChannelJoinTimestamps.set(userId, Date.now());
     }
+    if (!voiceLogChannel)
+        voiceLogChannel =
+            client.getCachedTextChannel(process.env.VOICE_LOG_CHANNEL_ID) ||
+                (await client.getAsyncTextChannel(process.env.VOICE_LOG_CHANNEL_ID));
     if (!oldState.channelId && newState.channelId) {
         if (!oldState.member?.user.bot && channelDataMap.has(newState.channelId))
             lfgTextChannelHandler(newState.channelId, newState.member, "join");
@@ -41,6 +44,8 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
     if (!newState.channelId) {
         if (!oldState.member?.user.bot && oldState.channelId && channelDataMap.has(oldState.channelId))
             lfgTextChannelHandler(oldState.channelId, oldState.member, "leave");
+        if (oldState.channel && oldState.channel.members.size === 0 && channelsForDeletion.has(oldState.channel.id))
+            oldState.channel.delete();
         embed
             .setAuthor({
             name: `${oldState.member?.displayName || newState.member?.displayName || "пользователь не найден"} вышел из голосового канала`,
@@ -57,10 +62,12 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
         });
     }
     if (oldState.channelId && newState.channelId && oldState.channelId !== newState.channelId) {
-        if (!oldState.member?.user.bot && channelDataMap.has(oldState.channelId))
+        if (oldState.member && channelDataMap.has(oldState.channelId))
             lfgTextChannelHandler(oldState.channelId, oldState.member, "leave");
-        if (!oldState.member?.user.bot && channelDataMap.has(newState.channelId))
+        if (newState.member && !newState.member.user.bot && channelDataMap.has(newState.channelId))
             lfgTextChannelHandler(newState.channelId, newState.member, "join");
+        if (oldState.channel && oldState.channel.members.size === 0 && channelsForDeletion.has(oldState.channel.id))
+            oldState.channel.delete();
         embed
             .setAuthor({
             name: `${oldState.member?.displayName || newState.member?.displayName || "пользователь не найден"} сменил голосовой канал`,
@@ -101,3 +108,4 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
         voiceChannelJoinTimestamps.delete(userId);
     }
 });
+//# sourceMappingURL=voiceStateUpdate.js.map

@@ -76,3 +76,4 @@ export default new Command({
         }
     },
 });
+//# sourceMappingURL=authCommand.js.map

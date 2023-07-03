@@ -3,8 +3,7 @@ import { Op, Sequelize } from "sequelize";
 import { RaidButtons } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
-import icons from "../configs/icons.js";
-import { categoryIds, channelIds, guildId } from "../configs/ids.js";
+import icons, { activityIcons } from "../configs/icons.js";
 import raidsGuide from "../configs/raidGuideData.js";
 import { userTimezones } from "../core/userStatisticsManagement.js";
 import { Command } from "../structures/command.js";
@@ -410,10 +409,7 @@ export default new Command({
     run: async ({ client, interaction, args }) => {
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const subCommand = args.getSubcommand(true);
-        const guild = (client.getCachedGuild() ||
-            interaction.guild ||
-            client.guilds.cache.get(guildId) ||
-            (await client.guilds.fetch(guildId)));
+        const guild = client.getCachedGuild();
         const member = await client.getAsyncMember(interaction.user.id);
         if (subCommand === "создать") {
             const raid = args.getString("рейд", true);
@@ -461,11 +457,12 @@ export default new Command({
                     : member.guild.roles.everyone
                 : "";
             const content = `Открыт набор в рейд: ${raidData.raidName} ${roleMention}`;
-            const raidChannel = guild.channels.cache.get(channelIds.raid) || (await guild.channels.fetch(channelIds.raid));
-            const additionalPosition = guild.channels.cache.get(categoryIds.raid)?.children?.cache.size || 1;
+            const raidChannel = guild.channels.cache.get(process.env.RAID_CHANNEL_ID) ||
+                (await guild.channels.fetch(process.env.RAID_CHANNEL_ID));
+            const additionalPosition = guild.channels.cache.get(process.env.RAID_CATEGORY)?.children?.cache.size || 1;
             const privateRaidChannel = await member.guild.channels.create({
                 name: `🔥｜${raidDb.id}-${raidData.channelName}`,
-                parent: categoryIds.raid,
+                parent: process.env.RAID_CATEGORY,
                 position: raidChannel.rawPosition + additionalPosition,
                 permissionOverwrites: [
                     {
@@ -495,7 +492,7 @@ export default new Command({
                 .setColor(raidData.raidColor)
                 .setFooter({
                 text: `Создатель рейда: ${nameCleaner(member.displayName)}`,
-                iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1115800156198146178/bd7a1fc995f87be96698263bc16698e7.png",
+                iconURL: activityIcons.raid,
             })
                 .setThumbnail(raidData.raidBanner)
                 .addFields([
@@ -536,7 +533,8 @@ export default new Command({
                 const embed = new EmbedBuilder()
                     .setColor(colors.success)
                     .setAuthor({ name: "Рейд создан!", iconURL: icons.success })
-                    .setDescription(`Канал рейда: <#${privateRaidChannel.id}>, [ссылка на сообщение набора](https://discord.com/channels/${guild.id}/${channelIds.raid}/${msg.id})`);
+                    .setDescription(`Канал рейда: <#${privateRaidChannel.id}>, [ссылка на сообщение набора](https://discord.com/channels/${guild.id}/${process
+                    .env.RAID_CHANNEL_ID}/${msg.id})`);
                 interaction.editReply({ embeds: [embed] });
             });
             await updatePrivateRaidMessage({ raidEvent: insertedRaidData[1][0] });
@@ -566,7 +564,7 @@ export default new Command({
             }
             const raidInfo = getRaidDetails((newRaid || raidData.raid), newDifficulty ?? raidData.difficulty);
             const changes = [];
-            const raidMessage = await client.getAsyncMessage(channelIds.raid, raidData.messageId);
+            const raidMessage = await client.getAsyncMessage(process.env.RAID_CHANNEL_ID, raidData.messageId);
             const raidEmbed = EmbedBuilder.from(raidMessage?.embeds[0]);
             const t = await database.transaction();
             const changesForChannel = [];
@@ -796,7 +794,7 @@ export default new Command({
             await RaidEvent.destroy({ where: { id: raidData.id }, limit: 1 })
                 .then(async () => {
                 clearNotifications(raidData.id);
-                const raidsChannel = await client.getAsyncTextChannel(channelIds.raid);
+                const raidsChannel = await client.getAsyncTextChannel(process.env.RAID_CHANNEL_ID);
                 const privateRaidChannel = await client.getAsyncTextChannel(raidData.channelId);
                 try {
                     await privateRaidChannel.delete(`${interaction.member.displayName} deleted the raid ${raidData.id}-${raidData.raid}`);
@@ -969,3 +967,4 @@ export default new Command({
         }
     },
 });
+//# sourceMappingURL=raidCommand.js.map

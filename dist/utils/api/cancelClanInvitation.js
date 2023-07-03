@@ -1,7 +1,6 @@
 import { getAdminAccessToken } from "../../commands/clanCommand.js";
-import { groupId } from "../../configs/ids.js";
 import { parseIdentifierString } from "../general/utilities.js";
-import { fetchPostRequest } from "./fetchRequest.js";
+import { sendApiPostRequest } from "./sendApiPostRequest.js";
 const timeouts = {};
 export async function cancelClanInvitation(identifier, time, caller) {
     const { platform, bungieId } = parseIdentifierString(identifier);
@@ -14,10 +13,15 @@ export async function cancelClanInvitation(identifier, time, caller) {
         clearTimeout(timeouts[bungieId]);
     }
     timeouts[bungieId] = setTimeout(async () => {
-        const call = await fetchPostRequest(`Platform/GroupV2/${groupId}/Members/IndividualInviteCancel/${platform}/${bungieId}/`, {}, adminAccessToken, false);
+        const call = await sendApiPostRequest({
+            apiEndpoint: `Platform/GroupV2/${process.env.GROUP_ID}/Members/IndividualInviteCancel/${platform}/${bungieId}/`,
+            authToken: adminAccessToken,
+            shouldReturnResponse: false,
+        });
         if (call.ErrorCode !== 1) {
             console.error("[Error code: 1911]", call, identifier, time, caller);
         }
         delete timeouts[bungieId];
     }, time * 1000 * 60);
 }
+//# sourceMappingURL=cancelClanInvitation.js.map

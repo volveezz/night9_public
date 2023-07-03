@@ -1,10 +1,9 @@
 import { ButtonBuilder, ButtonStyle } from "discord.js";
 import { PatchnoteButtons } from "../configs/Buttons.js";
-import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
-const channelOfGods = client.getCachedTextChannel(channelIds.supporters);
-const newsChannel = client.getCachedTextChannel(channelIds.news);
+let channelOfGods = null;
+let newsChannel = null;
 export default {
     name: "patchnoteEvent",
     run: async ({ interaction }) => {
@@ -18,14 +17,22 @@ export default {
                         .setLabel("Опубликовать для всех"),
                 ]);
                 const messageOptions = { content, components };
+                if (!channelOfGods)
+                    channelOfGods =
+                        client.getCachedTextChannel(process.env.GOD_CHANNEL_ID) ||
+                            (await client.getAsyncTextChannel(process.env.GOD_CHANNEL_ID));
                 await channelOfGods.send(messageOptions);
-                await interaction.reply({ content: `Отправлено в <#${channelIds.supporters}>`, ephemeral: true });
+                await interaction.reply({ content: `Отправлено в <#${process.env.GOD_CHANNEL_ID}>`, ephemeral: true });
                 await interaction.message.delete();
                 return;
             }
             case PatchnoteButtons.sendToPublic: {
+                if (!newsChannel)
+                    newsChannel =
+                        client.getCachedTextChannel(process.env.NEWS_CHANNEL_ID) ||
+                            (await client.getAsyncTextChannel(process.env.NEWS_CHANNEL_ID));
                 await newsChannel.send(content);
-                await interaction.reply({ content: `Отправлено в <#${channelIds.news}>`, ephemeral: true });
+                await interaction.reply({ content: `Отправлено в <#${process.env.NEWS_CHANNEL_ID}>`, ephemeral: true });
                 await interaction.message.delete();
                 return;
             }
@@ -37,3 +44,4 @@ export default {
         }
     },
 };
+//# sourceMappingURL=patchnoteEvent.js.map

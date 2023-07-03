@@ -1,9 +1,8 @@
 import { ChannelType } from "discord.js";
-import { categoryIds } from "../../configs/ids.js";
+import { channelDataMap } from "../persistence/dataStore.js";
 import { VoiceChannels } from "../persistence/sequelize.js";
-import { channelDataMap } from "./lfgSystem/handleLFG.js";
 const managedVoiceChannelIds = new Set();
-const ignoredCategories = new Set([categoryIds.admin, categoryIds.technical]);
+const ignoredCategories = new Set([process.env.ADMIN_CATEGORY, process.env.TECHNICAL_CATEGORY]);
 const romanNumbers = ["𝐈", "𝐈𝐈", "𝐈𝐈𝐈", "𝐈𝐕", "𝐕", "𝐕𝐈", "𝐕𝐈𝐈", "𝐕𝐈𝐈𝐈", "𝐈𝐗", "𝐗"];
 async function loadChannels() {
     const channels = await VoiceChannels.findAll();
@@ -89,13 +88,13 @@ async function removeChannel(channel) {
 function getCategoryEmoji(categoryId, emoji) {
     let emojis;
     switch (categoryId) {
-        case categoryIds.voiceMain:
+        case process.env.MAIN_VOICE_CATEGORY:
             emojis = ["🔰", "🔶", "🔷", "🔹", "💦", "🧊", "⚓️"];
             break;
-        case categoryIds.raid:
+        case process.env.RAID_CATEGORY:
             emojis = ["🏥", "💪", "🩸", "🪖", "💥", "🥩"];
             break;
-        case categoryIds.pveParty:
+        case process.env.PVE_PARTY_CATEGORY:
             emojis = ["🦞", "🐸", "🦖", "🐲", "🌪"];
             break;
         default:
@@ -108,3 +107,4 @@ function getCategoryEmoji(categoryId, emoji) {
     return emojis[randomIndex];
 }
 export default manageVoiceChannels;
+//# sourceMappingURL=voiceChannelManager.js.map

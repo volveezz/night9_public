@@ -8,3 +8,6 @@ src/
 .prettierignore
 public/**/*.max.*
 *.d.ts
+generateEnvDeclarations.js
+*.js.map
+nodemon.json

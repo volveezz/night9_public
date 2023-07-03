@@ -5,7 +5,7 @@ import { RaidButtons } from "../../../configs/Buttons.js";
 import colors from "../../../configs/colors.js";
 import { client } from "../../../index.js";
 import { apiStatus } from "../../../structures/apiStatus.js";
-import { fetchRequest } from "../../api/fetchRequest.js";
+import { sendApiRequest } from "../../api/sendApiRequest.js";
 import { AuthData, RaidEvent } from "../../persistence/sequelize.js";
 import { addButtonsToMessage } from "../addButtonsToMessage.js";
 import nameCleaner from "../nameClearer.js";
@@ -231,7 +231,7 @@ async function checkFireteamRoster(voiceChannelMembersAuthData, raidName, raidId
         return null;
     for (const authData of voiceChannelMembersAuthData) {
         try {
-            const destinyProfile = await fetchRequest(`Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=204,1000`, authData.accessToken);
+            const destinyProfile = await sendApiRequest(`Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=204,1000`, authData.accessToken);
             const partyMembers = destinyProfile?.profileTransitoryData?.data?.partyMembers;
             const characterActivities = destinyProfile.characterActivities.data;
             if (!partyMembers || !characterActivities)
@@ -271,3 +271,4 @@ async function updateRaidJoinedRoster(joined, raidEvent, discordId) {
     return updatedData;
 }
 export default raidFireteamChecker;
+//# sourceMappingURL=raidFireteamChecker.js.map

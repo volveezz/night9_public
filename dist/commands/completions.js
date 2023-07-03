@@ -5,8 +5,8 @@ import icons from "../configs/icons.js";
 import { client } from "../index.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
-import { fetchRequest } from "../utils/api/fetchRequest.js";
 import { CachedDestinyActivityDefinition } from "../utils/api/manifestHandler.js";
+import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
@@ -68,7 +68,7 @@ export default new Command({
             throw { errorType: UserErrors.DB_USER_NOT_FOUND, errorData: { isSelf: interaction.user.id === targerMember.id } };
         }
         const { platform, bungieId, accessToken } = authData;
-        const characterIdList = (await fetchRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken)).characters.map((characterData) => characterData.characterId);
+        const characterIdList = (await sendApiRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken)).characters.map((characterData) => characterData.characterId);
         const embed = new EmbedBuilder().setColor(colors.serious).setAuthor({
             name: `Идет обработка ${characterIdList.length} персонажей...`,
             iconURL: icons.loading,
@@ -81,7 +81,7 @@ export default new Command({
             let characterIndex = 0;
             while (characterIndex < characterIdList.length) {
                 const characterId = characterIdList[characterIndex];
-                const response = await fetchRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Character/${characterId}/Stats/Activities/?count=250&mode=${category}&page=${page}`, accessToken);
+                const response = await sendApiRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Character/${characterId}/Stats/Activities/?count=250&mode=${category}&page=${page}`, accessToken);
                 if (response.activities)
                     activities = activities.concat(response.activities);
                 if (response.activities?.length === 250) {
@@ -312,3 +312,4 @@ export default new Command({
         return;
     },
 });
+//# sourceMappingURL=completions.js.map

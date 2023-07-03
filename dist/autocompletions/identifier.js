@@ -1,6 +1,7 @@
 import { Op } from "sequelize";
 import { client } from "../index.js";
-import { fetchPostRequest, fetchRequest } from "../utils/api/fetchRequest.js";
+import { sendApiPostRequest } from "../utils/api/sendApiPostRequest.js";
+import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { isBungieId } from "../utils/general/utilities.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default {
@@ -96,12 +97,15 @@ async function fetchUserProfile(searchTerm) {
     let response;
     const isInputBungieId = isBungieId(searchTerm);
     if (isInputBungieId) {
-        response = (await fetchRequest(`Platform/User/GetMembershipsById/${searchTerm}/-1`));
+        response = (await sendApiRequest(`Platform/User/GetMembershipsById/${searchTerm}/-1`));
     }
     else {
-        response = (await fetchPostRequest("Platform/User/Search/GlobalName/0/", {
-            displayNamePrefix: searchTerm,
-        }));
+        response = await sendApiPostRequest({
+            apiEndpoint: "Platform/User/Search/GlobalName/0/",
+            requestData: {
+                displayNamePrefix: searchTerm,
+            },
+        });
     }
     if (!response)
         return null;
@@ -159,3 +163,4 @@ function parseResponse(response, isBungieId) {
     }
     return users.length === 1 ? users[0] : users.length > 1 ? users : null;
 }
+//# sourceMappingURL=identifier.js.map

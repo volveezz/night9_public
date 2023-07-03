@@ -2,8 +2,6 @@ import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import fetch from "node-fetch";
 import { RegisterButtons } from "../configs/Buttons.js";
 import colors from "../configs/colors.js";
-import { channelIds } from "../configs/ids.js";
-import { statusRoles } from "../configs/roles.js";
 import { client } from "../index.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import setMemberRoles from "../utils/discord/setRoles.js";
@@ -100,13 +98,13 @@ async function handleAuthorizationRecordExpired(row, table) {
             const components = await addButtonsToMessage([registerButton]);
             const member = await client.getAsyncMember(discordId);
             if (member) {
-                await setMemberRoles({ member, roles: [statusRoles.newbie], reason: "Authorization token expired" }).catch(async (e) => {
+                await setMemberRoles({ member, roles: [process.env.NEWBIE], reason: "Authorization token expired" }).catch(async (e) => {
                     console.error(`[Error code: 1635] An error occurred while deleting roles of ${member.displayName || member.user.username}\n`, e);
                 });
             }
             await member.send({ embeds: [embed], components }).catch(async (e) => {
                 if (e.code === 50007) {
-                    const botChannel = await client.getAsyncTextChannel(channelIds.publicBotSpam);
+                    const botChannel = await client.getAsyncTextChannel(process.env.PUBLIC_BOT_CHANNEL_ID);
                     embed.setAuthor({
                         name: `${nameCleaner(member.displayName)}`,
                         iconURL: member.displayAvatarURL(),
@@ -143,3 +141,4 @@ async function tokenManagment() {
     setInterval(async () => await refreshTokens(1), 1000 * 60 * 50);
 }
 export default tokenManagment;
+//# sourceMappingURL=tokenManagement.js.map

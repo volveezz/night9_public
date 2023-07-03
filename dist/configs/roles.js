@@ -1,10 +1,3 @@
-const statusRoles = {
-    clanmember: process.env.CLANMEMBER,
-    member: process.env.MEMBER,
-    newbie: process.env.NEWBIE,
-    kicked: process.env.KICKED,
-    verified: process.env.VERIFIED,
-};
 const seasonalRoles = { curSeasonRole: process.env.CUR_SEASON_ROLE, nonCurSeasonRole: process.env.NON_CUR_SEASON_ROLE };
 const dlcRoles = {
     vanilla: process.env.VANILLA,
@@ -20,7 +13,6 @@ const classRoles = [
     { className: "warlock", id: process.env.WARLOCK },
     { className: "titan", id: process.env.TITAN },
 ];
-const triumphsCategory = process.env.TRIUMPHS_CATEGORY;
 const raidRoles = {
     allRoles: [process.env.RAID_ROLE_50, process.env.RAID_ROLE_30, process.env.RAID_ROLE_7, process.env.RAID_ROLE_2],
     roles: [
@@ -51,7 +43,6 @@ const clanJoinDateRoles = {
     ],
 };
 const statisticsRoles = {
-    category: process.env.STATISTICS_CATEGORY,
     allActive: process.env.STATISTICS_ALL_ACTIVE_ROLES.split(","),
     active: [
         { roleId: process.env.STATISTICS_ACTIVE_ROLE_25000, triumphScore: 25000 },
@@ -110,7 +101,6 @@ const activityRoles = {
         { roleId: process.env.ACTIVITY_MESSAGES_ROLE_5, messageCount: 5 },
     ],
 };
-const titleCategory = process.env.TITLE_CATEGORY;
 const trialsRoles = {
     allRoles: [
         process.env.TRIALS_TOTAL_FLAWLESS_ROLE_50,
@@ -184,5 +174,5 @@ const guardianRankRoles = {
         { roleId: process.env.GUARDIAN_RANK_11, rank: 11 },
     ],
 };
-const dungeonMasterRole = process.env.DUNGEON_MASTER_ROLE;
-export { activityRoles, clanJoinDateRoles, classRoles, dlcRoles, dungeonMasterRole, guardianRankRoles, raidRoles, seasonalRoles, statisticsRoles, statusRoles, titleCategory, trialsRoles, triumphsCategory, };
+export { activityRoles, clanJoinDateRoles, classRoles, dlcRoles, guardianRankRoles, raidRoles, seasonalRoles, statisticsRoles, trialsRoles, };
+//# sourceMappingURL=roles.js.map

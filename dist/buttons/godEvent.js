@@ -4,10 +4,10 @@ import { RaidButtons } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
-import { channelIds } from "../configs/ids.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { updateRaidMessage } from "../utils/general/raidFunctions.js";
 import { RaidEvent } from "../utils/persistence/sequelize.js";
+let raidChannel = null;
 export default {
     name: "godEvent",
     run: async ({ client, interaction }) => {
@@ -69,16 +69,16 @@ export default {
                 return;
             }
             case "achatAccess": {
-                return chnPermGranter(channelIds.admin);
+                return chnPermGranter(process.env.ADMIN_CHANNEL_ID);
             }
             case "achatVoiceAccess": {
-                return chnPermGranter(channelIds.adminVoice);
+                return chnPermGranter(process.env.ADMIN_VOICE_CHANNEL_ID);
             }
             case "manifestAccess": {
-                return chnPermGranter(channelIds.manifest);
+                return chnPermGranter(process.env.MANIFEST_CHANNEL_ID);
             }
             case "vchatAccess": {
-                return chnPermGranter(channelIds.voice);
+                return chnPermGranter(process.env.VOICE_LOG_CHANNEL_ID);
             }
             case "color": {
                 const colorName = interaction.customId.split("_")[2];
@@ -130,7 +130,8 @@ export default {
                 await deferredReply;
                 throw { name: "Сейчас создан лишь один рейд" };
             }
-            const raidChannel = await client.getAsyncTextChannel(channelIds.raid);
+            if (!raidChannel)
+                raidChannel = await client.getAsyncTextChannel(process.env.RAID_CHANNEL_ID);
             const baseComponents = [
                 new ButtonBuilder().setCustomId(RaidButtons.join).setLabel("Записаться").setStyle(ButtonStyle.Success),
                 new ButtonBuilder().setCustomId(RaidButtons.leave).setLabel("Выйти").setStyle(ButtonStyle.Danger),
@@ -256,3 +257,4 @@ export default {
         }
     },
 };
+//# sourceMappingURL=godEvent.js.map

@@ -4,7 +4,7 @@ import NightRoleCategory from "../../configs/RoleCategory.js";
 import UserErrors from "../../configs/UserErrors.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
-import { activityRoles, raidRoles, statisticsRoles, titleCategory, triumphsCategory } from "../../configs/roles.js";
+import { activityRoles, raidRoles } from "../../configs/roles.js";
 import { longOffline, userTimezones } from "../../core/userStatisticsManagement.js";
 import { Command } from "../../structures/command.js";
 import { CachedDestinyRecordDefinition } from "../../utils/api/manifestHandler.js";
@@ -189,7 +189,7 @@ export default new Command({
                         inline: true,
                     },
                 ]);
-                if (request.UserActivityData && request.UserActivityData.messages >= 0) {
+                if (request.UserActivityData && request.UserActivityData.messages != null) {
                     embed.addFields([
                         { name: "Сообщений отправлено", value: `${request.UserActivityData.messages}`, inline: true },
                         {
@@ -198,8 +198,8 @@ export default new Command({
                             inline: true,
                         },
                         {
-                            name: "Пройдено данжей/рейдов с сокланами",
-                            value: `${request.UserActivityData.dungeons}/${request.UserActivityData.raids}`,
+                            name: "Пройдено рейдов/дажней",
+                            value: `${request.UserActivityData.raids}/${request.UserActivityData.dungeons}`,
                             inline: true,
                         },
                     ]);
@@ -345,11 +345,11 @@ export default new Command({
                                 position: interaction.guild.roles.cache.get(category === NightRoleCategory.Activity
                                     ? activityRoles.category
                                     : category === NightRoleCategory.Triumphs
-                                        ? triumphsCategory
+                                        ? process.env.TRIUMPHS_CATEGORY
                                         : category === NightRoleCategory.Titles
-                                            ? titleCategory
+                                            ? process.env.TITLE_CATEGORY
                                             : category === NightRoleCategory.Stats
-                                                ? statisticsRoles.category
+                                                ? process.env.STATISTICS_CATEGORY
                                                 : raidRoles.roles[0].roleId)?.position ?? undefined,
                             });
                             if (guildableTitle) {
@@ -512,3 +512,4 @@ export default new Command({
         }
     },
 });
+//# sourceMappingURL=dbCommand.js.map

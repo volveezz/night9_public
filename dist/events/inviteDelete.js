@@ -1,10 +1,9 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
-import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-const guildChannel = client.getCachedTextChannel(channelIds.guild);
-export default new Event("inviteDelete", (invite) => {
+let guildChannel = null;
+export default new Event("inviteDelete", async (invite) => {
     const embed = new EmbedBuilder()
         .setAuthor({ name: `Приглашение ${invite.code} удалено` })
         .setColor(colors.error)
@@ -13,5 +12,9 @@ export default new Event("inviteDelete", (invite) => {
         value: `<#${invite.channelId}>`,
         inline: true,
     });
-    guildChannel.send({ embeds: [embed] });
+    if (!guildChannel)
+        guildChannel =
+            client.getCachedTextChannel(process.env.GUILD_CHANNEL_ID) || (await client.getAsyncTextChannel(process.env.GUILD_CHANNEL_ID));
+    await guildChannel.send({ embeds: [embed] });
 });
+//# sourceMappingURL=inviteDelete.js.map

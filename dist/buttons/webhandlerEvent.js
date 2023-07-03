@@ -1,19 +1,18 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
-import fetch from "node-fetch";
 import { Op } from "sequelize";
 import { ClanButtons, TimezoneButtons } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
-import { groupId, ownerId } from "../configs/ids.js";
 import { client } from "../index.js";
+import { sendApiPostRequest } from "../utils/api/sendApiPostRequest.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default {
     name: "webhandlerEvent",
     run: async ({ interaction }) => {
         const deferredReply = interaction.deferReply({ ephemeral: true });
-        if (interaction.user.id === ownerId) {
+        if (interaction.user.id === process.env.OWNER_ID) {
             await deferredReply;
             await interaction.editReply({ content: "Вам нельзя вступать в клан" });
             return;
@@ -21,14 +20,14 @@ export default {
         const authData = await AuthData.findAll({
             attributes: ["clan", "bungieId", "platform", "accessToken"],
             where: {
-                [Op.or]: [{ discordId: interaction.user.id }, { discordId: ownerId }],
+                [Op.or]: [{ discordId: interaction.user.id }, { discordId: process.env.OWNER_ID }],
             },
         });
         if (authData.length !== 2) {
             await deferredReply;
             throw { errorType: UserErrors.DB_USER_NOT_FOUND };
         }
-        if (authData[0].discordId === ownerId) {
+        if (authData[0].discordId === process.env.OWNER_ID) {
             var { clan: invitee_clan, bungieId: invitee_bungieId, platform: invitee_platform } = authData[1];
             var { accessToken: inviter_accessToken } = authData[0];
         }
@@ -43,18 +42,19 @@ export default {
         if (authData.length === 2) {
             if (invitee_clan === true) {
                 interaction.channel?.isDMBased()
-                    ? interaction.channel?.messages.fetch(interaction.message.id).then(async (msg) => {
+                    ? interaction.channel.messages.fetch(interaction.message.id).then(async (msg) => {
                         msg.edit({ components: await addButtonsToMessage([timezoneComponent]) });
                     })
                     : "";
                 (await deferredReply) && interaction.editReply("Вы уже являетесь участником нашего клана :)");
                 return;
             }
-            const clanInviteRequest = (await (await fetch(`https://www.bungie.net/platform/GroupV2/${groupId}/Members/IndividualInvite/${invitee_platform}/${invitee_bungieId}/`, {
-                method: "POST",
-                headers: { "X-API-Key": process.env.XAPI, Authorization: `Bearer ${inviter_accessToken}` },
-                body: JSON.stringify({ description: "Автоматическое приглашение в клан Night 9" }),
-            })).json());
+            const clanInviteRequest = await sendApiPostRequest({
+                apiEndpoint: `Platform/GroupV2/${process.env.GROUP_ID}/Members/IndividualInvite/${invitee_platform}/${invitee_bungieId}/`,
+                requestData: { description: "Автоматическое приглашение в клан Night 9" },
+                authToken: inviter_accessToken,
+                shouldReturnResponse: false,
+            });
             const embed = getEmbedResponse(clanInviteRequest.ErrorCode);
             await deferredReply;
             await interaction.editReply({ embeds: [embed] });
@@ -77,13 +77,14 @@ export default {
         }
         function getEmbedResponse(code) {
             const embed = new EmbedBuilder().setColor(colors.error);
-            const bungieNetUrl = `[Bungie.net](https://www.bungie.net/ru/ClanV2?groupid=${groupId})`;
+            const bungieNetUrl = `[Bungie.net](https://www.bungie.net/ru/ClanV2?groupid=${process.env.GROUP_ID})`;
             switch (code) {
                 case 1:
                     return embed
                         .setColor(colors.success)
                         .setAuthor({ name: "Приглашение было отправлено", iconURL: icons.success })
-                        .setDescription(`Принять приглашение можно в игре или на [сайте Bungie](https://www.bungie.net/ru/ClanV2?groupId=${groupId})`);
+                        .setDescription(`Принять приглашение можно в игре или на [сайте Bungie](https://www.bungie.net/ru/ClanV2?groupId=${process.env
+                        .GROUP_ID})`);
                 case 676:
                     return embed.setColor(colors.success).setAuthor({ name: "Вы уже участник клана", iconURL: icons.success });
                 case 695:
@@ -97,14 +98,19 @@ export default {
                 case 5:
                     return embed
                         .setAuthor({ name: "API в данный момент недоступно", iconURL: icons.error })
-                        .setDescription(`Попробуйте повторить попытку позже, или напишите в личные сообщения лидеру клана <@${ownerId}> ||(ему можно писать даже когда он не в сети)||`);
+                        .setDescription(`Попробуйте повторить попытку позже, или напишите в личные сообщения лидеру клана <@${process.env
+                        .OWNER_ID}> ||(ему можно писать даже когда он не в сети)||`);
                 default:
                     console.error("[Error code: 1633]", code);
                     return embed
                         .setAuthor({ name: "Произошла неизвестная ошибка", iconURL: icons.error })
-                        .setDescription(`Администрация была оповещена об этой ошибке и при необходимости свяжется с Вами\n\n### Если Вы не получили приглашение в клан, то Вы можете вступить в него следующими способами:\n1. Написав лидеру клана в личные сообщения (лидер клана <@${ownerId}>)\n2. Вступив в клан через сайт ${bungieNetUrl}\n3. Вступив через любого участника в игре, который уже в нашем клане\n\nПо любым вопросам Вы можете написать <@${ownerId}> или <@${client.user.id}> в любое время без ограничений`);
+                        .setDescription(`Администрация была оповещена об этой ошибке и при необходимости свяжется с Вами\n\n### Если Вы не получили приглашение в клан, то Вы можете вступить в него следующими способами:\n1. Написав лидеру клана в личные сообщения (лидер клана <@${process
+                        .env
+                        .OWNER_ID}>)\n2. Вступив в клан через сайт ${bungieNetUrl}\n3. Вступив через любого участника в игре, который уже в нашем клане\n\nПо любым вопросам Вы можете написать <@${process
+                        .env.OWNER_ID}> или <@${client.user.id}> в любое время без ограничений`);
                     break;
             }
         }
     },
 };
+//# sourceMappingURL=webhandlerEvent.js.map

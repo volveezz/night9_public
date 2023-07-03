@@ -2,8 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuild
 import { ClanJoinButtons, RegisterButtons } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
-import { channelIds } from "../configs/ids.js";
-import { statusRoles } from "../configs/roles.js";
+let clanLogChannel = null;
 export default {
     name: "clanJoinEvent",
     run: async ({ client, interaction: chatInteraction, modalSubmit }) => {
@@ -57,7 +56,7 @@ export default {
         else if (modalSubmit) {
             const replyEmbed = new EmbedBuilder().setColor(colors.success).setTitle("Вы оставили заявку на вступление в клан");
             let components = undefined;
-            if (member.roles.cache.has(statusRoles.verified)) {
+            if (member.roles.cache.has(process.env.VERIFIED)) {
                 replyEmbed.setDescription("Вы выполнили все условия для вступления - примите приглашение в игре и вы будете автоматически авторизованы на сервере");
             }
             else {
@@ -81,7 +80,12 @@ export default {
                     return;
                 loggedEmbed.addFields({ name: c.customId.split("_").pop() ?? "Заголовок не найден", value: c.value ?? "ничего не указано" });
             });
-            client.getCachedTextChannel(channelIds.clanLogs)?.send({ embeds: [loggedEmbed] });
+            if (!clanLogChannel)
+                clanLogChannel =
+                    client.getCachedTextChannel(process.env.CLAN_CHANNEL_ID) ||
+                        (await client.getAsyncTextChannel(process.env.CLAN_CHANNEL_ID));
+            await clanLogChannel.send({ embeds: [loggedEmbed] });
         }
     },
 };
+//# sourceMappingURL=clanJoinEvent.js.map

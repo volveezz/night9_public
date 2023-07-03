@@ -1,10 +1,9 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
-import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import nameCleaner from "../utils/general/nameClearer.js";
-const guildChannel = client.getCachedTextChannel(channelIds.guild);
+let guildChannel = null;
 export default new Event("guildUpdate", async (oldGuild, newGuild) => {
     const embed = new EmbedBuilder().setColor(colors.default).setAuthor({
         name: "Сервер обновлен",
@@ -79,5 +78,9 @@ export default new Event("guildUpdate", async (oldGuild, newGuild) => {
     if (guildChanges.length > 0) {
         embed.addFields(guildChanges);
     }
-    guildChannel.send({ embeds: [embed] });
+    if (!guildChannel)
+        guildChannel =
+            client.getCachedTextChannel(process.env.GUILD_CHANNEL_ID) || (await client.getAsyncTextChannel(process.env.GUILD_CHANNEL_ID));
+    await guildChannel.send({ embeds: [embed] });
 });
+//# sourceMappingURL=guildUpdate.js.map

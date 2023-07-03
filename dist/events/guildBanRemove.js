@@ -1,10 +1,9 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
-import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-const guildMemberChannel = client.getCachedTextChannel(channelIds.guildMember);
-export default new Event("guildBanRemove", (member) => {
+let guildMemberChannel = null;
+export default new Event("guildBanRemove", async (member) => {
     const embed = new EmbedBuilder()
         .setColor(colors.success)
         .setAuthor({
@@ -20,5 +19,10 @@ export default new Event("guildBanRemove", (member) => {
             },
         ]);
     }
-    guildMemberChannel.send({ embeds: [embed] });
+    if (!guildMemberChannel)
+        guildMemberChannel =
+            client.getCachedTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID) ||
+                (await client.getAsyncTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID));
+    await guildMemberChannel.send({ embeds: [embed] });
 });
+//# sourceMappingURL=guildBanRemove.js.map

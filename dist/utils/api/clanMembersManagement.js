@@ -2,7 +2,6 @@ import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { getAdminAccessToken } from "../../commands/clanCommand.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
-import { groupId } from "../../configs/ids.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import getClanMemberData from "./getClanMemberData.js";
 import kickClanMember from "./kickClanMember.js";
@@ -11,7 +10,7 @@ async function kickMemberFromClan(id, interaction) {
     if (!memberData || (!memberData.bungieId && !memberData.member)) {
         throw { name: "Ошибка. Пользователь не найден" };
     }
-    if (!memberData.group || memberData.group.groupId !== groupId) {
+    if (!memberData.group || memberData.group.groupId !== process.env.GROUP_ID) {
         throw {
             name: "Ошибка. Пользователь уже не в клане",
             ...(memberData.group != null ? { description: `Пользователь в клане: ${memberData.group.name}` } : {}),
@@ -69,3 +68,4 @@ async function kickMemberFromClan(id, interaction) {
     return memberData;
 }
 export default kickMemberFromClan;
+//# sourceMappingURL=clanMembersManagement.js.map

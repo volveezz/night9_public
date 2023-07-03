@@ -57,3 +57,4 @@ export async function manageAdminDMChannel(message) {
         return console.error(`[Error code: 1113] ${userId} ${isEmbed}`);
     }
 }
+//# sourceMappingURL=adminDmManager.js.map

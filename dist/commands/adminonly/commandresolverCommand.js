@@ -214,3 +214,4 @@ export default new Command({
         }
     },
 });
+//# sourceMappingURL=commandresolverCommand.js.map

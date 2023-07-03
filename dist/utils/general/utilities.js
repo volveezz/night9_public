@@ -56,7 +56,8 @@ export async function getRandomRaidGIF() {
             }
             const prompts = ["military guns", "raid time", "raiding destiny2"];
             const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
-            const response = await (await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${process.env.GIPHY_API}&q=${randomPrompt}&limit=250&offset=0&rating=r&lang=ru`)).json();
+            const response = await (await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${process.env
+                .GIPHY_API}&q=${randomPrompt}&limit=250&offset=0&rating=r&lang=ru`)).json();
             const regex = /^(.*?\.gif)/;
             const randomGifIndex = Math.floor(Math.random() * response.data.length);
             const url = response.data[randomGifIndex]?.images.original.url;
@@ -108,3 +109,4 @@ export function parseIdentifierString(valueString) {
         discordId,
     };
 }
+//# sourceMappingURL=utilities.js.map

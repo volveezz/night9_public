@@ -3,8 +3,8 @@ import { StatsButton } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import { apiStatus } from "../structures/apiStatus.js";
-import { fetchRequest } from "../utils/api/fetchRequest.js";
 import { CachedDestinyMilestoneDefinition, CachedDestinyProgressionDefinition } from "../utils/api/manifestHandler.js";
+import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default {
@@ -29,7 +29,7 @@ export default {
         const { platform, bungieId } = userData;
         switch (interaction.customId) {
             case StatsButton.oldEvents: {
-                const data = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/?components=202`, userData);
+                const data = await sendApiRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/?components=202`, userData);
                 const factions = data.characterProgressions?.data?.[Object.keys(data.characterProgressions.data)[0]].factions || {};
                 const dataFact = Object.entries(factions)
                     .filter(([_, faction]) => faction.progressionHash)
@@ -57,7 +57,7 @@ export default {
                 return;
             }
             case StatsButton.pinnacle: {
-                const data = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/?components=200,202`, userData);
+                const data = await sendApiRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/?components=200,202`, userData);
                 if (!data.characterProgressions.data) {
                     throw { name: "Ошибка", description: "Не найти данные об ваших персонажах" };
                 }
@@ -148,3 +148,4 @@ export default {
         }
     },
 };
+//# sourceMappingURL=statsEvent.js.map

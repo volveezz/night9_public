@@ -2,7 +2,6 @@ import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder 
 import { ClanButtons, RegisterButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
-import { groupId } from "../../configs/ids.js";
 import { Command } from "../../structures/command.js";
 import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
 export default new Command({
@@ -178,7 +177,8 @@ async function getPreset(presetName) {
                 },
                 {
                     name: "<:drei:1087575479617331253> Вступите в клан",
-                    value: `[Подайте заявку в клан](https://www.bungie.net/ru/ClanV2?groupid=${groupId}) или отправьте её себе сами нажав \`Приглашение в клан\``,
+                    value: `[Подайте заявку в клан](https://www.bungie.net/ru/ClanV2?groupid=${process.env
+                        .GROUP_ID}) или отправьте её себе сами нажав \`Приглашение в клан\``,
                 },
             ]);
             const components = [
@@ -238,9 +238,12 @@ async function getPreset(presetName) {
             const embed = new EmbedBuilder()
                 .setColor(colors.default)
                 .setTitle("Возвращение в клан")
-                .setDescription(`Нажмите на кнопку ниже для получения приглашения в клан в игре или перейдите на [страницу клана](https://www.bungie.net/ru/ClanV2?groupid=${groupId}) и вступите там\n -  Приглашение можно принять на [bungie.net](https://bungie.net/) или в игре\n - Доступно **только для зарегистрированных** пользователей`);
+                .setDescription(`Нажмите на кнопку ниже для получения приглашения в клан в игре или перейдите на [страницу клана](https://www.bungie.net/ru/ClanV2?groupid=${process
+                .env
+                .GROUP_ID}) и вступите там\n -  Приглашение можно принять на [Bungie.net](https://bungie.net/) или в игре\n - Доступно **только для зарегистрированных** пользователей`);
             return { embeds: [embed], components };
         }
     }
     return null;
 }
+//# sourceMappingURL=generatorCommand.js.map

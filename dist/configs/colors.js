@@ -8,3 +8,4 @@ const colors = {
     invisible: "#2b2d31",
 };
 export default colors;
+//# sourceMappingURL=colors.js.map

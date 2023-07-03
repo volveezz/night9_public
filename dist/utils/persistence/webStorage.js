@@ -5,3 +5,4 @@ export async function storeDiscordTokens(userId, tokens) {
 export async function getDiscordTokens(userId) {
     return store.get(`discord-${userId}`);
 }
+//# sourceMappingURL=webStorage.js.map

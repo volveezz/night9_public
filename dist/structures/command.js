@@ -3,3 +3,4 @@ export class Command {
         Object.assign(this, commandOptions);
     }
 }
+//# sourceMappingURL=command.js.map

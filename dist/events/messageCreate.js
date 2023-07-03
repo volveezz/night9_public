@@ -2,8 +2,6 @@ import { EmbedBuilder, Message } from "discord.js";
 import { workingCollectors } from "../buttons/adminDirectMessageButton.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
-import { channelIds } from "../configs/ids.js";
-import { statusRoles } from "../configs/roles.js";
 import { Event } from "../structures/event.js";
 import { manageAdminDMChannel } from "../utils/discord/adminDmManager.js";
 import { handleDm } from "../utils/discord/dmHandler.js";
@@ -14,21 +12,21 @@ import { cacheUserActivity } from "../utils/discord/userActivityHandler.js";
 async function handleMessage(message) {
     if (!message.author || message.author.bot || message.system || !(message instanceof Message))
         return;
-    if (message.channelId === channelIds.patchNoteGenerator) {
+    if (message.channelId === process.env.PATCHNOTE_GENERATOR_CHANNEL_ID) {
         return generatePatchNotes(message);
     }
-    if (message.channelId === channelIds.pveParty) {
+    if (message.channelId === process.env.PVE_PARTY_CHANNEL_ID) {
         return lfgHandler(message);
     }
     if (message.channel.isDMBased()) {
         return handleDirectMessage(message);
     }
-    if (channelIds.directMessages === message.channelId &&
+    if (process.env.DIRECT_MESSAGES_CHANNEL_ID === message.channelId &&
         message.member?.permissions.has("Administrator") &&
         !workingCollectors.has(message.author.id)) {
         return manageAdminDMChannel(message);
     }
-    if (!message.member?.roles.cache.has(statusRoles.verified))
+    if (!message.member?.roles.cache.has(process.env.VERIFIED))
         return;
     cacheUserActivity({ userId: message.author.id, messageId: message.id });
 }
@@ -51,3 +49,4 @@ export default new Event("messageCreate", async (message) => {
         return message.reply({ embeds: [embed] }).then((m) => setTimeout(() => m.delete(), 5000));
     }
 });
+//# sourceMappingURL=messageCreate.js.map

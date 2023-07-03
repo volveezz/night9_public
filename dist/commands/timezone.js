@@ -27,3 +27,4 @@ export default new Command({
         interaction.reply({ ephemeral: true, embeds: [embed], components: await addButtonsToMessage([tzBlank]) });
     },
 });
+//# sourceMappingURL=timezone.js.map

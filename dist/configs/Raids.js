@@ -13,3 +13,4 @@ export var RaidDifficulty;
     RaidDifficulty[RaidDifficulty["normal"] = 1] = "normal";
     RaidDifficulty[RaidDifficulty["master"] = 2] = "master";
 })(RaidDifficulty || (RaidDifficulty = {}));
+//# sourceMappingURL=Raids.js.map

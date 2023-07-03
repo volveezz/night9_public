@@ -104,3 +104,4 @@ export default new Command({
         }
     },
 });
+//# sourceMappingURL=roleCommand.js.map

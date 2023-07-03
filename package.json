@@ -1,6 +1,6 @@
 {
 	"name": "nightfuture",
-	"version": "2.14.46",
+	"version": "2.15.0",
 	"engines": {
 		"node": "18.x"
 	},
@@ -9,8 +9,8 @@
 	"main": "./dist/index.js",
 	"scripts": {
 		"start": "node ./dist/index.js",
-		"prepush": "npx tsc --watch",
-		"dev": "concurrently \"npx tsc --watch\" \"nodemon -q ./dist/index.js\""
+		"compile": "npx tsc --watch",
+		"dev": "node -r source-map-support/register dist/index.js"
 	},
 	"author": "Volve",
 	"license": "ISC",
@@ -32,7 +32,6 @@
 		"@types/express": "^4.17.17",
 		"@types/node-cron": "^3.0.8",
 		"bungie-api-ts": "^4.22.3",
-		"concurrently": "^8.2.0",
-		"nodemon": "^2.0.22"
+		"source-map-support": "^0.5.21"
 	}
 }

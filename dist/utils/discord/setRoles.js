@@ -16,3 +16,4 @@ async function setMemberRoles({ member, roles, reason }) {
     return await roleSetPromise;
 }
 export default setMemberRoles;
+//# sourceMappingURL=setRoles.js.map

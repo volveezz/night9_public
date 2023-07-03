@@ -57,3 +57,4 @@ function processShortFormat(parts, date, currentMonth, currentDate, timezoneOffs
     return Math.round(date.getTime() / 1000);
 }
 export default convertTimeStringToNumber;
+//# sourceMappingURL=convertTimeStringToNumber.js.map

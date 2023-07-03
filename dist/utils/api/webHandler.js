@@ -3,15 +3,13 @@ import fetch from "node-fetch";
 import { ClanButtons, TimezoneButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
-import { channelIds, groupId } from "../../configs/ids.js";
-import { statusRoles } from "../../configs/roles.js";
 import guildNicknameManagement from "../../core/guildNicknameManagement.js";
 import { checkIndiviualUserStatistics } from "../../core/userStatisticsManagement.js";
 import { client } from "../../index.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import { escapeString } from "../general/utilities.js";
 import { AuthData, InitData, LeavedUsersData, UserActivityData } from "../persistence/sequelize.js";
-import { fetchRequest } from "./fetchRequest.js";
+import { sendApiRequest } from "./sendApiRequest.js";
 export default async function webHandler(code, state, res) {
     const json = await InitData.findOne({ where: { state: state } });
     if (!json || !json.discordId)
@@ -32,7 +30,7 @@ export default async function webHandler(code, state, res) {
         return console.error("[Error code: 1010]", `There is problem with fetching authData from state: ${state}`, body);
     }
     try {
-        const request = await fetchRequest("Platform/User/GetMembershipsForCurrentUser/", body.access_token);
+        const request = await sendApiRequest("Platform/User/GetMembershipsForCurrentUser/", body.access_token);
         if (!request || !request.destinyMemberships) {
             res.send("<script>location.replace('error.html')</script>").end();
             return console.error(`[Error code: 1034] State: ${state} / Code: ${code}`, body, request);
@@ -97,7 +95,7 @@ export default async function webHandler(code, state, res) {
                         .setColor(colors.success)
                         .setAuthor({ name: member.displayName, iconURL: member.displayAvatarURL() })
                         .setTitle("Пользователь обновил существующую регистрацию");
-                    await (await client.getAsyncTextChannel(channelIds.bot)).send({ embeds: [loggedEmbed] });
+                    await (await client.getAsyncTextChannel(process.env.BOT_CHANNEL_ID)).send({ embeds: [loggedEmbed] });
                 }
                 catch (error) {
                     console.error("[Error code: 1808] Failed to send log message", error, json.discordId);
@@ -113,7 +111,7 @@ export default async function webHandler(code, state, res) {
             limit: 1,
         });
         res.send("<script>location.replace('index.html')</script>").end();
-        const clanResponse = await fetchRequest(`Platform/GroupV2/User/${platform}/${bungieId}/0/1/`, body.access_token);
+        const clanResponse = await sendApiRequest(`Platform/GroupV2/User/${platform}/${bungieId}/0/1/`, body.access_token);
         const member = await client.getAsyncMember(json.discordId);
         if (!member) {
             return console.error("[Error code: 1012] Member error during webHandling of", json);
@@ -148,7 +146,7 @@ export default async function webHandler(code, state, res) {
             loggedEmbed.addFields([{ name: "Текущий клан", value: `${clanResponse.results[0].group.name}`, inline: true }]);
         }
         try {
-            client.getCachedTextChannel(channelIds.bot).send({ embeds: [loggedEmbed] });
+            client.getCachedTextChannel(process.env.BOT_CHANNEL_ID).send({ embeds: [loggedEmbed] });
         }
         catch (error) {
             console.error(`[Error code: 1236] Failed to send log message for ${displayName}`);
@@ -160,14 +158,14 @@ export default async function webHandler(code, state, res) {
             },
         });
         const givenRoles = [];
-        if (!member.roles.cache.hasAny(statusRoles.member, statusRoles.clanmember))
-            givenRoles.push(statusRoles.member);
-        if (!member.roles.cache.has(statusRoles.verified))
-            givenRoles.push(statusRoles.verified);
+        if (!member.roles.cache.hasAny(process.env.MEMBER, process.env.CLANMEMBER))
+            givenRoles.push(process.env.MEMBER);
+        if (!member.roles.cache.has(process.env.VERIFIED))
+            givenRoles.push(process.env.VERIFIED);
         if (givenRoles.length > 0)
             await member.roles.add(givenRoles, "User registration").then(async (member) => {
-                if (member.roles.cache.has(statusRoles.newbie))
-                    await member.roles.remove(statusRoles.newbie, "User registration");
+                if (member.roles.cache.has(process.env.NEWBIE))
+                    await member.roles.remove(process.env.NEWBIE, "User registration");
             });
         const clanRequestComponent = new ButtonBuilder()
             .setCustomId(ClanButtons.invite)
@@ -194,7 +192,7 @@ export default async function webHandler(code, state, res) {
                 components: await addButtonsToMessage([clanRequestComponent, timezoneComponent]),
             });
         }
-        else if (clanResponse.results.length === 0 || !(clanResponse.results?.[0]?.group?.groupId === groupId)) {
+        else if (clanResponse.results.length === 0 || !(clanResponse.results?.[0]?.group?.groupId === process.env.GROUP_ID)) {
             embed.setDescription(embed.data.description
                 ? embed.data.description + "\n\nНажмите кнопку для получения приглашения в клан"
                 : "Нажмите кнопку для получения приглашения в клан");
@@ -206,7 +204,9 @@ export default async function webHandler(code, state, res) {
         else {
             await member.send({
                 embeds: [embed],
-                components: await addButtonsToMessage(!(clanResponse?.results?.[0]?.group?.groupId === groupId) ? [clanRequestComponent, timezoneComponent] : [timezoneComponent]),
+                components: await addButtonsToMessage(!(clanResponse?.results?.[0]?.group?.groupId === process.env.GROUP_ID)
+                    ? [clanRequestComponent, timezoneComponent]
+                    : [timezoneComponent]),
             });
         }
     }
@@ -220,3 +220,4 @@ export default async function webHandler(code, state, res) {
         return console.error(`[Error code: 1234] State: ${state} / Code:${code}`, body, error);
     }
 }
+//# sourceMappingURL=webHandler.js.map

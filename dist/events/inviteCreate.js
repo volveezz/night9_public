@@ -1,19 +1,14 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
-import { channelIds } from "../configs/ids.js";
+import icons from "../configs/icons.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-const guildChannel = await client.getAsyncTextChannel(channelIds.guild);
+import nameCleaner from "../utils/general/nameClearer.js";
+let guildChannel = null;
 export default new Event("inviteCreate", async (invite) => {
     if (invite.inviterId === client.user.id)
         return;
-    const member = client.guilds.cache.get(invite.guild.id).members.cache.get(invite.inviterId);
     const embed = new EmbedBuilder()
-        .setAuthor({
-        name: `${member?.displayName || invite.inviter?.username} создал приглашение`,
-        iconURL: member?.displayAvatarURL() || invite.inviter?.displayAvatarURL(),
-    })
-        .setFooter({ text: `Id: ${invite.inviterId}` })
         .addFields([
         { name: "Ссылка", value: `https://discord.gg/${invite.code}` },
         {
@@ -26,12 +21,37 @@ export default new Event("inviteCreate", async (invite) => {
             value: invite.expiresTimestamp ? `<t:${Math.floor(invite.expiresTimestamp / 1000)}>` : `бессрочно`,
             inline: true,
         },
-        {
+    ])
+        .setColor(colors.default);
+    if (invite.channelId) {
+        embed.addFields({
             name: "Приглашение в",
             value: `<#${invite.channelId}>`,
             inline: true,
-        },
-    ])
-        .setColor(colors.default);
+        });
+    }
+    else {
+        embed.addFields({
+            name: "Приглашение",
+            value: "Прямиком на сервер",
+            inline: true,
+        });
+    }
+    if (invite.inviterId) {
+        const member = await client.getAsyncMember(invite.inviterId);
+        embed
+            .setAuthor({
+            name: `${nameCleaner(member.displayName)} создал приглашение`,
+            iconURL: member.displayAvatarURL(),
+        })
+            .setFooter({ text: `UserId: ${invite.inviterId}` });
+    }
+    else {
+        embed.setAuthor({ name: "Было создано кем-то", iconURL: icons.moderation });
+    }
+    if (!guildChannel)
+        guildChannel =
+            client.getCachedTextChannel(process.env.GUILD_CHANNEL_ID) || (await client.getAsyncTextChannel(process.env.GUILD_CHANNEL_ID));
     await guildChannel.send({ embeds: [embed] });
 });
+//# sourceMappingURL=inviteCreate.js.map

@@ -2,8 +2,8 @@ import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { client } from "../index.js";
-import { channelDataMap } from "../utils/discord/lfgSystem/handleLFG.js";
 import { removeChannelData } from "../utils/discord/lfgSystem/handleLfgJoin.js";
+import { channelDataMap } from "../utils/persistence/dataStore.js";
 export default {
     name: "lfgSystem",
     run: async ({ interaction }) => {
@@ -36,3 +36,4 @@ export default {
         return;
     },
 };
+//# sourceMappingURL=lfgSystem.js.map

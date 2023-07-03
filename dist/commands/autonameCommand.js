@@ -80,3 +80,4 @@ export default new Command({
         });
     },
 });
+//# sourceMappingURL=autonameCommand.js.map

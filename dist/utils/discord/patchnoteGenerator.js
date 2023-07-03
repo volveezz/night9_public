@@ -30,3 +30,4 @@ export async function generatePatchNotes(message) {
         message.delete();
     });
 }
+//# sourceMappingURL=patchnoteGenerator.js.map

@@ -114,3 +114,4 @@ export async function updateMetadata(userId) {
     }
     await pushMetadata(userId, tokens, metadata);
 }
+//# sourceMappingURL=linkedRoles.js.map

@@ -11,3 +11,4 @@ class ApiStatusService {
     }
 }
 export const apiStatus = new ApiStatusService();
+//# sourceMappingURL=apiStatus.js.map

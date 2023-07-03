@@ -2,12 +2,12 @@ import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder,
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
-import { groupId } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Command } from "../structures/command.js";
 import { cancelClanInvitation } from "../utils/api/cancelClanInvitation.js";
 import kickMemberFromClan from "../utils/api/clanMembersManagement.js";
-import { fetchPostRequest, fetchRequest } from "../utils/api/fetchRequest.js";
+import { sendApiPostRequest } from "../utils/api/sendApiPostRequest.js";
+import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import createErrorEmbed from "../utils/errorHandling/createErrorEmbed.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
@@ -185,7 +185,7 @@ const sortMembers = (a, b) => {
     return a.isOnline === b.isOnline ? b.lastOnlineStatusChange - a.lastOnlineStatusChange : a.isOnline ? -1 : 1;
 };
 const getMergedMembers = async () => {
-    const destinyRequest = await fetchRequest(`Platform/GroupV2/${groupId}/Members/?memberType=None`);
+    const destinyRequest = await sendApiRequest(`Platform/GroupV2/${process.env.GROUP_ID}/Members/?memberType=None`);
     const destinyMembers = destinyRequest.results;
     const clanMembers = await AuthData.findAll({
         where: { clan: true },
@@ -321,7 +321,11 @@ const handleManagement = async (interaction, clanMembers, defferedReply) => {
         return buttons;
     };
     const setUserRank = async (rank) => {
-        return await fetchPostRequest(`Platform/GroupV2/${groupId}/Members/${userData.platform}/${userData.bungieId}/SetMembershipType/${rank}/`, undefined, await getAdminAccessToken(interaction));
+        return await sendApiPostRequest({
+            apiEndpoint: `Platform/GroupV2/${process.env.GROUP_ID}/Members/${userData.platform}/${userData.bungieId}/SetMembershipType/${rank}/`,
+            authToken: await getAdminAccessToken(interaction),
+            shouldReturnResponse: false,
+        });
     };
     const demoteUser = async () => {
         const userRank = userData.rank;
@@ -450,9 +454,14 @@ const sendInviteToClan = async (interaction, defferedReply, args) => {
     }
     const { bungieId, platform } = userData;
     const accessToken = await getAdminAccessToken(interaction);
-    const invitePost = await fetchPostRequest(`Platform/GroupV2/${groupId}/Members/IndividualInvite/${platform}/${bungieId}/`, {
-        message: "Приглашение в клан Night 9",
-    }, accessToken, false);
+    const invitePost = await sendApiPostRequest({
+        apiEndpoint: `Platform/GroupV2/${process.env.GROUP_ID}/Members/IndividualInvite/${platform}/${bungieId}/`,
+        authToken: accessToken,
+        requestData: {
+            message: "Приглашение в клан Night 9",
+        },
+        shouldReturnResponse: false,
+    });
     if (!invitePost || !invitePost.ErrorCode) {
         console.error("[Error code: 1909]", invitePost);
     }
@@ -463,3 +472,4 @@ const sendInviteToClan = async (interaction, defferedReply, args) => {
         cancelClanInvitation(args.identifier, args.time, interaction.user.id);
     }
 };
+//# sourceMappingURL=clanCommand.js.map

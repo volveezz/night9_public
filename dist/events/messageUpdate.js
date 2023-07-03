@@ -1,11 +1,10 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
-import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import { escapeString } from "../utils/general/utilities.js";
-const messageChannel = client.getCachedTextChannel(channelIds.messages);
-export default new Event("messageUpdate", (oldMessage, newMessage) => {
+let messageChannel = null;
+export default new Event("messageUpdate", async (oldMessage, newMessage) => {
     if (!oldMessage.content?.length || oldMessage.content === newMessage.content || newMessage.author?.id === client.user.id)
         return;
     const embed = new EmbedBuilder()
@@ -24,5 +23,10 @@ export default new Event("messageUpdate", (oldMessage, newMessage) => {
             { name: "После", value: escapeString(newMessage.content) },
         ])
         : embed.addFields({ name: "⁣", value: "Текст сообщения слишком длинный" });
-    messageChannel.send({ embeds: [embed] });
+    if (!messageChannel)
+        messageChannel =
+            client.getCachedTextChannel(process.env.MESSAGES_CHANNEL_ID) ||
+                (await client.getAsyncTextChannel(process.env.MESSAGES_CHANNEL_ID));
+    await messageChannel.send({ embeds: [embed] });
 });
+//# sourceMappingURL=messageUpdate.js.map

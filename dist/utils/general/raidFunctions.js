@@ -6,13 +6,12 @@ import UserErrors from "../../configs/UserErrors.js";
 import colors from "../../configs/colors.js";
 import destinyRaidsChallenges from "../../configs/destinyRaidsChallenges.js";
 import icons from "../../configs/icons.js";
-import { channelIds, guildId } from "../../configs/ids.js";
 import raidsGuide from "../../configs/raidGuideData.js";
-import { dlcRoles, statusRoles } from "../../configs/roles.js";
+import { dlcRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
 import { apiStatus } from "../../structures/apiStatus.js";
-import { fetchRequest } from "../api/fetchRequest.js";
 import { CachedDestinyActivityModifierDefinition } from "../api/manifestHandler.js";
+import { sendApiRequest } from "../api/sendApiRequest.js";
 import { RaidEvent } from "../persistence/sequelize.js";
 import { addButtonsToMessage } from "./addButtonsToMessage.js";
 import { completedRaidsData } from "./destinyActivityChecker.js";
@@ -176,7 +175,7 @@ export async function getRaidDatabaseInfo(raidId, interaction) {
 export async function updateRaidMessage(options) {
     const { raidEvent, interaction, returnComponents } = options;
     const { id, messageId, joined, raid: raidName, alt, hotJoined, difficulty: raidDifficulty } = raidEvent;
-    const raidChannel = await client.getAsyncTextChannel(channelIds.raid);
+    const raidChannel = await client.getAsyncTextChannel(process.env.RAID_CHANNEL_ID);
     const raidMessage = await client.getAsyncMessage(raidChannel, messageId);
     if (!raidMessage || !raidMessage.embeds || !raidMessage.embeds[0]) {
         console.error("[Error code: 1803]", raidMessage);
@@ -306,7 +305,7 @@ export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) 
     const barrierEmoji = "<:barrier:1090473007471935519>";
     const overloadEmoji = "<:overload:1090473013398491236>";
     const unstoppableEmoji = "<:unstoppable:1090473011175489687>";
-    const milestoneRequest = (await fetchRequest("Platform/Destiny2/3/Profile/4611686018488674684/Character/2305843009489394188/?components=202")).progressions.data.milestones;
+    const milestoneRequest = (await sendApiRequest("Platform/Destiny2/3/Profile/4611686018488674684/Character/2305843009489394188/?components=202")).progressions.data.milestones;
     const raidMilestone = milestoneRequest[raidData.milestoneHash];
     const manifest = CachedDestinyActivityModifierDefinition;
     const raidChallengesArray = [];
@@ -421,14 +420,14 @@ export async function updatePrivateRaidMessage({ raidEvent, retry }) {
         const raidUserData = completedRaidsData.get(discordId);
         const member = await client.getAsyncMember(discordId);
         if (!raidUserData) {
-            if (!retry && member?.roles.cache.has(statusRoles.verified)) {
+            if (!retry && member?.roles.cache.has(process.env.VERIFIED)) {
                 setTimeout(async () => {
                     if (raidEvent == null)
                         return;
                     await updatePrivateRaidMessage({ raidEvent, retry: true });
                 }, 1000 * 60 * 5);
             }
-            if (member?.roles.cache.has(statusRoles.verified)) {
+            if (member?.roles.cache.has(process.env.VERIFIED)) {
                 setTimeout(async () => {
                     const updatedRaidEvent = await RaidEvent.findByPk(raidEvent.id);
                     if (!updatedRaidEvent)
@@ -496,7 +495,8 @@ export async function checkRaidTimeConflicts(interaction, raidEvent) {
         const userJoinedRaidsList = conflictingRaids
             .sort((a, b) => a.id - b.id)
             .map((raidData, i) => {
-            return `${i + 1}. [${raidData.id}-${raidData.raid}](https://discord.com/channels/${guildId}/${channelIds.raid}/${raidData.messageId}) - ${raidData.joined.includes(member.id) ? "участником" : "запасным участником"}`;
+            return `${i + 1}. [${raidData.id}-${raidData.raid}](https://discord.com/channels/${process.env.GUILD_ID}/${process.env
+                .RAID_CHANNEL_ID}/${raidData.messageId}) - ${raidData.joined.includes(member.id) ? "участником" : "запасным участником"}`;
         })
             .join("\n⁣　⁣");
         const embed = new EmbedBuilder()
@@ -509,7 +509,7 @@ export async function checkRaidTimeConflicts(interaction, raidEvent) {
 export async function removeRaid(raid, interaction, requireMessageReply = true, mainInteraction) {
     const deletionResult = await RaidEvent.destroy({ where: { id: raid.id }, limit: 1 });
     const privateRaidChannel = await client.getAsyncTextChannel(raid.channelId);
-    const raidMessage = await client.getAsyncMessage(channelIds.raid, raid.messageId).catch((e) => {
+    const raidMessage = await client.getAsyncMessage(process.env.RAID_CHANNEL_ID, raid.messageId).catch((e) => {
         console.error("[Error code: 1697] Not found raid message", raid.id, e);
     });
     const interactingMember = interaction ? await client.getAsyncMember(interaction.user.id) : null;
@@ -613,3 +613,4 @@ export async function sendUserRaidGuideNoti(user, raidName) {
     ];
     return await user.send({ embeds: [embed], components: await addButtonsToMessage(components) });
 }
+//# sourceMappingURL=raidFunctions.js.map

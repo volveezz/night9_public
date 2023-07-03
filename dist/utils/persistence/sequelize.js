@@ -192,4 +192,25 @@ VoiceChannels.init({
     freezeTableName: true,
     name: { singular: "VoiceChannels", plural: "VoiceChannels" },
 });
-export { AuthData, AutoRoleData, InitData, LeavedUsersData, RaidEvent, RaidUserNotification, UserActivityData, VoiceChannels, sequelize as database, };
+class ProcessedLink extends Model {
+}
+ProcessedLink.init({
+    route: {
+        type: DataTypes.STRING(30),
+        primaryKey: true,
+        allowNull: false,
+    },
+    link: {
+        type: DataTypes.STRING(120),
+        allowNull: false,
+    },
+}, {
+    sequelize,
+    timestamps: false,
+    createdAt: false,
+    updatedAt: false,
+    freezeTableName: true,
+    name: { singular: "ProcessedLink", plural: "ProcessedLink" },
+});
+export { AuthData, AutoRoleData, InitData, LeavedUsersData, ProcessedLink, RaidEvent, RaidUserNotification, UserActivityData, VoiceChannels, sequelize as database, };
+//# sourceMappingURL=sequelize.js.map

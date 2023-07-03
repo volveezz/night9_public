@@ -52,3 +52,4 @@ async function userActivityUpdater() {
         }
     }
 }
+//# sourceMappingURL=userActivityHandler.js.map

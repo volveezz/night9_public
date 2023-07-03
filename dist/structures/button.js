@@ -3,3 +3,4 @@ export class Button {
         Object.assign(this, commandOptions);
     }
 }
+//# sourceMappingURL=button.js.map

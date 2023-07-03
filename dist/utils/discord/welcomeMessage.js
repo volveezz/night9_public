@@ -1,31 +1,36 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { ClanButtons, RegisterButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
-import { channelIds, groupId, guildId, ownerId } from "../../configs/ids.js";
-import { statusRoles } from "../../configs/roles.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import { escapeString } from "../general/utilities.js";
 import { AuthData } from "../persistence/sequelize.js";
 export default async function welcomeMessage(member) {
     await member.roles
-        .add(statusRoles.newbie)
+        .add(process.env.NEWBIE)
         .catch((err) => console.error(err.code === 50013 ? `[Error code: 1128] Failed to assign role to ${member.displayName}` : err));
     const welcomeEmbed = new EmbedBuilder()
         .setColor(colors.invisible)
         .setTitle(" Приветствуем Вас на сервере ")
-        .setDescription(`Вы зашли на сервер [клана Night 9](https://www.bungie.net/ru/ClanV2?groupid=${groupId})\nСервер доступен для всех желающих вне зависимости от их клана`);
+        .setDescription(`Вы зашли на сервер [клана Night 9](https://www.bungie.net/ru/ClanV2?groupid=${process.env
+        .GROUP_ID})\nСервер доступен для всех желающих вне зависимости от их клана`);
     const clanJoinEmbed = new EmbedBuilder()
         .setColor(colors.invisible)
         .setTitle(" Я хочу вступить в клан ")
-        .setDescription(`Для этого перейдите в канал <#${channelIds.clan.joinRequests}> и следуйте [инструкции](https://discord.com/channels/${guildId}/${channelIds.clan.joinRequests}/${channelIds.clan.guideMessageId})`);
+        .setDescription(`Для этого перейдите в канал <#${process.env
+        .JOIN_REQUEST_CHANNEL_ID}> и следуйте [инструкции](https://discord.com/channels/${process.env.GUILD_ID}/${process.env
+        .JOIN_REQUEST_CHANNEL_ID}/${process.env.JOIN_REQUEST_GUIDE_MESSAGE_ID})`);
     const nonClanMemberEmbed = new EmbedBuilder()
         .setColor(colors.invisible)
         .setTitle(" Я хочу ознакомиться с сервером ")
-        .setDescription(`Не проблема! Сервер доступен для всех - каждый может заходить во все [голосовые каналы](https://discord.com/channels/${guildId}/604967226755383300), [записываться и создавать наборы](https://discord.com/channels/${guildId}/677551388514844682), а также [писать в любом чате](https://discord.com/channels/${guildId}/959129358314922044)`);
+        .setDescription(`Не проблема! Сервер доступен для всех - каждый может заходить во все [голосовые каналы](https://discord.com/channels/${process.env
+        .GUILD_ID}/604967226755383300), [записываться и создавать наборы](https://discord.com/channels/${process.env
+        .GUILD_ID}/677551388514844682), а также [писать в любом чате](https://discord.com/channels/${process.env
+        .GUILD_ID}/959129358314922044)`);
     const questionsEmbed = new EmbedBuilder()
         .setColor(colors.invisible)
         .setTitle(" У меня есть вопросы по клану/серверу ")
-        .setDescription(`Вы можете задать их [в канале по вопросам](https://discord.com/channels/${guildId}/694119710677008425) или написав лично лидеру клана <@${ownerId}> ||(пишите даже если не в сети)||`);
+        .setDescription(`Вы можете задать их [в канале по вопросам](https://discord.com/channels/${process.env
+        .GUILD_ID}/694119710677008425) или написав лично лидеру клана <@${process.env.OWNER_ID}> ||(пишите даже если не в сети)||`);
     const components = [
         new ButtonBuilder().setCustomId(RegisterButtons.register).setLabel("Регистрация").setStyle(ButtonStyle.Success),
         new ButtonBuilder().setCustomId(ClanButtons.modal).setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
@@ -68,3 +73,4 @@ export default async function welcomeMessage(member) {
         }
     }, 2500);
 }
+//# sourceMappingURL=welcomeMessage.js.map

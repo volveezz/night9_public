@@ -20,3 +20,4 @@ async function sendRegistrationLink(interaction) {
     return embed;
 }
 export default sendRegistrationLink;
+//# sourceMappingURL=registration.js.map

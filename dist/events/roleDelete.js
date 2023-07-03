@@ -1,10 +1,9 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
-import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-const guildChannel = client.getCachedTextChannel(channelIds.guild);
-export default new Event("roleDelete", (role) => {
+let guildChannel = null;
+export default new Event("roleDelete", async (role) => {
     const embed = new EmbedBuilder()
         .setColor(colors.error)
         .setAuthor({
@@ -18,5 +17,9 @@ export default new Event("roleDelete", (role) => {
             value: `<t:${Math.round(role.createdAt.getTime() / 1000)}>`,
         },
     ]);
-    guildChannel.send({ embeds: [embed] });
+    if (!guildChannel)
+        guildChannel =
+            client.getCachedTextChannel(process.env.GUILD_CHANNEL_ID) || (await client.getAsyncTextChannel(process.env.GUILD_CHANNEL_ID));
+    await guildChannel.send({ embeds: [embed] });
 });
+//# sourceMappingURL=roleDelete.js.map

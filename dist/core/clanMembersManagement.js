@@ -1,20 +1,19 @@
 import { ActivityType } from "discord.js";
 import { getAdminAccessToken } from "../commands/clanCommand.js";
 import NightRoleCategory from "../configs/RoleCategory.js";
-import { groupId, ownerId } from "../configs/ids.js";
-import { clanJoinDateRoles, triumphsCategory } from "../configs/roles.js";
+import { clanJoinDateRoles } from "../configs/roles.js";
 import { client } from "../index.js";
 import { apiStatus } from "../structures/apiStatus.js";
-import { fetchRequest } from "../utils/api/fetchRequest.js";
 import getClanMemberData from "../utils/api/getClanMemberData.js";
 import kickClanMember from "../utils/api/kickClanMember.js";
+import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { updateClanRolesWithLogging } from "../utils/logging/clanEventLogger.js";
 import { joinDateCheckedClanMembers, nonRegClanMembers, recentlyExpiredAuthUsersBungieIds } from "../utils/persistence/dataStore.js";
 import { clanOnline } from "./userStatisticsManagement.js";
 let lastLoggedErrorCode = 1;
 async function clanMembersManagement(databaseData) {
     try {
-        const clanList = await fetchRequest(`Platform/GroupV2/${groupId}/Members/?memberType=None`);
+        const clanList = await sendApiRequest(`Platform/GroupV2/${process.env.GROUP_ID}/Members/?memberType=None`);
         if (!clanList) {
             console.error("[Error code: 1013]", databaseData.map((d) => d.bungieId).join(", "));
             return;
@@ -25,6 +24,9 @@ async function clanMembersManagement(databaseData) {
         }
         if (apiStatus.status != 1 && clanList.results && clanList.results.length > 1) {
             apiStatus.status = 1;
+            client.user.setPresence({
+                status: "online",
+            });
             console.info("\x1b[32mBungie API is back online\x1b[0m");
         }
         if (errorCode != null && errorCode != apiStatus.status) {
@@ -66,7 +68,7 @@ async function clanMembersManagement(databaseData) {
             await Promise.all(databaseData.map(async (member) => {
                 if (member.clan === true) {
                     const memberData = await getClanMemberData(member);
-                    if (memberData.member?.groupId !== groupId) {
+                    if (memberData.member?.groupId !== process.env.GROUP_ID) {
                         console.debug("UPDATING", member.displayName, "AS HE LEFT THE CLAN");
                         member.clan = false;
                         await member.save();
@@ -101,7 +103,7 @@ async function clanMembersManagement(databaseData) {
             if (memberAuthData.clan === false) {
                 try {
                     const clanMemberData = await getClanMemberData(memberAuthData);
-                    if (clanMemberData.member?.groupId === groupId) {
+                    if (clanMemberData.member?.groupId === process.env.GROUP_ID) {
                         console.debug("User joined the clan", memberAuthData.displayName);
                     }
                     else {
@@ -133,8 +135,8 @@ async function clanMembersManagement(databaseData) {
                         if (!member.roles.cache.has(roleId)) {
                             try {
                                 await member.roles.remove(clanJoinDateRoles.allRoles.filter((r) => r !== roleId));
-                                if (!member.roles.cache.has(triumphsCategory)) {
-                                    await member.roles.add([triumphsCategory, roleId]);
+                                if (!member.roles.cache.has(process.env.TRIUMPHS_CATEGORY)) {
+                                    await member.roles.add([process.env.TRIUMPHS_CATEGORY, roleId]);
                                 }
                                 else {
                                     await member.roles.add(roleId);
@@ -158,7 +160,7 @@ async function clanMembersManagement(databaseData) {
                 const userKickChance = nonRegClanMembers.get(bungieId);
                 const randomNumber = Math.floor(Math.random() * 100);
                 if (randomNumber > userKickChance) {
-                    const adminAccessToken = (await getAdminAccessToken(ownerId));
+                    const adminAccessToken = (await getAdminAccessToken(process.env.OWNER_ID));
                     await kickClanMember(clanMember.destinyUserInfo.membershipType, bungieId, adminAccessToken);
                 }
                 else {
@@ -178,3 +180,4 @@ async function clanMembersManagement(databaseData) {
     }
 }
 export default clanMembersManagement;
+//# sourceMappingURL=clanMembersManagement.js.map

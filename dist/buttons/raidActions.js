@@ -4,8 +4,6 @@ import { RaidButtons } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
-import { channelIds, ownerId } from "../configs/ids.js";
-import { statusRoles } from "../configs/roles.js";
 import { client } from "../index.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
@@ -56,7 +54,7 @@ async function actionMessageHandler({ interaction, raidEvent, target }) {
                 break;
             default:
                 embed.setColor("NotQuiteBlack").setAuthor({
-                    name: `${displayName}: проник на рейд\n<@${ownerId}>`,
+                    name: `${displayName}: проник на рейд\n<@${process.env.OWNER_ID}>`,
                     iconURL: member.displayAvatarURL(),
                 });
         }
@@ -87,7 +85,7 @@ async function joinedFromHotJoined(raidData) {
     });
     (await client.getAsyncTextChannel(updatedRaidData.channelId)).send({ embeds: [embed] });
     const { embeds, components } = (await updateRaidMessage({ raidEvent: updatedRaidData, returnComponents: true }));
-    await (await client.getAsyncMessage(channelIds.raid, updatedRaidData.messageId)).edit({
+    await (await client.getAsyncMessage(process.env.RAID_CHANNEL_ID, updatedRaidData.messageId)).edit({
         embeds,
         components: await addButtonsToMessage(components),
     });
@@ -198,7 +196,7 @@ export default {
         }
         const raidData = getRaidDetails(raidEvent.raid, raidEvent.difficulty);
         const member = await client.getAsyncMember(interaction.user.id);
-        if (raidData.requiredRole && member.roles.cache.has(statusRoles.verified) && !member.roles.cache.has(raidData.requiredRole)) {
+        if (raidData.requiredRole && member.roles.cache.has(process.env.VERIFIED) && !member.roles.cache.has(raidData.requiredRole)) {
             await deferredUpdate;
             throw { errorType: UserErrors.RAID_MISSING_DLC, errorData: [`<@&${raidData.requiredRole}>`] };
         }
@@ -279,3 +277,4 @@ export default {
         return;
     },
 };
+//# sourceMappingURL=raidActions.js.map

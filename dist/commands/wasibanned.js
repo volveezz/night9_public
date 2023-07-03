@@ -21,3 +21,4 @@ export default new Command({
         await interaction.reply({ embeds: [embed], ephemeral: true });
     },
 });
+//# sourceMappingURL=wasibanned.js.map

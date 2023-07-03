@@ -1,15 +1,14 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
-import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-const messageChannel = client.getCachedTextChannel(channelIds.messages);
-export default new Event("messageDelete", (message) => {
+let messageChannel = null;
+export default new Event("messageDelete", async (message) => {
     if (message.system ||
         message.author?.id === client.user.id ||
         (message.content?.length === 0 && message.attachments.size === 0 && message.stickers.size === 0) ||
         !message.author ||
-        message.channelId === channelIds.messages)
+        message.channelId === process.env.MESSAGES_CHANNEL_ID)
         return;
     const embed = new EmbedBuilder()
         .setColor(colors.error)
@@ -57,5 +56,10 @@ export default new Event("messageDelete", (message) => {
             },
         ]);
     }
-    messageChannel.send({ embeds: [embed] });
+    if (!messageChannel)
+        messageChannel =
+            client.getCachedTextChannel(process.env.MESSAGES_CHANNEL_ID) ||
+                (await client.getAsyncTextChannel(process.env.MESSAGES_CHANNEL_ID));
+    await messageChannel.send({ embeds: [embed] });
 });
+//# sourceMappingURL=messageDelete.js.map

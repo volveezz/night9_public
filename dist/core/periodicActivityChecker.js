@@ -56,3 +56,4 @@ async function periodicDestinyActivityChecker() {
     }, 1000 * 70);
 }
 export default periodicDestinyActivityChecker;
+//# sourceMappingURL=periodicActivityChecker.js.map

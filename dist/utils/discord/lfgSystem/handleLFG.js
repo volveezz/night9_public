@@ -2,16 +2,15 @@ import { ButtonBuilder, ButtonStyle, ChannelType, Colors, EmbedBuilder, resolveC
 import { LfgButtons } from "../../../configs/Buttons.js";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
-import { channelIds } from "../../../configs/ids.js";
 import { dlcRoles, seasonalRoles } from "../../../configs/roles.js";
 import { bungieNames } from "../../../core/userStatisticsManagement.js";
 import { client } from "../../../index.js";
 import { addButtonsToMessage } from "../../general/addButtonsToMessage.js";
 import nameCleaner from "../../general/nameClearer.js";
 import { escapeString } from "../../general/utilities.js";
+import { channelDataMap } from "../../persistence/dataStore.js";
 import findActivityForLfg from "./findActivityForLfg.js";
 import { removeChannelData } from "./handleLfgJoin.js";
-const channelDataMap = new Map();
 class LfgActivitySettings {
     name;
     description;
@@ -34,7 +33,7 @@ class LfgUserSettings {
     color = colors.serious;
     activitySettings = null;
 }
-const pvePartyChannel = await client.getAsyncTextChannel(channelIds.pveParty);
+let pvePartyChannel = null;
 async function lfgHandler(message) {
     if (!message.content.startsWith("+"))
         return;
@@ -145,7 +144,10 @@ async function lfgHandler(message) {
     }
     const userText = userMessageContent.replace(/--\w+(?:=(?:"[^"]*"|'[^']*'))?/g, "").trim();
     const separatorIndex = userText.indexOf("|");
-    const userTitle = userText.slice(0, separatorIndex !== -1 ? separatorIndex : userText.length).trim();
+    const userTitle = userText
+        .slice(0, separatorIndex !== -1 ? separatorIndex : userText.length)
+        .trim()
+        .replace(/^в\s*/, "");
     const userDescription = separatorIndex !== -1 ? userText.slice(userText.indexOf("|") + 1, userText.length).trim() : null;
     const member = await client.getAsyncMember(message.author.id);
     const lfgData = member.voice.channel && channelDataMap.get(member.voice.channel?.id);
@@ -202,6 +204,8 @@ async function lfgHandler(message) {
                 .join("\n"),
         });
     }
+    if (!pvePartyChannel)
+        pvePartyChannel = await client.getAsyncTextChannel(process.env.PVE_PARTY_CHANNEL_ID);
     const voiceChannel = member.voice.channel?.type === ChannelType.GuildVoice
         ? member.voice.channel
         : await message.guild?.channels.create({
@@ -260,4 +264,5 @@ async function messageErrorHandler(name, description, message) {
     setTimeout(async () => await errorMessage.delete(), 5000);
     return;
 }
-export { channelDataMap, lfgHandler };
+export { lfgHandler };
+//# sourceMappingURL=handleLFG.js.map

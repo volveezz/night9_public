@@ -2,7 +2,7 @@ import { EmbedBuilder } from "discord.js";
 import { bungieNames } from "../../../core/userStatisticsManagement.js";
 import { client } from "../../../index.js";
 import { escapeString } from "../../general/utilities.js";
-import { channelDataMap } from "./handleLFG.js";
+import { channelDataMap, channelsForDeletion } from "../../persistence/dataStore.js";
 export async function removeChannelData(data) {
     const channelData = typeof data === "string" ? channelDataMap.get(data) : data;
     if (!channelData)
@@ -11,8 +11,12 @@ export async function removeChannelData(data) {
     if (channelData.isDeletable) {
         try {
             const userVoiceCount = (await client.getCachedGuild().channels.fetch(channelId))?.members.size;
-            if (!userVoiceCount || userVoiceCount == 0)
+            if (!userVoiceCount || userVoiceCount == 0) {
                 channelData.voiceChannel.delete("Last member disconnected");
+            }
+            else {
+                channelsForDeletion.add(channelId);
+            }
         }
         catch (error) {
             console.error("[Error code: 1820]", error);
@@ -67,3 +71,4 @@ async function handleTextChannel(channelId, member, action) {
     }));
 }
 export default handleTextChannel;
+//# sourceMappingURL=handleLfgJoin.js.map

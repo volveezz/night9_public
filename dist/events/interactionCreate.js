@@ -60,3 +60,4 @@ export default new Event("interactionCreate", async (interaction) => {
     }
     logCommandInteraction(interaction);
 });
+//# sourceMappingURL=interactionCreate.js.map

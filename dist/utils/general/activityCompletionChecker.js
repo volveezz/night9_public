@@ -1,7 +1,7 @@
 import { clanOnline } from "../../core/userStatisticsManagement.js";
 import { apiStatus } from "../../structures/apiStatus.js";
-import { fetchRequest } from "../api/fetchRequest.js";
 import { CachedDestinyActivityDefinition } from "../api/manifestHandler.js";
+import { sendApiRequest } from "../api/sendApiRequest.js";
 import { AuthData } from "../persistence/sequelize.js";
 import { getRaidDetails } from "./raidFunctions.js";
 import { getWeeklyRaidActivityHashes } from "./raidFunctions/gerWeeklyRaid.js";
@@ -19,7 +19,7 @@ export async function clanOnlineMemberActivityChecker() {
         for (const [discordId, { membershipId, platform }] of checkingUsers) {
             if (apiStatus.status !== 1)
                 return;
-            const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204`);
+            const response = await sendApiRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204`);
             if (!response || !response.characterActivities) {
                 console.error(`[Error code: 1612] ${platform}/${membershipId} of ${discordId}`, response);
                 break;
@@ -82,7 +82,7 @@ function areAllPhasesComplete(phases) {
 }
 async function fetchCharacterResponse({ bungieId, characterId, platform, }) {
     try {
-        const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`).catch((e) => console.error("[Error code: 1654]", e));
+        const response = await sendApiRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`).catch((e) => console.error("[Error code: 1654]", e));
         if (!response) {
             throw { name: `[Error code: 1653] Got error upon checking ${platform}/${bungieId}` };
         }
@@ -94,7 +94,7 @@ async function fetchCharacterResponse({ bungieId, characterId, platform, }) {
             attributes: ["accessToken"],
         });
         if (authData && authData.accessToken) {
-            const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`, {
+            const response = await sendApiRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`, {
                 accessToken: authData.accessToken,
             });
             return response;
@@ -248,3 +248,4 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
     }, 50000);
     currentlyRunning.set(uniqueId, interval);
 }
+//# sourceMappingURL=activityCompletionChecker.js.map

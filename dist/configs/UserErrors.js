@@ -16,3 +16,4 @@ var UserErrors;
     UserErrors["API_UNAVAILABLE"] = "API_UNAVAILABLE";
 })(UserErrors || (UserErrors = {}));
 export default UserErrors;
+//# sourceMappingURL=UserErrors.js.map

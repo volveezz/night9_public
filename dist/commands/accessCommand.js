@@ -1,7 +1,6 @@
 import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
-import { channelIds } from "../configs/ids.js";
 import { Command } from "../structures/command.js";
 export default new Command({
     name: "access",
@@ -19,12 +18,12 @@ export default new Command({
             choices: [
                 {
                     name: "NSFW Channel",
-                    value: channelIds.nsfw,
+                    value: process.env.NSFW_CHANNEL_ID,
                     nameLocalizations: { ru: "+18 канал" },
                 },
                 {
                     name: "Destiny Lore Channel",
-                    value: channelIds.lore,
+                    value: process.env.LORE_CHANNEL_ID,
                     nameLocalizations: { ru: "Канал с обсуждением игрового лора" },
                 },
             ],
@@ -51,3 +50,4 @@ export default new Command({
         await interaction.reply({ embeds: [embed], ephemeral: true });
     },
 });
+//# sourceMappingURL=accessCommand.js.map

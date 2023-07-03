@@ -4,7 +4,6 @@ import { Op } from "sequelize";
 import { RaidButtons } from "../../../configs/Buttons.js";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
-import { categoryIds, channelIds, guildId } from "../../../configs/ids.js";
 import { client } from "../../../index.js";
 import { nonRegClanMembers, recentlyCreatedRaidInvites, recentlyExpiredAuthUsersBungieIds } from "../../persistence/dataStore.js";
 import { RaidEvent, RaidUserNotification } from "../../persistence/sequelize.js";
@@ -53,7 +52,6 @@ async function sendNotification(task) {
     }
     const raid = await RaidEvent.findByPk(task.raidId, { attributes: ["id", "time", "joined"] });
     if (!raid) {
-        console.debug(`[DEBUG] Raid ${task.raidId} not found.`);
         clearNotifications(task.raidId);
         return;
     }
@@ -86,6 +84,7 @@ export async function loadNotifications() {
             for (const minutesBefore of notificationTimes) {
                 const notifyTime = (raid.time - minutesBefore * 60) * 1000;
                 if (notifyTime > Date.now()) {
+                    console.debug("Adding a new notification task for", discordId, raid.id);
                     tasks.push({ notifyTime, discordId, raidId: raid.id });
                 }
             }
@@ -184,7 +183,8 @@ async function announceRaidEvent(previousRaidEvent, discordUserId) {
         .setColor(raidDetails ? raidDetails.raidColor : colors.default)
         .setTitle("Уведомление о скором рейде")
         .setThumbnail(raidDetails?.raidBanner || null)
-        .setDescription(`Рейд [${currentRaidEvent.id}-${currentRaidEvent.raid}](https://discord.com/channels/${guildId}/${channelIds.raid}/${currentRaidEvent.messageId}) начнется в течение ${timeUntilRaid} минут!\nВ: <t:${currentRaidEvent.time}>, <t:${currentRaidEvent.time}:R>`)
+        .setDescription(`Рейд [${currentRaidEvent.id}-${currentRaidEvent.raid}](https://discord.com/channels/${process.env.GUILD_ID}/${process.env
+        .RAID_CHANNEL_ID}/${currentRaidEvent.messageId}) начнется в течение ${timeUntilRaid} минут!\nВ: <t:${currentRaidEvent.time}>, <t:${currentRaidEvent.time}:R>`)
         .addFields({
         name: "Текущий состав группы:",
         value: participantNames.join("\n") || "⁣　*никого*",
@@ -196,7 +196,7 @@ async function announceRaidEvent(previousRaidEvent, discordUserId) {
         console.error("[Error code: 1631] Error during adding image to the notification message", error);
     }
     const raidVoiceChannels = guild.channels.cache
-        .filter((channel) => channel.parentId === categoryIds.raid && channel.type === ChannelType.GuildVoice && channel.name.includes("Raid"))
+        .filter((channel) => channel.parentId === process.env.RAID_CATEGORY && channel.type === ChannelType.GuildVoice && channel.name.includes("Raid"))
         .reverse();
     const buttonComponents = [];
     let raidInviteUrl = recentlyCreatedRaidInvites.get(currentRaidEvent.id);
@@ -256,3 +256,4 @@ export async function sendNotificationInfo(interaction, deferredReply) {
     }
     return;
 }
+//# sourceMappingURL=raidNotifications.js.map

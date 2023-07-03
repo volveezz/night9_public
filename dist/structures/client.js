@@ -1,9 +1,9 @@
 import { ActivityType, ChannelType, Client, Collection, GatewayIntentBits, Partials, } from "discord.js";
 import { join, resolve } from "path";
-import { guildId } from "../configs/ids.js";
 import periodicDestinyActivityChecker from "../core/periodicActivityChecker.js";
 import tokenManagment from "../core/tokenManagement.js";
 import handleMemberStatistics from "../core/userStatisticsManagement.js";
+import fetchNewsArticles from "../utils/api/bungieRssFetcher.js";
 import { voiceChannelJoinTimestamps } from "../utils/discord/userActivityHandler.js";
 import { clanOnlineMemberActivityChecker } from "../utils/general/activityCompletionChecker.js";
 import getFiles from "../utils/general/fileReader.js";
@@ -70,19 +70,19 @@ export class ExtendedClient extends Client {
         global.clearInterval(this.intervalId);
     }
     getCachedGuild() {
-        return (this.guild || this.guilds.cache.get(guildId));
+        return (this.guild || this.guilds.cache.get(process.env.GUILD_ID));
     }
     getCachedMembers() {
-        return (this.guild || this.guilds.cache.get(guildId)).members.cache;
+        return (this.guild || this.guilds.cache.get(process.env.GUILD_ID)).members.cache;
     }
     async getAsyncMember(id) {
         return this.guild?.members.fetch(id);
     }
     getCachedTextChannel(id) {
-        return (this.guild || this.guilds.cache.get(guildId)).channels.cache.get(id);
+        return (this.guild || this.guilds.cache.get(process.env.GUILD_ID)).channels.cache.get(id);
     }
     async getAsyncTextChannel(id) {
-        const guild = this.getCachedGuild() || this.guilds.cache.get(guildId) || (await this.guilds.fetch(guildId));
+        const guild = this.getCachedGuild() || this.guilds.cache.get(process.env.GUILD_ID) || (await this.guilds.fetch(process.env.GUILD_ID));
         return (this.getCachedTextChannel(id) || guild.channels.cache.get(id) || guild.channels.fetch(id));
     }
     async getAsyncMessage(inputChannel, messageId) {
@@ -103,7 +103,7 @@ export class ExtendedClient extends Client {
             this.application.commands.set(commands);
         }
         else {
-            (this.guild || this.guilds.cache.get(guildId))?.commands.set(commands);
+            (this.guild || this.guilds.cache.get(process.env.GUILD_ID))?.commands.set(commands);
         }
     }
     async loadCommands() {
@@ -203,12 +203,13 @@ export class ExtendedClient extends Client {
             console.info(`\x1b[32m${this.user.username} online since ${new Date().toLocaleString()}\x1b[0m`);
             setTimeout(() => {
                 this.loadDelayedComponents();
+                fetchNewsArticles();
             }, 1000 * 30);
             this.fetchMembersAndMessages();
         });
     }
     async fetchGuild(client) {
-        const guild = await client.guilds.fetch(guildId);
+        const guild = await client.guilds.fetch(process.env.GUILD_ID);
         await guild.members.fetch();
         return guild;
     }
@@ -253,3 +254,4 @@ export class ExtendedClient extends Client {
         });
     }
 }
+//# sourceMappingURL=client.js.map

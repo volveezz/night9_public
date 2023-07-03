@@ -1,8 +1,8 @@
-import { checkedStoryActivities, forbiddenRaidIds, ownerId } from "../../configs/ids.js";
-import { activityRoles, raidRoles, statusRoles, trialsRoles } from "../../configs/roles.js";
+import { checkedStoryActivities, forbiddenRaidIds } from "../../configs/ids.js";
+import { activityRoles, raidRoles, trialsRoles } from "../../configs/roles.js";
 import { userCharactersId } from "../../core/userStatisticsManagement.js";
 import { apiStatus } from "../../structures/apiStatus.js";
-import { fetchRequest } from "../api/fetchRequest.js";
+import { sendApiRequest } from "../api/sendApiRequest.js";
 import { logActivityCompletion } from "../logging/activityLogger.js";
 import { getRaidNameFromHash } from "./raidFunctions.js";
 import { setUserCharacters } from "./setUserCharacters.js";
@@ -34,7 +34,7 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
             async function fetchAndProcessActivities() {
                 if (apiStatus.status !== 1)
                     return;
-                const response = await fetchRequest(`Platform/Destiny2/${platform}/Account/${bungieId}/Character/${character}/Stats/Activities/?count=${count}&mode=${mode}&page=${page}`, accessToken);
+                const response = await sendApiRequest(`Platform/Destiny2/${platform}/Account/${bungieId}/Character/${character}/Stats/Activities/?count=${count}&mode=${mode}&page=${page}`, accessToken);
                 if (!response)
                     return console.error(`[Error code: 1018] Response error for ${bungieId} during checking ${mode} mode`);
                 if (response.activities?.length > 0) {
@@ -98,8 +98,8 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                 ...raidCounts,
                 totalRaidCount: completedRaidCount,
             });
-            if (member.roles.cache.has(statusRoles.clanmember) ||
-                (member.roles.cache.has(statusRoles.member) &&
+            if (member.roles.cache.has(process.env.CLANMEMBER) ||
+                (member.roles.cache.has(process.env.MEMBER) &&
                     member.roles.cache.hasAny(...activityRoles.allMessages, ...activityRoles.allVoice, activityRoles.category)) ||
                 authData.UserActivityData !== undefined) {
                 const { ron, ronMaster, kf, kfMaster, votd, votdMaster, dsc, gos, vog, vogMaster, lw, totalRaidCount } = completedRaidsData.get(member.id);
@@ -133,7 +133,7 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
             }
         }
         else if (mode === 84) {
-            if (wtmatches >= 10 && member.id !== ownerId) {
+            if (wtmatches >= 10 && member.id !== process.env.OWNER_ID) {
                 if (!member.roles.cache.has(trialsRoles.wintrader)) {
                     await member.roles.remove(trialsRoles.allKd);
                     await member.roles.add(trialsRoles.wintrader);
@@ -170,3 +170,4 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
         }
     }
 }
+//# sourceMappingURL=destinyActivityChecker.js.map

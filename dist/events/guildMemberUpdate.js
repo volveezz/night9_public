@@ -1,13 +1,12 @@
 import { AuditLogEvent, EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
-import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { escapeString } from "../utils/general/utilities.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
-const guildMemberChannel = await client.getAsyncTextChannel(channelIds.guildMember);
+let guildMemberChannel = null;
 export default new Event("guildMemberUpdate", async (oldMember, newMember) => {
     if (!oldMember.joinedTimestamp || (!oldMember.nickname && oldMember.roles.cache.size === 0))
         return;
@@ -22,6 +21,8 @@ export default new Event("guildMemberUpdate", async (oldMember, newMember) => {
     if (muteEmbed)
         embeds.push(muteEmbed);
     if (embeds.length > 0) {
+        if (!guildMemberChannel)
+            guildMemberChannel = await client.getAsyncTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID);
         await guildMemberChannel.send({ embeds });
     }
 });
@@ -119,3 +120,4 @@ async function testAutonameUserStatus(member) {
         .setDescription(`На сервере работает система слежки за никнеймами пользователей в игре\n\n> Ваш никнейм в игре: \`${escapeString(authData.displayName)}\`\n> Текущий никнейм: \`${escapeString(member.displayName)}\`${`\n> Текущий часовой пояс: ${authData.timezone ? `\`${authData.timezone}\`` : `не указан. Введите \`/timezone\` (</timezone:1055308734794043503>)`}`}\n\nВаш текущий никнейм будет изменен в течение часа на тот, который в игре\nОтключить эту систему Вы можете введя команду \`/autoname\` (работает в любых каналах на сервере Night 9)`);
     await member.send({ embeds: [embed] });
 }
+//# sourceMappingURL=guildMemberUpdate.js.map

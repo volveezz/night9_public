@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { AuthData } from "../persistence/sequelize.js";
-import { fetchRequest } from "./fetchRequest.js";
+import { sendApiRequest } from "./sendApiRequest.js";
 async function getClanMemberData(id) {
     let authData = null;
     if (id instanceof AuthData && id.bungieId && id.discordId && id.platform && id.accessToken) {
@@ -16,7 +16,7 @@ async function getClanMemberData(id) {
         throw { name: "Ошибка. Пользователь не найден в клане" };
     }
     const { platform: membershipType, bungieId: membershipId } = typeof id === "object" && !(id instanceof AuthData) ? id : authData;
-    const destinyRequest = await fetchRequest(`Platform/GroupV2/User/${membershipType}/${membershipId}/${0}/${1}/`);
+    const destinyRequest = await sendApiRequest(`Platform/GroupV2/User/${membershipType}/${membershipId}/${0}/${1}/`);
     console.debug("Clan data for the user", {
         membershipId,
         membershipType,
@@ -41,3 +41,4 @@ async function getClanMemberData(id) {
     return {};
 }
 export default getClanMemberData;
+//# sourceMappingURL=getClanMemberData.js.map

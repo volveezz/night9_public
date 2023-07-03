@@ -1,11 +1,10 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
-import { channelIds } from "../configs/ids.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import nameCleaner from "../utils/general/nameClearer.js";
-const messageChannel = await client.getAsyncTextChannel(channelIds.messages);
+let messageChannel = null;
 const createFieldValue = (message) => {
     let fieldValue = "";
     if (message.partial) {
@@ -83,5 +82,10 @@ export default new Event("messageDeleteBulk", async (messages) => {
     if (remainingMessages > 0) {
         embed.setFooter({ text: `И ещё ${remainingMessages} сообщений` });
     }
+    if (!messageChannel)
+        messageChannel =
+            client.getCachedTextChannel(process.env.MESSAGES_CHANNEL_ID) ||
+                (await client.getAsyncTextChannel(process.env.MESSAGES_CHANNEL_ID));
     await messageChannel.send({ embeds: embeds });
 });
+//# sourceMappingURL=messageDeleteBulk.js.map

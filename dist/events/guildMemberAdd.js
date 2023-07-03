@@ -1,7 +1,5 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
-import { channelIds } from "../configs/ids.js";
-import { statusRoles } from "../configs/roles.js";
 import guildNicknameManagement from "../core/guildNicknameManagement.js";
 import { requestUpdateTokens } from "../core/tokenManagement.js";
 import { checkIndiviualUserStatistics } from "../core/userStatisticsManagement.js";
@@ -10,7 +8,7 @@ import { Event } from "../structures/event.js";
 import welcomeMessage from "../utils/discord/welcomeMessage.js";
 import { escapeString } from "../utils/general/utilities.js";
 import { AuthData, InitData, LeavedUsersData, UserActivityData, database } from "../utils/persistence/sequelize.js";
-const guildMemberChannel = await client.getAsyncTextChannel(channelIds.guildMember);
+let guildMemberChannel = null;
 export default new Event("guildMemberAdd", async (member) => {
     welcomeMessage(member);
     const embed = new EmbedBuilder()
@@ -34,6 +32,10 @@ export default new Event("guildMemberAdd", async (member) => {
                 : "*не найден*",
         });
     }
+    if (!guildMemberChannel)
+        guildMemberChannel =
+            client.getCachedTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID) ||
+                (await client.getAsyncTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID));
     const message = await guildMemberChannel.send({ embeds: [embed] });
     const data = await LeavedUsersData.findOne({
         where: { discordId: member.id },
@@ -92,7 +94,7 @@ export default new Event("guildMemberAdd", async (member) => {
             console.error("[Error code: 1901]", error);
         }
         await message.edit({ embeds: [loggedEmbed] });
-        await member.roles.set([statusRoles.member, statusRoles.verified]);
+        await member.roles.set([process.env.MEMBER, process.env.VERIFIED]);
         try {
             guildNicknameManagement();
             checkIndiviualUserStatistics(member.id);
@@ -110,3 +112,4 @@ export default new Event("guildMemberAdd", async (member) => {
         await message.edit({ embeds: [loggedEmbed] });
     }
 });
+//# sourceMappingURL=guildMemberAdd.js.map

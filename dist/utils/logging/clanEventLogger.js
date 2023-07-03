@@ -1,8 +1,6 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
-import { channelIds, groupId, ownerId } from "../../configs/ids.js";
-import { statusRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
 import getClanMemberData from "../api/getClanMemberData.js";
 import setMemberRoles from "../discord/setRoles.js";
@@ -15,9 +13,9 @@ export async function updateClanRolesWithLogging(result, join) {
     const member = await client.getAsyncMember(result.discordId);
     const clanUserData = await getClanMemberData(result);
     if (!clanLogChannel) {
-        clanLogChannel = await client.getAsyncTextChannel(channelIds.clanLogs);
+        clanLogChannel = await client.getAsyncTextChannel(process.env.CLAN_CHANNEL_ID);
     }
-    if (clanUserData?.member?.groupId && clanUserData.member.groupId !== groupId) {
+    if (clanUserData?.member?.groupId && clanUserData.member.groupId !== process.env.GROUP_ID) {
         console.error("[Error code: 1919]", clanUserData);
         console.error(member.displayName, "wasn't updated due an error. Need manual assistance");
         return;
@@ -29,17 +27,17 @@ export async function updateClanRolesWithLogging(result, join) {
     if (member) {
         if (join) {
             const givenRoles = [];
-            if (!member.roles.cache.has(statusRoles.clanmember)) {
-                givenRoles.push(statusRoles.clanmember);
+            if (!member.roles.cache.has(process.env.CLANMEMBER)) {
+                givenRoles.push(process.env.CLANMEMBER);
             }
-            if (!member.roles.cache.has(statusRoles.verified)) {
-                givenRoles.push(statusRoles.verified);
+            if (!member.roles.cache.has(process.env.VERIFIED)) {
+                givenRoles.push(process.env.VERIFIED);
             }
             if (givenRoles.length > 0) {
                 await member.roles.add(givenRoles, "User joined the clan");
             }
-            if (member.roles.cache.hasAny(statusRoles.kicked, statusRoles.newbie, statusRoles.member)) {
-                await member.roles.remove([statusRoles.kicked, statusRoles.newbie, statusRoles.member], "User joined the clan");
+            if (member.roles.cache.hasAny(process.env.KICKED, process.env.NEWBIE, process.env.MEMBER)) {
+                await member.roles.remove([process.env.KICKED, process.env.NEWBIE, process.env.MEMBER], "User joined the clan");
             }
             embed
                 .setAuthor({
@@ -58,7 +56,7 @@ export async function updateClanRolesWithLogging(result, join) {
             }
             try {
                 if (!generalLogChannel) {
-                    generalLogChannel = await client.getAsyncTextChannel(channelIds.mainText);
+                    generalLogChannel = await client.getAsyncTextChannel(process.env.MAIN_CHANNEL_ID);
                 }
                 const welcomeMessage = await generalLogChannel.send(`<a:d2ghost:732676128094814228> Приветствуем нового участника клана, ${member}!`);
                 await welcomeMessage.react("<:doge_hug:1073864905129721887>");
@@ -69,7 +67,9 @@ export async function updateClanRolesWithLogging(result, join) {
             }
         }
         else {
-            const setRoles = member.roles.cache.has(statusRoles.verified) ? [statusRoles.kicked, statusRoles.verified] : [statusRoles.kicked];
+            const setRoles = member.roles.cache.has(process.env.VERIFIED)
+                ? [process.env.KICKED, process.env.VERIFIED]
+                : [process.env.KICKED];
             await setMemberRoles({ member, roles: setRoles, reason: "Member left the clan" });
             embed
                 .setAuthor({
@@ -97,6 +97,8 @@ async function notifyJoinedUser(member) {
     const embed = new EmbedBuilder()
         .setColor(colors.success)
         .setAuthor({ name: "Вы были приняты в клан!", iconURL: member.guild.iconURL() || icons.success })
-        .setDescription(`Вы также получили все необходимые роли для доступа к каналам клана\n\nНа сервере разработано множество различных систем, команд и возможностей. При желании Вы можете ввести \`/\` и Discord вам предложит все слеш-команды сервера\nНа сервере есть несколько различных ботов и их команд, но клановыми являются 2: основной - Night 9, <@${client.user.id}> и музыкальный бот - Alfred Jodl, <@719262521768280074>\n\nПо любым вопросам **в любое время** пишите <@${ownerId}> (Вольве) в личные сообщения или <@${client.user.id}> в этом же чате`);
+        .setDescription(`Вы также получили все необходимые роли для доступа к каналам клана\n\nНа сервере разработано множество различных систем, команд и возможностей. При желании Вы можете ввести \`/\` и Discord вам предложит все слеш-команды сервера\nНа сервере есть несколько различных ботов и их команд, но клановыми являются 2: основной - Night 9, <@${client.user.id}> и музыкальный бот - Alfred Jodl, <@719262521768280074>\n\nПо любым вопросам **в любое время** пишите <@${process.env
+        .OWNER_ID}> (Вольве) в личные сообщения или <@${client.user.id}> в этом же чате`);
     await member.send({ embeds: [embed] });
 }
+//# sourceMappingURL=clanEventLogger.js.map

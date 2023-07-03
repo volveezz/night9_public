@@ -2,12 +2,11 @@ import { ApplicationCommandType, ButtonBuilder, ButtonStyle, ChatInputCommandInt
 import { StatsButton } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
-import { groupId } from "../configs/ids.js";
 import { bungieNames } from "../core/userStatisticsManagement.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
-import { fetchRequest } from "../utils/api/fetchRequest.js";
 import { CachedDestinyRaceDefinition } from "../utils/api/manifestHandler.js";
+import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
 import { AuthData, UserActivityData } from "../utils/persistence/sequelize.js";
 export default new Command({
@@ -92,7 +91,7 @@ export default new Command({
         });
         const fetchProfileAndCharacters = async () => {
             try {
-                const response = await fetchRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/?components=100,200`);
+                const response = await sendApiRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/?components=100,200`);
                 const data = response?.profile?.data;
                 const characterDataArray = [];
                 if (!data) {
@@ -128,8 +127,8 @@ export default new Command({
         };
         const fetchClanData = async () => {
             try {
-                const clanBody = await fetchRequest(`Platform/GroupV2/User/${platform}/${bungieId}/0/1/`);
-                const clanStatus = clanBody.results[0]?.group.groupId === groupId
+                const clanBody = await sendApiRequest(`Platform/GroupV2/User/${platform}/${bungieId}/0/1/`);
+                const clanStatus = clanBody.results[0]?.group.groupId === process.env.GROUP_ID
                     ? "участник клана"
                     : clanBody.results[0]
                         ? `участник клана ${clanBody.results[0].group.name}`
@@ -146,3 +145,4 @@ export default new Command({
         await Promise.all([fetchProfileAndCharacters(), fetchClanData()]);
     },
 });
+//# sourceMappingURL=information.js.map

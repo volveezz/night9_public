@@ -23,3 +23,4 @@ export default {
         interaction.reply({ ephemeral: true, embeds: [embed], components: await addButtonsToMessage([tzBlank]) });
     },
 };
+//# sourceMappingURL=timezoneButton.js.map

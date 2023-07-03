@@ -1,7 +1,7 @@
-import { fetchRequest } from "./fetchRequest.js";
+import { sendApiRequest } from "./sendApiRequest.js";
 async function getManifest() {
     try {
-        const manifest = await fetchRequest("Platform/Destiny2/Manifest/");
+        const manifest = await sendApiRequest("Platform/Destiny2/Manifest/");
         console.log(`Manifest cached. Version: ${manifest.version}`);
         return manifest;
     }
@@ -11,7 +11,7 @@ async function getManifest() {
     }
 }
 async function getSpecificManifest(page) {
-    return fetchRequest(`${manifestData.jsonWorldComponentContentPaths?.ru?.[page]}`)
+    return sendApiRequest(`${manifestData.jsonWorldComponentContentPaths?.ru?.[page]}`)
         .then((manifest) => {
         return manifest;
     })
@@ -24,3 +24,4 @@ export const CachedDestinyActivityDefinition = await getSpecificManifest("Destin
 export const CachedDestinyProgressionDefinition = await getSpecificManifest("DestinyProgressionDefinition");
 export const CachedDestinyMilestoneDefinition = await getSpecificManifest("DestinyMilestoneDefinition");
 export const CachedDestinyRaceDefinition = await getSpecificManifest("DestinyRaceDefinition");
+//# sourceMappingURL=manifestHandler.js.map

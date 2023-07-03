@@ -3,8 +3,8 @@ import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
-import { fetchRequest } from "../utils/api/fetchRequest.js";
 import { CachedDestinyActivityDefinition } from "../utils/api/manifestHandler.js";
+import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default new Command({
     name: "закрытия_рейдов",
@@ -47,7 +47,7 @@ export default new Command({
             throw { errorType: UserErrors.DB_USER_NOT_FOUND, errorData: { isSelf: targetUser === interaction.user.id } };
         }
         const profileUrl = `Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=200`;
-        const userProfile = await fetchRequest(profileUrl, authData.accessToken);
+        const userProfile = await sendApiRequest(profileUrl, authData.accessToken);
         if (!userProfile || !userProfile?.characters?.data)
             throw { name: "Произошла ошибка на стороне Bungie" };
         const activityManifest = args.getBoolean("все-активности") === true
@@ -84,7 +84,7 @@ export default new Command({
         });
         await Promise.all(characterKeys.map(async (characterKey, index) => {
             const activityStatsUrl = `Platform/Destiny2/${authData.platform}/Account/${authData.bungieId}/Character/${characterKey}/Stats/AggregateActivityStats/`;
-            const { activities: freshActivities } = await fetchRequest(activityStatsUrl, authData);
+            const { activities: freshActivities } = await sendApiRequest(activityStatsUrl, authData);
             if (!freshActivities)
                 throw { name: "Произошла ошибка на стороне Bungie" };
             activityArray.forEach(async (activityData) => {
@@ -165,3 +165,4 @@ export default new Command({
         }
     },
 });
+//# sourceMappingURL=raidChecker.js.map

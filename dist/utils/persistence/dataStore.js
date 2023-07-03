@@ -3,4 +3,7 @@ const nonRegClanMembers = new Map();
 const recentRaidCreators = new Map();
 const recentlyExpiredAuthUsersBungieIds = new Set();
 const recentlyCreatedRaidInvites = new Map();
-export { joinDateCheckedClanMembers, nonRegClanMembers, recentRaidCreators, recentlyCreatedRaidInvites, recentlyExpiredAuthUsersBungieIds };
+const channelDataMap = new Map();
+const channelsForDeletion = new Set();
+export { channelDataMap, channelsForDeletion, joinDateCheckedClanMembers, nonRegClanMembers, recentRaidCreators, recentlyCreatedRaidInvites, recentlyExpiredAuthUsersBungieIds, };
+//# sourceMappingURL=dataStore.js.map

@@ -14,3 +14,4 @@ export async function initializeVoiceActivity(client) {
         });
     });
 }
+//# sourceMappingURL=initializeVoiceActivity.js.map

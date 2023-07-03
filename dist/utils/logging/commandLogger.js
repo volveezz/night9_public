@@ -27,3 +27,4 @@ const logCommandInteraction = async (interaction) => {
     console.info(`\x1b[37m${username}\x1b[0m used ${interactionName}\x1b[0m${embedInfo}${optionsData}${channelName}`);
 };
 export default logCommandInteraction;
+//# sourceMappingURL=commandLogger.js.map

@@ -1,9 +1,9 @@
 import { userCharactersId } from "../../core/userStatisticsManagement.js";
-import { fetchRequest } from "../api/fetchRequest.js";
+import { sendApiRequest } from "../api/sendApiRequest.js";
 export async function setUserCharacters(authData, member) {
     const { discordId, platform, bungieId, accessToken } = authData;
     try {
-        const destinyCharacterRequest = await fetchRequest(`Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
+        const destinyCharacterRequest = await sendApiRequest(`Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
         if (!destinyCharacterRequest.characters)
             return console.error(`[Error code: 1105] Error during caching characters of ${member.displayName}`);
         const charIdArray = [];
@@ -18,3 +18,4 @@ export async function setUserCharacters(authData, member) {
             console.error("[Error code: 1241]", e.error?.message || e.error?.name || e.message || e.name, bungieId, e.statusCode);
     }
 }
+//# sourceMappingURL=setUserCharacters.js.map

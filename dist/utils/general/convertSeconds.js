@@ -31,3 +31,4 @@ function convertSeconds(seconds, language = "ru") {
     return result.trim();
 }
 export { convertSeconds };
+//# sourceMappingURL=convertSeconds.js.map

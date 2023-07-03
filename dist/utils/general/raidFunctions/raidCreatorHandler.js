@@ -3,8 +3,6 @@ import { handleDeleteRaid } from "../../../buttons/raidInChnButton.js";
 import { RaidButtons } from "../../../configs/Buttons.js";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
-import { channelIds, guildId } from "../../../configs/ids.js";
-import { statusRoles } from "../../../configs/roles.js";
 import { client } from "../../../index.js";
 import { RaidEvent } from "../../persistence/sequelize.js";
 import { addButtonsToMessage } from "../addButtonsToMessage.js";
@@ -134,7 +132,8 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
     });
 }
 async function raidCreatorTransition(member, raid) {
-    const raidMessage = await (client.getCachedTextChannel(channelIds.raid) || (await client.getCachedGuild().channels.fetch(channelIds.raid))).messages.fetch(raid.messageId);
+    const raidMessage = await (client.getCachedTextChannel(process.env.RAID_CHANNEL_ID) ||
+        (await client.getCachedGuild().channels.fetch(process.env.RAID_CHANNEL_ID))).messages.fetch(raid.messageId);
     const raidEmbed = EmbedBuilder.from(raidMessage.embeds[0]);
     raidEmbed.setFooter({ text: `Создатель рейда: ${nameCleaner(member.displayName)}` });
     await raidMessage.edit({ embeds: [raidEmbed] });
@@ -154,9 +153,9 @@ async function raidCreatorTransition(member, raid) {
             .setColor(colors.default)
             .setAuthor({
             name: `Вам были переданы права на рейд ${raid.id}-${raid.raid}`,
-            url: `https://discord.com/channels/${guildId}/${channelIds.raid}/${raid.messageId}`,
+            url: `https://discord.com/channels/${process.env.GUILD_ID}/${process.env.RAID_CHANNEL_ID}/${raid.messageId}`,
         })
-            .setDescription("Вы получили эти права поскольку предыдущий создатель покинул рейд\n\nСоздатель рейда - участник, который имеет повышенные права в рейде\nСоздатель рейда может:\n　- Изменять рейд, в который идет набор\n　- Изменять время, требования по закрытым рейдам для записи, описание набора")
+            .setDescription("Вы получили эти права поскольку предыдущий создатель покинул рейд\n\nСоздатель рейда - участник, который имеет повышенные права в рейде\nСоздатель рейда может:\n- Изменять рейд, в который идет набор\n- Изменять время, требования по закрытым рейдам для записи, описание набора")
             .addFields({
             name: "Передача прав на рейд другому участнику",
             value: "⁣　`/рейд изменить новый-создатель:`\n　`/raid edit new-creator:`",
@@ -170,7 +169,7 @@ async function raidCreatorTransition(member, raid) {
     return;
 }
 function isClanMember(member) {
-    return member.roles.cache.has(statusRoles.clanmember);
+    return member.roles.cache.has(process.env.CLANMEMBER);
 }
 async function findNewRaidCreator(raid) {
     let newCreator = null;
@@ -208,3 +207,10 @@ async function findNewRaidCreator(raid) {
     }
     return newCreator;
 }
+export async function transferRaidCreator(raid) {
+    const newCreator = await findNewRaidCreator(raid);
+    if (!newCreator)
+        return;
+    await raidCreatorTransition(newCreator, raid);
+}
+//# sourceMappingURL=raidCreatorHandler.js.map

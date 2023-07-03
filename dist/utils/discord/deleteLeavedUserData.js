@@ -57,3 +57,4 @@ async function deleteLeavedUserData({ message, member }) {
     }
 }
 export default deleteLeavedUserData;
+//# sourceMappingURL=deleteLeavedUserData.js.map

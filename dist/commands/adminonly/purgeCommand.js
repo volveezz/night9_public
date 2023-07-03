@@ -92,3 +92,4 @@ export default new Command({
         }
     },
 });
+//# sourceMappingURL=purgeCommand.js.map

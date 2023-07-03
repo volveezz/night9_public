@@ -84,3 +84,4 @@ app.get("/callback", async (req, res) => {
 });
 app.use(express.static(join(__dirname, "public")));
 app.listen(port);
+//# sourceMappingURL=index.js.map

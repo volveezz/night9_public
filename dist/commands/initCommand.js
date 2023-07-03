@@ -13,3 +13,4 @@ export default new Command({
         return;
     },
 });
+//# sourceMappingURL=initCommand.js.map

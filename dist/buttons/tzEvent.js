@@ -18,3 +18,4 @@ export default {
         (await deferredInteraction) && interaction.editReply({ embeds: [embed], components: [] });
     },
 };
+//# sourceMappingURL=tzEvent.js.map

@@ -1,13 +1,13 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
-import { channelIds } from "../configs/ids.js";
+import icons from "../configs/icons.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
-const guildChannel = client.getCachedTextChannel(channelIds.guild);
-export default new Event("channelDelete", (channel) => {
+let guildChannel = null;
+export default new Event("channelDelete", async (channel) => {
     const embed = new EmbedBuilder().setColor(colors.error).setAuthor({
         name: "Канал удален",
-        iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086266897907060756/5711-icon-moderation.png",
+        iconURL: icons.moderation,
     });
     if (!channel.isDMBased()) {
         embed.setFooter({ text: `ChnId: ${channel.id}` }).addFields([
@@ -26,5 +26,9 @@ export default new Event("channelDelete", (channel) => {
     else {
         console.error("[Error code: 1640] Deleted channel found as DM", channel);
     }
-    guildChannel.send({ embeds: [embed] });
+    if (!guildChannel)
+        guildChannel =
+            client.getCachedTextChannel(process.env.GUILD_CHANNEL_ID) || (await client.getAsyncTextChannel(process.env.GUILD_CHANNEL_ID));
+    await guildChannel.send({ embeds: [embed] });
 });
+//# sourceMappingURL=channelDelete.js.map

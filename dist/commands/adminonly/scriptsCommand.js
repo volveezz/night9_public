@@ -63,3 +63,4 @@ export default new Command({
         }
     },
 });
+//# sourceMappingURL=scriptsCommand.js.map
