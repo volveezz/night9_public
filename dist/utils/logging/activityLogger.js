@@ -25,7 +25,7 @@ const ACTIVITY_LEAVE_TIME = 300;
 const PLACEHOLDER_TEXTS = [": Нормальный", "Засекречено"];
 async function restoreFetchedPGCRs() {
     const completedActivitiesChannels = await client.getAsyncTextChannel(process.env.ACTIVITY_CHANNEL_ID);
-    (await completedActivitiesChannels.messages.fetch({ limit: 5 })).forEach(async (message) => {
+    (await completedActivitiesChannels.messages.fetch({ limit: 15 })).forEach(async (message) => {
         const url = message.embeds?.[0]?.data?.author?.url;
         const pgcrId = url?.split("/")[4];
         if (pgcrId) {
