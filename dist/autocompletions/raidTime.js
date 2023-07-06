@@ -5,7 +5,7 @@ export default {
     aliases: ["новое-время"],
     run: async ({ interaction, option }) => {
         const pasrsedTime = convertTimeStringToNumber(option.value, userTimezones.get(interaction.user.id));
-        const name = pasrsedTime === 0
+        const name = isNaN(pasrsedTime) || pasrsedTime < 2
             ? "Проверьте корректность времени. Формат даты: ЧЧ:ММ ДД/мм"
             : new Date(pasrsedTime * 1000 + (userTimezones.get(interaction.user.id) ?? 3) * 60 * 60 * 1000).toLocaleString("ru-RU", {
                 weekday: "long",
@@ -15,6 +15,8 @@ export default {
                 hour: "2-digit",
                 minute: "2-digit",
             });
+        if (name === "Invalid Date")
+            return interaction.respond([{ name: "Проверьте корректность времени. Формат даты: ЧЧ:ММ ДД/мм", value: 0 }]);
         await interaction
             .respond([
             {

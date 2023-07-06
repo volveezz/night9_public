@@ -18,6 +18,7 @@ let latestBungieHelpTweetLink;
 let latestBungieTweetLink;
 let latestDestinyTheGameTweetLink;
 let latestDestinyTeamTweetLink;
+const isFirstRun = new Map();
 const processedLinks = new Set();
 async function fetchAndSendLatestTweets(url, latestLink, routeName) {
     try {
@@ -27,51 +28,32 @@ async function fetchAndSendLatestTweets(url, latestLink, routeName) {
         });
         if (!feed)
             return;
-        if (!latestLink) {
-            const firstEntry = feed.items[0];
-            feed.items.forEach((item) => {
+        if (!isFirstRun.has(routeName)) {
+            const latestIndex = feed.items.findIndex((item) => item.link === latestLink);
+            for (const item of feed.items.slice(latestIndex, feed.items.length)) {
                 if (!item.link)
-                    return;
+                    continue;
                 processedLinks.add(item.link);
-            });
-            return firstEntry.link;
+            }
+            isFirstRun.set(routeName, false);
+            if (latestLink === feed.items[0].link)
+                return latestLink;
         }
         const newEntries = [];
         for (const entry of feed.items) {
-            if (entry.link === latestLink) {
+            if (!entry.link || entry.link === latestLink || processedLinks.has(entry.link)) {
                 break;
             }
+            if (isRetweet(entry) || !entry.link)
+                continue;
+            processedLinks.add(entry.link);
             newEntries.unshift(entry);
         }
         if (newEntries.length > 0) {
             for (const entry of newEntries) {
-                if (!entry.link) {
-                    console.error("[Error code: 1703]", entry);
-                    continue;
-                }
-                if (isRetweet(entry)) {
-                    continue;
-                }
-                if (processedLinks.has(entry.link)) {
-                    console.error("[Error code: 1708] Link already processed", latestLink);
-                    console.error(feed.items
-                        .map((v, i) => {
-                        return `${i}. ${v.link}`;
-                    })
-                        .join("; "));
-                    continue;
-                }
                 const author = getBungieTwitterAuthor(entry.creator);
-                if (author) {
-                    if (isValidTweet(author, entry.guid)) {
-                        if (entry.content && entry.content.length > 0) {
-                            generateTwitterEmbed(entry, author, feed.image?.url);
-                            processedLinks.add(entry.link);
-                        }
-                        else {
-                            console.error("[Error code: 1707]", entry);
-                        }
-                    }
+                if (author && isValidTweet(author, entry.guid) && entry.content && entry.content.length > 0) {
+                    generateTwitterEmbed(entry, author, feed.image?.url);
                 }
                 else {
                     console.error("[Error code: 1705]", entry);

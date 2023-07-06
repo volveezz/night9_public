@@ -42,12 +42,12 @@ async function postArticlesToDiscord(articles) {
     for (const article of articles) {
         const embed = {
             title: article.Title,
-            url: `https://www.bungie.net/${article.Link}`,
-            timestamp: new Date(article.PubDate).toISOString(),
+            url: `https://www.bungie.net${article.Link}`,
             description: article.Description,
             image: {
                 url: article.ImagePath,
             },
+            color: 65535,
         };
         try {
             if (!adminChannel)

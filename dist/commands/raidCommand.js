@@ -419,19 +419,22 @@ export default new Command({
             const reqClears = args.getInteger("требуемых_закрытий") ?? 0;
             const raidData = getRaidDetails(raid, difficulty);
             const parsedTime = convertTimeStringToNumber(time, userTimezones.get(interaction.user.id));
-            if (parsedTime <= Math.trunc(Date.now() / 1000)) {
+            if (parsedTime <= Math.floor(Date.now() / 1000)) {
                 await deferredReply;
                 throw {
                     name: "Ошибка. Указанное время в прошлом",
                     description: `Вы указали время <t:${parsedTime}>, <t:${parsedTime}:R>, но время начала обязательно должно быть в будущем\n\nВремя указывается по часовому поясу, указанному с помощью \'/timezone\'\n**Пример:**\n> 20:00 15/9`,
                 };
             }
-            if (parsedTime >= 2147483647) {
+            else if (parsedTime >= 2147483647) {
                 await deferredReply;
                 throw {
                     name: "Ошибка. Проверьте корректность времени",
                     description: `Вы указали время <t:${parsedTime}>, <t:${parsedTime}:R>...`,
                 };
+            }
+            else if (isNaN(parsedTime) || parsedTime < 1000) {
+                throw { errorType: UserErrors.RAID_TIME_ERROR };
             }
             const raidDb = await RaidEvent.create({
                 channelId: member.id,
@@ -698,6 +701,9 @@ export default new Command({
                         name: "Ошибка. Проверьте корректность времени",
                         description: `Вы указали время <t:${changedTime}>, <t:${changedTime}:R>...`,
                     };
+                }
+                else if (isNaN(changedTime) || changedTime < 1000) {
+                    changes.push("Время старта осталось без изменений, поскольку оно было некорректно указано");
                 }
                 else if (changedTime > Math.floor(Date.now() / 1000)) {
                     const timeFieldIndex = raidEmbed.data.fields?.findIndex((field) => field.name.startsWith("Начало"));
