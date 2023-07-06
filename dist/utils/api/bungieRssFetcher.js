@@ -5,7 +5,11 @@ async function fetchNewsArticles() {
     try {
         const url = "/Platform/Content/Rss/NewsArticles/0/?includebody=false";
         const response = await sendApiRequest(url);
-        const currentArticles = response.NewsArticles;
+        const currentArticles = response?.NewsArticles;
+        if (!response || !currentArticles) {
+            console.error("[Error code: 1944] Invalid response from Bungie API:", response);
+            return;
+        }
         if (lastFetchedArticles === null) {
             lastFetchedArticles = currentArticles;
             setTimeout(fetchNewsArticles, 60 * 1000);
