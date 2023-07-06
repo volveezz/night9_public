@@ -28,7 +28,7 @@ async function parseJsonResponse(response) {
         return jsonResponse;
     }
     catch (error) {
-        handleFetchError(error.message, error);
+        handleFetchError(error.code || error.message, error);
         return null;
     }
 }
