@@ -1,11 +1,13 @@
 import { schedule } from "node-cron";
 import { sendApiRequest } from "../../api/sendApiRequest.js";
+const raidChallengeObjHashes = [406803827, 897950155];
 let raidActivityHashes = { normal: null, master: null };
 const fetchWeeklyRaid = async (retryCount = 0) => {
     try {
         const milestonesObj = await sendApiRequest("Platform/Destiny2/Milestones/");
         const milestones = Object.values(milestonesObj);
-        const raidMilestone = milestones.find((milestone) => milestone.activities && milestone.activities.some((activity) => activity.challengeObjectiveHashes.includes(406803827)));
+        const raidMilestone = milestones.find((milestone) => milestone.activities &&
+            milestone.activities.some((activity) => raidChallengeObjHashes.some((value) => activity.challengeObjectiveHashes.includes(value))));
         if (raidMilestone && raidMilestone.activities) {
             raidActivityHashes.normal = raidMilestone.activities[0]?.activityHash || null;
             raidActivityHashes.master = raidMilestone.activities[1]?.activityHash || null;
