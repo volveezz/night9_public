@@ -1,4 +1,3 @@
-import UserErrors from "../../../configs/UserErrors.js";
 function convertTimeStringToNumber(timeString, timezoneOffset = 3) {
     if (!timeString || timeString.length === 0)
         return 0;
@@ -18,14 +17,14 @@ function convertTimeStringToNumber(timeString, timezoneOffset = 3) {
 function processLongFormat(parts, timezoneOffset) {
     const monthIndex = parts.findIndex((part) => parseMonth(part) !== -1);
     if (monthIndex === -1 || monthIndex < 1)
-        throw { errorType: UserErrors.RAID_TIME_ERROR };
+        return 0;
     const day = parseInt(parts[monthIndex - 1]);
     const month = parseMonth(parts[monthIndex]);
     const year = parseInt(parts[monthIndex + 1]);
     const timePart = parts.find((part) => part.match(/\d+:\d*/));
     const [hours, minutes] = timePart ? timePart.split(":").map(Number) : [0, 0];
     if (isNaN(day) || month === -1 || isNaN(year) || isNaN(hours) || isNaN(minutes)) {
-        throw { errorType: UserErrors.RAID_TIME_ERROR };
+        return 0;
     }
     const date = new Date(year, month, day, hours, minutes, 0, 0);
     date.setTime(date.getTime() - timezoneOffset * 60 * 60 * 1000);
@@ -77,7 +76,7 @@ function processShortFormat(parts, date, timezoneOffset) {
     if (date.getTime() <= Date.now())
         date.setDate(date.getDate() + 1);
     if (!hasValidTimePart)
-        throw { errorType: UserErrors.RAID_TIME_ERROR };
+        return 0;
     return Math.floor(date.getTime() / 1000);
 }
 export default convertTimeStringToNumber;

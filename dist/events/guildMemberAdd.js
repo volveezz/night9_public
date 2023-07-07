@@ -18,7 +18,7 @@ export default new Event("guildMemberAdd", async (member) => {
         iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086264591706771488/3600-icon-join.png",
     })
         .setFooter({ text: `Id: ${member.id}` })
-        .setDescription(`<@${member.id}> ${member.user.username}#${member.user.discriminator}`)
+        .setDescription(`<@${member.id}> ${member.user.username}${member.user.discriminator ? `#${member.user.discriminator}` : ``}`)
         .addFields({
         name: "Дата создания аккаунта",
         value: `<t:${Math.round(member.user.createdTimestamp / 1000)}>`,

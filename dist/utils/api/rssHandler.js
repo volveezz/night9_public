@@ -11,16 +11,18 @@ var TwitterAccountNames;
     TwitterAccountNames["DestinyTheGame"] = "destinythegame";
     TwitterAccountNames["Destiny2Team"] = "destiny2team";
 })(TwitterAccountNames || (TwitterAccountNames = {}));
-const rssBungieHelpUrl = `https://rsshub.app/twitter/user/${TwitterAccountNames.BungieHelp}?readable=0&limit=10`;
-const rssBungieUrl = `https://rsshub.app/twitter/user/${TwitterAccountNames.Bungie}?readable=0&limit=10`;
-const rssDestinyTheGameUrl = `https://rsshub.app/twitter/user/${TwitterAccountNames.DestinyTheGame}?readable=0&limit=10`;
-const rssDestinyTeamUrl = `https://rsshub.app/twitter/user/${TwitterAccountNames.Destiny2Team}?readable=0&limit=10`;
+const hostUrl = "rsshub-production-e9d1.up.railway.app";
+const rssBungieHelpUrl = `https://${hostUrl}/twitter/user/${TwitterAccountNames.BungieHelp}?readable=0&limit=10`;
+const rssBungieUrl = `https://${hostUrl}/twitter/user/${TwitterAccountNames.Bungie}?readable=0&limit=5`;
+const rssDestinyTheGameUrl = `https://${hostUrl}/twitter/user/${TwitterAccountNames.DestinyTheGame}?readable=0&limit=5`;
+const rssDestinyTeamUrl = `https://${hostUrl}/twitter/user/${TwitterAccountNames.Destiny2Team}?readable=0&limit=10`;
 let latestBungieHelpTweetLink;
 let latestBungieTweetLink;
 let latestDestinyTheGameTweetLink;
 let latestDestinyTeamTweetLink;
 async function fetchAndSendLatestTweets(url, latestLink, routeName) {
     try {
+        console.debug(`Checking ${routeName} RSS feed`);
         const feed = await parser.parseURL(url).catch((e) => {
             console.error("[Error code: 1706] Error fetching RSS feed:", e.message, e.status, url.split("/")?.[5]);
             return;
@@ -29,12 +31,16 @@ async function fetchAndSendLatestTweets(url, latestLink, routeName) {
             return;
         const newEntries = [];
         for (const entry of feed.items) {
+            if (routeName === TwitterAccountNames.DestinyTheGame)
+                console.debug(entry);
             if (!entry.link || entry.link === latestLink || processedRssLinks.has(entry.link)) {
                 break;
             }
-            if (isRetweet(entry))
+            if (isRetweet(entry)) {
                 continue;
+            }
             processedRssLinks.add(entry.link);
+            console.debug(`Adding a link: ${entry.link}`);
             newEntries.unshift(entry);
         }
         if (newEntries.length > 0) {
