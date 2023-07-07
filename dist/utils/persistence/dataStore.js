@@ -5,5 +5,6 @@ const recentlyExpiredAuthUsersBungieIds = new Set();
 const recentlyCreatedRaidInvites = new Map();
 const channelDataMap = new Map();
 const channelsForDeletion = new Set();
-export { channelDataMap, channelsForDeletion, joinDateCheckedClanMembers, nonRegClanMembers, recentRaidCreators, recentlyCreatedRaidInvites, recentlyExpiredAuthUsersBungieIds, };
+const processedRssLinks = new Set();
+export { channelDataMap, channelsForDeletion, joinDateCheckedClanMembers, nonRegClanMembers, processedRssLinks, recentRaidCreators, recentlyCreatedRaidInvites, recentlyExpiredAuthUsersBungieIds, };
 //# sourceMappingURL=dataStore.js.map

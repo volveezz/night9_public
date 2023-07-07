@@ -13,6 +13,7 @@ import { loadNotifications } from "../utils/general/raidFunctions/raidNotificati
 import { cacheRaidMilestones } from "../utils/general/raidMilestones.js";
 import { timer } from "../utils/general/utilities.js";
 import { restoreFetchedPGCRs } from "../utils/logging/activityLogger.js";
+import { processedRssLinks } from "../utils/persistence/dataStore.js";
 const __dirname = resolve();
 export class ExtendedClient extends Client {
     commands = new Collection();
@@ -238,7 +239,6 @@ export class ExtendedClient extends Client {
         fetchGlobalAlerts();
     }
     async fetchMembersAndMessages() {
-        let counter = 1;
         this.guild.channels.cache.forEach(async (channel) => {
             if (channel.type === ChannelType.GuildVoice && channel.id !== this.guild.afkChannelId) {
                 channel.members.forEach((member) => {
@@ -249,9 +249,20 @@ export class ExtendedClient extends Client {
             }
             if (channel.isTextBased()) {
                 setTimeout(async () => {
-                    await channel.messages.fetch({ limit: 10 });
-                }, 10000 * counter);
-                counter++;
+                    if (channel.id === process.env.NEWS_CHANNEL_ID) {
+                        const channelMessages = await channel.messages.fetch({ limit: 100 });
+                        const messages = channelMessages.filter((m) => m.author.id === this.user.id && m.embeds?.[0]?.author?.url != null);
+                        messages.forEach((message) => {
+                            const messageAuthorUrl = message.embeds?.[0]?.author?.url;
+                            if (messageAuthorUrl) {
+                                processedRssLinks.add(messageAuthorUrl);
+                            }
+                        });
+                    }
+                    else {
+                        await channel.messages.fetch({ limit: 15 });
+                    }
+                }, 10000 * Math.random());
             }
         });
     }

@@ -1,6 +1,7 @@
 import Parser from "rss-parser";
 import { BungieTwitterAuthor } from "../../configs/BungieTwitterAuthor.js";
 import { generateTwitterEmbed } from "../discord/twitterMessageParser.js";
+import { processedRssLinks } from "../persistence/dataStore.js";
 import { ProcessedLink } from "../persistence/sequelize.js";
 const parser = new Parser();
 var TwitterAccountNames;
@@ -18,8 +19,6 @@ let latestBungieHelpTweetLink;
 let latestBungieTweetLink;
 let latestDestinyTheGameTweetLink;
 let latestDestinyTeamTweetLink;
-const isFirstRun = new Map();
-const processedLinks = new Set();
 async function fetchAndSendLatestTweets(url, latestLink, routeName) {
     try {
         const feed = await parser.parseURL(url).catch((e) => {
@@ -28,25 +27,14 @@ async function fetchAndSendLatestTweets(url, latestLink, routeName) {
         });
         if (!feed)
             return;
-        if (!isFirstRun.has(routeName)) {
-            const latestIndex = feed.items.findIndex((item) => item.link === latestLink);
-            for (const item of feed.items.slice(latestIndex, feed.items.length)) {
-                if (!item.link)
-                    continue;
-                processedLinks.add(item.link);
-            }
-            isFirstRun.set(routeName, false);
-            if (latestLink === feed.items[0].link)
-                return latestLink;
-        }
         const newEntries = [];
         for (const entry of feed.items) {
-            if (!entry.link || entry.link === latestLink || processedLinks.has(entry.link)) {
+            if (!entry.link || entry.link === latestLink || processedRssLinks.has(entry.link)) {
                 break;
             }
-            if (isRetweet(entry) || !entry.link)
+            if (isRetweet(entry))
                 continue;
-            processedLinks.add(entry.link);
+            processedRssLinks.add(entry.link);
             newEntries.unshift(entry);
         }
         if (newEntries.length > 0) {
