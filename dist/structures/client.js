@@ -4,6 +4,7 @@ import periodicDestinyActivityChecker from "../core/periodicActivityChecker.js";
 import tokenManagment from "../core/tokenManagement.js";
 import handleMemberStatistics from "../core/userStatisticsManagement.js";
 import fetchNewsArticles from "../utils/api/bungieRssFetcher.js";
+import { fetchGlobalAlerts } from "../utils/api/globalAlertsFetcher.js";
 import { voiceChannelJoinTimestamps } from "../utils/discord/userActivityHandler.js";
 import { clanOnlineMemberActivityChecker } from "../utils/general/activityCompletionChecker.js";
 import getFiles from "../utils/general/fileReader.js";
@@ -234,6 +235,7 @@ export class ExtendedClient extends Client {
         this.importFile("../utils/api/rssHandler.js");
         cacheRaidMilestones();
         raidFireteamChecker();
+        fetchGlobalAlerts();
     }
     async fetchMembersAndMessages() {
         let counter = 1;

@@ -16,9 +16,9 @@ client.rest.on("rateLimited", (rateLimit) => {
 });
 process.on("SIGINT", handleExit);
 process.on("SIGTERM", handleExit);
-function handleExit(signal) {
+async function handleExit(signal) {
     console.log(`Received ${signal}. Saving data...`);
-    forceUpdateUserActivity();
+    await forceUpdateUserActivity();
 }
 process.on("uncaughtException", (error) => {
     console.error("uncaughtException at top level", error);

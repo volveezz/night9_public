@@ -11,7 +11,7 @@ export async function sendApiRequest(apiEndpoint, authToken) {
         return jsonResponse.Response ? jsonResponse.Response : jsonResponse;
     }
     catch (error) {
-        handleFetchError(error.message, error);
+        handleFetchError(error.code || error.message, error);
         return undefined;
     }
 }
@@ -47,8 +47,8 @@ function handleFetchError(status, error) {
         ETIMEDOUT: "[Error code: 1922] ETIMEDOUT request error",
         ERR_STREAM_PREMATURE_CLOSE: "[Error code: 1830] ERR_STREAM_PREMATURE_CLOSE request error",
     };
-    if (errorMessages.hasOwnProperty(status)) {
-        console.error("[Error code: 1939]", errorMessages[status]);
+    if (errorMessages.hasOwnProperty(status) || errorMessages.hasOwnProperty(String(status))) {
+        console.error("[Error code: 1939]", errorMessages[String(status)]);
     }
     else {
         if (typeof status === "number" && status >= 400 && status <= 599) {
