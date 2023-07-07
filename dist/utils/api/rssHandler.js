@@ -22,7 +22,6 @@ let latestDestinyTheGameTweetLink;
 let latestDestinyTeamTweetLink;
 async function fetchAndSendLatestTweets(url, latestLink, routeName) {
     try {
-        console.debug(`Checking ${routeName} RSS feed`);
         const feed = await parser.parseURL(url).catch((e) => {
             console.error("[Error code: 1706] Error fetching RSS feed:", e.message, e.status, url.split("/")?.[5]);
             return;
@@ -31,8 +30,6 @@ async function fetchAndSendLatestTweets(url, latestLink, routeName) {
             return;
         const newEntries = [];
         for (const entry of feed.items) {
-            if (routeName === TwitterAccountNames.DestinyTheGame)
-                console.debug(entry);
             if (!entry.link || entry.link === latestLink || processedRssLinks.has(entry.link)) {
                 break;
             }
@@ -40,7 +37,6 @@ async function fetchAndSendLatestTweets(url, latestLink, routeName) {
                 continue;
             }
             processedRssLinks.add(entry.link);
-            console.debug(`Adding a link: ${entry.link}`);
             newEntries.unshift(entry);
         }
         if (newEntries.length > 0) {
