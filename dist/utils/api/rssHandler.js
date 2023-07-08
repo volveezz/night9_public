@@ -49,7 +49,7 @@ async function fetchAndSendLatestTweets(url, latestLink, routeName) {
                     console.error("[Error code: 1705]", entry);
                 }
             }
-            const finalLink = newEntries.length > 0 ? newEntries[newEntries.length - 1].link : latestLink;
+            const finalLink = newEntries[newEntries.length - 1].link;
             if (finalLink) {
                 await updateLatestLinkInDatabase(routeName, finalLink);
             }
@@ -127,19 +127,19 @@ async function getLatestLinkFromDatabase(route) {
         return record?.link;
     }
     catch (error) {
-        console.error("Error retrieving the latest link from the database:", error);
+        console.error("[Error code: 1946] Error retrieving the latest link from the database:", error);
     }
 }
 setInterval(async () => {
     latestBungieHelpTweetLink = await fetchAndSendLatestTweets(rssBungieHelpUrl, latestBungieHelpTweetLink, TwitterAccountNames.BungieHelp);
-}, 1000 * 60);
-setInterval(async () => {
-    latestBungieTweetLink = await fetchAndSendLatestTweets(rssBungieUrl, latestBungieTweetLink, TwitterAccountNames.Bungie);
-}, 1000 * 60);
-setInterval(async () => {
-    latestDestinyTheGameTweetLink = await fetchAndSendLatestTweets(rssDestinyTheGameUrl, latestDestinyTheGameTweetLink, TwitterAccountNames.DestinyTheGame);
-}, 1000 * 60);
+}, 1000 * 50);
 setInterval(async () => {
     latestDestinyTeamTweetLink = await fetchAndSendLatestTweets(rssDestinyTeamUrl, latestDestinyTeamTweetLink, TwitterAccountNames.Destiny2Team);
-}, 1000 * 60);
+}, 1000 * 58);
+setInterval(async () => {
+    latestBungieTweetLink = await fetchAndSendLatestTweets(rssBungieUrl, latestBungieTweetLink, TwitterAccountNames.Bungie);
+}, 1000 * 66);
+setInterval(async () => {
+    latestDestinyTheGameTweetLink = await fetchAndSendLatestTweets(rssDestinyTheGameUrl, latestDestinyTheGameTweetLink, TwitterAccountNames.DestinyTheGame);
+}, 1000 * 72);
 //# sourceMappingURL=rssHandler.js.map
