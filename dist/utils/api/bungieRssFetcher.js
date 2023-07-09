@@ -7,7 +7,7 @@ async function fetchNewsArticles() {
         const response = await sendApiRequest(url);
         const currentArticles = response?.NewsArticles;
         if (!response || !currentArticles) {
-            console.error("[Error code: 1944] Invalid response from Bungie API:", response);
+            console.error("[Error code: 1944] Invalid response from Bungie API");
             return;
         }
         if (lastFetchedArticles === null) {

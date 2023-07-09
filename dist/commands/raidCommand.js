@@ -158,7 +158,7 @@ export default new Command({
                     type: ApplicationCommandOptionType.Integer,
                     minValue: 0,
                     maxValue: 1000,
-                    name: "требуемых_закрытий",
+                    name: "требуемых-закрытий",
                     nameLocalizations: { "en-US": "clears-requirement", "en-GB": "clears-requirement" },
                     description: "Укажите минимальное количество закрытий этого рейда для записи",
                     descriptionLocalizations: {
@@ -416,7 +416,7 @@ export default new Command({
             const time = args.getString("время", true);
             const raidDescription = args.getString("описание");
             const difficulty = (args.getInteger("сложность") ?? 1);
-            const reqClears = args.getInteger("требуемых_закрытий") ?? 0;
+            const reqClears = args.getInteger("требуемых-закрытий") ?? 0;
             const raidData = getRaidDetails(raid, difficulty);
             const parsedTime = convertTimeStringToNumber(time, userTimezones.get(interaction.user.id));
             if (parsedTime <= Math.floor(Date.now() / 1000)) {

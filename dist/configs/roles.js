@@ -174,5 +174,17 @@ const guardianRankRoles = {
         { roleId: process.env.GUARDIAN_RANK_11, rank: 11 },
     ],
 };
-export { activityRoles, clanJoinDateRoles, classRoles, dlcRoles, guardianRankRoles, raidRoles, seasonalRoles, statisticsRoles, trialsRoles, };
+const premiumRoles = [
+    { roleId: process.env.PREMIUM_ROLE_1, tier: 1 },
+    { roleId: process.env.PREMIUM_ROLE_2, tier: 2 },
+    { roleId: process.env.PREMIUM_ROLE_3, tier: 3 },
+    { roleId: process.env.PREMIUM_ROLE_4, tier: 4 },
+];
+const allPremiumRoles = [
+    process.env.PREMIUM_ROLE_1,
+    process.env.PREMIUM_ROLE_2,
+    process.env.PREMIUM_ROLE_3,
+    process.env.PREMIUM_ROLE_4,
+];
+export { activityRoles, allPremiumRoles, clanJoinDateRoles, classRoles, dlcRoles, guardianRankRoles, premiumRoles, raidRoles, seasonalRoles, statisticsRoles, trialsRoles, };
 //# sourceMappingURL=roles.js.map

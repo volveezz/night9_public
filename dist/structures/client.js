@@ -250,17 +250,18 @@ export class ExtendedClient extends Client {
             if (channel.isTextBased()) {
                 setTimeout(async () => {
                     if (channel.id === process.env.NEWS_CHANNEL_ID) {
-                        const channelMessages = await channel.messages.fetch({ limit: 100 });
-                        const messages = channelMessages.filter((m) => m.author.id === this.user.id && m.embeds?.[0]?.author?.url != null);
-                        messages.forEach((message) => {
-                            const messageAuthorUrl = message.embeds?.[0]?.author?.url;
-                            if (messageAuthorUrl) {
-                                processedRssLinks.add(messageAuthorUrl);
-                            }
+                        channel.messages.fetch({ limit: 100 }).then((channelMessages) => {
+                            const messages = channelMessages.filter((m) => m.author.id === this.user.id && m.embeds?.[0]?.author?.url != null);
+                            messages.forEach((message) => {
+                                const messageAuthorUrl = message.embeds?.[0]?.author?.url;
+                                if (messageAuthorUrl) {
+                                    processedRssLinks.add(messageAuthorUrl);
+                                }
+                            });
                         });
                     }
                     else {
-                        await channel.messages.fetch({ limit: 15 });
+                        channel.messages.fetch({ limit: 15 });
                     }
                 }, 10000 * Math.random());
             }

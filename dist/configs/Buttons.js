@@ -78,4 +78,10 @@ export var LfgButtons;
 (function (LfgButtons) {
     LfgButtons["delete"] = "lfgSystem_delete";
 })(LfgButtons || (LfgButtons = {}));
+export var DatabaseCommandButtons;
+(function (DatabaseCommandButtons) {
+    DatabaseCommandButtons["Confirm"] = "db_roles_add_confirm";
+    DatabaseCommandButtons["Cancel"] = "db_roles_add_cancel";
+    DatabaseCommandButtons["ChangeName"] = "db_roles_add_change_name";
+})(DatabaseCommandButtons || (DatabaseCommandButtons = {}));
 //# sourceMappingURL=Buttons.js.map

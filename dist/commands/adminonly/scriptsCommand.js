@@ -15,10 +15,28 @@ export default new Command({
             required: true,
         },
     ],
-    run: async ({ interaction }) => {
+    run: async ({ client, interaction }) => {
         const defferedReply = interaction.deferReply({ ephemeral: true });
         const scriptId = interaction.options.getString("script", true).toLowerCase();
         switch (scriptId) {
+            case "checkrole": {
+                const members = client
+                    .getCachedMembers()
+                    .filter((r) => r.roles.cache.has(process.env.MEMBER) && !r.roles.cache.has(process.env.VERIFIED));
+                const usersInDatabase = await AuthData.findAll({ attributes: ["discordId"] });
+                const discordIdsInDatabase = usersInDatabase.map((user) => user.discordId);
+                for (const [id, member] of members) {
+                    const hasVerifiedRole = member.roles.cache.has(process.env.VERIFIED);
+                    if (hasVerifiedRole) {
+                        if (!discordIdsInDatabase.includes(member.id)) {
+                            await member.roles.remove(process.env.MEMBER);
+                            await member.roles.add(process.env.NEWBIE);
+                            console.debug(`Removed verified role from ${member.displayName || member.user.username}`);
+                        }
+                    }
+                }
+                return;
+            }
             case "activitytop": {
                 const dbData = (await AuthData.findAll({ include: UserActivityData, attributes: ["displayName", "discordId"] })).filter((v) => v.UserActivityData && (v.UserActivityData.messages > 0 || v.UserActivityData.voice > 0));
                 const usersWithoutData = dbData.filter((v) => !v.UserActivityData);
