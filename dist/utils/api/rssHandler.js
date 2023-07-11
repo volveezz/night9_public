@@ -126,7 +126,7 @@ function getCurrentUtcHour() {
 }
 function calculateDestinyInterval() {
     const hour = getCurrentUtcHour();
-    if ((hour >= 13 && hour <= 14) || (hour >= 17 && hour <= 18)) {
+    if (hour >= 12 && hour <= 20) {
         return 1000 * 60;
     }
     else {

@@ -50,7 +50,7 @@ async function bungieGrantRequest(row, table, retry = false) {
         }
     }
     catch (error) {
-        console.error(`[Error code: 1744] Token refresher: ${retry} for ${row.bungieId}\n`, error);
+        console.error(`[Error code: 1744] Token refresher ${retry} for ${row.bungieId}\n`, error);
         if (!retry) {
             bungieGrantRequest(row, table, true);
         }

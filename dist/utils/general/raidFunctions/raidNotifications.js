@@ -84,7 +84,7 @@ export async function loadNotifications() {
             for (const minutesBefore of notificationTimes) {
                 const notifyTime = (raid.time - minutesBefore * 60) * 1000;
                 if (notifyTime > Date.now()) {
-                    console.debug("Adding a new notification task for", discordId, raid.id);
+                    console.debug("Adding a new notification task for", discordId, notifyTime);
                     tasks.push({ notifyTime, discordId, raidId: raid.id });
                 }
             }

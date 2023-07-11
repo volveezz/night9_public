@@ -231,14 +231,15 @@ export class ExtendedClient extends Client {
         restoreFetchedPGCRs();
         this.importFile("../core/guildNicknameManagement.js");
         loadNotifications();
+        this.importFile("../utils/api/rssHandler.js");
     }
     loadDelayedComponents() {
-        this.importFile("../utils/api/rssHandler.js");
         cacheRaidMilestones();
         raidFireteamChecker();
         fetchGlobalAlerts();
     }
     async fetchMembersAndMessages() {
+        await timer(1000 * 2);
         this.guild.channels.cache.forEach(async (channel) => {
             if (channel.type === ChannelType.GuildVoice && channel.id !== this.guild.afkChannelId) {
                 channel.members.forEach((member) => {

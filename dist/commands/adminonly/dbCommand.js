@@ -47,6 +47,19 @@ export default new Command({
         },
         {
             type: ApplicationCommandOptionType.Subcommand,
+            name: "clear",
+            description: "Delete user from database and clear his data on the server",
+            options: [
+                {
+                    type: ApplicationCommandOptionType.User,
+                    name: "user",
+                    description: "User to clear",
+                    required: true,
+                },
+            ],
+        },
+        {
+            type: ApplicationCommandOptionType.Subcommand,
             name: "name_change",
             description: "NAME CHANGE",
             options: [
@@ -145,6 +158,9 @@ export default new Command({
             case "select": {
                 return select();
             }
+            case "clear": {
+                return clearCase();
+            }
             case "delete": {
                 return deleteCase();
             }
@@ -230,6 +246,32 @@ export default new Command({
             if (userTimezones.get(request.discordId) === undefined && request.timezone !== undefined && request.timezone !== null)
                 userTimezones.set(request.discordId, request.timezone);
             return;
+        }
+        async function clearCase() {
+            const user = args.getUser("user", true);
+            const userData = await AuthData.findOne({
+                where: { discordId: user.id },
+                attributes: ["discordId"],
+                include: UserActivityData,
+            });
+            const embed = new EmbedBuilder();
+            if (!userData) {
+                embed
+                    .setColor(colors.error)
+                    .setAuthor({ name: "Ошибка", iconURL: icons.error })
+                    .setDescription("Пользователь не найден в базе данных");
+            }
+            else if (!userData.UserActivityData || (userData.UserActivityData.messages === 0 && userData.UserActivityData.voice === 0)) {
+                const member = await client.getAsyncMember(user.id);
+                await userData.destroy();
+                await member.setNickname(null, "Удаление данных пользователя");
+                embed
+                    .setColor(colors.success)
+                    .setAuthor({ name: "Успех", iconURL: icons.success })
+                    .setDescription("Данные пользователя успешно удалены");
+            }
+            await deferredReply;
+            return await interaction.editReply({ embeds: [embed] });
         }
         async function deleteCase() {
             const request = await AuthData.destroy({
