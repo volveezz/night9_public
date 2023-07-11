@@ -9,6 +9,7 @@ import { activityRoles, raidRoles } from "../../configs/roles.js";
 import { longOffline, userTimezones } from "../../core/userStatisticsManagement.js";
 import { Command } from "../../structures/command.js";
 import { CachedDestinyRecordDefinition } from "../../utils/api/manifestHandler.js";
+import setMemberRoles from "../../utils/discord/setRoles.js";
 import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
 import { convertSeconds } from "../../utils/general/convertSeconds.js";
 import { completedRaidsData } from "../../utils/general/destinyActivityChecker.js";
@@ -265,6 +266,7 @@ export default new Command({
                 const member = await client.getAsyncMember(user.id);
                 await userData.destroy();
                 await member.setNickname(null, "Удаление данных пользователя");
+                await setMemberRoles({ member, roles: [process.env.NEWBIE], reason: "Удаление данных пользователя" });
                 embed
                     .setColor(colors.success)
                     .setAuthor({ name: "Успех", iconURL: icons.success })
