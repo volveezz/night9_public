@@ -72,8 +72,8 @@ async function generateTwitterEmbed(twitterData, author, icon) {
     }
     if (!publicNewsChannel)
         publicNewsChannel =
-            client.getCachedTextChannel(process.env.PUBLIC_NEWS_CHANNEL_ID) ||
-                (await client.getCachedGuild().channels.fetch(process.env.PUBLIC_NEWS_CHANNEL_ID));
+            client.getCachedTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID) ||
+                (await client.getCachedGuild().channels.fetch(process.env.ENGLISH_NEWS_CHANNEL_ID));
     await publicNewsChannel.send({ embeds: [embed] });
     return;
 }

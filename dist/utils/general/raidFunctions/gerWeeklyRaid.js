@@ -1,4 +1,5 @@
 import { schedule } from "node-cron";
+import { RefreshManifest } from "../../api/ManifestManager.js";
 import { sendApiRequest } from "../../api/sendApiRequest.js";
 const raidChallengeObjHashes = [406803827, 897950155, 3211393925];
 let raidActivityHashes = { normal: null, master: null };
@@ -27,6 +28,7 @@ const fetchWeeklyRaid = async (retryCount = 0) => {
 schedule("1 17 * * 2", () => {
     console.debug("Updating a new weekly raid");
     fetchWeeklyRaid();
+    RefreshManifest();
 }, {
     timezone: "GMT",
 });

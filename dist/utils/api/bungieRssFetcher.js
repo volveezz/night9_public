@@ -37,7 +37,7 @@ async function fetchNewsArticles() {
 function getNewArticles(currentArticles, lastFetchedArticles) {
     return currentArticles.filter((article) => !lastFetchedArticles.some((lastArticle) => article.UniqueIdentifier === lastArticle.UniqueIdentifier));
 }
-let adminChannel = null;
+let newsChannel = null;
 async function postArticlesToDiscord(articles) {
     for (const article of articles) {
         const embed = {
@@ -50,9 +50,9 @@ async function postArticlesToDiscord(articles) {
             color: 65535,
         };
         try {
-            if (!adminChannel)
-                adminChannel = await client.getAsyncTextChannel(process.env.ADMIN_CHANNEL_ID);
-            await adminChannel.send({ embeds: [embed] });
+            if (!newsChannel)
+                newsChannel = await client.getAsyncTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
+            await newsChannel.send({ embeds: [embed] });
         }
         catch (error) {
             console.error("[Error code: 1936] Error posting article to Discord:", error);

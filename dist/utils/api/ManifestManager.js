@@ -49,11 +49,12 @@ class ManifestManager {
         const oldVersion = this.manifestVersion;
         await this.fetchManifest();
         if (this.manifestVersion !== oldVersion) {
+            console.info(`Manifest updated from ${oldVersion} to ${this.manifestVersion}`);
             this.manifestCache = {};
         }
     }
 }
-export const manifestManager = new ManifestManager();
+const manifestManager = new ManifestManager();
 export async function GetManifest(page) {
     return manifestManager.getDefinition(page);
 }
