@@ -30,7 +30,7 @@ export default async function webHandler(code, state, res) {
         return console.error("[Error code: 1010]", `There is problem with fetching authData from state: ${state}`, body);
     }
     try {
-        const request = await sendApiRequest("Platform/User/GetMembershipsForCurrentUser/", body.access_token);
+        const request = await sendApiRequest("/Platform/User/GetMembershipsForCurrentUser/", body.access_token);
         if (!request || !request.destinyMemberships) {
             res.send("<script>location.replace('error.html')</script>").end();
             return console.error(`[Error code: 1034] State: ${state} / Code: ${code}`, body, request);
@@ -111,7 +111,7 @@ export default async function webHandler(code, state, res) {
             limit: 1,
         });
         res.send("<script>location.replace('index.html')</script>").end();
-        const clanResponse = await sendApiRequest(`Platform/GroupV2/User/${platform}/${bungieId}/0/1/`, body.access_token);
+        const clanResponse = await sendApiRequest(`/Platform/GroupV2/User/${platform}/${bungieId}/0/1/`, body.access_token);
         const member = await client.getAsyncMember(json.discordId);
         if (!member) {
             return console.error("[Error code: 1012] Member error during webHandling of", json);

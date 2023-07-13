@@ -5,7 +5,7 @@ import colors from "../configs/colors.js";
 import { bungieNames } from "../core/userStatisticsManagement.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
-import { CachedDestinyRaceDefinition } from "../utils/api/manifestHandler.js";
+import { GetManifest } from "../utils/api/ManifestManager.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
 import { AuthData, UserActivityData } from "../utils/persistence/sequelize.js";
@@ -91,7 +91,7 @@ export default new Command({
         });
         const fetchProfileAndCharacters = async () => {
             try {
-                const response = await sendApiRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/?components=100,200`);
+                const response = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${bungieId}/?components=100,200`);
                 const data = response?.profile?.data;
                 const characterDataArray = [];
                 if (!data) {
@@ -112,7 +112,8 @@ export default new Command({
                             : "<:titan:995496472722284596>";
                     const lastSessionTime = (parseInt(character.minutesPlayedThisSession) || 0) * 60;
                     const totalTime = (parseInt(character.minutesPlayedTotal) || 0) * 60;
-                    const raceName = CachedDestinyRaceDefinition[character.raceHash].genderedRaceNamesByGenderHash[character.genderHash];
+                    const raceDefinition = await GetManifest("DestinyRaceDefinition");
+                    const raceName = raceDefinition[character.raceHash].genderedRaceNamesByGenderHash[character.genderHash];
                     characterDataArray.push(`${classEmoji}**${raceName}** ${character.light} силы - последний онлайн <t:${Math.floor(new Date(character.dateLastPlayed).getTime() / 1000)}:R>\n- ${convertSeconds(lastSessionTime)} за последнюю сессию (${convertSeconds(totalTime)})`);
                     fieldUrls.push(`${classEmoji}[Braytech](https://bray.tech/${platform}/${bungieId}/${character.characterId}/)`);
                 }
@@ -127,7 +128,7 @@ export default new Command({
         };
         const fetchClanData = async () => {
             try {
-                const clanBody = await sendApiRequest(`Platform/GroupV2/User/${platform}/${bungieId}/0/1/`);
+                const clanBody = await sendApiRequest(`/Platform/GroupV2/User/${platform}/${bungieId}/0/1/`);
                 const clanStatus = clanBody.results[0]?.group.groupId === process.env.GROUP_ID
                     ? "участник клана"
                     : clanBody.results[0]

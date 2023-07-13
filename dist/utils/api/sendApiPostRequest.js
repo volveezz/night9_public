@@ -1,5 +1,5 @@
 export async function sendApiPostRequest({ apiEndpoint, authToken, requestData, shouldReturnResponse }) {
-    const apiUrl = `https://www.bungie.net/${apiEndpoint}`;
+    const apiUrl = `https://www.bungie.net${apiEndpoint}`;
     const headers = createHeaders(authToken);
     const options = createRequestOptions(headers, requestData);
     try {

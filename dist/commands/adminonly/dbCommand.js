@@ -8,7 +8,7 @@ import icons from "../../configs/icons.js";
 import { activityRoles, raidRoles } from "../../configs/roles.js";
 import { longOffline, userTimezones } from "../../core/userStatisticsManagement.js";
 import { Command } from "../../structures/command.js";
-import { CachedDestinyRecordDefinition } from "../../utils/api/manifestHandler.js";
+import { GetManifest } from "../../utils/api/ManifestManager.js";
 import setMemberRoles from "../../utils/discord/setRoles.js";
 import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
 import { convertSeconds } from "../../utils/general/convertSeconds.js";
@@ -262,7 +262,7 @@ export default new Command({
                     .setAuthor({ name: "Ошибка", iconURL: icons.error })
                     .setDescription("Пользователь не найден в базе данных");
             }
-            else if (!userData.UserActivityData || (userData.UserActivityData.messages === 0 && userData.UserActivityData.voice === 0)) {
+            else if (!userData.UserActivityData || (userData.UserActivityData.messages < 5 && userData.UserActivityData.voice < 120)) {
                 const member = await client.getAsyncMember(user.id);
                 await userData.destroy();
                 await member.setNickname(null, "Удаление данных пользователя");
@@ -271,6 +271,21 @@ export default new Command({
                     .setColor(colors.success)
                     .setAuthor({ name: "Успех", iconURL: icons.success })
                     .setDescription("Данные пользователя успешно удалены");
+            }
+            else {
+                embed
+                    .setColor(colors.serious)
+                    .setAuthor({ name: "Внимание", iconURL: icons.warning })
+                    .setDescription("У пользователя есть актив на сервере, проверьте вручную для удаления")
+                    .addFields([
+                    { name: "Сообщений отправлено", value: userData.UserActivityData.messages.toString(), inline: true },
+                    { name: "Времени в голосовых", value: convertSeconds(userData.UserActivityData.voice).toString(), inline: true },
+                    {
+                        name: "Активность в игре",
+                        value: `${userData.UserActivityData.raids}/${userData.UserActivityData.dungeons}`,
+                        inline: true,
+                    },
+                ]);
             }
             await deferredReply;
             return await interaction.editReply({ embeds: [embed] });
@@ -320,7 +335,7 @@ export default new Command({
         async function addCase() {
             const hash = args.getString("hash", true);
             const unique = args.getInteger("unique") ?? -99;
-            const recordDefinition = CachedDestinyRecordDefinition[Number(hash)];
+            const recordDefinition = (await GetManifest("DestinyRecordDefinition"))[Number(hash)];
             if (!recordDefinition)
                 throw { name: "Триумф под таким хешем не найден", description: `Hash: ${hash}` };
             const isTitle = recordDefinition.titleInfo.hasTitle;

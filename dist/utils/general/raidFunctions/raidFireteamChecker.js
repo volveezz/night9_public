@@ -180,7 +180,7 @@ async function raidFireteamChecker(id) {
                 }
             });
             if (!privateRaidChannel) {
-                console.error("[Error code: 1926] Channel not found.");
+                console.error("[Error code: 1926] Channel not found");
                 return;
             }
             await privateRaidChannel.send({
@@ -231,7 +231,7 @@ async function checkFireteamRoster(voiceChannelMembersAuthData, raidName, raidId
         return null;
     for (const authData of voiceChannelMembersAuthData) {
         try {
-            const destinyProfile = await sendApiRequest(`Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=204,1000`, authData.accessToken);
+            const destinyProfile = await sendApiRequest(`/Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=204,1000`, authData.accessToken);
             const partyMembers = destinyProfile?.profileTransitoryData?.data?.partyMembers;
             const characterActivities = destinyProfile.characterActivities.data;
             if (!partyMembers || !characterActivities)

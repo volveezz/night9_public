@@ -3,7 +3,7 @@ import { StatsButton } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import { apiStatus } from "../structures/apiStatus.js";
-import { CachedDestinyMilestoneDefinition, CachedDestinyProgressionDefinition } from "../utils/api/manifestHandler.js";
+import { GetManifest } from "../utils/api/ManifestManager.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
@@ -29,7 +29,7 @@ export default {
         const { platform, bungieId } = userData;
         switch (interaction.customId) {
             case StatsButton.oldEvents: {
-                const data = await sendApiRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/?components=202`, userData);
+                const data = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${bungieId}/?components=202`, userData);
                 const factions = data.characterProgressions?.data?.[Object.keys(data.characterProgressions.data)[0]].factions || {};
                 const dataFact = Object.entries(factions)
                     .filter(([_, faction]) => faction.progressionHash)
@@ -40,9 +40,10 @@ export default {
                     level,
                     levelCap,
                 }));
+                const progressionDefinition = await GetManifest("DestinyProgressionDefinition");
                 const embedFields = dataFact.slice(0, 25).map(({ factionHash, progressionHash, currentProgress, level, levelCap }) => {
-                    const embedName = CachedDestinyProgressionDefinition[progressionHash]?.displayProperties?.name ||
-                        CachedDestinyProgressionDefinition[progressionHash]?.displayProperties?.displayUnitsName ||
+                    const embedName = progressionDefinition[progressionHash]?.displayProperties?.name ||
+                        progressionDefinition[progressionHash]?.displayProperties?.displayUnitsName ||
                         "blank";
                     const isTrialsOfTheNine = progressionHash === 3468066401;
                     const value = `${currentProgress} очков, ${level} ранг${levelCap !== -1 ? `/${levelCap}` : []}`;
@@ -57,7 +58,7 @@ export default {
                 return;
             }
             case StatsButton.pinnacle: {
-                const data = await sendApiRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/?components=200,202`, userData);
+                const data = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${bungieId}/?components=200,202`, userData);
                 if (!data.characterProgressions.data) {
                     throw { name: "Ошибка", description: "Не найти данные об ваших персонажах" };
                 }
@@ -116,6 +117,7 @@ export default {
                     });
                     const embed = new EmbedBuilder().setColor(colors.success).setFooter({ text: `Id: ${id}` });
                     const curDate = Date.now();
+                    const milestoneDefinition = await GetManifest("DestinyMilestoneDefinition");
                     storedMilestones.forEach((mile) => {
                         if (curDate > mile.endDate)
                             return;
@@ -124,7 +126,7 @@ export default {
                                 if (subRew.redeemed === true || (embed.data.fields && embed.data.fields.length >= 25))
                                     return;
                                 embed.addFields({
-                                    name: `${CachedDestinyMilestoneDefinition[mile.milestoneHash].displayProperties.name}\n${CachedDestinyMilestoneDefinition[mile.milestoneHash].displayProperties.description}`,
+                                    name: `${milestoneDefinition[mile.milestoneHash].displayProperties.name}\n${milestoneDefinition[mile.milestoneHash].displayProperties.description}`,
                                     value: `Можно выполнить и получить награду`,
                                 });
                             });

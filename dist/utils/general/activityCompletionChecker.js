@@ -1,14 +1,15 @@
 import { clanOnline } from "../../core/userStatisticsManagement.js";
 import { apiStatus } from "../../structures/apiStatus.js";
-import { CachedDestinyActivityDefinition } from "../api/manifestHandler.js";
+import { GetManifest } from "../api/ManifestManager.js";
 import { sendApiRequest } from "../api/sendApiRequest.js";
 import { AuthData } from "../persistence/sequelize.js";
 import { getRaidDetails } from "./raidFunctions.js";
 import { getWeeklyRaidActivityHashes } from "./raidFunctions/gerWeeklyRaid.js";
 import { raidMilestoneHashes } from "./raidMilestones.js";
 import { timer } from "./utilities.js";
-const activityCompletionCurrentProfiles = new Map();
 export const completedPhases = new Map();
+const activityDefinition = await GetManifest("DestinyActivityDefinition");
+const activityCompletionCurrentProfiles = new Map();
 const currentlyRunning = new Map();
 const raidActivityModeHash = 2043403989;
 export async function clanOnlineMemberActivityChecker() {
@@ -19,7 +20,7 @@ export async function clanOnlineMemberActivityChecker() {
         for (const [discordId, { membershipId, platform }] of checkingUsers) {
             if (apiStatus.status !== 1)
                 return;
-            const response = await sendApiRequest(`Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204`);
+            const response = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204`);
             if (!response || !response.characterActivities) {
                 console.error(`[Error code: 1612] ${platform}/${membershipId} of ${discordId}`, response);
                 break;
@@ -69,7 +70,7 @@ function isRaidActivity(activeCharacter) {
         activeCharacter.currentActivityModeTypes?.includes(4) ||
         raidActivityModeHash === activeCharacter.currentActivityModeHash ||
         (activeCharacter.currentActivityHash &&
-            CachedDestinyActivityDefinition[activeCharacter.currentActivityHash]?.activityTypeHash === raidActivityModeHash) ||
+            activityDefinition[activeCharacter.currentActivityHash]?.activityTypeHash === raidActivityModeHash) ||
         false);
 }
 function isRaidIsWeekly(activeCharacter) {
@@ -82,7 +83,7 @@ function areAllPhasesComplete(phases) {
 }
 async function fetchCharacterResponse({ bungieId, characterId, platform, }) {
     try {
-        const response = await sendApiRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`).catch((e) => console.error("[Error code: 1654]", e));
+        const response = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`).catch((e) => console.error("[Error code: 1654]", e));
         if (!response) {
             throw { name: `[Error code: 1653] Got error upon checking ${platform}/${bungieId}` };
         }
@@ -94,7 +95,7 @@ async function fetchCharacterResponse({ bungieId, characterId, platform, }) {
             attributes: ["accessToken"],
         });
         if (authData && authData.accessToken) {
-            const response = await sendApiRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`, {
+            const response = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`, {
                 accessToken: authData.accessToken,
             });
             return response;
@@ -139,7 +140,7 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
             response.activities?.data == null ||
             (currentActivityHash !== previousActivityHash && previousActivityHash !== undefined) ||
             currentActivityHash === 82913930 ||
-            CachedDestinyActivityDefinition[currentActivityHash]?.activityTypeHash !== raidActivityModeHash ||
+            activityDefinition[currentActivityHash]?.activityTypeHash !== raidActivityModeHash ||
             (previousActivityHash !== undefined &&
                 !response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash)) ||
             (discordId && !clanOnline.has(discordId))) {

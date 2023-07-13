@@ -13,7 +13,7 @@ import { clanOnline } from "./userStatisticsManagement.js";
 let lastLoggedErrorCode = 1;
 async function clanMembersManagement(databaseData) {
     try {
-        const clanList = await sendApiRequest(`Platform/GroupV2/${process.env.GROUP_ID}/Members/?memberType=None`);
+        const clanList = await sendApiRequest(`/Platform/GroupV2/${process.env.GROUP_ID}/Members/?memberType=None`);
         if (!clanList) {
             console.error("[Error code: 1013]", databaseData.map((d) => d.bungieId).join(", "));
             return;

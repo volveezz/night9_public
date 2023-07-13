@@ -3,7 +3,7 @@ import { sendApiRequest } from "../api/sendApiRequest.js";
 export async function setUserCharacters(authData, member) {
     const { discordId, platform, bungieId, accessToken } = authData;
     try {
-        const destinyCharacterRequest = await sendApiRequest(`Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
+        const destinyCharacterRequest = await sendApiRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
         if (!destinyCharacterRequest.characters)
             return console.error(`[Error code: 1105] Error during caching characters of ${member.displayName}`);
         const charIdArray = [];

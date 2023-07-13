@@ -1,18 +1,19 @@
 import fetch from "node-fetch";
+const bungieNetUrl = "https://www.bungie.net";
 export async function sendApiRequest(apiEndpoint, authToken) {
     const headers = createHeaders(authToken);
     try {
-        const response = await fetch(`https://www.bungie.net/${apiEndpoint}`, { headers });
+        const response = await fetch(`${bungieNetUrl}${apiEndpoint}`, { headers });
         if (!response.ok) {
             handleFetchError(response.status, response);
-            return undefined;
+            throw new Error("Error happened during fetching data");
         }
         const jsonResponse = await parseJsonResponse(response);
         return jsonResponse.Response ? jsonResponse.Response : jsonResponse;
     }
     catch (error) {
         handleFetchError(error.code || error.message, error);
-        return undefined;
+        throw error;
     }
 }
 function createHeaders(authToken) {

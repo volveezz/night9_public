@@ -1,10 +1,10 @@
 import { schedule } from "node-cron";
 import { sendApiRequest } from "../../api/sendApiRequest.js";
-const raidChallengeObjHashes = [406803827, 897950155];
+const raidChallengeObjHashes = [406803827, 897950155, 3211393925];
 let raidActivityHashes = { normal: null, master: null };
 const fetchWeeklyRaid = async (retryCount = 0) => {
     try {
-        const milestonesObj = await sendApiRequest("Platform/Destiny2/Milestones/");
+        const milestonesObj = await sendApiRequest("/Platform/Destiny2/Milestones/");
         const milestones = Object.values(milestonesObj);
         const raidMilestone = milestones.find((milestone) => milestone.activities &&
             milestone.activities.some((activity) => raidChallengeObjHashes.some((value) => activity.challengeObjectiveHashes.includes(value))));
@@ -24,7 +24,7 @@ const fetchWeeklyRaid = async (retryCount = 0) => {
         setTimeout(() => fetchWeeklyRaid(retryCount + 1), retryInterval);
     }
 };
-schedule("1 17 * * 4", () => {
+schedule("1 17 * * 2", () => {
     console.debug("Updating a new weekly raid");
     fetchWeeklyRaid();
 }, {

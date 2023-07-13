@@ -5,7 +5,7 @@ import icons from "../configs/icons.js";
 import { client } from "../index.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
-import { CachedDestinyActivityDefinition } from "../utils/api/manifestHandler.js";
+import { GetManifest } from "../utils/api/ManifestManager.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
 import nameCleaner from "../utils/general/nameClearer.js";
@@ -95,18 +95,19 @@ export default new Command({
             return activities;
         }
         const totalActivitiesCount = await getCompletedActivties();
-        function summarizeActivities(activities) {
+        async function summarizeActivities(activities) {
             const activtitiesTotal = { completed: 0, total: 0 };
             const activityCounts = {};
             const activityTimes = {};
             const activityTotals = {};
             const activityDates = {};
+            const activityDefinition = await GetManifest("DestinyActivityDefinition");
             for (const activity of activities) {
                 const referenceId = activity.activityDetails.referenceId;
-                if (!CachedDestinyActivityDefinition[referenceId]) {
+                if (!activityDefinition[referenceId]) {
                     continue;
                 }
-                const name = CachedDestinyActivityDefinition[referenceId].displayProperties.name;
+                const name = activityDefinition[referenceId].displayProperties.name;
                 const isCompleted = activity.values.completionReason.basic.value === 0 && activity.values.completed.basic.value === 1;
                 if (!activityCounts[name]) {
                     activityCounts[name] = { completed: 0, total: 0 };
@@ -185,7 +186,7 @@ export default new Command({
             }
             return { activityCounts, activityTimes, activityTotals, activityDates, activtitiesTotal };
         }
-        const filteredActivities = summarizeActivities(totalActivitiesCount);
+        const filteredActivities = await summarizeActivities(totalActivitiesCount);
         const fieldArray = [];
         const sortedCounts = Object.keys(filteredActivities.activityCounts).sort();
         function createActivityObject(category) {

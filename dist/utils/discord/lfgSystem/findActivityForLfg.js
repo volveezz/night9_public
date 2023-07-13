@@ -1,7 +1,8 @@
-import { CachedDestinyActivityDefinition } from "../../api/manifestHandler.js";
+import { GetManifest } from "../../api/ManifestManager.js";
+const activityDefinition = await GetManifest("DestinyActivityDefinition");
 const findActivityForLfgInternal = (activityNameUnconverted, difficulty, partialMatch = false) => {
     const activityName = activityNameUnconverted.toLowerCase();
-    return Object.values(CachedDestinyActivityDefinition).find((searchActivity) => {
+    return Object.values(activityDefinition).find((searchActivity) => {
         const activityNameMatch = partialMatch
             ? searchActivity.originalDisplayProperties.name.toLowerCase().startsWith(activityName) ||
                 searchActivity.originalDisplayProperties.name.toLowerCase().endsWith(activityName)

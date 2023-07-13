@@ -14,7 +14,7 @@ export async function cancelClanInvitation(identifier, time, caller) {
     }
     timeouts[bungieId] = setTimeout(async () => {
         const call = await sendApiPostRequest({
-            apiEndpoint: `Platform/GroupV2/${process.env.GROUP_ID}/Members/IndividualInviteCancel/${platform}/${bungieId}/`,
+            apiEndpoint: `/Platform/GroupV2/${process.env.GROUP_ID}/Members/IndividualInviteCancel/${platform}/${bungieId}/`,
             authToken: adminAccessToken,
             shouldReturnResponse: false,
         });

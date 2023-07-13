@@ -50,7 +50,7 @@ export default {
                 return;
             }
             const clanInviteRequest = await sendApiPostRequest({
-                apiEndpoint: `Platform/GroupV2/${process.env.GROUP_ID}/Members/IndividualInvite/${invitee_platform}/${invitee_bungieId}/`,
+                apiEndpoint: `/Platform/GroupV2/${process.env.GROUP_ID}/Members/IndividualInvite/${invitee_platform}/${invitee_bungieId}/`,
                 requestData: { description: "Автоматическое приглашение в клан Night 9" },
                 authToken: inviter_accessToken,
                 shouldReturnResponse: false,

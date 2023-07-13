@@ -16,7 +16,7 @@ async function getClanMemberData(id) {
         throw { name: "Ошибка. Пользователь не найден в клане" };
     }
     const { platform: membershipType, bungieId: membershipId } = typeof id === "object" && !(id instanceof AuthData) ? id : authData;
-    const destinyRequest = await sendApiRequest(`Platform/GroupV2/User/${membershipType}/${membershipId}/${0}/${1}/`);
+    const destinyRequest = await sendApiRequest(`/Platform/GroupV2/User/${membershipType}/${membershipId}/${0}/${1}/`);
     console.debug("Clan data for the user", {
         membershipId,
         membershipType,

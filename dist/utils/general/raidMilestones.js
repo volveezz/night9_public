@@ -1,9 +1,10 @@
-import { CachedDestinyMilestoneDefinition } from "../api/manifestHandler.js";
+import { GetManifest } from "../api/ManifestManager.js";
 const raidMilestoneHashes = new Map();
 async function cacheRaidMilestones() {
-    if (!CachedDestinyMilestoneDefinition)
+    const milestoneDefinition = await GetManifest("DestinyMilestoneDefinition");
+    if (!milestoneDefinition)
         return;
-    Object.values(CachedDestinyMilestoneDefinition).forEach((milestone) => {
+    Object.values(milestoneDefinition).forEach((milestone) => {
         if (milestone.activities) {
             milestone.activities.forEach((activity) => {
                 if (activity.phases) {

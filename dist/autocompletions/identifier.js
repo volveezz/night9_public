@@ -97,11 +97,11 @@ async function fetchUserProfile(searchTerm) {
     let response;
     const isInputBungieId = isBungieId(searchTerm);
     if (isInputBungieId) {
-        response = (await sendApiRequest(`Platform/User/GetMembershipsById/${searchTerm}/-1`));
+        response = (await sendApiRequest(`/Platform/User/GetMembershipsById/${searchTerm}/-1`));
     }
     else {
         response = await sendApiPostRequest({
-            apiEndpoint: "Platform/User/Search/GlobalName/0/",
+            apiEndpoint: "/Platform/User/Search/GlobalName/0/",
             requestData: {
                 displayNamePrefix: searchTerm,
             },

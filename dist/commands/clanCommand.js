@@ -185,7 +185,7 @@ const sortMembers = (a, b) => {
     return a.isOnline === b.isOnline ? b.lastOnlineStatusChange - a.lastOnlineStatusChange : a.isOnline ? -1 : 1;
 };
 const getMergedMembers = async () => {
-    const destinyRequest = await sendApiRequest(`Platform/GroupV2/${process.env.GROUP_ID}/Members/?memberType=None`);
+    const destinyRequest = await sendApiRequest(`/Platform/GroupV2/${process.env.GROUP_ID}/Members/?memberType=None`);
     const destinyMembers = destinyRequest.results;
     const clanMembers = await AuthData.findAll({
         where: { clan: true },
@@ -322,7 +322,7 @@ const handleManagement = async (interaction, clanMembers, defferedReply) => {
     };
     const setUserRank = async (rank) => {
         return await sendApiPostRequest({
-            apiEndpoint: `Platform/GroupV2/${process.env.GROUP_ID}/Members/${userData.platform}/${userData.bungieId}/SetMembershipType/${rank}/`,
+            apiEndpoint: `/Platform/GroupV2/${process.env.GROUP_ID}/Members/${userData.platform}/${userData.bungieId}/SetMembershipType/${rank}/`,
             authToken: await getAdminAccessToken(interaction),
             shouldReturnResponse: false,
         });
@@ -455,7 +455,7 @@ const sendInviteToClan = async (interaction, defferedReply, args) => {
     const { bungieId, platform } = userData;
     const accessToken = await getAdminAccessToken(interaction);
     const invitePost = await sendApiPostRequest({
-        apiEndpoint: `Platform/GroupV2/${process.env.GROUP_ID}/Members/IndividualInvite/${platform}/${bungieId}/`,
+        apiEndpoint: `/Platform/GroupV2/${process.env.GROUP_ID}/Members/IndividualInvite/${platform}/${bungieId}/`,
         authToken: accessToken,
         requestData: {
             message: "Приглашение в клан Night 9",

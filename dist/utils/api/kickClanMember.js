@@ -2,7 +2,7 @@ import { sendApiPostRequest } from "./sendApiPostRequest.js";
 const kickClanMember = async (platform, bungieId, accessToken) => {
     console.debug("Kicking the user", platform, bungieId);
     const post = await sendApiPostRequest({
-        apiEndpoint: `Platform/GroupV2/${process.env.GROUP_ID}/Members/${platform}/${bungieId}/Kick/`,
+        apiEndpoint: `/Platform/GroupV2/${process.env.GROUP_ID}/Members/${platform}/${bungieId}/Kick/`,
         authToken: accessToken,
         shouldReturnResponse: false,
     });

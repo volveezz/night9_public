@@ -21,7 +21,7 @@ const dungeonRoles = await AutoRoleData.findAll({ where: { category: 8 } }).then
 async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessToken, displayName, roleCategoriesBits, UserActivityData: userActivity }, member, roleDataFromDatabase, isEasyCheck = false) {
     const addRoles = [];
     const removeRoles = [];
-    const destinyProfileResponse = await sendApiRequest(`Platform/Destiny2/${platform}/Profile/${bungieId}/?components=100,900,1100`, accessToken);
+    const destinyProfileResponse = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${bungieId}/?components=100,900,1100`, accessToken);
     if (!destinyProfileResponse) {
         console.error(`[Error code: 1751] Received error for ${platform}/${bungieId} [${displayName}]`);
         return;

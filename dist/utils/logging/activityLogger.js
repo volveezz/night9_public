@@ -4,7 +4,7 @@ import { RaidButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import { activityIcons } from "../../configs/icons.js";
 import { client } from "../../index.js";
-import { CachedDestinyActivityDefinition } from "../api/manifestHandler.js";
+import { GetManifest } from "../api/ManifestManager.js";
 import { sendApiRequest } from "../api/sendApiRequest.js";
 import { completedPhases } from "../general/activityCompletionChecker.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
@@ -60,7 +60,7 @@ async function logActivityCompletion(pgcrId) {
         }
         return manifestTitle;
     }
-    const response = await sendApiRequest(`Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`).catch((e) => console.error("[Error code: 1072] activityReporter error", pgcrId, e, e.statusCode));
+    const response = await sendApiRequest(`/Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`).catch((e) => console.error("[Error code: 1072] activityReporter error", pgcrId, e, e.statusCode));
     if (!response || !response.activityDetails) {
         console.error("[Error code: 1009]", pgcrId, response);
         return;
@@ -69,7 +69,7 @@ async function logActivityCompletion(pgcrId) {
         return;
     checkedPGCRIds.add(pgcrId);
     const { mode, referenceId } = response.activityDetails;
-    const manifestData = CachedDestinyActivityDefinition[referenceId];
+    const manifestData = (await GetManifest("DestinyActivityDefinition"))[referenceId];
     const activityTitle = getActivityTitle(referenceId, manifestData.displayProperties.name);
     const activityReplacedTime = response.entries[0].values.activityDurationSeconds.basic.displayValue
         .replace("h", "ч")

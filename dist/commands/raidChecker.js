@@ -3,7 +3,7 @@ import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import { apiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
-import { CachedDestinyActivityDefinition } from "../utils/api/manifestHandler.js";
+import { GetManifest } from "../utils/api/ManifestManager.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default new Command({
@@ -46,15 +46,16 @@ export default new Command({
         if (!authData) {
             throw { errorType: UserErrors.DB_USER_NOT_FOUND, errorData: { isSelf: targetUser === interaction.user.id } };
         }
-        const profileUrl = `Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=200`;
+        const profileUrl = `/Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=200`;
         const userProfile = await sendApiRequest(profileUrl, authData.accessToken);
         if (!userProfile || !userProfile?.characters?.data)
             throw { name: "Произошла ошибка на стороне Bungie" };
+        const activityDefinition = await GetManifest("DestinyActivityDefinition");
         const activityManifest = args.getBoolean("все-активности") === true
-            ? CachedDestinyActivityDefinition
-            : Object.keys(CachedDestinyActivityDefinition).reduce((accumulator, current) => {
-                if (CachedDestinyActivityDefinition[Number(current)].activityTypeHash === 2043403989)
-                    accumulator[String(current)] = CachedDestinyActivityDefinition[Number(current)];
+            ? activityDefinition
+            : Object.keys(activityDefinition).reduce((accumulator, current) => {
+                if (activityDefinition[Number(current)].activityTypeHash === 2043403989)
+                    accumulator[String(current)] = activityDefinition[Number(current)];
                 return accumulator;
             }, {});
         const activityArray = [];
@@ -83,7 +84,7 @@ export default new Command({
             return [new Map(), characterClass];
         });
         await Promise.all(characterKeys.map(async (characterKey, index) => {
-            const activityStatsUrl = `Platform/Destiny2/${authData.platform}/Account/${authData.bungieId}/Character/${characterKey}/Stats/AggregateActivityStats/`;
+            const activityStatsUrl = `/Platform/Destiny2/${authData.platform}/Account/${authData.bungieId}/Character/${characterKey}/Stats/AggregateActivityStats/`;
             const { activities: freshActivities } = await sendApiRequest(activityStatsUrl, authData);
             if (!freshActivities)
                 throw { name: "Произошла ошибка на стороне Bungie" };
