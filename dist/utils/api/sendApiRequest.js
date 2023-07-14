@@ -2,19 +2,19 @@ import fetch from "node-fetch";
 const bungieNetUrl = "https://www.bungie.net";
 export async function sendApiRequest(apiEndpoint, authToken) {
     const headers = createHeaders(authToken);
-    try {
-        const response = await fetch(`${bungieNetUrl}${apiEndpoint}`, { headers });
-        if (!response.ok) {
-            handleFetchError(response.status, response);
-            throw new Error("Error happened during fetching data");
-        }
-        const jsonResponse = await parseJsonResponse(response);
-        return jsonResponse.Response ? jsonResponse.Response : jsonResponse;
-    }
-    catch (error) {
+    const response = await fetch(`${bungieNetUrl}${apiEndpoint}`, { headers }).catch((error) => {
         handleFetchError(error.code || error.message, error);
         throw error;
+    });
+    if (!response.ok) {
+        handleFetchError(response.status, response);
+        throw new Error("Error happened during fetching data");
     }
+    const jsonResponse = await parseJsonResponse(response).catch((error) => {
+        handleFetchError(error.code || error.message, error);
+        throw error;
+    });
+    return jsonResponse.Response ? jsonResponse.Response : jsonResponse;
 }
 function createHeaders(authToken) {
     return {
@@ -30,7 +30,6 @@ async function parseJsonResponse(response) {
     }
     catch (error) {
         handleFetchError(error.code || error.message, error);
-        return null;
     }
 }
 function handleFetchError(status, error) {
@@ -62,5 +61,6 @@ function handleFetchError(status, error) {
             console.error(`[Error code: 1064] ${status} statusCode\n`, error);
         }
     }
+    throw new Error("Error happened during fetching data");
 }
 //# sourceMappingURL=sendApiRequest.js.map
