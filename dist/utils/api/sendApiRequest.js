@@ -30,6 +30,7 @@ async function parseJsonResponse(response) {
     }
     catch (error) {
         handleFetchError(error.code || error.message, error);
+        return null;
     }
 }
 function handleFetchError(status, error) {
@@ -61,6 +62,5 @@ function handleFetchError(status, error) {
             console.error(`[Error code: 1064] ${status} statusCode\n`, error);
         }
     }
-    throw new Error("Error happened during fetching data");
 }
 //# sourceMappingURL=sendApiRequest.js.map
