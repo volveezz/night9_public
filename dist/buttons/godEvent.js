@@ -154,7 +154,7 @@ export default {
                         .flat();
                     const updatedRaidMessage = await raidChannel.send({
                         embeds,
-                        components: await addButtonsToMessage(components && components.length > 0 ? components : subComponents ? subComponents : baseComponents),
+                        components: addButtonsToMessage(components && components.length > 0 ? components : subComponents ? subComponents : baseComponents),
                     });
                     raid.messageId = updatedRaidMessage.id;
                     try {

@@ -194,7 +194,7 @@ export async function updateRaidMessage(options) {
     if (returnComponents) {
         return { embeds: [embed], components };
     }
-    const messageOptions = { embeds: [embed], components: await addButtonsToMessage(components) };
+    const messageOptions = { embeds: [embed], components: addButtonsToMessage(components) };
     if (interaction instanceof ButtonInteraction) {
         return await interaction.message.edit(messageOptions);
     }
@@ -611,6 +611,6 @@ export async function sendUserRaidGuideNoti(user, raidName) {
     const components = [
         new ButtonBuilder().setCustomId(`raidGuide_${raidName}`).setLabel("Инструкция по рейду").setStyle(ButtonStyle.Primary),
     ];
-    return await user.send({ embeds: [embed], components: await addButtonsToMessage(components) });
+    return await user.send({ embeds: [embed], components: addButtonsToMessage(components) });
 }
 //# sourceMappingURL=raidFunctions.js.map

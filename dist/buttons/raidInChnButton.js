@@ -24,7 +24,7 @@ export async function handleDeleteRaid({ deferredUpdate, interaction, raidEvent,
         await deferredUpdate;
         const message = await interaction.editReply({
             embeds: [embed],
-            components: await addButtonsToMessage(components),
+            components: addButtonsToMessage(components),
         });
         const collector = interaction.channel.createMessageComponentCollector({
             message,
@@ -153,7 +153,7 @@ export default {
                                 await user
                                     .send({
                                     embeds: [notificationEmbed],
-                                    components: await addButtonsToMessage(linkComponent),
+                                    components: addButtonsToMessage(linkComponent),
                                 })
                                     .then((_) => sendedTo.push(`${nameCleaner(user.displayName, true)} получил оповещение`))
                                     .catch(async (e) => {
@@ -343,7 +343,7 @@ export default {
                 .setImage(GIFImage);
             const message = await interaction.user.send({
                 embeds: [raidLeaderEmbed],
-                components: await addButtonsToMessage(components),
+                components: addButtonsToMessage(components),
             });
             const collector = message.createMessageComponentCollector({
                 filter: (interaction) => interaction.user.id === member.id,

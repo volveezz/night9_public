@@ -128,7 +128,7 @@ export default new Command({
                     throw { name: "Ошибка", description: `Искомый пресет \`${presetName}\` не найден` };
                 }
                 const { embeds, components } = preset;
-                await channel.send({ embeds, components: await addButtonsToMessage(components) });
+                await channel.send({ embeds, components: addButtonsToMessage(components) });
                 const responseEmbed = new EmbedBuilder()
                     .setColor(colors.success)
                     .setAuthor({ name: `Пресет ${presetName} отправлен`, iconURL: icons.success });
@@ -146,10 +146,10 @@ export default new Command({
             const components = [new ButtonBuilder().setCustomId(customId).setLabel(label).setStyle(style)];
             await deferredReply;
             if (ephemeral === true) {
-                interaction.editReply({ embeds: [interactionEmbed], components: await addButtonsToMessage(components) });
+                interaction.editReply({ embeds: [interactionEmbed], components: addButtonsToMessage(components) });
             }
             else {
-                await channel.send({ embeds: [interactionEmbed], components: await addButtonsToMessage(components) });
+                await channel.send({ embeds: [interactionEmbed], components: addButtonsToMessage(components) });
                 const responseEmbed = new EmbedBuilder()
                     .setColor(colors.success)
                     .setAuthor({ name: `Кнопка ${customId} успешно отправлена`, iconURL: icons.success });

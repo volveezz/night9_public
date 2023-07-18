@@ -382,7 +382,7 @@ export default new Command({
             await deferredReply;
             const interactionReply = await interaction.editReply({
                 embeds: [embed],
-                components: await addButtonsToMessage(components),
+                components: addButtonsToMessage(components),
             });
             const collector = interaction.channel.createMessageComponentCollector({
                 message: interactionReply,

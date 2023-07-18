@@ -87,7 +87,7 @@ async function joinedFromHotJoined(raidData) {
     const { embeds, components } = (await updateRaidMessage({ raidEvent: updatedRaidData, returnComponents: true }));
     await (await client.getAsyncMessage(process.env.RAID_CHANNEL_ID, updatedRaidData.messageId)).edit({
         embeds,
-        components: await addButtonsToMessage(components),
+        components: addButtonsToMessage(components),
     });
     embeds[0]
         .setColor(colors.serious)

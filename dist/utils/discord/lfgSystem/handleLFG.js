@@ -240,7 +240,7 @@ async function lfgHandler(message) {
     const partyMessage = await pvePartyChannel.send({
         embeds: [embed],
         content: ping,
-        components: await addButtonsToMessage(components),
+        components: addButtonsToMessage(components),
     });
     if (lfgData) {
         await removeChannelData(member.voice.channel.id);

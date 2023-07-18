@@ -20,7 +20,7 @@ export default {
             option.setDescription(`${tzTime.getHours()}:${tzTime.getMinutes()}:${tzTime.getSeconds()} - время сейчас по +${i + 1} часовому поясу`);
             tzTime.setHours(tzTime.getHours() + 1);
         });
-        interaction.reply({ ephemeral: true, embeds: [embed], components: await addButtonsToMessage([tzBlank]) });
+        interaction.reply({ ephemeral: true, embeds: [embed], components: addButtonsToMessage([tzBlank]) });
     },
 };
 //# sourceMappingURL=timezoneButton.js.map

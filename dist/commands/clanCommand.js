@@ -377,7 +377,7 @@ const handleManagement = async (interaction, clanMembers, defferedReply) => {
     const updateMessage = async (fromCollector = false) => {
         const messageData = {
             embeds: [await makeNewEmbed()],
-            components: await addButtonsToMessage(makeButtons()),
+            components: addButtonsToMessage(makeButtons()),
             ...(fromCollector ? {} : { ephemeral: true }),
         };
         if (fromCollector) {

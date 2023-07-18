@@ -1,5 +1,5 @@
 import { ComponentType } from "discord.js";
-export async function addButtonsToMessage(buttonBuilders) {
+export function addButtonsToMessage(buttonBuilders) {
     if (!buttonBuilders || buttonBuilders.length === 0)
         return [];
     const rows = Math.ceil(buttonBuilders.length / 5);

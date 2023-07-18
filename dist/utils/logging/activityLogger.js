@@ -342,7 +342,7 @@ async function logActivityCompletion(pgcrId) {
                 const raidCompletionNotification = await member
                     .send({
                     embeds: [raidCompletionEmbed],
-                    components: await addButtonsToMessage([deleteRaidButton]),
+                    components: addButtonsToMessage([deleteRaidButton]),
                 })
                     .catch((e) => console.error("[Error code: 1071] acitvityReporter final error", e));
                 setTimeout(async () => {

@@ -24,7 +24,7 @@ export async function generatePatchNotes(message) {
         .send({
         embeds: embed ? [embed] : undefined,
         content: embed ? undefined : patchnoteMessage,
-        components: await addButtonsToMessage(components),
+        components: addButtonsToMessage(components),
     })
         .then((_r) => {
         message.delete();

@@ -27,6 +27,8 @@ async function raidFireteamChecker(id) {
         const raidStartTimePlus5 = new Date(startTime.getTime() + MINUTES_AFTER_RAID * 60 * 1000);
         let isFirstCheck = 0;
         const checkFireteamStatus = async () => {
+            if (canceledFireteamCheckingRaids.has(initialRaidEvent.id))
+                return;
             const raidEvent = await RaidEvent.findOne({
                 where: { id: initialRaidEvent.id },
                 attributes: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId", "raid"],
@@ -185,7 +187,7 @@ async function raidFireteamChecker(id) {
             }
             await privateRaidChannel.send({
                 embeds: [fireteamCheckingNotification],
-                components: await addButtonsToMessage([fireTeamCheckingNotificationComponents]),
+                components: addButtonsToMessage([fireTeamCheckingNotificationComponents]),
             });
         }
     });

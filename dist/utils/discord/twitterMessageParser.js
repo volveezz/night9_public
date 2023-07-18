@@ -15,7 +15,7 @@ function extractImageUrl(content) {
     }
     return null;
 }
-function cleanText(content) {
+function clearText(content) {
     content = content.replace(/<br\s*\/?>/gi, "\n");
     content = content.replace(/<div class="rsshub-quote">[\s\S]*?<\/div>|<[^>]*>|&[^;]+;/g, "");
     if (content.startsWith("Re "))
@@ -31,7 +31,7 @@ async function generateTwitterEmbed(twitterData, author, icon) {
         if (author === BungieTwitterAuthor.Bungie) {
             return embed.setColor("#d3d2d0").setAuthor({
                 name: "Bungie",
-                iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1097538591736987779/fhGb6cpO_400x400.png",
+                iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1130624168568823899/BW5plrkw_400x400.png",
                 url: twitterData.link,
             });
         }
@@ -58,14 +58,14 @@ async function generateTwitterEmbed(twitterData, author, icon) {
         }
         return embed;
     };
-    const cleanContent = cleanText(twitterData.content || "");
+    const cleanContent = clearText(twitterData.content || "");
     if (!cleanContent || cleanContent.length === 0) {
         console.error("[Error code: 1754]", twitterData);
         return null;
     }
     const extractedMedia = extractImageUrl(twitterData.content || "")?.replaceAll("&amp;", "&");
     const replacedDescription = replaceTimeWithEpoch(cleanContent);
-    const replacedOutput = replacedDescription.replace(/https:\/\/t\.co\/\S+/g, "");
+    const replacedOutput = replacedDescription.replace(/https:\/\/t\.co\/\S+|https:\/\/twitter\.com\/i\/web\/status\/\S+/g, "");
     const embed = resolveAuthor().setDescription(replacedOutput.length > 0 ? replacedOutput : null);
     if (extractedMedia) {
         embed.setImage(extractedMedia);

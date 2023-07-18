@@ -38,7 +38,7 @@ export default async function welcomeMessage(member) {
     const message = await member
         .send({
         embeds: [welcomeEmbed, clanJoinEmbed, nonClanMemberEmbed, questionsEmbed],
-        components: await addButtonsToMessage(components),
+        components: addButtonsToMessage(components),
     })
         .catch((error) => {
         if (error.code === 50007) {
@@ -68,7 +68,7 @@ export default async function welcomeMessage(member) {
                 new ButtonBuilder().setCustomId(ClanButtons.modal).setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
             ];
             await message.edit({
-                components: await addButtonsToMessage(clanJoinButton),
+                components: addButtonsToMessage(clanJoinButton),
             });
         }
     }, 2500);

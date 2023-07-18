@@ -10,7 +10,7 @@ export default {
         const content = interaction.message.content;
         switch (interaction.customId) {
             case PatchnoteButtons.sendToGods: {
-                const components = await addButtonsToMessage([
+                const components = addButtonsToMessage([
                     new ButtonBuilder()
                         .setCustomId(PatchnoteButtons.sendToPublic)
                         .setStyle(ButtonStyle.Success)

@@ -488,7 +488,7 @@ export default new Command({
             }
             const inChnMsg = privateRaidChannel.send({
                 embeds: [premiumEmbed],
-                components: await addButtonsToMessage(components),
+                components: addButtonsToMessage(components),
             });
             const embed = new EmbedBuilder()
                 .setTitle(`Рейд: ${raidData.raidName}${reqClears >= 1 ? ` от ${reqClears} закрыт${reqClears === 1 ? "ия" : "ий"}` : ""}`)
@@ -525,7 +525,7 @@ export default new Command({
             const msg = await raidChannel.send({
                 content,
                 embeds: [embed],
-                components: await addButtonsToMessage(mainComponents),
+                components: addButtonsToMessage(mainComponents),
             });
             const insertedRaidData = await RaidEvent.update({
                 channelId: privateRaidChannel.id,
@@ -770,7 +770,7 @@ export default new Command({
                     ...(!newRaid ? { content: "" } : {}),
                 };
                 inChannelMessage.edit({
-                    components: await addButtonsToMessage([...getDefaultComponents(), ...components]),
+                    components: addButtonsToMessage([...getDefaultComponents(), ...components]),
                 });
                 raidMessage.edit(messageOptions);
                 const replyEmbed = new EmbedBuilder()

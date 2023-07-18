@@ -33,7 +33,7 @@ export default {
         const embed = new EmbedBuilder().setColor(colors.default).setTitle("Выберите сообщение");
         interaction.reply({
             embeds: [embed],
-            components: await addButtonsToMessage([blankOptions]),
+            components: addButtonsToMessage([blankOptions]),
             ephemeral: true,
         });
     },

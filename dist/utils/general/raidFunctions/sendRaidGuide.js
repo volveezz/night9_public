@@ -34,7 +34,7 @@ async function sendRaidGuide(interaction, raidName, deferredReply) {
         }
         const messageOptions = {
             embeds: [embed],
-            components: await addButtonsToMessage(components),
+            components: addButtonsToMessage(components),
             ephemeral: true,
         };
         if (!interaction.deferred)

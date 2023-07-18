@@ -28,7 +28,7 @@ async function kickMemberFromClan(id, interaction) {
         new ButtonBuilder().setCustomId("clanSystem_confirmKick").setLabel("Подтвердить").setStyle(ButtonStyle.Success),
         new ButtonBuilder().setCustomId("clanSystem_cancelKick").setLabel("Отменить").setStyle(ButtonStyle.Secondary),
     ];
-    const confirmationMessage = await interaction.editReply({ embeds: [embed], components: await addButtonsToMessage(components) });
+    const confirmationMessage = await interaction.editReply({ embeds: [embed], components: addButtonsToMessage(components) });
     const collector = confirmationMessage.channel.createMessageComponentCollector({
         filter: (i) => i.user.id === interaction.user.id,
         max: 1,

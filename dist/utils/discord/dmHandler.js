@@ -27,7 +27,7 @@ async function sendAdminNotification(message, member) {
     const buttons = [new ButtonBuilder().setCustomId(AdminDMChannelButtons.reply).setLabel("Reply").setStyle(ButtonStyle.Success)];
     await dmChannel.send({
         embeds: [embed],
-        components: await addButtonsToMessage(buttons),
+        components: addButtonsToMessage(buttons),
     });
 }
 export async function handleDm(message) {

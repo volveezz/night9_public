@@ -195,19 +195,20 @@ export class ExtendedClient extends Client {
         });
         await Promise.all(autocompleteReading);
     }
-    async registerModules() {
+    registerModules() {
         this.once("ready", async (client) => {
             this.guild = await this.fetchGuild(client);
-            this.loadComponents();
-            if (process.env.DEV_BUILD !== "dev") {
-                this.loadProdComponents();
-            }
-            console.info(`\x1b[32m${this.user.username} online since ${new Date().toLocaleString()}\x1b[0m`);
-            setTimeout(() => {
-                this.loadDelayedComponents();
-                fetchNewsArticles();
-            }, 1000 * 30);
-            this.fetchMembersAndMessages();
+            this.loadComponents().then(() => {
+                if (process.env.DEV_BUILD !== "dev") {
+                    this.loadProdComponents();
+                }
+                console.info(`\x1b[32m${this.user.username} online since ${new Date().toLocaleString()}\x1b[0m`);
+                setTimeout(() => {
+                    this.loadDelayedComponents();
+                    fetchNewsArticles();
+                }, 1000 * 30);
+                this.fetchMembersAndMessages();
+            });
         });
     }
     async fetchGuild(client) {
@@ -216,10 +217,11 @@ export class ExtendedClient extends Client {
         return guild;
     }
     loadComponents() {
-        this.loadButtons();
-        this.loadEvents();
-        this.loadCommands();
-        this.loadAutocompletions();
+        let buttonsLoaded = this.loadButtons();
+        let eventsLoaded = this.loadEvents();
+        let commandsLoaded = this.loadCommands();
+        let autocompletionsLoaded = this.loadAutocompletions();
+        return Promise.all([buttonsLoaded, eventsLoaded, commandsLoaded, autocompletionsLoaded]);
     }
     async loadProdComponents() {
         await timer(5000);
@@ -262,7 +264,7 @@ export class ExtendedClient extends Client {
                         });
                     }
                     else {
-                        channel.messages.fetch({ limit: 15 });
+                        await channel.messages.fetch({ limit: 15 });
                     }
                 }, 10000 * Math.random());
             }

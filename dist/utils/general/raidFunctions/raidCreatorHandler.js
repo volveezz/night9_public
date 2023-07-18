@@ -26,7 +26,7 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
         .setStyle(ButtonStyle.Primary)
         .setCustomId(RaidButtons.transitionCancel);
     const deleteButton = new ButtonBuilder().setLabel("Удалить рейд").setStyle(ButtonStyle.Danger).setCustomId(RaidButtons.transitionDelete);
-    const buttons = await addButtonsToMessage([cancelButton, deleteButton]);
+    const buttons = addButtonsToMessage([cancelButton, deleteButton]);
     const message = await creator.send({ embeds: [embed], components: buttons });
     const collector = (creator.dmChannel || (await creator.createDM())).createMessageComponentCollector({
         componentType: ComponentType.Button,

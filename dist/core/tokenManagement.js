@@ -95,7 +95,7 @@ async function handleAuthorizationRecordExpired(row, table) {
                 .setCustomId(RegisterButtons.register)
                 .setLabel("Регистрация")
                 .setStyle(ButtonStyle.Success);
-            const components = await addButtonsToMessage([registerButton]);
+            const components = addButtonsToMessage([registerButton]);
             const member = await client.getAsyncMember(discordId);
             if (member) {
                 await setMemberRoles({ member, roles: [process.env.NEWBIE], reason: "Authorization token expired" }).catch(async (e) => {

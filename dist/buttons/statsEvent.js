@@ -94,7 +94,7 @@ export default {
                     embedDescription = "Персонажи отсутствуют";
                 const embed = new EmbedBuilder().setTitle("Выберите персонажа").setDescription(embedDescription).setColor(colors.serious);
                 await deferredReply;
-                const int = await interaction.editReply({ embeds: [embed], components: await addButtonsToMessage(components) });
+                const int = await interaction.editReply({ embeds: [embed], components: addButtonsToMessage(components) });
                 const collector = int.channel.createMessageComponentCollector({
                     message: int,
                     filter: ({ user }) => user.id === interaction.user.id,

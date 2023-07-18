@@ -20,7 +20,7 @@ export async function sendDmLogMessage(member, text, id, interaction) {
     ];
     const messageOptions = {
         embeds: [embed],
-        components: await addButtonsToMessage(components),
+        components: addButtonsToMessage(components),
     };
     interaction ? interaction.editReply(messageOptions) : dmLogChannel.send(messageOptions);
 }

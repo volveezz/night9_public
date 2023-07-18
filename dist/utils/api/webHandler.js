@@ -189,7 +189,7 @@ export default async function webHandler(code, state, res) {
                 : "\n\nПроизошла ошибка во время обработки вашего клана. Скорее всего это связано с недоступностью API игры\n\nКнопка ниже служит для отправки приглашения в клан - она заработает как только сервера игры станут доступны");
             await member.send({
                 embeds: [embed],
-                components: await addButtonsToMessage([clanRequestComponent, timezoneComponent]),
+                components: addButtonsToMessage([clanRequestComponent, timezoneComponent]),
             });
         }
         else if (clanResponse.results.length === 0 || !(clanResponse.results?.[0]?.group?.groupId === process.env.GROUP_ID)) {
@@ -198,13 +198,13 @@ export default async function webHandler(code, state, res) {
                 : "Нажмите кнопку для получения приглашения в клан");
             await member.send({
                 embeds: [embed],
-                components: await addButtonsToMessage([clanRequestComponent, timezoneComponent]),
+                components: addButtonsToMessage([clanRequestComponent, timezoneComponent]),
             });
         }
         else {
             await member.send({
                 embeds: [embed],
-                components: await addButtonsToMessage(!(clanResponse?.results?.[0]?.group?.groupId === process.env.GROUP_ID)
+                components: addButtonsToMessage(!(clanResponse?.results?.[0]?.group?.groupId === process.env.GROUP_ID)
                     ? [clanRequestComponent, timezoneComponent]
                     : [timezoneComponent]),
             });

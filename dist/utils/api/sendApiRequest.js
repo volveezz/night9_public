@@ -4,15 +4,15 @@ export async function sendApiRequest(apiEndpoint, authToken) {
     const headers = createHeaders(authToken);
     const response = await fetch(`${bungieNetUrl}${apiEndpoint}`, { headers }).catch((error) => {
         handleFetchError(error.code || error.message, error);
-        throw error;
+        throw new Error("[Error code: 1951] Error happened during fetching data");
     });
     if (!response.ok) {
         handleFetchError(response.status, response);
-        throw new Error("Error happened during fetching data");
+        throw new Error("[Error code: 1952] Error happened during fetching data");
     }
     const jsonResponse = await parseJsonResponse(response).catch((error) => {
         handleFetchError(error.code || error.message, error);
-        throw error;
+        throw new Error("[Error code: 1953] Error happened during fetching data");
     });
     return jsonResponse.Response ? jsonResponse.Response : jsonResponse;
 }
@@ -35,18 +35,18 @@ async function parseJsonResponse(response) {
 }
 function handleFetchError(status, error) {
     const errorMessages = {
-        "524": "[Error code: 1710] A timeout occurred",
-        "503": "[Error code: 1683] Server is not avaliable",
-        "502": "[Error code: 1099] Web error",
-        "409": "[Error code: 1108] Confilt error",
-        "522": "[Error code: 1117] Timed out error",
-        "401": "[Error code: 1682] Authorization error",
-        "500": "[Error code: 1757] Internal server error",
-        EPROTO: "[Error code: 1827] EPROTO request error",
-        ECONNRESET: "[Error code: 1828] ECONNRESET request error",
-        EHOSTUNREACH: "[Error code: 1829] EHOSTUNREACH request error",
-        ETIMEDOUT: "[Error code: 1922] ETIMEDOUT request error",
-        ERR_STREAM_PREMATURE_CLOSE: "[Error code: 1830] ERR_STREAM_PREMATURE_CLOSE request error",
+        "524": "A timeout occurred",
+        "503": "Server is not avaliable",
+        "502": "Web error",
+        "409": "Confilt error",
+        "522": "Timed out error",
+        "401": "Authorization error",
+        "500": "Internal server error",
+        EPROTO: "EPROTO request error",
+        ECONNRESET: "ECONNRESET request error",
+        EHOSTUNREACH: "EHOSTUNREACH request error",
+        ETIMEDOUT: "ETIMEDOUT request error",
+        ERR_STREAM_PREMATURE_CLOSE: "ERR_STREAM_PREMATURE_CLOSE request error",
     };
     if (errorMessages.hasOwnProperty(status) || errorMessages.hasOwnProperty(String(status))) {
         console.error("[Error code: 1939]", errorMessages[String(status)]);

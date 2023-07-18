@@ -140,7 +140,7 @@ async function notifyUserAboutNotifications(discordId) {
         return console.error("[Error code: 1801] Member not found", discordId);
     notifiedMembers.add(discordId);
     await timer(1000 * 20);
-    member.send({ embeds: [embed], components: await addButtonsToMessage([components]) });
+    member.send({ embeds: [embed], components: addButtonsToMessage([components]) });
 }
 export function clearNotifications(raidId) {
     tasks = tasks.filter((task) => task.raidId !== raidId);
@@ -199,26 +199,7 @@ async function announceRaidEvent(previousRaidEvent, discordUserId) {
         .filter((channel) => channel.parentId === process.env.RAID_CATEGORY && channel.type === ChannelType.GuildVoice && channel.name.includes("Raid"))
         .reverse();
     const buttonComponents = [];
-    let raidInviteUrl = recentlyCreatedRaidInvites.get(currentRaidEvent.id);
-    if (!raidInviteUrl) {
-        for (const [_, channel] of raidVoiceChannels) {
-            if (raidInviteUrl) {
-                break;
-            }
-            else {
-                raidInviteUrl = recentlyCreatedRaidInvites.get(currentRaidEvent.id);
-                if (raidInviteUrl)
-                    break;
-            }
-            if (channel.userLimit === 0 || channel.userLimit - 6 > channel.members.size || channel.members.has(currentRaidEvent.creator)) {
-                const invite = await channel.createInvite({ reason: "Raid automatic invite", maxAge: 60 * 1440 });
-                console.debug("Created a new raid invite url");
-                raidInviteUrl = invite.url;
-                recentlyCreatedRaidInvites.set(currentRaidEvent.id, raidInviteUrl);
-                break;
-            }
-        }
-    }
+    const raidInviteUrl = await createRaidVoiceInvite(raidVoiceChannels, currentRaidEvent.creator);
     if (raidInviteUrl) {
         buttonComponents.push(new ButtonBuilder({
             style: ButtonStyle.Link,
@@ -235,8 +216,22 @@ async function announceRaidEvent(previousRaidEvent, discordUserId) {
     console.debug(`[DEBUG] Sending notification to ${discordUser.displayName}.`);
     await discordUser.send({
         embeds: [raidEmbed],
-        components: await addButtonsToMessage(buttonComponents),
+        components: addButtonsToMessage(buttonComponents),
     });
+}
+async function createRaidVoiceInvite(channels, creatorId) {
+    let raidInviteUrl = undefined;
+    if (!raidInviteUrl) {
+        let raidInviteChannel;
+        raidInviteChannel = channels.find((channel) => channel.members.has(creatorId));
+        if (!raidInviteChannel) {
+            raidInviteChannel = channels.find((channel) => channel.userLimit === 0 || channel.userLimit - 6 > channel.members.size);
+        }
+        if (raidInviteChannel) {
+            raidInviteUrl = (await raidInviteChannel.createInvite({ reason: "Raid automatic invite", maxAge: 60 * 1440 })).url;
+        }
+    }
+    return raidInviteUrl;
 }
 export async function sendNotificationInfo(interaction, deferredReply) {
     const embed = new EmbedBuilder()
@@ -249,10 +244,10 @@ export async function sendNotificationInfo(interaction, deferredReply) {
         .setStyle(ButtonStyle.Primary);
     if (deferredReply) {
         await deferredReply;
-        await interaction.editReply({ embeds: [embed], components: await addButtonsToMessage([components]) });
+        await interaction.editReply({ embeds: [embed], components: addButtonsToMessage([components]) });
     }
     else {
-        await interaction.reply({ embeds: [embed], components: await addButtonsToMessage([components]), ephemeral: true });
+        await interaction.reply({ embeds: [embed], components: addButtonsToMessage([components]), ephemeral: true });
     }
     return;
 }

@@ -43,7 +43,7 @@ export default {
             if (invitee_clan === true) {
                 interaction.channel?.isDMBased()
                     ? interaction.channel.messages.fetch(interaction.message.id).then(async (msg) => {
-                        msg.edit({ components: await addButtonsToMessage([timezoneComponent]) });
+                        msg.edit({ components: addButtonsToMessage([timezoneComponent]) });
                     })
                     : "";
                 (await deferredReply) && interaction.editReply("Вы уже являетесь участником нашего клана :)");
@@ -63,14 +63,14 @@ export default {
             const message = await interaction.channel.messages.fetch(interaction.message.id);
             if (message.embeds[0].data.author?.name === "Уведомление об исключении из клана") {
                 await message.edit({
-                    components: await addButtonsToMessage([
+                    components: addButtonsToMessage([
                         new ButtonBuilder().setCustomId(ClanButtons.modal).setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
                     ]),
                 });
                 return;
             }
             const updatedEmbed = EmbedBuilder.from(message.embeds[0]).setDescription(null);
-            await message.edit({ embeds: [updatedEmbed], components: await addButtonsToMessage([timezoneComponent]) });
+            await message.edit({ embeds: [updatedEmbed], components: addButtonsToMessage([timezoneComponent]) });
         }
         else {
             throw { name: "Произошла неизвестная ошибка", description: "Возможно, вы уже участник нашего клана" };
