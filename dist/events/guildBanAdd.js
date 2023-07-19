@@ -28,7 +28,7 @@ export default new Event("guildBanAdd", async (bannedMember) => {
         });
     }
     const message = await guildMemberChannel.send({ embeds: [embed] });
-    await deleteLeavedUserData({ member: bannedMember, message });
+    await deleteLeavedUserData({ discordMember: bannedMember, discordMessage: message });
     kickLeavedUserFromRaids(bannedMember);
 });
 //# sourceMappingURL=guildBanAdd.js.map

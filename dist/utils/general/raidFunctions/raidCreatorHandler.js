@@ -1,12 +1,12 @@
-import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, RESTJSONErrorCodes, } from "discord.js";
 import { handleDeleteRaid } from "../../../buttons/raidInChnButton.js";
 import { RaidButtons } from "../../../configs/Buttons.js";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
 import { client } from "../../../index.js";
+import { completedRaidsData } from "../../persistence/dataStore.js";
 import { RaidEvent } from "../../persistence/sequelize.js";
 import { addButtonsToMessage } from "../addButtonsToMessage.js";
-import { completedRaidsData } from "../destinyActivityChecker.js";
 import nameCleaner from "../nameClearer.js";
 import { removeRaid } from "../raidFunctions.js";
 export async function handleRaidCreatorLeaving(raid, creatorId) {
@@ -27,7 +27,23 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
         .setCustomId(RaidButtons.transitionCancel);
     const deleteButton = new ButtonBuilder().setLabel("Удалить рейд").setStyle(ButtonStyle.Danger).setCustomId(RaidButtons.transitionDelete);
     const buttons = addButtonsToMessage([cancelButton, deleteButton]);
-    const message = await creator.send({ embeds: [embed], components: buttons });
+    let message = null;
+    try {
+        message = await creator.send({ embeds: [embed], components: buttons });
+    }
+    catch (error) {
+        if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
+            const raidChannel = await client.getAsyncTextChannel(process.env.RAID_CHANNEL_ID);
+            message = await raidChannel.send({ content: `<@${creator.id}>`, embeds: [embed], components: buttons });
+        }
+        else {
+            console.error("[Error code: 1963] Unexpected error", error);
+        }
+    }
+    if (!message) {
+        console.error("[Error code: 1964] Not managed to send a message, exiting", raid.channelId, creator.id);
+        return;
+    }
     const collector = (creator.dmChannel || (await creator.createDM())).createMessageComponentCollector({
         componentType: ComponentType.Button,
         filter: (i) => i.user.id === creator.id,

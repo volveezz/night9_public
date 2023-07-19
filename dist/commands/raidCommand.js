@@ -8,14 +8,13 @@ import raidsGuide from "../configs/raidGuideData.js";
 import { userTimezones } from "../core/userStatisticsManagement.js";
 import { Command } from "../structures/command.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
-import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { generateRaidCompletionText, getRaidDatabaseInfo, getRaidDetails, raidChallenges, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
 import convertTimeStringToNumber from "../utils/general/raidFunctions/convertTimeStringToNumber.js";
 import raidFireteamChecker from "../utils/general/raidFunctions/raidFireteamChecker.js";
 import { clearNotifications, sendNotificationInfo, updateNotifications, updateNotificationsForEntireRaid, } from "../utils/general/raidFunctions/raidNotifications.js";
 import { descriptionFormatter, escapeString } from "../utils/general/utilities.js";
-import { recentRaidCreators } from "../utils/persistence/dataStore.js";
+import { completedRaidsData, recentRaidCreators } from "../utils/persistence/dataStore.js";
 import { RaidEvent, database } from "../utils/persistence/sequelize.js";
 function getDefaultComponents() {
     return [
@@ -176,19 +175,6 @@ export default new Command({
             descriptionLocalizations: { "en-US": "Modify existing raid", "en-GB": "Modify existing raid" },
             options: [
                 {
-                    type: ApplicationCommandOptionType.Integer,
-                    min_value: 1,
-                    max_value: 100,
-                    name: "id-рейда",
-                    nameLocalizations: { "en-US": "raid-id", "en-GB": "raid-id" },
-                    autocomplete: true,
-                    description: "Укажите Id редактируемого рейда",
-                    descriptionLocalizations: {
-                        "en-US": "Specify the raid id of the modified raid",
-                        "en-GB": "Specify the raid id of the modified raid",
-                    },
-                },
-                {
                     type: ApplicationCommandOptionType.String,
                     name: "новый-рейд",
                     nameLocalizations: { "en-US": "new-raid", "en-GB": "new-raid" },
@@ -300,6 +286,19 @@ export default new Command({
                     nameLocalizations: { "en-US": "new-clears-requirement", "en-GB": "new-clears-requirement" },
                 },
                 {
+                    type: ApplicationCommandOptionType.Integer,
+                    minValue: 1,
+                    maxValue: 100,
+                    name: "id-рейда",
+                    nameLocalizations: { "en-US": "raid-id", "en-GB": "raid-id" },
+                    autocomplete: true,
+                    description: "Укажите Id редактируемого рейда",
+                    descriptionLocalizations: {
+                        "en-US": "Specify the raid id of the modified raid",
+                        "en-GB": "Specify the raid id of the modified raid",
+                    },
+                },
+                {
                     type: ApplicationCommandOptionType.Boolean,
                     name: "silent",
                     description: "Silent execution",
@@ -333,8 +332,8 @@ export default new Command({
                 },
                 {
                     type: ApplicationCommandOptionType.Integer,
-                    min_value: 1,
-                    max_value: 100,
+                    minValue: 1,
+                    maxValue: 100,
                     name: "id-рейда",
                     nameLocalizations: { "en-US": "raid-id", "en-GB": "raid-id" },
                     autocomplete: true,
@@ -363,8 +362,8 @@ export default new Command({
                 },
                 {
                     type: ApplicationCommandOptionType.Integer,
-                    min_value: 1,
-                    max_value: 100,
+                    minValue: 1,
+                    maxValue: 100,
                     name: "id-рейда",
                     nameLocalizations: { "en-US": "raid-id", "en-GB": "raid-id" },
                     autocomplete: true,
@@ -385,8 +384,8 @@ export default new Command({
             options: [
                 {
                     type: ApplicationCommandOptionType.Integer,
-                    min_value: 1,
-                    max_value: 100,
+                    minValue: 1,
+                    maxValue: 100,
                     name: "id-рейда",
                     nameLocalizations: { "en-US": "raid-id", "en-GB": "raid-id" },
                     autocomplete: true,

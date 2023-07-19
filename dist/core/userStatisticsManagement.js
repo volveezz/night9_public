@@ -3,7 +3,7 @@ import NightRoleCategory from "../configs/RoleCategory.js";
 import { dungeonsTriumphHashes } from "../configs/roleRequirements.js";
 import { activityRoles, dlcRoles, guardianRankRoles, seasonalRoles, statisticsRoles, trialsRoles } from "../configs/roles.js";
 import { client } from "../index.js";
-import { apiStatus } from "../structures/apiStatus.js";
+import { GetApiStatus, SetApiStatus } from "../structures/apiStatus.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { destinyActivityChecker } from "../utils/general/destinyActivityChecker.js";
 import { AuthData, AutoRoleData, UserActivityData } from "../utils/persistence/sequelize.js";
@@ -34,8 +34,9 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
             !destinyProfileResponse?.profile ||
             !destinyProfileResponse?.profile.data) {
             const ErrorResponse = destinyProfileResponse;
-            if (ErrorResponse?.ErrorCode === 5)
-                return (apiStatus.status = ErrorResponse.ErrorStatus);
+            if (ErrorResponse?.ErrorCode === 5) {
+                return SetApiStatus("account", 5);
+            }
             if (ErrorResponse?.ErrorCode === 1688 ||
                 ErrorResponse?.ErrorCode === 1672 ||
                 ErrorResponse?.ErrorCode === 1618) {
@@ -45,7 +46,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                 throttleSet.add(member.id);
                 return;
             }
-            return console.error("[Error code: 1039]", displayName, !destinyProfileResponse, !destinyProfileResponse.metrics, !destinyProfileResponse.profileRecords.data?.activeScore != null, !destinyProfileResponse.characterRecords, !destinyProfileResponse.profile, !destinyProfileResponse.profile.data);
+            return console.error("[Error code: 1039]", displayName, !destinyProfileResponse, !destinyProfileResponse?.metrics, !destinyProfileResponse?.profileRecords?.data?.activeScore != null, !destinyProfileResponse?.characterRecords, !destinyProfileResponse?.profile, !destinyProfileResponse?.profile?.data);
         }
         if (!bungieNames.get(discordId)) {
             let bungieCode = (destinyProfileResponse.profile.data.userInfo.bungieGlobalDisplayNameCode ?? "0000").toString();
@@ -343,8 +344,9 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                 .join()
                 .split(",")
                 .filter((r) => r.length > 10);
-            if (addRoles.filter((r) => r.length <= 10).length > 0)
+            if (addRoles.filter((r) => r && r.length <= 10)?.length > 0) {
                 console.error(`[Error code: 1096] Error during giving roles [ ${addRoles} ] for ${member.displayName}`);
+            }
             await member.roles
                 .add(rolesForGiving, "Role(s) added by autorole system")
                 .catch((e) => console.error("[Error code: 1097] [Autorole error]", e, rolesForGiving));
@@ -360,7 +362,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
 async function checkUserKDRatio({ platform, bungieId, accessToken }, member) {
     try {
         const request = await sendApiRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
-        if (request === undefined) {
+        if (request === undefined || request instanceof Error) {
             throttleSet.add(member.id);
             return;
         }
@@ -423,7 +425,7 @@ async function handleMemberStatistics() {
                 if (!cachedMember)
                     continue;
                 await timer(1000);
-                destinyActivityChecker(userData, cachedMember, 4);
+                destinyActivityChecker({ authData: userData, member: cachedMember, mode: 4 });
             }
         }
         catch (error) {
@@ -458,7 +460,7 @@ async function handleMemberStatistics() {
             if (!databaseData || (databaseData.length === 0 && !process.env.DEV_BUILD)) {
                 return console.error(`[Error code: 1022] DB is ${databaseData ? `${databaseData}${databaseData?.length} size` : "not avaliable"}`);
             }
-            if (apiStatus.status === 1) {
+            if (GetApiStatus("account") === 1) {
                 for (let i = 0; i < databaseData.length; i++) {
                     const userDatabaseData = databaseData[i];
                     const randomValue = Math.floor(Math.random() * 100);
@@ -510,14 +512,14 @@ async function handleMemberStatistics() {
                     }
                     function checkCompletedRaidStats() {
                         if (member.roles.cache.hasAny(process.env.CLANMEMBER, process.env.MEMBER)) {
-                            destinyActivityChecker(userDatabaseData, member, 4);
+                            destinyActivityChecker({ authData: userDatabaseData, member, mode: 4 });
                         }
                     }
                     function checkTrialsKDStats() {
                         if (userDatabaseData.roleCategoriesBits & NightRoleCategory.Trials &&
                             !member.roles.cache.has(trialsRoles.wintrader) &&
                             member.roles.cache.has(trialsRoles.category)) {
-                            destinyActivityChecker(userDatabaseData, member, 84);
+                            destinyActivityChecker({ authData: userDatabaseData, member, mode: 84 });
                         }
                     }
                 }

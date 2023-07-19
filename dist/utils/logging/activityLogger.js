@@ -9,9 +9,9 @@ import { sendApiRequest } from "../api/sendApiRequest.js";
 import { completedPhases } from "../general/activityCompletionChecker.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import { convertSeconds } from "../general/convertSeconds.js";
-import { completedRaidsData } from "../general/destinyActivityChecker.js";
 import { getRaidNameFromHash, removeRaid } from "../general/raidFunctions.js";
 import { escapeString } from "../general/utilities.js";
+import { completedRaidsData } from "../persistence/dataStore.js";
 import { AuthData, RaidEvent, UserActivityData } from "../persistence/sequelize.js";
 const hashToImageMap = {
     313828469: "https://cdn.discordapp.com/attachments/679191036849029167/1111828224956170290/2023_Ghost_of_the_Deep_Press_Kit_Dungeon_LARGE_002.jpg",

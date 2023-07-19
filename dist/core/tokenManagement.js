@@ -1,9 +1,9 @@
-import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder, RESTJSONErrorCodes } from "discord.js";
 import fetch from "node-fetch";
 import { RegisterButtons } from "../configs/Buttons.js";
 import colors from "../configs/colors.js";
 import { client } from "../index.js";
-import { apiStatus } from "../structures/apiStatus.js";
+import { GetApiStatus, SetApiStatus } from "../structures/apiStatus.js";
 import setMemberRoles from "../utils/discord/setRoles.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../utils/general/nameClearer.js";
@@ -58,7 +58,7 @@ async function bungieGrantRequest(row, table, retry = false) {
 }
 async function handleRequestError(request, row, table, retry) {
     if (request && request.error_description === "SystemDisabled") {
-        apiStatus.status = 5;
+        SetApiStatus("oauth", 5);
     }
     if (retry === false) {
         console.error(`[Error code: 1745] First time error for ${row.bungieId} | ${request?.error_description}`);
@@ -103,7 +103,7 @@ async function handleAuthorizationRecordExpired(row, table) {
                 });
             }
             await member.send({ embeds: [embed], components }).catch(async (e) => {
-                if (e.code === 50007) {
+                if (e.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
                     const botChannel = await client.getAsyncTextChannel(process.env.PUBLIC_BOT_CHANNEL_ID);
                     embed.setAuthor({
                         name: `${nameCleaner(member.displayName)}`,
@@ -121,6 +121,8 @@ async function handleAuthorizationRecordExpired(row, table) {
     }
 }
 async function refreshTokens(table) {
+    if (GetApiStatus("oauth") !== 1)
+        return;
     const data = table === 1
         ? await AuthData.findAll({ attributes: ["bungieId", "refreshToken"] })
         : await LeavedUsersData.findAll({ attributes: ["bungieId", "refreshToken"] });

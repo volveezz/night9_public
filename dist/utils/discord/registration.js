@@ -13,7 +13,7 @@ async function sendRegistrationLink(interaction) {
     });
     const embed = new EmbedBuilder()
         .setTitle("Нажмите для перехода к авторизации")
-        .setURL(`https://www.bungie.net/ru/OAuth/Authorize?client_id=34432&response_type=code&state=${request.state}`)
+        .setURL(`https://www.bungie.net/ru/OAuth/Authorize?client_id=${process.env.BUNGIE_CLIENT_ID || "34432"}&response_type=code&state=${request.state}`)
         .setColor(colors.default)
         .setDescription(` - По нажатию на ссылку вы будете перенаправлены на сайт Bungie (bungie.net)\n- На сайте необходимо авторизоваться через любой удобный для вас способ\n- К 1 аккаунту Discord можно привязать лишь 1 аккаунт Bungie\n- Авторизация происходит исключительно на официальном сайте, что исключает в свою очередь риск кражи пароля или другой информации`);
     logUserRegistrationAttempt(request.state, user, created);

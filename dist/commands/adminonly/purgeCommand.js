@@ -20,8 +20,8 @@ export default new Command({
                 "en-US": "Specify the number of messages to delete",
             },
             required: true,
-            min_value: 1,
-            max_value: 100,
+            minValue: 1,
+            maxValue: 100,
         },
         {
             type: ApplicationCommandOptionType.User,

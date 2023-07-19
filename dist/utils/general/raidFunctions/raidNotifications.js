@@ -1,14 +1,13 @@
-import { ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder, } from "discord.js";
+import { ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder, RESTJSONErrorCodes, } from "discord.js";
 import { schedule } from "node-cron";
 import { Op } from "sequelize";
 import { RaidButtons } from "../../../configs/Buttons.js";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
 import { client } from "../../../index.js";
-import { nonRegClanMembers, recentlyCreatedRaidInvites, recentlyExpiredAuthUsersBungieIds } from "../../persistence/dataStore.js";
+import { completedRaidsData, nonRegClanMembers, recentlyCreatedRaidInvites, recentlyExpiredAuthUsersBungieIds, } from "../../persistence/dataStore.js";
 import { RaidEvent, RaidUserNotification } from "../../persistence/sequelize.js";
 import { addButtonsToMessage } from "../addButtonsToMessage.js";
-import { completedRaidsData } from "../destinyActivityChecker.js";
 import nameCleaner from "../nameClearer.js";
 import { generateRaidCompletionText, getRaidDetails } from "../raidFunctions.js";
 import { getRandomGIF, getRandomRaidGIF, timer } from "../utilities.js";
@@ -30,18 +29,60 @@ schedule("0 23 * * *", () => {
 let tasks = [];
 let runningTimeouts = [];
 async function scheduleNextNotification() {
+    console.debug("Scheduling the next notification task.");
     if (tasks.length === 0) {
+        console.debug("No more tasks to schedule.");
         return;
     }
     tasks.sort((a, b) => a.notifyTime - b.notifyTime);
-    const nextTask = tasks.shift();
-    const sleepDuration = nextTask.notifyTime - Date.now();
-    if (sleepDuration > 0) {
-        const timeout = setTimeout(async () => {
-            await sendNotification(nextTask);
-        }, sleepDuration);
-        runningTimeouts.push({ discordId: nextTask.discordId, timeout });
+    let nextTask = tasks.shift();
+    handleNotification(nextTask);
+    while (tasks[0] && nextTask.notifyTime === tasks[0].notifyTime) {
+        nextTask = tasks.shift();
+        handleNotification(nextTask);
     }
+    async function handleNotification(task) {
+        const sleepDuration = task.notifyTime - Date.now();
+        console.debug("Sleep duration is", sleepDuration);
+        console.debug("Tasks:", tasks.map((t) => t.notifyTime));
+        if (sleepDuration > -1000) {
+            console.debug("Scheduled a new notification task for", task.discordId, new Date(task.notifyTime));
+            const timeout = setTimeout(async () => {
+                console.debug("Sending a notification for", task.discordId, new Date(task.notifyTime));
+                await sendNotification(task).catch((err) => {
+                    if (err.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
+                        return notifyAboutClosedDM(task.raidId, task.discordId);
+                    }
+                    console.error("[Error code: 1954]", err.stack || err);
+                });
+            }, sleepDuration);
+            runningTimeouts.push({ discordId: task.discordId, timeout });
+        }
+        else {
+            console.debug("Notification task is already expired.");
+        }
+    }
+}
+const notifiedUsersAboutClosedDM = new Set();
+async function notifyAboutClosedDM(raidId, notifiedUserId) {
+    if (notifiedUsersAboutClosedDM.has(notifiedUserId))
+        return;
+    const raidData = await RaidEvent.findOne({ where: { id: raidId }, attributes: ["channelId"] });
+    if (!raidData) {
+        console.error("[Error code: 1955] Exiting because raid channel wasn't found");
+        return;
+    }
+    const raidChannel = await client.getAsyncTextChannel(raidData.channelId);
+    const member = await client.getAsyncMember(notifiedUserId);
+    const embed = new EmbedBuilder()
+        .setColor(colors.error)
+        .setAuthor({
+        name: `${nameCleaner(member.displayName || member.user.username)} у Вас закрытые личные сообщения`,
+        iconURL: icons.error,
+    })
+        .setDescription("Откройте личные сообщения, чтобы получать уведомления о рейдах");
+    raidChannel.send({ content: `<@${notifiedUserId}>`, embeds: [embed] });
+    notifiedUsersAboutClosedDM.add(notifiedUserId);
 }
 async function sendNotification(task) {
     const workingTask = runningTimeouts.findIndex((t) => t.discordId === task.discordId);
@@ -56,9 +97,12 @@ async function sendNotification(task) {
         return;
     }
     if (!raid.joined.includes(task.discordId)) {
+        console.debug("User", task.discordId, "has left the raid", raid.id);
         return;
     }
+    console.debug("Initiating notification for", task.discordId, "for raid", raid.id);
     await announceRaidEvent(raid, task.discordId);
+    console.debug("Notification is sent. Scheduling the next notification task.");
     scheduleNextNotification();
 }
 export async function loadNotifications() {
@@ -143,6 +187,7 @@ async function notifyUserAboutNotifications(discordId) {
     member.send({ embeds: [embed], components: addButtonsToMessage([components]) });
 }
 export function clearNotifications(raidId) {
+    console.debug("Clearing notifications for raid", raidId);
     tasks = tasks.filter((task) => task.raidId !== raidId);
 }
 export async function updateNotificationsForEntireRaid(raidId) {
@@ -199,7 +244,7 @@ async function announceRaidEvent(previousRaidEvent, discordUserId) {
         .filter((channel) => channel.parentId === process.env.RAID_CATEGORY && channel.type === ChannelType.GuildVoice && channel.name.includes("Raid"))
         .reverse();
     const buttonComponents = [];
-    const raidInviteUrl = await createRaidVoiceInvite(raidVoiceChannels, currentRaidEvent.creator);
+    const raidInviteUrl = await createRaidVoiceInvite(raidVoiceChannels, currentRaidEvent.creator, currentRaidEvent.id);
     if (raidInviteUrl) {
         buttonComponents.push(new ButtonBuilder({
             style: ButtonStyle.Link,
@@ -219,8 +264,8 @@ async function announceRaidEvent(previousRaidEvent, discordUserId) {
         components: addButtonsToMessage(buttonComponents),
     });
 }
-async function createRaidVoiceInvite(channels, creatorId) {
-    let raidInviteUrl = undefined;
+async function createRaidVoiceInvite(channels, creatorId, raidId) {
+    const raidInviteUrl = recentlyCreatedRaidInvites.get(raidId);
     if (!raidInviteUrl) {
         let raidInviteChannel;
         raidInviteChannel = channels.find((channel) => channel.members.has(creatorId));
@@ -228,7 +273,14 @@ async function createRaidVoiceInvite(channels, creatorId) {
             raidInviteChannel = channels.find((channel) => channel.userLimit === 0 || channel.userLimit - 6 > channel.members.size);
         }
         if (raidInviteChannel) {
-            raidInviteUrl = (await raidInviteChannel.createInvite({ reason: "Raid automatic invite", maxAge: 60 * 1440 })).url;
+            if (recentlyCreatedRaidInvites.has(raidId)) {
+                console.debug("Managed to get an invite url, returning it");
+                return recentlyCreatedRaidInvites.get(raidId);
+            }
+            console.debug(`[DEBUG] Creating invite for ${raidInviteChannel.name}`);
+            const newRaidInvite = (await raidInviteChannel.createInvite({ reason: "Raid automatic invite", maxAge: 60 * 1440 })).url;
+            recentlyCreatedRaidInvites.set(raidId, newRaidInvite);
+            return newRaidInvite;
         }
     }
     return raidInviteUrl;

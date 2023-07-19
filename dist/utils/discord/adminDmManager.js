@@ -1,4 +1,4 @@
-import { EmbedBuilder } from "discord.js";
+import { EmbedBuilder, RESTJSONErrorCodes } from "discord.js";
 import colors from "../../configs/colors.js";
 import { client } from "../../index.js";
 import { descriptionFormatter, isSnowflake } from "../general/utilities.js";
@@ -15,16 +15,23 @@ async function sendDirectMessage(member, isEmbed, content, originatingMessage) {
         sendDmLogMessage(member, sentMessage.content.length > 0 ? sentMessage.content : sentMessage.embeds[0].description, sentMessage.id);
     }
     catch (error) {
-        console.error("[Error code: 1429] Error during sending DM", { error });
+        const isBlockedDM = error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser ? true : false;
         const errorEmbed = new EmbedBuilder()
             .setColor(colors.error)
-            .setTitle("Произошла ошибка во время отправки сообщения")
             .setAuthor({
             name: `Пытались отправить: ${member.displayName || member.user.username}${member.user.username !== member.displayName ? ` (${member.user.username})` : ""}`,
             iconURL: member.displayAvatarURL(),
         })
             .setDescription(content)
             .setFooter({ text: `UId: ${member.id}` });
+        if (isBlockedDM) {
+            errorEmbed.setTitle("Пользователь закрыл личные сообщения");
+        }
+        else {
+            console.error("[Error code: 1429] Error during sending DM", { error });
+            errorEmbed.setTitle("Произошла неожиданная ошибка во время отправки сообщения");
+        }
+        originatingMessage.delete();
         return originatingMessage.channel.send({ embeds: [errorEmbed] });
     }
 }

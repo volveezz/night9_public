@@ -1,23 +1,23 @@
 import { checkedStoryActivities, forbiddenRaidIds } from "../../configs/ids.js";
 import { activityRoles, raidRoles, trialsRoles } from "../../configs/roles.js";
 import { userCharactersId } from "../../core/userStatisticsManagement.js";
-import { apiStatus } from "../../structures/apiStatus.js";
+import { GetApiStatus } from "../../structures/apiStatus.js";
 import { sendApiRequest } from "../api/sendApiRequest.js";
 import { logActivityCompletion } from "../logging/activityLogger.js";
+import { completedRaidsData } from "../persistence/dataStore.js";
 import { getRaidNameFromHash } from "./raidFunctions.js";
 import { setUserCharacters } from "./setUserCharacters.js";
-export const completedRaidsData = new Map();
 const cachedKDData = new Map();
-export async function destinyActivityChecker(authData, member, mode, count = 250) {
-    if (apiStatus.status !== 1)
+export async function destinyActivityChecker({ authData, mode, member, count = 250 }) {
+    if (GetApiStatus("activity") !== 1)
         return;
     const activityAvaliableTime = Date.now() - 1000 * 60 * 60 * 2;
-    const { platform, bungieId, accessToken } = authData;
-    const userCharactersArray = userCharactersId.get(member.id);
+    const { platform, bungieId, accessToken, discordId } = authData;
+    const userCharactersArray = userCharactersId.get(discordId);
     if (!userCharactersArray) {
-        userCharactersId.set(member.id, []);
-        await setUserCharacters(authData, member);
-        destinyActivityChecker(authData, member, mode);
+        userCharactersId.set(authData.discordId, []);
+        await setUserCharacters(authData);
+        destinyActivityChecker({ authData, mode });
     }
     else {
         let completedActivities = [];
@@ -27,12 +27,12 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
         let isPreviousIsTraded = false;
         let isWintrader = false;
         for (const character of userCharactersArray) {
-            if (apiStatus.status !== 1)
+            if (GetApiStatus("activity") !== 1)
                 return;
             let page = 0;
             await fetchAndProcessActivities();
             async function fetchAndProcessActivities() {
-                if (apiStatus.status !== 1)
+                if (GetApiStatus("activity") !== 1)
                     return;
                 const response = await sendApiRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Character/${character}/Stats/Activities/?count=${count}&mode=${mode}&page=${page}`, accessToken);
                 if (response.activities?.length > 0) {
@@ -79,9 +79,9 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                 }
             }
         }
-        if (mode === 4 && count === 250) {
+        if (mode === 4 && count === 250 && member) {
             const completedRaidCount = completedActivities.length;
-            const previousTotalRaidCount = completedRaidsData.get(member.id)?.totalRaidCount;
+            const previousTotalRaidCount = completedRaidsData.get(discordId)?.totalRaidCount;
             if (previousTotalRaidCount && previousTotalRaidCount > completedRaidCount) {
                 return;
             }
@@ -92,7 +92,7 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                 }
                 return counts;
             }, { ron: 0, ronMaster: 0, kf: 0, kfMaster: 0, votd: 0, votdMaster: 0, dsc: 0, gos: 0, vog: 0, vogMaster: 0, lw: 0 });
-            completedRaidsData.set(member.id, {
+            completedRaidsData.set(discordId, {
                 ...raidCounts,
                 totalRaidCount: completedRaidCount,
             });
@@ -100,7 +100,7 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                 (member.roles.cache.has(process.env.MEMBER) &&
                     member.roles.cache.hasAny(...activityRoles.allMessages, ...activityRoles.allVoice, activityRoles.category)) ||
                 authData.UserActivityData !== undefined) {
-                const { ron, ronMaster, kf, kfMaster, votd, votdMaster, dsc, gos, vog, vogMaster, lw, totalRaidCount } = completedRaidsData.get(member.id);
+                const { ron, ronMaster, kf, kfMaster, votd, votdMaster, dsc, gos, vog, vogMaster, lw, totalRaidCount } = completedRaidsData.get(discordId);
                 const ronClears = ron + ronMaster;
                 const kfClears = kf + kfMaster;
                 const votdClears = votd + votdMaster;
@@ -130,8 +130,8 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
                 }
             }
         }
-        else if (mode === 84) {
-            if (wtmatches >= 10 && member.id !== process.env.OWNER_ID) {
+        else if (mode === 84 && member) {
+            if (wtmatches >= 10 && discordId !== process.env.OWNER_ID) {
                 if (!member.roles.cache.has(trialsRoles.wintrader)) {
                     await member.roles.remove(trialsRoles.allKd);
                     await member.roles.add(trialsRoles.wintrader);
@@ -140,9 +140,9 @@ export async function destinyActivityChecker(authData, member, mode, count = 250
             }
             else {
                 const kd = kills / deaths;
-                const cachedUserKd = cachedKDData.get(member.id);
+                const cachedUserKd = cachedKDData.get(discordId);
                 if (!cachedUserKd || cachedUserKd < kills + deaths) {
-                    cachedKDData.set(member.id, kills + deaths);
+                    cachedKDData.set(discordId, kills + deaths);
                 }
                 else if (cachedUserKd > kills + deaths) {
                     return;

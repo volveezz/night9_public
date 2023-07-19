@@ -1,6 +1,7 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
 import { client } from "../../index.js";
+import { lastAlertKeys } from "../persistence/dataStore.js";
 import { sendApiRequest } from "./sendApiRequest.js";
 let newsChannel = null;
 const alertLevelColors = {
@@ -11,7 +12,7 @@ const alertLevelColors = {
 };
 async function fetchAndPostAlerts() {
     const url = "/Platform/GlobalAlerts/";
-    const lastAlertKeys = new Set();
+    const BUNGIEHELP_URL = "https://twitter.com/BungieHelp";
     executeFetch();
     async function executeFetch() {
         try {
@@ -27,7 +28,7 @@ async function fetchAndPostAlerts() {
                     const embed = new EmbedBuilder()
                         .setTitle(latestAlert.AlertKey || "New Global Alert")
                         .setDescription(latestAlert.AlertHtml)
-                        .setURL(latestAlert.AlertLink)
+                        .setURL(latestAlert.AlertLink === BUNGIEHELP_URL ? null : latestAlert.AlertLink)
                         .setColor(alertLevelColors[latestAlert.AlertLevel] || colors.error);
                     if (latestAlert.StreamInfo?.ChannelName) {
                         embed.addFields([{ name: "Stream Channel", value: latestAlert.StreamInfo.ChannelName }]);

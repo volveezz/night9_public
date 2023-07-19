@@ -1,7 +1,7 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import { longOffline } from "../core/userStatisticsManagement.js";
-import { apiStatus } from "../structures/apiStatus.js";
+import { GetApiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
 export default new Command({
     name: "wasibanned",
@@ -17,7 +17,11 @@ export default new Command({
                 text: "Да. Вы забанены",
             }
             : { text: "Вы не в бане :)" };
-        embed.setTitle(banned.text).setFooter({ text: `API Status: ${apiStatus.status} | Banned amount: ${longOffline.size}` });
+        embed
+            .setTitle(banned.text)
+            .setFooter({
+            text: `API Status: ${GetApiStatus("account")}|${GetApiStatus("activity")}|${GetApiStatus("api")}|${GetApiStatus("oauth")} | Banned amount: ${longOffline.size}`,
+        });
         await interaction.reply({ embeds: [embed], ephemeral: true });
     },
 });

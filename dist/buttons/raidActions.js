@@ -1,4 +1,4 @@
-import { EmbedBuilder } from "discord.js";
+import { EmbedBuilder, RESTJSONErrorCodes } from "discord.js";
 import { Op, Sequelize } from "sequelize";
 import { RaidButtons } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
@@ -6,11 +6,11 @@ import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { client } from "../index.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
-import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { checkRaidTimeConflicts, getRaidDetails, sendUserRaidGuideNoti, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
 import { handleRaidCreatorLeaving } from "../utils/general/raidFunctions/raidCreatorHandler.js";
 import { updateNotifications } from "../utils/general/raidFunctions/raidNotifications.js";
+import { completedRaidsData } from "../utils/persistence/dataStore.js";
 import { RaidEvent } from "../utils/persistence/sequelize.js";
 const raidGuideSentUsers = new Map();
 async function actionMessageHandler({ interaction, raidEvent, target }) {
@@ -83,7 +83,8 @@ async function joinedFromHotJoined(raidData) {
         .setFooter({
         text: "Пользователь перезаписан системой",
     });
-    (await client.getAsyncTextChannel(updatedRaidData.channelId)).send({ embeds: [embed] });
+    const raidChannel = await client.getAsyncTextChannel(updatedRaidData.channelId);
+    raidChannel.send({ embeds: [embed] });
     const { embeds, components } = (await updateRaidMessage({ raidEvent: updatedRaidData, returnComponents: true }));
     await (await client.getAsyncMessage(process.env.RAID_CHANNEL_ID, updatedRaidData.messageId)).edit({
         embeds,
@@ -92,7 +93,17 @@ async function joinedFromHotJoined(raidData) {
     embeds[0]
         .setColor(colors.serious)
         .setAuthor({ name: `Вы были автоматически записаны на рейд ${raidData.id}-${raidData.raid}`, iconURL: icons.notify });
-    member.send({ embeds: [embeds[0]] });
+    try {
+        member.send({ embeds: [embeds[0]] });
+    }
+    catch (error) {
+        if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
+            raidChannel.send({ content: `<@${member.id}>`, embeds: [embeds[0]] });
+        }
+        else {
+            console.error("[Error code: 1961] Received unexpected error", error);
+        }
+    }
     if (!updatedRaidData)
         return console.error("[Error code: 1637]", updatedRaidData);
     await updatePrivateRaidMessage({ raidEvent: updatedRaidData });
@@ -239,7 +250,7 @@ export default {
             const sentUserSet = raidGuideSentUsers.get(raidEvent.raid) ?? new Set();
             if (!sentUserSet.has(interaction.user.id)) {
                 if (raidClears <= 5) {
-                    sendUserRaidGuideNoti(interaction.user, raidEvent.raid);
+                    sendUserRaidGuideNoti(interaction.user, raidEvent.raid, raidEvent.channelId);
                 }
                 sentUserSet.add(interaction.user.id);
                 raidGuideSentUsers.set(raidEvent.raid, sentUserSet);

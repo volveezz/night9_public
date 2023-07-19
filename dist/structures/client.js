@@ -13,7 +13,7 @@ import { loadNotifications } from "../utils/general/raidFunctions/raidNotificati
 import { cacheRaidMilestones } from "../utils/general/raidMilestones.js";
 import { timer } from "../utils/general/utilities.js";
 import { restoreFetchedPGCRs } from "../utils/logging/activityLogger.js";
-import { processedRssLinks } from "../utils/persistence/dataStore.js";
+import { lastAlertKeys, processedRssLinks } from "../utils/persistence/dataStore.js";
 const __dirname = resolve();
 export class ExtendedClient extends Client {
     commands = new Collection();
@@ -232,12 +232,12 @@ export class ExtendedClient extends Client {
         this.startUpdatingPresence();
         restoreFetchedPGCRs();
         this.importFile("../core/guildNicknameManagement.js");
-        loadNotifications();
         this.importFile("../utils/api/rssHandler.js");
     }
     loadDelayedComponents() {
         cacheRaidMilestones();
         raidFireteamChecker();
+        loadNotifications();
         fetchGlobalAlerts();
     }
     async fetchMembersAndMessages() {
@@ -254,12 +254,13 @@ export class ExtendedClient extends Client {
                 setTimeout(async () => {
                     if (channel.id === process.env.NEWS_CHANNEL_ID) {
                         channel.messages.fetch({ limit: 100 }).then((channelMessages) => {
-                            const messages = channelMessages.filter((m) => m.author.id === this.user.id && m.embeds?.[0]?.author?.url != null);
-                            messages.forEach((message) => {
-                                const messageAuthorUrl = message.embeds?.[0]?.author?.url;
-                                if (messageAuthorUrl) {
-                                    processedRssLinks.add(messageAuthorUrl);
-                                }
+                            const twitterMessages = channelMessages.filter((m) => m.author.id === this.user.id && m.embeds?.[0]?.author?.url != null);
+                            const alertMessages = channelMessages.filter((m) => m.author.id === this.user.id && m.embeds?.[0]?.title?.startsWith("D2-"));
+                            twitterMessages.forEach((message) => {
+                                processedRssLinks.add(message.embeds[0].author.url);
+                            });
+                            alertMessages.forEach((message) => {
+                                lastAlertKeys.add(message.embeds[0].title);
                             });
                         });
                     }

@@ -1,4 +1,4 @@
-import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder, RESTJSONErrorCodes } from "discord.js";
 import { ClanButtons, RegisterButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
@@ -41,7 +41,7 @@ export default async function welcomeMessage(member) {
         components: addButtonsToMessage(components),
     })
         .catch((error) => {
-        if (error.code === 50007) {
+        if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
             console.error(`[Error code: 1129] ${member.displayName} blocked DM from server members`);
         }
         else {

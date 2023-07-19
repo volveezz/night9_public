@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, ComponentType, EmbedBuilder, ModalBuilder, TextChannel, TextInputBuilder, TextInputStyle, } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, ComponentType, EmbedBuilder, ModalBuilder, RESTJSONErrorCodes, TextChannel, TextInputBuilder, TextInputStyle, } from "discord.js";
 import { Op } from "sequelize";
 import { RaidAdditionalFunctional, RaidButtons } from "../configs/Buttons.js";
 import { RaidNotifyEdit } from "../configs/Modals.js";
@@ -144,38 +144,6 @@ export default {
                 collector.stop("completed");
                 const sendedTo = [];
                 const raidMembersLength = interaction.user.id === raidEvent.creator ? raidEvent.joined.length - 1 : raidEvent.joined.length;
-                await Promise.all(allVoiceChannels.map(async (chn) => {
-                    if (!chn.members.has(raidEvent.creator) && chn.parent?.id !== process.env.RAID_CATEGORY) {
-                        await Promise.all(raidEvent.joined.map(async (member) => {
-                            if (chn.members.has(member)) {
-                                raidEvent.joined.splice(raidEvent.joined.indexOf(member), 1);
-                                const user = chn.members.get(member);
-                                await user
-                                    .send({
-                                    embeds: [notificationEmbed],
-                                    components: addButtonsToMessage(linkComponent),
-                                })
-                                    .then((_) => sendedTo.push(`${nameCleaner(user.displayName, true)} получил оповещение`))
-                                    .catch(async (e) => {
-                                    if (e.code === 50007) {
-                                        await channel
-                                            .send({ content: `<@${user.id}>`, embeds: [notificationEmbed] })
-                                            .then((_) => sendedTo.push(`${nameCleaner(user.displayName, true)} получил текстовое оповещение`));
-                                    }
-                                    else {
-                                        console.error("[Error code: 1210]", e);
-                                    }
-                                });
-                            }
-                        }));
-                    }
-                    else if (chn.members.has(raidEvent.creator)) {
-                        chn.members.forEach((member) => {
-                            if (raidEvent.joined.includes(member.id))
-                                raidEvent.joined.splice(raidEvent.joined.indexOf(member.id), 1);
-                        });
-                    }
-                }));
                 const linkButton = [
                     {
                         type: ComponentType.ActionRow,
@@ -195,7 +163,7 @@ export default {
                     })
                         .then((_) => sendedTo.push(`${nameCleaner(member.displayName, true)} получил оповещение`))
                         .catch(async (e) => {
-                        if (e.code === 50007) {
+                        if (e.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
                             await channel
                                 .send({ content: `<@${member.id}>`, embeds: [notificationEmbed] })
                                 .then((d) => sendedTo.push(`${nameCleaner(member.displayName, true)} получил текстовое оповещение`));
@@ -341,10 +309,23 @@ export default {
                 .setAuthor({ name: "Отправьте заготовленное оповещение или измените его", iconURL: icons.notify })
                 .setDescription(`Рейдер, тебя оповестил ${raidEvent.creator === interaction.user.id ? "создатель рейда" : "администратор"} об скором старте.\n\nЗаходи в голосовой канал как можно скорее!`)
                 .setImage(GIFImage);
-            const message = await interaction.user.send({
-                embeds: [raidLeaderEmbed],
-                components: addButtonsToMessage(components),
-            });
+            let message = null;
+            try {
+                message = await interaction.user.send({
+                    embeds: [raidLeaderEmbed],
+                    components: addButtonsToMessage(components),
+                });
+            }
+            catch (error) {
+                if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
+                    throw { errorType: UserErrors.CLOSED_DM };
+                }
+                else {
+                    console.error("[Error code: 1960] Unexpected error", error);
+                }
+            }
+            if (!message)
+                return;
             const collector = message.createMessageComponentCollector({
                 filter: (interaction) => interaction.user.id === member.id,
                 time: 60 * 1000 * 10,

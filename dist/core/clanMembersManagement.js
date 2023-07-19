@@ -3,7 +3,7 @@ import { getAdminAccessToken } from "../commands/clanCommand.js";
 import NightRoleCategory from "../configs/RoleCategory.js";
 import { clanJoinDateRoles } from "../configs/roles.js";
 import { client } from "../index.js";
-import { apiStatus } from "../structures/apiStatus.js";
+import { GetApiStatus, SetApiStatus } from "../structures/apiStatus.js";
 import getClanMemberData from "../utils/api/getClanMemberData.js";
 import kickClanMember from "../utils/api/kickClanMember.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
@@ -22,15 +22,15 @@ async function clanMembersManagement(databaseData) {
         if (lastLoggedErrorCode !== 1) {
             lastLoggedErrorCode = errorCode ?? 1;
         }
-        if (apiStatus.status != 1 && clanList.results && clanList.results.length > 1) {
-            apiStatus.status = 1;
+        if (GetApiStatus("api") != 1 && clanList.results && clanList.results.length > 1) {
+            SetApiStatus("api", 1);
             client.user.setPresence({
                 status: "online",
             });
             console.info("\x1b[32mBungie API is back online\x1b[0m");
         }
-        if (errorCode != null && errorCode != apiStatus.status) {
-            apiStatus.status = errorCode;
+        if (errorCode != null && errorCode != GetApiStatus("api")) {
+            SetApiStatus("api", 1);
         }
         if (client.user.presence.activities[0].name.startsWith("🔁")) {
             client.stopUpdatingPresence();

@@ -19,6 +19,7 @@ process.on("SIGTERM", handleExit);
 async function handleExit(signal) {
     console.log(`Received ${signal}. Saving data...`);
     await forceUpdateUserActivity();
+    process.exit(0);
 }
 process.on("uncaughtException", (error) => {
     console.error("uncaughtException at top level", error);
@@ -35,8 +36,8 @@ process.on("unhandledRejection", (error) => {
     if (error.code >= 400 && error.code <= 599)
         return console.error(`[Error code: 1215] ${error.code}`);
     if (error.code === 50035)
-        return console.error("[Error code: 1243]", error.rawError.errors, error.rawError.error.limit);
-    console.error("unhandledRejection at top level", error.stack || error);
+        return console.error("[Error code: 1243]", error?.rawError?.errors, error?.rawError?.error, JSON.stringify(error));
+    console.error("UnhandledRejection at top level", error.stack || error);
 });
 const app = express();
 const port = process.env.PORT || 3000;

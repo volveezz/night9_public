@@ -12,7 +12,7 @@ import { GetManifest } from "../../utils/api/ManifestManager.js";
 import setMemberRoles from "../../utils/discord/setRoles.js";
 import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
 import { convertSeconds } from "../../utils/general/convertSeconds.js";
-import { completedRaidsData } from "../../utils/general/destinyActivityChecker.js";
+import { completedRaidsData } from "../../utils/persistence/dataStore.js";
 import { AuthData, AutoRoleData, UserActivityData, database } from "../../utils/persistence/sequelize.js";
 export default new Command({
     name: "db",

@@ -2,9 +2,9 @@ import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import { client } from "../index.js";
 import { Command } from "../structures/command.js";
-import { completedRaidsData } from "../utils/general/destinyActivityChecker.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { getRaidDetails } from "../utils/general/raidFunctions.js";
+import { completedRaidsData } from "../utils/persistence/dataStore.js";
 export default new Command({
     name: "новички",
     nameLocalizations: { "en-GB": "sherpas", "en-US": "sherpas" },

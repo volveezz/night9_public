@@ -42,7 +42,7 @@ export default new Event("guildMemberRemove", async (member) => {
             client.getCachedTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID) ||
                 (await client.getAsyncTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID));
     const message = await guildMemberChannel.send({ embeds: [embed] });
-    await deleteLeavedUserData({ member, message });
+    await deleteLeavedUserData({ discordMember: member, discordMessage: message });
     kickLeavedUserFromRaids(member);
 });
 //# sourceMappingURL=guildMemberRemove.js.map

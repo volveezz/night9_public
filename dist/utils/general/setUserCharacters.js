@@ -1,11 +1,11 @@
 import { userCharactersId } from "../../core/userStatisticsManagement.js";
 import { sendApiRequest } from "../api/sendApiRequest.js";
-export async function setUserCharacters(authData, member) {
+export async function setUserCharacters(authData) {
     const { discordId, platform, bungieId, accessToken } = authData;
     try {
         const destinyCharacterRequest = await sendApiRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
         if (!destinyCharacterRequest.characters)
-            return console.error(`[Error code: 1105] Error during caching characters of ${member.displayName}`);
+            return console.error(`[Error code: 1105] Error during caching characters of ${bungieId} for ${discordId}`);
         const charIdArray = [];
         destinyCharacterRequest.characters.sort((a, b) => (a.deleted === false ? 1 : 0));
         destinyCharacterRequest.characters.forEach((ch) => charIdArray.push(ch.characterId));

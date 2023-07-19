@@ -3,7 +3,7 @@ import { StatsButton } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import { bungieNames } from "../core/userStatisticsManagement.js";
-import { apiStatus } from "../structures/apiStatus.js";
+import { GetApiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
 import { GetManifest } from "../utils/api/ManifestManager.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
@@ -26,7 +26,7 @@ export default new Command({
         nameLocalizations: { "en-US": "Information", "en-GB": "Information" },
     },
     run: async ({ client, interaction: commandInteraction, userMenuInteraction: userInteraction, messageMenuInteraction: messageMenuInteraction, }) => {
-        if (apiStatus.status !== 1) {
+        if (GetApiStatus("account") !== 1) {
             throw { errorType: UserErrors.API_UNAVAILABLE };
         }
         const interaction = messageMenuInteraction || userInteraction || commandInteraction;
@@ -52,16 +52,16 @@ export default new Command({
                 discordId: targetId,
             },
             include: { model: UserActivityData },
-            attributes: ["platform", "bungieId", "accessToken"],
+            attributes: ["platform", "bungieId", "accessToken", "membershipId"],
         });
         if (!parsedData) {
             await deferPromise;
             throw { errorType: UserErrors.DB_USER_NOT_FOUND, errorData: { isSelf: interaction.user.id === targetId } };
         }
-        const { platform, bungieId } = parsedData;
+        const { platform, bungieId, membershipId } = parsedData;
         const reportPlatform = platform === 3 ? "pc" : platform === 2 ? "ps" : platform === 1 ? "xb" : platform === 6 ? "epic" : "stadia";
         const fieldUrls = [];
-        fieldUrls.push(`[Trials.Report](https://trials.report/report/${platform}/${bungieId})`, `[Raid.Report](https://raid.report/${reportPlatform}/${bungieId})`, `[Dungeon.Report](https://dungeon.report/${reportPlatform}/${bungieId})`, `[Crucible.Report](https://crucible.report/report/${platform}/${bungieId})`, `[Strike.Report](https://strike.report/${reportPlatform}/${bungieId})`, `[Guardian.Report](https://guardian.report/?guardians=${bungieId})`, `[DestinyTracker](https://destinytracker.com/destiny-2/profile/${platform === 3 ? "steam" : platform === 2 ? "psn" : platform === 1 ? "xbl" : platform === 6 ? "epic" : "stadia"}/${bungieId}/overview)`, `[WastedOnDestiny](https://wastedondestiny.com/${bungieId})`);
+        fieldUrls.push(`[Bungie.net](https://www.bungie.net/ru/Profile/254/${membershipId})`, `[Trials.Report](https://trials.report/report/${platform}/${bungieId})`, `[Raid.Report](https://raid.report/${reportPlatform}/${bungieId})`, `[Dungeon.Report](https://dungeon.report/${reportPlatform}/${bungieId})`, `[Crucible.Report](https://crucible.report/report/${platform}/${bungieId})`, `[Strike.Report](https://strike.report/${reportPlatform}/${bungieId})`, `[Guardian.Report](https://guardian.report/?guardians=${bungieId})`, `[DestinyTracker](https://destinytracker.com/destiny-2/profile/${platform === 3 ? "steam" : platform === 2 ? "psn" : platform === 1 ? "xbl" : platform === 6 ? "epic" : "stadia"}/${bungieId}/overview)`, `[WastedOnDestiny](https://wastedondestiny.com/${bungieId})`);
         embed.setColor(colors.success).addFields({
             name: "Ссылки",
             value: fieldUrls.join(", "),

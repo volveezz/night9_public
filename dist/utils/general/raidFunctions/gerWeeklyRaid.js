@@ -1,7 +1,7 @@
 import { schedule } from "node-cron";
 import { RefreshManifest } from "../../api/ManifestManager.js";
 import { sendApiRequest } from "../../api/sendApiRequest.js";
-const raidChallengeObjHashes = [406803827, 897950155, 3211393925];
+const raidChallengeObjHashes = [406803827, 897950155, 3211393925, 1283234589];
 let raidActivityHashes = { normal: null, master: null };
 const fetchWeeklyRaid = async (retryCount = 0) => {
     try {
@@ -14,7 +14,7 @@ const fetchWeeklyRaid = async (retryCount = 0) => {
             raidActivityHashes.master = raidMilestone.activities[1]?.activityHash || null;
         }
         else {
-            console.error("[Error code: 1934] Not managed to get the data, creating a new timeout");
+            console.error("[Error code: 1934] Not managed to get raid challenge hash, creating a new timeout");
             setTimeout(() => fetchWeeklyRaid(1), 30 * 60 * 1000);
         }
     }

@@ -1,4 +1,4 @@
-import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder, RESTJSONErrorCodes } from "discord.js";
 import fetch from "node-fetch";
 import { ClanButtons, TimezoneButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
@@ -7,11 +7,18 @@ import guildNicknameManagement from "../../core/guildNicknameManagement.js";
 import { checkIndiviualUserStatistics } from "../../core/userStatisticsManagement.js";
 import { client } from "../../index.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
+import nameCleaner from "../general/nameClearer.js";
 import { escapeString } from "../general/utilities.js";
 import { AuthData, InitData, LeavedUsersData, UserActivityData } from "../persistence/sequelize.js";
 import { sendApiRequest } from "./sendApiRequest.js";
+function isValidUUIDv4(uuid) {
+    const uuidv4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidv4Regex.test(uuid);
+}
 export default async function webHandler(code, state, res) {
-    const json = await InitData.findOne({ where: { state: state } });
+    if (!isValidUUIDv4(state.toString()))
+        return console.error("[Error code: 1958] Received invalid state", state);
+    const json = await InitData.findOne({ where: { state } });
     if (!json || !json.discordId)
         return console.error("[Error code: 1053] No data found", code, state);
     const form = new URLSearchParams();
@@ -89,7 +96,31 @@ export default async function webHandler(code, state, res) {
                     .setColor(colors.success)
                     .setAuthor({ name: "Вы обновили данные авторизации", iconURL: icons.success });
                 const member = await client.getAsyncMember(json.discordId);
-                member.send({ embeds: [embed] });
+                try {
+                    member.send({ embeds: [embed] });
+                }
+                catch (error) {
+                    if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
+                        const isUserClanMember = member.roles.cache.has(process.env.CLANMEMBER);
+                        const channel = await (isUserClanMember
+                            ? client.getAsyncTextChannel(process.env.PUBLIC_BOT_CHANNEL_ID)
+                            : client.getAsyncTextChannel(process.env.JOIN_REQUEST_CHANNEL_ID));
+                        const embed = new EmbedBuilder()
+                            .setColor(colors.serious)
+                            .setAuthor({
+                            name: `${nameCleaner(member.displayName)}, вы обновили данные регистрации`,
+                            iconURL: member.displayAvatarURL(),
+                        })
+                            .setDescription("Вы закрыли доступ к своим личным сообщениям\nДля лучшего опыта на сервере, пожалуйста, откройте доступ к личным сообщениям в настройках Discord");
+                        const notificationMessage = await channel.send({ content: `<@${member.displayAvatarURL}>`, embeds: [embed] });
+                        setTimeout(() => {
+                            notificationMessage.delete();
+                        }, 1000 * 60);
+                    }
+                    else {
+                        console.error("[Error code: 1956] Found unexpected error", error);
+                    }
+                }
                 try {
                     const loggedEmbed = new EmbedBuilder()
                         .setColor(colors.success)
@@ -162,11 +193,17 @@ export default async function webHandler(code, state, res) {
             givenRoles.push(process.env.MEMBER);
         if (!member.roles.cache.has(process.env.VERIFIED))
             givenRoles.push(process.env.VERIFIED);
-        if (givenRoles.length > 0)
-            await member.roles.add(givenRoles, "User registration").then(async (member) => {
-                if (member.roles.cache.has(process.env.NEWBIE))
-                    await member.roles.remove(process.env.NEWBIE, "User registration");
-            });
+        if (givenRoles.length > 0) {
+            try {
+                await member.roles.add(givenRoles, "User registration").then(async (member) => {
+                    if (member.roles.cache.has(process.env.NEWBIE))
+                        await member.roles.remove(process.env.NEWBIE, "User registration");
+                });
+            }
+            catch (error) {
+                console.error("[Error code: 1959] Failed to add roles to member", error, member.id);
+            }
+        }
         const clanRequestComponent = new ButtonBuilder()
             .setCustomId(ClanButtons.invite)
             .setLabel("Отправить приглашение")
@@ -187,27 +224,46 @@ export default async function webHandler(code, state, res) {
                 ? embed.data.description +
                     "\n\nПроизошла ошибка во время обработки вашего клана. Скорее всего это связано с недоступностью API игры\n\nКнопка ниже служит для отправки приглашения в клан - она заработает как только сервера игры станут доступны"
                 : "\n\nПроизошла ошибка во время обработки вашего клана. Скорее всего это связано с недоступностью API игры\n\nКнопка ниже служит для отправки приглашения в клан - она заработает как только сервера игры станут доступны");
-            await member.send({
-                embeds: [embed],
-                components: addButtonsToMessage([clanRequestComponent, timezoneComponent]),
-            });
+            sendMessageToMember(clanRequestComponent, timezoneComponent);
         }
         else if (clanResponse.results.length === 0 || !(clanResponse.results?.[0]?.group?.groupId === process.env.GROUP_ID)) {
             embed.setDescription(embed.data.description
                 ? embed.data.description + "\n\nНажмите кнопку для получения приглашения в клан"
                 : "Нажмите кнопку для получения приглашения в клан");
-            await member.send({
-                embeds: [embed],
-                components: addButtonsToMessage([clanRequestComponent, timezoneComponent]),
-            });
+            sendMessageToMember(clanRequestComponent, timezoneComponent);
         }
         else {
-            await member.send({
-                embeds: [embed],
-                components: addButtonsToMessage(!(clanResponse?.results?.[0]?.group?.groupId === process.env.GROUP_ID)
-                    ? [clanRequestComponent, timezoneComponent]
-                    : [timezoneComponent]),
-            });
+            const buttons = !(clanResponse?.results?.[0]?.group?.groupId === process.env.GROUP_ID)
+                ? [clanRequestComponent, timezoneComponent]
+                : [timezoneComponent];
+            sendMessageToMember(...buttons);
+        }
+        async function sendMessageToMember(...buttons) {
+            try {
+                await member.send({
+                    embeds: [embed],
+                    components: addButtonsToMessage(buttons),
+                });
+            }
+            catch (error) {
+                if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
+                    const isUserClanMember = member.roles.cache.has(process.env.CLANMEMBER);
+                    const channel = await (isUserClanMember
+                        ? client.getAsyncTextChannel(process.env.PUBLIC_BOT_CHANNEL_ID)
+                        : client.getAsyncTextChannel(process.env.JOIN_REQUEST_CHANNEL_ID));
+                    const embed = new EmbedBuilder()
+                        .setColor(colors.serious)
+                        .setAuthor({ name: `${nameCleaner(member.displayName)}, вы зарегистрировались`, iconURL: member.displayAvatarURL() })
+                        .setDescription("### Вы закрыли доступ к своим личным сообщениям\nДля лучшего опыта на сервере, пожалуйста, откройте доступ к личным сообщениям в [настройках Discord](https://support.discord.com/hc/ru/articles/217916488-%D0%91%D0%BB%D0%BE%D0%BA%D0%B8%D1%80%D0%BE%D0%B2%D0%BA%D0%B0-%D0%9D%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B8-%D0%9A%D0%BE%D0%BD%D1%84%D0%B8%D0%B4%D0%B5%D0%BD%D1%86%D0%B8%D0%B0%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D0%B8#:~:text=%D0%92%D1%8B%D0%B1%D0%BE%D1%80%D0%BE%D1%87%D0%BD%D1%8B%D0%B9%20%D0%A1%D0%BB%D1%83%D1%85%3A%20%D0%9C%D0%B5%D1%82%D0%BE%D0%B4%20%D0%9F%D1%80%D1%8F%D0%BC%D1%8B%D1%85%20%D0%A1%D0%BE%D0%BE%D0%B1%D1%89%D0%B5%D0%BD%D0%B8%D0%B9)");
+                    const notificationMessage = await channel.send({ content: `<@${member.id}>`, embeds: [embed] });
+                    setTimeout(() => {
+                        notificationMessage.delete();
+                    }, 1000 * 60);
+                }
+                else {
+                    console.error("[Error code: 1957] Found unexpected error", error);
+                }
+            }
         }
     }
     catch (error) {

@@ -1,7 +1,7 @@
 import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
-import { apiStatus } from "../structures/apiStatus.js";
+import { GetApiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
 import { GetManifest } from "../utils/api/ManifestManager.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
@@ -34,7 +34,7 @@ export default new Command({
         },
     ],
     run: async ({ interaction, args }) => {
-        if (apiStatus.status !== 1) {
+        if (GetApiStatus("activity") !== 1) {
             throw { errorType: UserErrors.API_UNAVAILABLE };
         }
         const ephemeralReply = interaction.deferReply({ ephemeral: true });

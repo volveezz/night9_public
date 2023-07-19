@@ -14,6 +14,7 @@ var UserErrors;
     UserErrors["RAID_MISSING_DLC"] = "RAID_MISSING_DLC";
     UserErrors["RAID_GUIDE_NOT_FOUND"] = "RAID_GUIDE_NOT_FOUND";
     UserErrors["API_UNAVAILABLE"] = "API_UNAVAILABLE";
+    UserErrors["CLOSED_DM"] = "CLOSED_DM";
 })(UserErrors || (UserErrors = {}));
 export default UserErrors;
 //# sourceMappingURL=UserErrors.js.map

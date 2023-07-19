@@ -1,5 +1,5 @@
 import { clanOnline } from "../../core/userStatisticsManagement.js";
-import { apiStatus } from "../../structures/apiStatus.js";
+import { GetApiStatus } from "../../structures/apiStatus.js";
 import { GetManifest } from "../api/ManifestManager.js";
 import { sendApiRequest } from "../api/sendApiRequest.js";
 import { AuthData } from "../persistence/sequelize.js";
@@ -14,11 +14,11 @@ const currentlyRunning = new Map();
 const raidActivityModeHash = 2043403989;
 export async function clanOnlineMemberActivityChecker() {
     setInterval(async () => {
-        if (apiStatus.status !== 1)
+        if (GetApiStatus("activity") !== 1)
             return;
         const checkingUsers = new Map(clanOnline);
         for (const [discordId, { membershipId, platform }] of checkingUsers) {
-            if (apiStatus.status !== 1)
+            if (GetApiStatus("activity") !== 1)
                 return;
             const response = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204`);
             if (!response || !response.characterActivities) {

@@ -1,4 +1,4 @@
-import { ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, } from "discord.js";
+import { ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, RESTJSONErrorCodes, } from "discord.js";
 import { Op } from "sequelize";
 import { RaidButtons } from "../../configs/Buttons.js";
 import { RaidNames } from "../../configs/Raids.js";
@@ -9,12 +9,12 @@ import icons from "../../configs/icons.js";
 import raidsGuide from "../../configs/raidGuideData.js";
 import { dlcRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
-import { apiStatus } from "../../structures/apiStatus.js";
+import { GetApiStatus } from "../../structures/apiStatus.js";
 import { GetManifest } from "../api/ManifestManager.js";
 import { sendApiRequest } from "../api/sendApiRequest.js";
+import { completedRaidsData } from "../persistence/dataStore.js";
 import { RaidEvent } from "../persistence/sequelize.js";
 import { addButtonsToMessage } from "./addButtonsToMessage.js";
-import { completedRaidsData } from "./destinyActivityChecker.js";
 import nameCleaner from "./nameClearer.js";
 import { clearNotifications } from "./raidFunctions/raidNotifications.js";
 const blockedModifierHashesArray = [
@@ -300,7 +300,7 @@ function updateField(embed, fieldName, users, usersText, findFieldIndex) {
     }
 }
 export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) {
-    if (difficulty > 2 || apiStatus.status !== 1)
+    if (difficulty > 2 || GetApiStatus("account") !== 1)
         return null;
     const barrierEmoji = "<:barrier:1090473007471935519>";
     const overloadEmoji = "<:overload:1090473013398491236>";
@@ -503,7 +503,18 @@ export async function checkRaidTimeConflicts(interaction, raidEvent) {
             .setColor(colors.error)
             .setAuthor({ name: "Вы записались на несколько рейдов в одно время", iconURL: icons.error })
             .setDescription(`Рейды, на которые вы записаны <t:${targetRaidTime}:R>:\n　${userJoinedRaidsList}`);
-        await member.send({ embeds: [embed] });
+        try {
+            await member.send({ embeds: [embed] });
+        }
+        catch (error) {
+            if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
+                const raidChannel = await client.getAsyncTextChannel(raidEvent.channelId);
+                await raidChannel.send({ content: `<@${member.id}>`, embeds: [embed] });
+            }
+            else {
+                console.error("[Error code: 1962] Received error while sending message to user", error);
+            }
+        }
     }
 }
 export async function removeRaid(raid, interaction, requireMessageReply = true, mainInteraction) {
@@ -602,7 +613,7 @@ export function getRaidNameFromHash(activityHash) {
             return "unknown";
     }
 }
-export async function sendUserRaidGuideNoti(user, raidName) {
+export async function sendUserRaidGuideNoti(user, raidName, raidChannelId) {
     if (!(raidName in raidsGuide))
         return;
     const embed = new EmbedBuilder()
@@ -611,6 +622,21 @@ export async function sendUserRaidGuideNoti(user, raidName) {
     const components = [
         new ButtonBuilder().setCustomId(`raidGuide_${raidName}`).setLabel("Инструкция по рейду").setStyle(ButtonStyle.Primary),
     ];
-    return await user.send({ embeds: [embed], components: addButtonsToMessage(components) });
+    try {
+        user.send({ embeds: [embed], components: addButtonsToMessage(components) });
+    }
+    catch (error) {
+        if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
+            const member = await client.getAsyncMember(user.id);
+            embed
+                .setAuthor({
+                name: `${nameCleaner(member.displayName || user.username)}, ознакомься с текстовым прохождением рейда перед его началом`,
+            })
+                .setDescription("Вы закрыли доступ к своим личным сообщениям\nДля лучшего опыта на сервере, пожалуйста, откройте доступ к личным сообщениям в настройках Discord");
+            const raidChannel = await client.getAsyncTextChannel(raidChannelId);
+            await raidChannel.send({ content: `<@${user.id}>`, embeds: [embed], components: addButtonsToMessage(components) });
+        }
+    }
+    return;
 }
 //# sourceMappingURL=raidFunctions.js.map
