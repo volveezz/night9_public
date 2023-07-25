@@ -42,7 +42,7 @@ async function fetchAndSendLatestTweets(url, latestLink, routeName) {
             finalLink = entry.link;
             const author = getBungieTwitterAuthor(entry.creator);
             if (author && isValidTweet(author, entry.guid) && entry.content && entry.content.length > 0) {
-                generateTwitterEmbed(entry, author, feed.image?.url);
+                await generateTwitterEmbed(entry, author, feed.image?.url);
             }
             else {
                 console.error("[Error code: 1705]", entry);

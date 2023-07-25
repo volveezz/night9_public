@@ -17,7 +17,7 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
     if (!userCharactersArray) {
         userCharactersId.set(authData.discordId, []);
         await setUserCharacters(authData);
-        destinyActivityChecker({ authData, mode });
+        destinyActivityChecker({ authData, mode, member, count });
     }
     else {
         let completedActivities = [];
@@ -98,7 +98,7 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
             });
             if (member.roles.cache.has(process.env.CLANMEMBER) ||
                 (member.roles.cache.has(process.env.MEMBER) &&
-                    member.roles.cache.hasAny(...activityRoles.allMessages, ...activityRoles.allVoice, activityRoles.category)) ||
+                    member.roles.cache.hasAny(...activityRoles.allMessages, ...activityRoles.allVoice)) ||
                 authData.UserActivityData !== undefined) {
                 const { ron, ronMaster, kf, kfMaster, votd, votdMaster, dsc, gos, vog, vogMaster, lw, totalRaidCount } = completedRaidsData.get(discordId);
                 const ronClears = ron + ronMaster;

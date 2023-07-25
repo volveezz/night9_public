@@ -1,6 +1,10 @@
-import { EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { BungieTwitterAuthor } from "../../configs/BungieTwitterAuthor.js";
+import { TwitterButtons } from "../../configs/Buttons.js";
 import { client } from "../../index.js";
+import openai from "../../structures/OpenAI.js";
+import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
+import { originalTweetData, twitterOriginalVoters } from "../persistence/dataStore.js";
 let publicNewsChannel = null;
 function extractImageUrl(content) {
     const imgRegex = /<img.*?src="(.*?)".*?>/i;
@@ -17,7 +21,7 @@ function extractImageUrl(content) {
 }
 function clearText(content) {
     content = content.replace(/<br\s*\/?>/gi, "\n");
-    content = content.replace(/<div class="rsshub-quote">[\s\S]*?<\/div>|<[^>]*>|&[^;]+;/g, "");
+    content = content.replace(/<div class="rsshub-quote">[\s\S]*?<\/div>|<[^>]*>|&[^;]+;|https:\/\/t\.co\/\S+|https:\/\/twitter\.com\/i\/web\/status\/\S+/g, "");
     if (content.startsWith("Re "))
         content = content.slice(3);
     content = content.trim();
@@ -63,19 +67,47 @@ async function generateTwitterEmbed(twitterData, author, icon) {
         console.error("[Error code: 1754]", twitterData);
         return null;
     }
+    let components = [];
     const extractedMedia = extractImageUrl(twitterData.content || "")?.replaceAll("&amp;", "&");
     const replacedDescription = replaceTimeWithEpoch(cleanContent);
-    const replacedOutput = replacedDescription.replace(/https:\/\/t\.co\/\S+|https:\/\/twitter\.com\/i\/web\/status\/\S+/g, "");
-    const embed = resolveAuthor().setDescription(replacedOutput.length > 0 ? replacedOutput : null);
+    let tranlsatedContent = null;
+    try {
+        const translateRequest = await translateTweet(replacedDescription);
+        if (translateRequest && translateRequest.length > 1 && !translateRequest.includes("You exceeded your current quota")) {
+            tranlsatedContent = translateRequest;
+            components = [new ButtonBuilder().setCustomId(TwitterButtons.showOriginal).setLabel("Оригинал").setStyle(ButtonStyle.Secondary)];
+        }
+        else {
+            console.error("[Error code: 1966]", translateRequest);
+        }
+    }
+    catch (error) {
+        console.error("[Error code: 1967]", error);
+    }
+    const embed = resolveAuthor().setDescription(tranlsatedContent && tranlsatedContent.length > 1 ? tranlsatedContent : replacedDescription.length > 0 ? replacedDescription : null);
     if (extractedMedia) {
         embed.setImage(extractedMedia);
     }
     if (!publicNewsChannel)
-        publicNewsChannel =
-            client.getCachedTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID) ||
-                (await client.getCachedGuild().channels.fetch(process.env.ENGLISH_NEWS_CHANNEL_ID));
-    await publicNewsChannel.send({ embeds: [embed] });
+        publicNewsChannel = await client.getAsyncTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
+    await publicNewsChannel.send({ embeds: [embed], components: addButtonsToMessage(components) }).then((m) => {
+        if (!tranlsatedContent)
+            return;
+        const voteRecord = { original: new Set(), translation: new Set() };
+        twitterOriginalVoters.set(m.id, voteRecord);
+        originalTweetData.set(m.id, cleanContent);
+    });
     return;
+}
+async function translateTweet(sourceText) {
+    const prompt = `You are Destiny 2 official news translator. You need to translate English source text below into Russian. You need to use Destiny jargon, existing weapons, activity names, etc. If you don't have translated version of anything AND it does not present in translated data below, do not translate it and leave original name.\n\nHere some data of already translated activities:\nDLCs\nForsaken: Отвергнутые\nShadowkeep: Обитель теней\nBeyond Light: За гранью Света\nThe Witch Queen: Королева-Ведьма\nLightfall: Конец Света\nThe Final Shape: Финальная Форма\n30th Anniversary Pack: Пак 30-летия\n\nActivities\nCrucible: Горнило\nTrials of Osiris: Испытания Осириса\nStrikes: Налеты\nNightfall: The Ordeal: Сумрачный налет: Побоище\nGambit: Гамбит\nDungeon: Подземель\nShattered Throne: Расколотый Трон\nPit of Heresy: Яма Ереси\nDungeon - Prophecy: Откровение\nLast Wish: Последнее Желание\nGarden of Salvation: Сад Спасения\nDeep Stone Crypt: Склеп Глубокого камня\nVault of Glass: Хрустальный чертог\nRoot of Nightmares: Источник Кошмаров\nVow of the Disciple: Клятва Послушника\nKing’s Fall: Гибель Короля\nDuality: Дуальность\nGrasp of Avarice: Тиски алчности\nSpire of the Watcher: Шпиль хранителя\nGhosts of the Deep: Призраки Глубин\n\nEvents\nSolstice: Солнцестояние\nSolstice of heroes: Солнцестояние Героев\nThe Dawning: Рассвет\nIron Banner: Железное Знамя\nFestival of the Lost: Фестиваль Усопших\nGuardian Games: Игры Стражей\n\nWeapons\nThe Immortal: Бесмертный\nWitherhoard: Горстка пепла\nArbalest: Арбалет\nGjallarhorn: Гьяллархорн\nOsteo Striga: Остео Стрига\nXenophage: Ксенофаг\nIzanagi’s Burden: Бремя Идзанаги\nOutbreak Perfected: Идеальная эпидемия\nDivinity: Божественность\nAnarchy: Анархия\nThe Lament: Плач\nVanguard: Авангард\nTaken: Одержимые\nVex: Вексы\nFireteam: боевая группа\nHive Rune: руна Улья\nSaint-14: Сейнт-14\nCayde: Кейд\nRhulk: Рулк\nXivu Arath: Зиву Арат\nPlayer Removal: Отключение игроков`;
+    const output = await openai.createChatCompletion({
+        model: "gpt-3.5-turbo",
+        temperature: 0.7,
+        messages: [{ role: "assistant", name: "translator", content: `${prompt}\n\nText you need to translate:\n${sourceText}` }],
+    });
+    console.debug(output.data.choices[0].message?.content);
+    return output.data.choices[0].message?.content;
 }
 function replaceTimeWithEpoch(text) {
     const dateRegex = /❖\s+((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d+)/i;

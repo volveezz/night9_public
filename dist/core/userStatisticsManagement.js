@@ -425,7 +425,7 @@ async function handleMemberStatistics() {
                 if (!cachedMember)
                     continue;
                 await timer(1000);
-                destinyActivityChecker({ authData: userData, member: cachedMember, mode: 4 });
+                destinyActivityChecker({ authData: userData, member: cachedMember, mode: 4, count: 250 });
             }
         }
         catch (error) {

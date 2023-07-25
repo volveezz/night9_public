@@ -4,6 +4,7 @@ import express from "express";
 import { join, resolve } from "path";
 import { ExtendedClient } from "./structures/client.js";
 import webHandler from "./utils/api/webHandler.js";
+import calculateVoteResults from "./utils/discord/twitterTranslationVotes.js";
 import { forceUpdateUserActivity } from "./utils/discord/userActivityHandler.js";
 import { getOAuthTokens, getOAuthUrl, getUserData, updateMetadata } from "./utils/general/linkedRoles.js";
 import * as storage from "./utils/persistence/webStorage.js";
@@ -19,10 +20,12 @@ process.on("SIGTERM", handleExit);
 async function handleExit(signal) {
     console.log(`Received ${signal}. Saving data...`);
     await forceUpdateUserActivity();
+    await calculateVoteResults();
+    console.log("Data saved. Exiting...");
     process.exit(0);
 }
 process.on("uncaughtException", (error) => {
-    console.error("uncaughtException at top level", error);
+    console.error("UncaughtException at top level", error);
 });
 process.on("unhandledRejection", (error) => {
     if (error.code === "ECONNRESET")

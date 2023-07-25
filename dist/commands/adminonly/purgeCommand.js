@@ -1,5 +1,6 @@
 import { ApplicationCommandOptionType, ChannelType, EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
+import icons from "../../configs/icons.js";
 import { Command } from "../../structures/command.js";
 export default new Command({
     name: "purge",
@@ -58,7 +59,7 @@ export default new Command({
                 .then(async (response) => {
                 const embed = new EmbedBuilder()
                     .setColor(colors.success)
-                    .setTitle(`${response.size} сообщений ${user.username} были удалены`);
+                    .setAuthor({ name: `${response.size} сообщений ${user.username} были удалены`, iconURL: icons.success });
                 await deferredReply;
                 interaction.editReply({ embeds: [embed] });
             })

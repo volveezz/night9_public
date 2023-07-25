@@ -84,4 +84,13 @@ export var DatabaseCommandButtons;
     DatabaseCommandButtons["Cancel"] = "db_roles_add_cancel";
     DatabaseCommandButtons["ChangeName"] = "db_roles_add_change_name";
 })(DatabaseCommandButtons || (DatabaseCommandButtons = {}));
+export var TwitterButtons;
+(function (TwitterButtons) {
+    TwitterButtons["showOriginal"] = "twitter_showOriginal";
+})(TwitterButtons || (TwitterButtons = {}));
+export var TwitterVoteButtons;
+(function (TwitterVoteButtons) {
+    TwitterVoteButtons["originalBetter"] = "twitterVote_originalBetter";
+    TwitterVoteButtons["translationBetter"] = "twitterVote_translationBetter";
+})(TwitterVoteButtons || (TwitterVoteButtons = {}));
 //# sourceMappingURL=Buttons.js.map

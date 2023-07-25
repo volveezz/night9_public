@@ -8,5 +8,7 @@ const channelsForDeletion = new Set();
 const processedRssLinks = new Set();
 const completedRaidsData = new Map();
 const lastAlertKeys = new Set();
-export { channelDataMap, channelsForDeletion, completedRaidsData, joinDateCheckedClanMembers, lastAlertKeys, nonRegClanMembers, processedRssLinks, recentRaidCreators, recentlyCreatedRaidInvites, recentlyExpiredAuthUsersBungieIds, };
+const originalTweetData = new Map();
+const twitterOriginalVoters = new Map();
+export { channelDataMap, channelsForDeletion, completedRaidsData, joinDateCheckedClanMembers, lastAlertKeys, nonRegClanMembers, originalTweetData, processedRssLinks, recentRaidCreators, recentlyCreatedRaidInvites, recentlyExpiredAuthUsersBungieIds, twitterOriginalVoters, };
 //# sourceMappingURL=dataStore.js.map

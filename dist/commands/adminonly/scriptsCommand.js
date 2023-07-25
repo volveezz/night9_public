@@ -1,6 +1,9 @@
 import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
+import icons from "../../configs/icons.js";
+import openai from "../../structures/OpenAI.js";
 import { Command } from "../../structures/command.js";
+import calculateVoteResults from "../../utils/discord/twitterTranslationVotes.js";
 import { convertSeconds } from "../../utils/general/convertSeconds.js";
 import { AuthData, UserActivityData } from "../../utils/persistence/sequelize.js";
 export default new Command({
@@ -15,10 +18,24 @@ export default new Command({
             required: true,
         },
     ],
-    run: async ({ client, interaction }) => {
+    run: async ({ client, interaction, args }) => {
         const defferedReply = interaction.deferReply({ ephemeral: true });
-        const scriptId = interaction.options.getString("script", true).toLowerCase();
+        const scriptId = args.getString("script", true).toLowerCase();
         switch (scriptId) {
+            case "resolvevotes": {
+                await calculateVoteResults();
+                const embed = new EmbedBuilder()
+                    .setColor(colors.success)
+                    .setAuthor({ name: "Голоса успешно обработаны", iconURL: icons.success });
+                await defferedReply;
+                interaction.editReply({ embeds: [embed] });
+                return;
+            }
+            case "getmodels": {
+                const request = await openai.listModels();
+                console.debug(request.data.data);
+                return;
+            }
             case "checkrole": {
                 const members = client
                     .getCachedMembers()
