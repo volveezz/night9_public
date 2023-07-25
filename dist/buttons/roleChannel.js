@@ -2,7 +2,7 @@ import { EmbedBuilder } from "discord.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import { activityRoles, classRoles, statisticsRoles, trialsRoles } from "../configs/roles.js";
-import { timer } from "../utils/general/utilities.js";
+import { pause } from "../utils/general/utilities.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default {
     name: "roleChannel",
@@ -90,7 +90,7 @@ export default {
                             break;
                     }
                     await member.roles.remove(rolesToRemove);
-                    await timer(2500);
+                    await pause(2500);
                     if ((await member.fetch()).roles.cache.hasAny(...rolesToRemove)) {
                         console.error(`[Error code: 1643] Member had roles that should be removed so we removed them again\n${rolesToRemove}`);
                         await member.roles.remove(rolesToRemove);

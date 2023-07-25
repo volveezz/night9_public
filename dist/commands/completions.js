@@ -3,10 +3,10 @@ import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { client } from "../index.js";
-import { GetApiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
 import { GetManifest } from "../utils/api/ManifestManager.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
+import { getEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
@@ -51,7 +51,7 @@ export default new Command({
         type: ApplicationCommandType.User,
     },
     run: async ({ args, interaction: slashInteraction, userMenuInteraction }) => {
-        if (GetApiStatus("activity") !== 1) {
+        if (getEndpointStatus("activity") !== 1) {
             throw { errorType: UserErrors.API_UNAVAILABLE };
         }
         const interaction = userMenuInteraction || slashInteraction;

@@ -1,7 +1,7 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import guildNicknameManagement from "../core/guildNicknameManagement.js";
-import { requestUpdateTokens } from "../core/tokenManagement.js";
+import { requestTokenRefresh } from "../core/tokenManagement.js";
 import { checkIndiviualUserStatistics } from "../core/userStatisticsManagement.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
@@ -49,7 +49,7 @@ export default new Event("guildMemberAdd", async (member) => {
         accessToken: "",
     };
     try {
-        const request = await requestUpdateTokens({ refresh_token: data.refreshToken, userId: data.discordId, table: LeavedUsersData });
+        const request = await requestTokenRefresh({ refresh_token: data.refreshToken, userId: data.discordId, table: LeavedUsersData });
         if (request?.refresh_token) {
             authorizationData.refreshToken = request.refresh_token;
             authorizationData.accessToken = request.access_token;

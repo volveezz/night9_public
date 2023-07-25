@@ -2,9 +2,9 @@ import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { StatsButton } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
-import { GetApiStatus } from "../structures/apiStatus.js";
 import { GetManifest } from "../utils/api/ManifestManager.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
+import { getEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default {
@@ -12,7 +12,7 @@ export default {
     async run({ interaction }) {
         if (interaction.customId !== StatsButton.oldEvents && interaction.customId !== StatsButton.pinnacle)
             return;
-        if (GetApiStatus("account") !== 1) {
+        if (getEndpointStatus("account") !== 1) {
             throw { errorType: UserErrors.API_UNAVAILABLE };
         }
         const deferredReply = interaction.deferReply({ ephemeral: true });

@@ -10,7 +10,7 @@ import { RaidEvent, RaidUserNotification } from "../../persistence/sequelize.js"
 import { addButtonsToMessage } from "../addButtonsToMessage.js";
 import nameCleaner from "../nameClearer.js";
 import { generateRaidCompletionText, getRaidDetails } from "../raidFunctions.js";
-import { getRandomGIF, getRandomRaidGIF, timer } from "../utilities.js";
+import { getRandomGIF, getRandomRaidGIF, pause } from "../utilities.js";
 import raidFireteamChecker from "./raidFireteamChecker.js";
 schedule("0 23 * * *", () => {
     recentlyCreatedRaidInvites.clear();
@@ -182,7 +182,7 @@ async function notifyUserAboutNotifications(discordId) {
     if (!member)
         return console.error("[Error code: 1801] Member not found", discordId);
     notifiedMembers.add(discordId);
-    await timer(1000 * 20);
+    await pause(1000 * 20);
     member.send({ embeds: [embed], components: addButtonsToMessage([components]) });
 }
 export function clearNotifications(raidId) {

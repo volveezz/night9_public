@@ -1,15 +1,15 @@
 import { checkedStoryActivities, forbiddenRaidIds } from "../../configs/ids.js";
 import { activityRoles, raidRoles, trialsRoles } from "../../configs/roles.js";
 import { userCharactersId } from "../../core/userStatisticsManagement.js";
-import { GetApiStatus } from "../../structures/apiStatus.js";
 import { sendApiRequest } from "../api/sendApiRequest.js";
+import { getEndpointStatus } from "../api/statusCheckers/statusTracker.js";
 import { logActivityCompletion } from "../logging/activityLogger.js";
 import { completedRaidsData } from "../persistence/dataStore.js";
 import { getRaidNameFromHash } from "./raidFunctions.js";
 import { setUserCharacters } from "./setUserCharacters.js";
 const cachedKDData = new Map();
 export async function destinyActivityChecker({ authData, mode, member, count = 250 }) {
-    if (GetApiStatus("activity") !== 1)
+    if (getEndpointStatus("activity") !== 1)
         return;
     const activityAvaliableTime = Date.now() - 1000 * 60 * 60 * 2;
     const { platform, bungieId, accessToken, discordId } = authData;
@@ -27,12 +27,12 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
         let isPreviousIsTraded = false;
         let isWintrader = false;
         for (const character of userCharactersArray) {
-            if (GetApiStatus("activity") !== 1)
+            if (getEndpointStatus("activity") !== 1)
                 return;
             let page = 0;
             await fetchAndProcessActivities();
             async function fetchAndProcessActivities() {
-                if (GetApiStatus("activity") !== 1)
+                if (getEndpointStatus("activity") !== 1)
                     return;
                 const response = await sendApiRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Character/${character}/Stats/Activities/?count=${count}&mode=${mode}&page=${page}`, accessToken);
                 if (response.activities?.length > 0) {

@@ -3,7 +3,7 @@ import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { Command } from "../../structures/command.js";
 import setMemberRoles from "../../utils/discord/setRoles.js";
-import { timer } from "../../utils/general/utilities.js";
+import { pause } from "../../utils/general/utilities.js";
 export default new Command({
     name: "role",
     description: "Управление и удаление ролей у пользователей",
@@ -75,7 +75,7 @@ export default new Command({
                             console.error("[Error code: 1436]", e);
                         }
                     }
-                    await timer(fixedDelay);
+                    await pause(fixedDelay);
                 }
                 const embed = new EmbedBuilder()
                     .setColor(colors.success)

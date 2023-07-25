@@ -1,10 +1,10 @@
 import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
-import { GetApiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
 import { GetManifest } from "../utils/api/ManifestManager.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
+import { getEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 export default new Command({
     name: "закрытия_рейдов",
@@ -34,7 +34,7 @@ export default new Command({
         },
     ],
     run: async ({ interaction, args }) => {
-        if (GetApiStatus("activity") !== 1) {
+        if (getEndpointStatus("activity") !== 1) {
             throw { errorType: UserErrors.API_UNAVAILABLE };
         }
         const ephemeralReply = interaction.deferReply({ ephemeral: true });

@@ -11,7 +11,7 @@ import getFiles from "../utils/general/fileReader.js";
 import raidFireteamChecker from "../utils/general/raidFunctions/raidFireteamChecker.js";
 import { loadNotifications } from "../utils/general/raidFunctions/raidNotifications.js";
 import { cacheRaidMilestones } from "../utils/general/raidMilestones.js";
-import { timer } from "../utils/general/utilities.js";
+import { pause } from "../utils/general/utilities.js";
 import { restoreFetchedPGCRs } from "../utils/logging/activityLogger.js";
 import { lastAlertKeys, processedRssLinks } from "../utils/persistence/dataStore.js";
 const __dirname = resolve();
@@ -224,7 +224,7 @@ export class ExtendedClient extends Client {
         return Promise.all([buttonsLoaded, eventsLoaded, commandsLoaded, autocompletionsLoaded]);
     }
     async loadProdComponents() {
-        await timer(5000);
+        await pause(5000);
         tokenManagment();
         clanOnlineMemberActivityChecker();
         periodicDestinyActivityChecker();
@@ -241,7 +241,7 @@ export class ExtendedClient extends Client {
         fetchGlobalAlerts();
     }
     async fetchMembersAndMessages() {
-        await timer(1000 * 2);
+        await pause(1000 * 2);
         this.guild.channels.cache.forEach(async (channel) => {
             if (channel.type === ChannelType.GuildVoice && channel.id !== this.guild.afkChannelId) {
                 channel.members.forEach((member) => {

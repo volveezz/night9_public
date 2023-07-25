@@ -3,10 +3,10 @@ import { StatsButton } from "../configs/Buttons.js";
 import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import { bungieNames } from "../core/userStatisticsManagement.js";
-import { GetApiStatus } from "../structures/apiStatus.js";
 import { Command } from "../structures/command.js";
 import { GetManifest } from "../utils/api/ManifestManager.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
+import { getEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
 import { AuthData, UserActivityData } from "../utils/persistence/sequelize.js";
 export default new Command({
@@ -26,7 +26,7 @@ export default new Command({
         nameLocalizations: { "en-US": "Information", "en-GB": "Information" },
     },
     run: async ({ client, interaction: commandInteraction, userMenuInteraction: userInteraction, messageMenuInteraction: messageMenuInteraction, }) => {
-        if (GetApiStatus("account") !== 1) {
+        if (getEndpointStatus("account") !== 1) {
             throw { errorType: UserErrors.API_UNAVAILABLE };
         }
         const interaction = messageMenuInteraction || userInteraction || commandInteraction;

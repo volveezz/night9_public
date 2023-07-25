@@ -3,10 +3,10 @@ import { getAdminAccessToken } from "../commands/clanCommand.js";
 import NightRoleCategory from "../configs/RoleCategory.js";
 import { clanJoinDateRoles } from "../configs/roles.js";
 import { client } from "../index.js";
-import { GetApiStatus, SetApiStatus } from "../structures/apiStatus.js";
 import getClanMemberData from "../utils/api/getClanMemberData.js";
 import kickClanMember from "../utils/api/kickClanMember.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
+import { getEndpointStatus, updateEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import { updateClanRolesWithLogging } from "../utils/logging/clanEventLogger.js";
 import { joinDateCheckedClanMembers, nonRegClanMembers, recentlyExpiredAuthUsersBungieIds } from "../utils/persistence/dataStore.js";
 import { clanOnline } from "./userStatisticsManagement.js";
@@ -22,15 +22,15 @@ async function clanMembersManagement(databaseData) {
         if (lastLoggedErrorCode !== 1) {
             lastLoggedErrorCode = errorCode ?? 1;
         }
-        if (GetApiStatus("api") != 1 && clanList.results && clanList.results.length > 1) {
-            SetApiStatus("api", 1);
+        if (getEndpointStatus("api") != 1 && clanList.results && clanList.results.length > 1) {
+            updateEndpointStatus("api", 1);
             client.user.setPresence({
                 status: "online",
             });
             console.info("\x1b[32mBungie API is back online\x1b[0m");
         }
-        if (errorCode != null && errorCode != GetApiStatus("api")) {
-            SetApiStatus("api", 1);
+        if (errorCode != null && errorCode != getEndpointStatus("api")) {
+            updateEndpointStatus("api", 1);
         }
         if (client.user.presence.activities[0].name.startsWith("🔁")) {
             client.stopUpdatingPresence();

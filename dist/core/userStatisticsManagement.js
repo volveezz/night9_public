@@ -3,8 +3,8 @@ import NightRoleCategory from "../configs/RoleCategory.js";
 import { dungeonsTriumphHashes } from "../configs/roleRequirements.js";
 import { activityRoles, dlcRoles, guardianRankRoles, seasonalRoles, statisticsRoles, trialsRoles } from "../configs/roles.js";
 import { client } from "../index.js";
-import { GetApiStatus, SetApiStatus } from "../structures/apiStatus.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
+import { getEndpointStatus, updateEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import { destinyActivityChecker } from "../utils/general/destinyActivityChecker.js";
 import { AuthData, AutoRoleData, UserActivityData } from "../utils/persistence/sequelize.js";
 import clanMembersManagement from "./clanMembersManagement.js";
@@ -35,7 +35,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
             !destinyProfileResponse?.profile.data) {
             const ErrorResponse = destinyProfileResponse;
             if (ErrorResponse?.ErrorCode === 5) {
-                return SetApiStatus("account", 5);
+                return updateEndpointStatus("account", 5);
             }
             if (ErrorResponse?.ErrorCode === 1688 ||
                 ErrorResponse?.ErrorCode === 1672 ||
@@ -460,7 +460,7 @@ async function handleMemberStatistics() {
             if (!databaseData || (databaseData.length === 0 && !process.env.DEV_BUILD)) {
                 return console.error(`[Error code: 1022] DB is ${databaseData ? `${databaseData}${databaseData?.length} size` : "not avaliable"}`);
             }
-            if (GetApiStatus("account") === 1) {
+            if (getEndpointStatus("account") === 1) {
                 for (let i = 0; i < databaseData.length; i++) {
                     const userDatabaseData = databaseData[i];
                     const randomValue = Math.floor(Math.random() * 100);

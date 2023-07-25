@@ -1,12 +1,12 @@
 import { clanOnline } from "../../core/userStatisticsManagement.js";
-import { GetApiStatus } from "../../structures/apiStatus.js";
 import { GetManifest } from "../api/ManifestManager.js";
 import { sendApiRequest } from "../api/sendApiRequest.js";
+import { getEndpointStatus } from "../api/statusCheckers/statusTracker.js";
 import { AuthData } from "../persistence/sequelize.js";
 import { getRaidDetails } from "./raidFunctions.js";
 import { getWeeklyRaidActivityHashes } from "./raidFunctions/gerWeeklyRaid.js";
 import { raidMilestoneHashes } from "./raidMilestones.js";
-import { timer } from "./utilities.js";
+import { pause } from "./utilities.js";
 export const completedPhases = new Map();
 const activityDefinition = await GetManifest("DestinyActivityDefinition");
 const activityCompletionCurrentProfiles = new Map();
@@ -14,11 +14,11 @@ const currentlyRunning = new Map();
 const raidActivityModeHash = 2043403989;
 export async function clanOnlineMemberActivityChecker() {
     setInterval(async () => {
-        if (GetApiStatus("activity") !== 1)
+        if (getEndpointStatus("activity") !== 1)
             return;
         const checkingUsers = new Map(clanOnline);
         for (const [discordId, { membershipId, platform }] of checkingUsers) {
-            if (GetApiStatus("activity") !== 1)
+            if (getEndpointStatus("activity") !== 1)
                 return;
             const response = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204`);
             if (!response || !response.characterActivities) {
@@ -31,7 +31,7 @@ export async function clanOnlineMemberActivityChecker() {
             const mostRecentCharacterId = findMostRecentCharacterId(characterActivities);
             const activeCharacter = characterActivities[mostRecentCharacterId];
             if (!isRaidActivity(activeCharacter) || isRaidIsWeekly(activeCharacter)) {
-                await timer(2000);
+                await pause(2000);
                 continue;
             }
             if (!activityCompletionCurrentProfiles.has(mostRecentCharacterId)) {
@@ -53,7 +53,7 @@ export async function clanOnlineMemberActivityChecker() {
                     discordId,
                 });
             }
-            await timer(4000);
+            await pause(4000);
         }
     }, 60 * 1000 * 8);
 }

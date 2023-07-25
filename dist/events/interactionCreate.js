@@ -1,11 +1,11 @@
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import createErrorEmbed from "../utils/errorHandling/createErrorEmbed.js";
-import { timer } from "../utils/general/utilities.js";
+import { pause } from "../utils/general/utilities.js";
 import logCommandInteraction from "../utils/logging/commandLogger.js";
 const errorResolver = async ({ error, interaction, retryOperation }) => {
     if (retryOperation)
-        await timer(200);
+        await pause(200);
     const { embeds, components } = createErrorEmbed(error);
     const messageOptions = { embeds, components, ephemeral: true };
     try {

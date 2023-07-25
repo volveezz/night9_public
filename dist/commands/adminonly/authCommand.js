@@ -3,7 +3,7 @@ import { Op } from "sequelize";
 import UserErrors from "../../configs/UserErrors.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
-import { requestUpdateTokens } from "../../core/tokenManagement.js";
+import { requestTokenRefresh } from "../../core/tokenManagement.js";
 import { Command } from "../../structures/command.js";
 import { isSnowflake } from "../../utils/general/utilities.js";
 import { AuthData } from "../../utils/persistence/sequelize.js";
@@ -38,7 +38,7 @@ export default new Command({
             throw { errorType: UserErrors.DB_USER_NOT_FOUND, errorData: { isSelf } };
         }
         try {
-            var token = await requestUpdateTokens({ refresh_token: data.refreshToken, userId: data.discordId });
+            var token = await requestTokenRefresh({ refresh_token: data.refreshToken, userId: data.discordId });
         }
         catch (err) {
             throw { name: "[Error code: 1233] Request error", description: err?.error?.error_description || "no description available", err };

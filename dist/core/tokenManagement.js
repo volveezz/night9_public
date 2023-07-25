@@ -3,15 +3,15 @@ import fetch from "node-fetch";
 import { RegisterButtons } from "../configs/Buttons.js";
 import colors from "../configs/colors.js";
 import { client } from "../index.js";
-import { GetApiStatus, SetApiStatus } from "../structures/apiStatus.js";
 import { UpdateTokenRefreshTime } from "../structures/tokenRefresher.js";
+import { getEndpointStatus, updateEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import setMemberRoles from "../utils/discord/setRoles.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { recentlyExpiredAuthUsersBungieIds } from "../utils/persistence/dataStore.js";
 import { AuthData, LeavedUsersData } from "../utils/persistence/sequelize.js";
 const BUNGIE_TOKEN_URL = "https://www.bungie.net/Platform/App/OAuth/Token/";
-export async function requestUpdateTokens({ userId, table = AuthData, refresh_token, }) {
+export async function requestTokenRefresh({ userId, table = AuthData, refresh_token, }) {
     let refreshToken = refresh_token;
     if (!refreshToken) {
         if (table === AuthData) {
@@ -41,7 +41,7 @@ export async function requestUpdateTokens({ userId, table = AuthData, refresh_to
 }
 async function bungieGrantRequest(row, table, retry = false) {
     try {
-        const request = await requestUpdateTokens({ refresh_token: row.refreshToken, table: table === 1 ? AuthData : LeavedUsersData });
+        const request = await requestTokenRefresh({ refresh_token: row.refreshToken, table: table === 1 ? AuthData : LeavedUsersData });
         if (request && request.access_token) {
             row.accessToken = request.access_token;
             row.refreshToken = request.refresh_token;
@@ -61,7 +61,7 @@ async function bungieGrantRequest(row, table, retry = false) {
 }
 async function handleRequestError(request, row, table, retry) {
     if (request && request.error_description === "SystemDisabled") {
-        SetApiStatus("oauth", 5);
+        updateEndpointStatus("oauth", 5);
     }
     if (retry === false) {
         console.error(`[Error code: 1745] First time error for ${row.bungieId} | ${request?.error_description}`);
@@ -124,11 +124,11 @@ async function handleAuthorizationRecordExpired(row, table) {
     }
 }
 async function refreshTokens(table) {
-    if (GetApiStatus("oauth") !== 1)
+    if (getEndpointStatus("oauth") !== 1)
         return;
     const data = table === 1
-        ? await AuthData.findAll({ attributes: ["bungieId", "refreshToken"] })
-        : await LeavedUsersData.findAll({ attributes: ["bungieId", "refreshToken"] });
+        ? await AuthData.findAll({ attributes: ["discordId", "bungieId", "refreshToken"] })
+        : await LeavedUsersData.findAll({ attributes: ["discordId", "bungieId", "refreshToken"] });
     for (const row of data) {
         try {
             if (!row.refreshToken)

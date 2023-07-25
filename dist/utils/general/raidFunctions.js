@@ -9,9 +9,9 @@ import icons from "../../configs/icons.js";
 import raidsGuide from "../../configs/raidGuideData.js";
 import { dlcRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
-import { GetApiStatus } from "../../structures/apiStatus.js";
 import { GetManifest } from "../api/ManifestManager.js";
 import { sendApiRequest } from "../api/sendApiRequest.js";
+import { getEndpointStatus } from "../api/statusCheckers/statusTracker.js";
 import { completedRaidsData } from "../persistence/dataStore.js";
 import { RaidEvent } from "../persistence/sequelize.js";
 import { addButtonsToMessage } from "./addButtonsToMessage.js";
@@ -300,7 +300,7 @@ function updateField(embed, fieldName, users, usersText, findFieldIndex) {
     }
 }
 export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) {
-    if (difficulty > 2 || GetApiStatus("account") !== 1)
+    if (difficulty > 2 || getEndpointStatus("account") !== 1)
         return null;
     const barrierEmoji = "<:barrier:1090473007471935519>";
     const overloadEmoji = "<:overload:1090473013398491236>";

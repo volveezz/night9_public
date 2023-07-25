@@ -4,8 +4,8 @@ import { canceledFireteamCheckingRaids } from "../../../buttons/raidInChnButton.
 import { RaidButtons } from "../../../configs/Buttons.js";
 import colors from "../../../configs/colors.js";
 import { client } from "../../../index.js";
-import { GetApiStatus } from "../../../structures/apiStatus.js";
 import { sendApiRequest } from "../../api/sendApiRequest.js";
+import { getEndpointStatus } from "../../api/statusCheckers/statusTracker.js";
 import { AuthData, RaidEvent } from "../../persistence/sequelize.js";
 import { addButtonsToMessage } from "../addButtonsToMessage.js";
 import nameCleaner from "../nameClearer.js";
@@ -229,7 +229,7 @@ async function getVoiceChannelMembersAuthData(raidId, voiceChannelMemberIds) {
     return usersData;
 }
 async function checkFireteamRoster(voiceChannelMembersAuthData, raidName, raidId) {
-    if (GetApiStatus("account") !== 1)
+    if (getEndpointStatus("account") !== 1)
         return null;
     for (const authData of voiceChannelMembersAuthData) {
         try {

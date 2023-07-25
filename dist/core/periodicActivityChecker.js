@@ -1,15 +1,15 @@
 import { Op } from "sequelize";
 import { client } from "../index.js";
-import { GetApiStatus } from "../structures/apiStatus.js";
+import { getEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import { destinyActivityChecker } from "../utils/general/destinyActivityChecker.js";
-import { timer } from "../utils/general/utilities.js";
+import { pause } from "../utils/general/utilities.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 import { clanOnline } from "./userStatisticsManagement.js";
 async function checkClanActivitiesPeriodically() {
     if (process.env.DEV_BUILD === "dev")
         return;
     setInterval(async () => {
-        if (GetApiStatus("activity") !== 1)
+        if (getEndpointStatus("activity") !== 1)
             return;
         const onlineClanMembers = await AuthData.findAll({
             where: {
@@ -47,7 +47,7 @@ async function checkClanActivitiesPeriodically() {
                     destinyActivityChecker({ authData: memberData, mode: 2, count: 3 });
                     break;
             }
-            await timer(250);
+            await pause(250);
         }
     }, 1000 * 66);
 }

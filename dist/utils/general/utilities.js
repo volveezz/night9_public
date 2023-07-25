@@ -19,7 +19,7 @@ export function descriptionFormatter(text) {
     })
         .trim();
 }
-export async function timer(ms) {
+export async function pause(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 let gif;
