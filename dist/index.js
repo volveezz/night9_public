@@ -40,6 +40,8 @@ process.on("unhandledRejection", (error) => {
         return console.error(`[Error code: 1215] ${error.code}`);
     if (error.code === 50035)
         return console.error("[Error code: 1243]", error?.rawError?.errors, error?.rawError?.error, JSON.stringify(error));
+    if (error.message?.startsWith("[Error code: 1952]"))
+        return;
     console.error("UnhandledRejection at top level", error.stack || error);
 });
 const app = express();

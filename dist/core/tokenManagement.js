@@ -4,6 +4,7 @@ import { RegisterButtons } from "../configs/Buttons.js";
 import colors from "../configs/colors.js";
 import { client } from "../index.js";
 import { GetApiStatus, SetApiStatus } from "../structures/apiStatus.js";
+import { UpdateTokenRefreshTime } from "../structures/tokenRefresher.js";
 import setMemberRoles from "../utils/discord/setRoles.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../utils/general/nameClearer.js";
@@ -36,14 +37,16 @@ export async function requestUpdateTokens({ userId, table = AuthData, refresh_to
         },
         body: form,
     }));
-    const request = await fetchRequest.json();
-    return request;
+    return (await fetchRequest.json());
 }
 async function bungieGrantRequest(row, table, retry = false) {
     try {
         const request = await requestUpdateTokens({ refresh_token: row.refreshToken, table: table === 1 ? AuthData : LeavedUsersData });
         if (request && request.access_token) {
-            await (table === 1 ? AuthData : LeavedUsersData).update({ accessToken: request.access_token, refreshToken: request.refresh_token }, { where: { bungieId: row.bungieId } });
+            row.accessToken = request.access_token;
+            row.refreshToken = request.refresh_token;
+            await row.save();
+            UpdateTokenRefreshTime();
         }
         else {
             handleRequestError(request, row, table, retry);
