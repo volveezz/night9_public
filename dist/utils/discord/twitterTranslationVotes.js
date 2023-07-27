@@ -2,8 +2,7 @@ import { EmbedBuilder } from "discord.js";
 import { client } from "../../index.js";
 import { originalTweetData, twitterOriginalVoters } from "../persistence/dataStore.js";
 async function calculateVoteResults() {
-    const channel = client.getCachedTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID) ||
-        (await client.getAsyncTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID));
+    const channel = await client.getAsyncTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
     for (const [messageId, { original, translation }] of twitterOriginalVoters) {
         try {
             if ((original.size === 0 && translation.size === 0) || original.size <= translation.size) {
@@ -27,6 +26,7 @@ async function calculateVoteResults() {
             console.error("[Error code: 1968]", error);
         }
     }
+    twitterOriginalVoters.clear();
 }
 export default calculateVoteResults;
 //# sourceMappingURL=twitterTranslationVotes.js.map

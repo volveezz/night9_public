@@ -21,9 +21,15 @@ function extractImageUrl(content) {
 }
 function clearText(content) {
     content = content.replace(/<br\s*\/?>/gi, "\n");
-    content = content.replace(/<div class="rsshub-quote">[\s\S]*?<\/div>|<[^>]*>|&[^;]+;|https:\/\/t\.co\/\S+|https:\/\/twitter\.com\/i\/web\/status\/\S+/g, "");
+    content = content.replace(/&gt;/gi, ">");
+    content = content.replace(/&lt;/gi, "<");
+    content = content.replace(/&amp;/gi, "&");
+    content = content.replace(/&quot;/gi, '"');
+    content = content.replace(/&apos;/gi, "'");
+    content = content.replace(/<div class="rsshub-quote">[\s\S]*?<\/div>|<[^>]*>|https:\/\/t\.co\/\S+|https:\/\/twitter\.com\/i\/web\/status\/\S+/g, "");
     if (content.startsWith("Re "))
         content = content.slice(3);
+    content = content.replace(/^ +/gm, (match) => "\u00A0".repeat(match.length));
     content = content.trim();
     return content;
 }
@@ -100,14 +106,113 @@ async function generateTwitterEmbed(twitterData, author, icon) {
     return;
 }
 async function translateTweet(sourceText) {
-    const prompt = `You are Destiny 2 official news translator. You need to translate English source text below into Russian. You need to use Destiny jargon, existing weapons, activity names, etc. If you don't have translated version of anything AND it does not present in translated data below, do not translate it and leave original name.\n\nHere some data of already translated activities:\nDLCs\nForsaken: Отвергнутые\nShadowkeep: Обитель теней\nBeyond Light: За гранью Света\nThe Witch Queen: Королева-Ведьма\nLightfall: Конец Света\nThe Final Shape: Финальная Форма\n30th Anniversary Pack: Пак 30-летия\n\nActivities\nCrucible: Горнило\nTrials of Osiris: Испытания Осириса\nStrikes: Налеты\nNightfall: The Ordeal: Сумрачный налет: Побоище\nGambit: Гамбит\nDungeon: Подземель\nShattered Throne: Расколотый Трон\nPit of Heresy: Яма Ереси\nDungeon - Prophecy: Откровение\nLast Wish: Последнее Желание\nGarden of Salvation: Сад Спасения\nDeep Stone Crypt: Склеп Глубокого камня\nVault of Glass: Хрустальный чертог\nRoot of Nightmares: Источник Кошмаров\nVow of the Disciple: Клятва Послушника\nKing’s Fall: Гибель Короля\nDuality: Дуальность\nGrasp of Avarice: Тиски алчности\nSpire of the Watcher: Шпиль хранителя\nGhosts of the Deep: Призраки Глубин\n\nEvents\nSolstice: Солнцестояние\nSolstice of heroes: Солнцестояние Героев\nThe Dawning: Рассвет\nIron Banner: Железное Знамя\nFestival of the Lost: Фестиваль Усопших\nGuardian Games: Игры Стражей\n\nWeapons\nThe Immortal: Бесмертный\nWitherhoard: Горстка пепла\nArbalest: Арбалет\nGjallarhorn: Гьяллархорн\nOsteo Striga: Остео Стрига\nXenophage: Ксенофаг\nIzanagi’s Burden: Бремя Идзанаги\nOutbreak Perfected: Идеальная эпидемия\nDivinity: Божественность\nAnarchy: Анархия\nThe Lament: Плач\nVanguard: Авангард\nTaken: Одержимые\nVex: Вексы\nFireteam: боевая группа\nHive Rune: руна Улья\nSaint-14: Сейнт-14\nCayde: Кейд\nRhulk: Рулк\nXivu Arath: Зиву Арат\nPlayer Removal: Отключение игроков\nThe Lightblade: Клинок Света`;
+    const prompt = `You are an official Destiny 2 news translator. Please follow the instructions below and translate text in the 'user' role.
+1. You need to translate English source text in 'user' role to Russian.
+2. You need to use Destiny jargon, existing weapons, activity names, etc.
+3. If you don't have a translated version of something AND it's not present in the translated dataset below, don't translate it and leave the original name, this includes but is not limited to: resource names, character names, weapon names.
+4. If you see something like Precision Bow - it doesn't mean that a bow has high precision, but rather bow with precision frame (точной рамой).
+
+Translated dataset:
+{
+    "DLC": {
+        "Forsaken": "Отвергнутые",
+        "Shadowkeep": "Обитель теней",
+        "Beyond Light": "За гранью Света",
+        "The Witch Queen": "Королева-Ведьма",
+        "Lightfall": "Конец Света",
+        "The Final Shape": "Финальная Форма",
+        "30th Anniversary Pack": "Пак 30-летия"
+    },
+    "Activities": {
+        "Crucible": "Горнило",
+        "Trials of Osiris": "Испытания Осириса",
+        "Strike": "Налет",
+        "Nightfall": "Сумрачный налет",
+        "Gambit": "Гамбит",
+        "Dungeon": "Подземелье",
+        "Shattered Throne": "Расколотый Трон",
+        "Pit of Heresy": "Яма Ереси",
+        "Prophecy": "Откровение",
+        "Last Wish": "Последнее Желание",
+        "Garden of Salvation": "Сад Спасения",
+        "Deep Stone Crypt": "Склеп Глубокого камня",
+        "Vault of Glass": "Хрустальный чертог",
+        "Root of Nightmares": "Источник Кошмаров",
+        "Vow of the Disciple": "Клятва Послушника",
+        "King’s Fall": "Гибель Короля",
+        "Duality": "Дуальность",
+        "Grasp of Avarice": "Тиски алчности",
+        "Spire of the Watcher": "Шпиль хранителя",
+        "Ghosts of the Deep": "Призраки Глубин"
+        "The Lightblade": "Клинок Света",
+    },
+    "Events": {
+        "Solstice": "Солнцестояние",
+        "Solstice of heroes": "Солнцестояние Героев",
+        "The Dawning": "Рассвет",
+        "Iron Banner": "Железное Знамя",
+        "Festival of the Lost": "Фестиваль Усопших",
+        "Guardian Games": "Игры Стражей"
+    },
+    "Weapons": {
+        "The Immortal": "Бесмертный",
+        "Witherhoard": "Горстка пепла",
+        "Arbalest": "Арбалет",
+        "Gjallarhorn": "Гьяллархорн",
+        "Osteo Striga": "Остео Стрига",
+        "Xenophage": "Ксенофаг",
+        "Izanagi’s Burden": "Бремя Идзанаги",
+        "Outbreak Perfected": "Идеальная эпидемия",
+        "Divinity": "Божественность",
+        "Anarchy": "Анархия",
+        "The Lament": "Плач",
+	},
+	"Factions/races": {
+        "Vanguard": "Авангард",
+        "Taken": "Одержимые",
+        "Vex": "Вексы",
+	},
+	"Character names": {
+        "Saint-14": "Сейнт-14",
+        "Cayde": "Кейд",
+        "Rhulk": "Рулк",
+        "Xivu Arath": "Зиву Арат",
+        "The Traveler": "Странник",
+	},
+	"Resources": {
+        "Ascendant Shards": "Высшие осколоки",
+        "Ascendant Alloy": "Высшие сплавы",
+		"Enhancement Prisms": "Улучшающие призмы",
+        "Masterwork": "Абсолют"
+    },
+	"Misc": {
+		"Player Removal": "Отключение игроков",
+        "Adept": "Адепт",
+        "Fireteam": "боевая группа",
+        "Hive Rune": "руна Улья",
+	}
+}
+`;
     const output = await openai.createChatCompletion({
         model: "gpt-3.5-turbo",
-        temperature: 0.7,
-        messages: [{ role: "assistant", name: "translator", content: `${prompt}\n\nText you need to translate:\n${sourceText}` }],
+        temperature: 0,
+        top_p: 1,
+        messages: [
+            { role: "system", name: "prompt", content: prompt },
+            { role: "user", name: "translation", content: sourceText },
+        ],
     });
-    console.debug(output.data.choices[0].message?.content);
-    return output.data.choices[0].message?.content;
+    let outputText = output.data.choices[0].message?.content;
+    if (outputText?.startsWith("Text you need to translate")) {
+        outputText = outputText.slice(outputText.indexOf("\n") + 1);
+    }
+    if (outputText?.startsWith("Text you need to translate")) {
+        outputText = outputText.replace("Text you need to translate", "");
+    }
+    while (outputText && (outputText.startsWith("\n") || outputText.startsWith(":"))) {
+        outputText = outputText.slice(1).trim();
+    }
+    return outputText;
 }
 function replaceTimeWithEpoch(text) {
     const dateRegex = /❖\s+((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d+)/i;

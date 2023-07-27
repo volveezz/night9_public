@@ -1,81 +1,96 @@
-import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
 import { TwitterVoteButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
 import { originalTweetData, twitterOriginalVoters } from "../../utils/persistence/dataStore.js";
+const TweetNotFoundEmbed = new EmbedBuilder()
+    .setColor(colors.error)
+    .setAuthor({ name: "Ошибка. Оригинал сообщения не найден", iconURL: icons.error });
+const TwitterVoteButtonsComponents = [
+    new ButtonBuilder().setCustomId(TwitterVoteButtons.originalBetter).setLabel("Оригинал лучше перевода").setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+        .setCustomId(TwitterVoteButtons.translationBetter)
+        .setLabel("Перевод лучше оригинала")
+        .setStyle(ButtonStyle.Secondary),
+];
+const VoteRecordedEmbed = new EmbedBuilder().setColor(colors.success).setAuthor({ name: "Голос учтён", iconURL: icons.voted });
 const activeAwaiters = new Map();
+const handleMessageInteraction = async (interaction) => {
+    const messageData = originalTweetData.get(interaction.message.id);
+    if (!messageData) {
+        await interaction.reply({ embeds: [TweetNotFoundEmbed], ephemeral: true });
+        await interaction.message.edit({ components: [] });
+        return;
+    }
+    const embed = EmbedBuilder.from(interaction.message.embeds[0]);
+    embed.setDescription(messageData);
+    const voteData = twitterOriginalVoters.get(interaction.message.id);
+    let components = [];
+    if (voteData) {
+        components = TwitterVoteButtonsComponents;
+    }
+    return await interaction.reply({ embeds: [embed], components: addButtonsToMessage(components), ephemeral: true });
+};
+const handleVote = async (interaction, userVote) => {
+    const userId = interaction.user.id;
+    const messageId = interaction.message.id;
+    let voteRecord = twitterOriginalVoters.get(messageId);
+    if (!voteRecord) {
+        voteRecord = { original: new Set(), translation: new Set() };
+        twitterOriginalVoters.set(messageId, voteRecord);
+    }
+    if (userVote === "originalBetter") {
+        voteRecord.translation.delete(userId);
+        voteRecord.original.add(userId);
+        interaction.reply({ embeds: [VoteRecordedEmbed], ephemeral: true });
+    }
+    else if (userVote === "translationBetter") {
+        voteRecord.original.delete(userId);
+        voteRecord.translation.add(userId);
+        interaction.reply({ embeds: [VoteRecordedEmbed], ephemeral: true });
+    }
+};
 export default {
     name: "twitter",
     run: async ({ interaction }) => {
-        const messageData = originalTweetData.get(interaction.message.id);
-        if (!messageData) {
-            const embed = new EmbedBuilder()
-                .setColor(colors.error)
-                .setAuthor({ name: "Ошибка. Оригинал сообщения не найден", iconURL: icons.error });
-            interaction.reply({ embeds: [embed], ephemeral: true });
-            interaction.message.edit({ components: [] });
-            return;
-        }
-        const embed = EmbedBuilder.from(interaction.message.embeds[0]);
-        embed.setDescription(messageData);
-        let components = [];
-        const voteData = twitterOriginalVoters.get(interaction.message.id);
-        if (voteData) {
-            components = [
-                new ButtonBuilder()
-                    .setCustomId(TwitterVoteButtons.originalBetter)
-                    .setLabel("Оригинал лучше перевода")
-                    .setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder()
-                    .setCustomId(TwitterVoteButtons.translationBetter)
-                    .setLabel("Перевод лучше оригинала")
-                    .setStyle(ButtonStyle.Secondary),
-            ];
-        }
-        const interactionReply = await interaction.reply({ embeds: [embed], components: addButtonsToMessage(components), ephemeral: true });
+        const interactionReply = await handleMessageInteraction(interaction);
         const uniqueId = Symbol();
-        if (!activeAwaiters.has(interaction.user.id)) {
-            activeAwaiters.set(interaction.user.id, uniqueId);
+        const userAwaiter = activeAwaiters.get(interaction.user.id);
+        if (userAwaiter) {
+            userAwaiter.interaction.deleteReply();
         }
-        const i = await interactionReply.awaitMessageComponent({
-            time: 1000 * 60 * 5,
-            filter: (i) => i.user.id === interaction.user.id,
-        });
-        if (activeAwaiters.get(interaction.user.id) !== uniqueId) {
+        activeAwaiters.set(interaction.user.id, { uniqueId, interaction });
+        if (!interactionReply) {
             return;
         }
-        const userId = interaction.user.id;
-        const messageId = interaction.message.id;
-        let vote;
-        switch (i.customId) {
-            case TwitterVoteButtons.originalBetter:
-                vote = "originalBetter";
-                break;
-            case TwitterVoteButtons.translationBetter:
-                vote = "translationBetter";
-                break;
-            default:
+        try {
+            const userInteraction = await interactionReply.awaitMessageComponent({
+                time: 1000 * 60 * 5,
+                filter: (i) => i.user.id === interaction.user.id,
+                componentType: ComponentType.Button,
+            });
+            if (activeAwaiters.get(interaction.user.id)?.uniqueId !== uniqueId || !userInteraction) {
                 return;
+            }
+            let userVote;
+            switch (userInteraction.customId) {
+                case TwitterVoteButtons.originalBetter:
+                    userVote = "originalBetter";
+                    break;
+                case TwitterVoteButtons.translationBetter:
+                    userVote = "translationBetter";
+                    break;
+                default:
+                    return;
+            }
+            await handleVote(userInteraction, userVote);
+            activeAwaiters.delete(interaction.user.id);
+            await interactionReply.edit({ components: [] });
         }
-        let voteRecord = twitterOriginalVoters.get(messageId);
-        if (!voteRecord) {
-            voteRecord = { original: new Set(), translation: new Set() };
-            twitterOriginalVoters.set(messageId, voteRecord);
+        catch (error) {
+            interaction.deleteReply();
         }
-        const voteEmbed = new EmbedBuilder().setColor(colors.success).setAuthor({ name: "Голос учтён", iconURL: icons.voted });
-        activeAwaiters.delete(interaction.user.id);
-        if (vote === "originalBetter") {
-            voteRecord.translation.delete(userId);
-            voteRecord.original.add(userId);
-            i.reply({ embeds: [voteEmbed], ephemeral: true });
-        }
-        else if (vote === "translationBetter") {
-            voteRecord.original.delete(userId);
-            voteRecord.translation.add(userId);
-            i.reply({ embeds: [voteEmbed], ephemeral: true });
-        }
-        await interactionReply.edit({ components: [] });
     },
 };
 //# sourceMappingURL=twitter.js.map

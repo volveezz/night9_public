@@ -29,17 +29,15 @@ async function raidFireteamChecker(id) {
         const checkFireteamStatus = async () => {
             if (canceledFireteamCheckingRaids.has(initialRaidEvent.id))
                 return;
-            const raidEvent = await RaidEvent.findOne({
-                where: { id: initialRaidEvent.id },
+            const raidEvent = await RaidEvent.findByPk(initialRaidEvent.id, {
                 attributes: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId", "raid"],
             });
             if (!raidEvent || raidEvent.time != initialRaidEvent.time) {
-                if (raidEvent && raidEvent.time != initialRaidEvent.time) {
+                if (raidEvent) {
                     setTimeout(() => {
                         raidFireteamChecker(raidEvent.id);
                     }, 1000);
                     console.debug(`Raid with ID: ${initialRaidEvent.id} has changed time, rescheduling update`);
-                    return false;
                 }
                 return false;
             }
@@ -196,15 +194,16 @@ async function getOngoingRaids(id) {
     const currentDay = new Date();
     currentDay.setHours(23, 0, 0, 0);
     const endTime = Math.floor(currentDay.getTime() / 1000);
+    const attributes = ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId"];
     const raidData = id
         ? [
             (await RaidEvent.findByPk(id, {
-                attributes: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId"],
+                attributes,
             })),
         ]
         : await RaidEvent.findAll({
             where: { time: { [Op.lte]: endTime } },
-            attributes: ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId"],
+            attributes,
         });
     return raidData;
 }
