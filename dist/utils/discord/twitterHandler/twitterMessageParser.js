@@ -99,14 +99,15 @@ async function generateTwitterEmbed(twitterData, author, icon) {
     if (!publicNewsChannel)
         publicNewsChannel = await client.getAsyncTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
     await publicNewsChannel.send({ embeds: [embed], components: addButtonsToMessage(components) }).then((m) => {
-        if (!tranlsatedContent)
-            return;
-        const voteRecord = { original: new Set(), translation: new Set() };
-        twitterOriginalVoters.set(m.id, voteRecord);
-        originalTweetData.set(m.id, cleanContent);
+        if (tranlsatedContent) {
+            const voteRecord = { original: new Set(), translation: new Set() };
+            twitterOriginalVoters.set(m.id, voteRecord);
+            originalTweetData.set(m.id, cleanContent);
+        }
         const videoUrl = extractMediaUrl(twitterData.content, "video")?.replaceAll("&amp;", "&");
-        if (videoUrl)
+        if (videoUrl) {
             convertVideoToGif(videoUrl, m, embed);
+        }
     });
     return;
 }
@@ -189,6 +190,7 @@ Translated dataset:
         "Rhulk": "Рулк",
         "Xivu Arath": "Зиву Арат",
         "The Traveler": "Странник",
+		"Postmaster": "Почтмейстер",
 	},
 	"Resources": {
         "Ascendant Shards": "Высшие осколоки",
@@ -201,6 +203,8 @@ Translated dataset:
         "Adept": "Адепт",
         "Fireteam": "боевая группа",
         "Hive Rune": "руна Улья",
+		"Veil Containment": "Защитная оболочка вуали",
+		"Veil": "Вуаль",
 	}
 }
 `;
