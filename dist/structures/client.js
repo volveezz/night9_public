@@ -228,8 +228,8 @@ export class ExtendedClient extends Client {
         handleMemberStatistics();
         this.startUpdatingPresence();
         restoreFetchedPGCRs();
-        this.importFile("../core/guildNicknameManagement.js");
         this.importFile("../utils/api/rssHandler.js");
+        this.importFile("../core/guildNicknameManagement.js");
     }
     loadDelayedComponents() {
         cacheRaidMilestones();

@@ -1,5 +1,5 @@
 import Parser from "rss-parser";
-import { generateTwitterEmbed } from "../discord/twitterMessageParser.js";
+import { generateTwitterEmbed } from "../discord/twitterHandler/twitterMessageParser.js";
 import { processedRssLinks } from "../persistence/dataStore.js";
 import { ProcessedLink } from "../persistence/sequelize.js";
 const parser = new Parser();

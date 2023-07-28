@@ -1,20 +1,25 @@
 import { readdirSync } from "fs";
 const extension = process.env.NODE_ENV === "development" && process.env.LOCAL_ENV === "true" ? ".ts" : ".js";
-const getFiles = async (dir, insideDir, subdirectory = false) => {
+const getFiles = async (dir, insideDir) => {
     const files = readdirSync(dir, {
         withFileTypes: true,
     });
     let jsFiles = [];
+    const directoryPath = insideDir ? insideDir : "";
+    let mainFileExists = files.some((file) => file.name === `main${extension}`);
     for (const file of files) {
         if (file.isDirectory()) {
-            const insideDirV = `${insideDir ? insideDir : ""}${file.name}`;
-            jsFiles = [...jsFiles, ...(await getFiles(`${dir}${file.name}`, insideDirV, true))];
+            jsFiles = [...jsFiles, ...(await getFiles(`${dir}${file.name}/`, `${directoryPath}${file.name}/`))];
         }
         else if (file.name.endsWith(extension)) {
-            if (insideDir && !subdirectory && file.name !== `main${extension}`) {
-                continue;
+            if (mainFileExists) {
+                if (file.name === `main${extension}`) {
+                    jsFiles.push(directoryPath + file.name);
+                }
             }
-            jsFiles.push((insideDir ? `${insideDir}/` : "") + file.name);
+            else {
+                jsFiles.push(directoryPath + file.name);
+            }
         }
     }
     return jsFiles;

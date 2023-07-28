@@ -1,12 +1,14 @@
 import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
-import colors from "../../configs/colors.js";
-import icons from "../../configs/icons.js";
-import openai from "../../structures/OpenAI.js";
-import { Command } from "../../structures/command.js";
-import calculateVoteResults from "../../utils/discord/twitterTranslationVotes.js";
-import { convertSeconds } from "../../utils/general/convertSeconds.js";
-import { completedRaidsData } from "../../utils/persistence/dataStore.js";
-import { AuthData, UserActivityData } from "../../utils/persistence/sequelize.js";
+import Parser from "rss-parser";
+import colors from "../../../configs/colors.js";
+import icons from "../../../configs/icons.js";
+import openai from "../../../structures/OpenAI.js";
+import { Command } from "../../../structures/command.js";
+import { generateTwitterEmbed } from "../../../utils/discord/twitterHandler/twitterMessageParser.js";
+import calculateVoteResults from "../../../utils/discord/twitterHandler/twitterTranslationVotes.js";
+import { convertSeconds } from "../../../utils/general/convertSeconds.js";
+import { processedRssLinks } from "../../../utils/persistence/dataStore.js";
+import { AuthData, UserActivityData } from "../../../utils/persistence/sequelize.js";
 const SlashCommand = new Command({
     name: "scripts",
     description: "Script system",
@@ -15,7 +17,7 @@ const SlashCommand = new Command({
         {
             type: ApplicationCommandOptionType.String,
             name: "script",
-            description: "script",
+            description: "Specify the script to run",
             required: true,
         },
     ],
@@ -23,27 +25,6 @@ const SlashCommand = new Command({
         const defferedReply = interaction.deferReply({ ephemeral: true });
         const scriptId = args.getString("script", true).toLowerCase();
         switch (scriptId) {
-            case "setclears": {
-                completedRaidsData.set(interaction.user.id, {
-                    ce: 0,
-                    ron: 0,
-                    ronMaster: 0,
-                    kf: 2,
-                    kfMaster: 1,
-                    votd: 333,
-                    votdMaster: 4,
-                    dsc: 3,
-                    gos: 1,
-                    vog: 3,
-                    vogMaster: 2,
-                    lw: 1,
-                    totalRaidClears: 500,
-                });
-                await defferedReply;
-                const embed = new EmbedBuilder().setAuthor({ name: "Успешно", iconURL: icons.success }).setColor(colors.success);
-                interaction.editReply({ embeds: [embed] });
-                return;
-            }
             case "resolvevotes": {
                 await calculateVoteResults();
                 const embed = new EmbedBuilder()
@@ -56,6 +37,57 @@ const SlashCommand = new Command({
             case "getmodels": {
                 const request = await openai.listModels();
                 console.debug(request.data.data);
+                return;
+            }
+            case "rsstry": {
+                const parser = new Parser();
+                const feed = await parser.parseURL(`https://rsshub-production-e9d1.up.railway.app/twitter/user/destinythegame?readable=0&limit=1`);
+                for (const entry of feed.items) {
+                    if (isRetweet(entry) || !entry.link)
+                        continue;
+                    processedRssLinks.add(entry.link);
+                    const author = getBungieTwitterAuthor(entry.creator);
+                    if (author && isValidTweet(author, entry.guid) && entry.content && entry.content.length > 0) {
+                        await generateTwitterEmbed(entry, author, feed.image?.url);
+                    }
+                    else {
+                        console.error("[Error code: 1705]", entry);
+                    }
+                }
+                function getBungieTwitterAuthor(creator) {
+                    switch (creator) {
+                        case "Destiny 2":
+                            return 1;
+                        case "Bungie":
+                            return 2;
+                        case "Bungie Help":
+                            return 3;
+                        case "Destiny 2 Team":
+                            return 4;
+                        default:
+                            return null;
+                    }
+                }
+                function isRetweet(item) {
+                    const retweetPattern = /^RT/;
+                    if (!item.content || !item.contentSnippet) {
+                        console.error("[Error code: 1709]", item);
+                        return true;
+                    }
+                    if (retweetPattern.test(item.content || item.contentSnippet)) {
+                        return true;
+                    }
+                    return false;
+                }
+                function isValidTweet(author, guid) {
+                    if (!guid)
+                        return false;
+                    const guidLowerCase = guid.toLowerCase();
+                    return ((author === 2 && guidLowerCase.startsWith("https://twitter.com/bungie/")) ||
+                        (author === 3 && guidLowerCase.startsWith("https://twitter.com/bungiehelp/")) ||
+                        (author === 1 && guidLowerCase.startsWith("https://twitter.com/destinythegame/")) ||
+                        (author === 4 && guidLowerCase.startsWith("https://twitter.com/destiny2team/")));
+                }
                 return;
             }
             case "checkrole": {
@@ -121,4 +153,4 @@ const SlashCommand = new Command({
     },
 });
 export default SlashCommand;
-//# sourceMappingURL=scripts.js.map
+//# sourceMappingURL=main.js.map

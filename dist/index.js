@@ -4,7 +4,7 @@ import express from "express";
 import { join, resolve } from "path";
 import { ExtendedClient } from "./structures/client.js";
 import webHandler from "./utils/api/webHandler.js";
-import calculateVoteResults from "./utils/discord/twitterTranslationVotes.js";
+import calculateVoteResults from "./utils/discord/twitterHandler/twitterTranslationVotes.js";
 import { forceUpdateUserActivity } from "./utils/discord/userActivityHandler.js";
 import { getOAuthTokens, getOAuthUrl, getUserData, updateMetadata } from "./utils/general/linkedRoles.js";
 import * as storage from "./utils/persistence/webStorage.js";

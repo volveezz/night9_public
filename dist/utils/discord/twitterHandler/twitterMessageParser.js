@@ -1,19 +1,23 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
-import { client } from "../../index.js";
-import openai from "../../structures/OpenAI.js";
-import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
-import { originalTweetData, twitterOriginalVoters } from "../persistence/dataStore.js";
+import { client } from "../../../index.js";
+import openai from "../../../structures/OpenAI.js";
+import { addButtonsToMessage } from "../../general/addButtonsToMessage.js";
+import { originalTweetData, twitterOriginalVoters } from "../../persistence/dataStore.js";
+import convertMp4ToGif from "./mp4IntoGif.js";
+import { processTwitterGifFile } from "./saveGifInChannel.js";
 let publicNewsChannel = null;
-function extractImageUrl(content) {
-    const imgRegex = /<img.*?src="(.*?)".*?>/i;
-    const videoRegex = /<video.*?poster="(.*?)".*?>/i;
+function extractMediaUrl(content, preferable = "image") {
+    if (!content)
+        return null;
+    const imgRegex = /(https?:\/\/[^"]*?(?:png|jpg|jpeg|gif)(?:&amp;[^"]*)?)/g;
+    const videoRegex = /(https?:\/\/[^"]*?\.mp4[^"]*)/g;
     const imgMatch = content.match(imgRegex);
     const videoMatch = content.match(videoRegex);
-    if (imgMatch) {
-        return imgMatch[1];
+    if (preferable === "image") {
+        return imgMatch ? imgMatch[1] || imgMatch[0] : null;
     }
-    else if (videoMatch) {
-        return videoMatch[1];
+    else if (preferable === "video") {
+        return videoMatch ? videoMatch[1] || videoMatch[0] : null;
     }
     return null;
 }
@@ -72,7 +76,7 @@ async function generateTwitterEmbed(twitterData, author, icon) {
         return null;
     }
     let components = [];
-    const extractedMedia = extractImageUrl(twitterData.content || "")?.replaceAll("&amp;", "&");
+    const extractedMedia = extractMediaUrl(twitterData.content)?.replaceAll("&amp;", "&");
     const replacedDescription = replaceTimeWithEpoch(cleanContent);
     let tranlsatedContent = null;
     try {
@@ -100,8 +104,17 @@ async function generateTwitterEmbed(twitterData, author, icon) {
         const voteRecord = { original: new Set(), translation: new Set() };
         twitterOriginalVoters.set(m.id, voteRecord);
         originalTweetData.set(m.id, cleanContent);
+        const videoUrl = extractMediaUrl(twitterData.content, "video")?.replaceAll("&amp;", "&");
+        if (videoUrl)
+            convertVideoToGif(videoUrl, m, embed);
     });
     return;
+}
+async function convertVideoToGif(videoUrl, message, embed) {
+    const gifUrl = await convertMp4ToGif(videoUrl);
+    if (!gifUrl)
+        return;
+    processTwitterGifFile(gifUrl, message, embed);
 }
 async function translateTweet(sourceText) {
     const prompt = `You are an official Destiny 2 news translator. Please follow the instructions below and translate text in the 'user' role.

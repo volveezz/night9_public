@@ -467,7 +467,9 @@ const SlashCommand = new Command({
             });
             await updatePrivateRaidMessage({ raidEvent: insertedRaidData[1][0] });
             const privateChannelMessage = (await inChnMsg) || (await privateRaidChannel.messages.fetch((await inChnMsg).id));
-            updateNotifications(interaction.user.id);
+            if (parsedTime <= Math.floor(Date.now() / 1000 + 24 * 60 * 60 * 2)) {
+                updateNotifications(interaction.user.id);
+            }
             raidFireteamChecker(raidDb.id);
             try {
                 raidChallenges(raidData, privateChannelMessage, parsedTime, difficulty);

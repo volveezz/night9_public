@@ -1,6 +1,6 @@
 import { EmbedBuilder } from "discord.js";
-import { client } from "../../index.js";
-import { originalTweetData, twitterOriginalVoters } from "../persistence/dataStore.js";
+import { client } from "../../../index.js";
+import { originalTweetData, twitterOriginalVoters } from "../../persistence/dataStore.js";
 async function calculateVoteResults() {
     const channel = await client.getAsyncTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
     for (const [messageId, { original, translation }] of twitterOriginalVoters) {
