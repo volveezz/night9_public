@@ -1,5 +1,4 @@
 import { ButtonBuilder, ButtonStyle, ChannelType, Colors, EmbedBuilder, resolveColor, } from "discord.js";
-import { LfgButtons } from "../../../configs/Buttons.js";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
 import { dlcRoles, seasonalRoles } from "../../../configs/roles.js";
@@ -222,7 +221,7 @@ async function lfgHandler(message) {
         });
     if (!voiceChannel)
         return messageErrorHandler("Ошибка во время создания голосового канала", "Попробуйте позже", message);
-    const buttonForLfgDeletion = new ButtonBuilder().setStyle(ButtonStyle.Danger).setLabel("Удалить сбор").setCustomId(LfgButtons.delete);
+    const buttonForLfgDeletion = new ButtonBuilder().setStyle(ButtonStyle.Danger).setLabel("Удалить сбор").setCustomId("lfgSystem_delete");
     const components = [buttonForLfgDeletion];
     if (userSettings.invite) {
         const invite = await voiceChannel.createInvite({ maxAge: 60 * 300 });

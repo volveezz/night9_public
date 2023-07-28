@@ -1,10 +1,9 @@
 import { EmbedBuilder, StringSelectMenuBuilder } from "discord.js";
-import { TimezoneButtons } from "../configs/Buttons.js";
 import { timezoneSelectMenuData } from "../configs/SelectMenuOptions.js";
 import colors from "../configs/colors.js";
 import { Command } from "../structures/command.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
-export default new Command({
+const SlashCommand = new Command({
     name: "timezone",
     description: "Укажите свой часовой пояс",
     descriptionLocalizations: { "en-US": "Select your time zone", "en-GB": "Select your time zone" },
@@ -15,7 +14,7 @@ export default new Command({
             .setTitle("Установите свой часовой пояс")
             .setDescription("Если не знаете свой, то в описании каждого часового пояса есть текущее время по нему\nЧасовой пояс устанавливается от Гринвича! От +00:00, а не от Московского времени");
         const tzBlank = new StringSelectMenuBuilder()
-            .setCustomId(TimezoneButtons.selectMenu)
+            .setCustomId("tzEvent_selectmenu")
             .setPlaceholder("Часовой пояс не выбран")
             .addOptions(timezoneSelectMenuData);
         const tzTime = new Date();
@@ -27,4 +26,5 @@ export default new Command({
         interaction.reply({ ephemeral: true, embeds: [embed], components: addButtonsToMessage([tzBlank]) });
     },
 });
+export default SlashCommand;
 //# sourceMappingURL=timezone.js.map

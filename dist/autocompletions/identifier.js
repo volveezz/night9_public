@@ -1,10 +1,11 @@
 import { Op } from "sequelize";
 import { client } from "../index.js";
+import { Autocomplete } from "../structures/autocomplete.js";
 import { sendApiPostRequest } from "../utils/api/sendApiPostRequest.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { isBungieId } from "../utils/general/utilities.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
-export default {
+const AutocompleteFile = new Autocomplete({
     name: "identifier",
     run: async ({ interaction, option }) => {
         if (option.value.length === 0) {
@@ -70,7 +71,8 @@ export default {
                 .catch((e) => console.error("[Error code: 1046]", e));
         }
     },
-};
+});
+export default AutocompleteFile;
 const invisibleChar = "⁣";
 async function fetchUserProfile(searchTerm) {
     const authData = await AuthData.findOne({
@@ -97,7 +99,7 @@ async function fetchUserProfile(searchTerm) {
     let response;
     const isInputBungieId = isBungieId(searchTerm);
     if (isInputBungieId) {
-        response = (await sendApiRequest(`/Platform/User/GetMembershipsById/${searchTerm}/-1`));
+        response = await sendApiRequest(`/Platform/User/GetMembershipsById/${searchTerm}/-1`);
     }
     else {
         response = await sendApiPostRequest({

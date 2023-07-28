@@ -1,6 +1,5 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder, RESTJSONErrorCodes } from "discord.js";
 import fetch from "node-fetch";
-import { ClanButtons, TimezoneButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import guildNicknameManagement from "../../core/guildNicknameManagement.js";
@@ -205,11 +204,11 @@ export default async function webHandler(code, state, res) {
             }
         }
         const clanRequestComponent = new ButtonBuilder()
-            .setCustomId(ClanButtons.invite)
+            .setCustomId("webhandlerEvent_clan_request")
             .setLabel("Отправить приглашение")
             .setStyle(ButtonStyle.Success);
         const timezoneComponent = new ButtonBuilder()
-            .setCustomId(TimezoneButtons.button)
+            .setCustomId("timezoneButton")
             .setLabel("Установить часовой пояс")
             .setStyle(ButtonStyle.Secondary);
         try {

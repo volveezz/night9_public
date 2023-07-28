@@ -1,14 +1,13 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { Op } from "sequelize";
-import { ClanButtons, TimezoneButtons } from "../configs/Buttons.js";
-import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { client } from "../index.js";
+import { Button } from "../structures/button.js";
 import { sendApiPostRequest } from "../utils/api/sendApiPostRequest.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
-export default {
+const ButtonCommand = new Button({
     name: "webhandlerEvent",
     run: async ({ interaction }) => {
         const deferredReply = interaction.deferReply({ ephemeral: true });
@@ -25,7 +24,7 @@ export default {
         });
         if (authData.length !== 2) {
             await deferredReply;
-            throw { errorType: UserErrors.DB_USER_NOT_FOUND };
+            throw { errorType: "DB_USER_NOT_FOUND" };
         }
         if (authData[0].discordId === process.env.OWNER_ID) {
             var { clan: invitee_clan, bungieId: invitee_bungieId, platform: invitee_platform } = authData[1];
@@ -36,7 +35,7 @@ export default {
             var { accessToken: inviter_accessToken } = authData[1];
         }
         const timezoneComponent = new ButtonBuilder()
-            .setCustomId(TimezoneButtons.button)
+            .setCustomId("timezoneButton")
             .setLabel("Установить часовой пояс")
             .setStyle(ButtonStyle.Secondary);
         if (authData.length === 2) {
@@ -64,7 +63,7 @@ export default {
             if (message.embeds[0].data.author?.name === "Уведомление об исключении из клана") {
                 await message.edit({
                     components: addButtonsToMessage([
-                        new ButtonBuilder().setCustomId(ClanButtons.modal).setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder().setCustomId("clanJoinEvent_modalBtn").setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
                     ]),
                 });
                 return;
@@ -112,5 +111,6 @@ export default {
             }
         }
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=webhandlerEvent.js.map

@@ -1,7 +1,7 @@
 import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
 import { Command } from "../../structures/command.js";
-export default new Command({
+const SlashCommand = new Command({
     name: "commandresolver",
     description: "commandresolver",
     defaultMemberPermissions: ["Administrator"],
@@ -214,4 +214,5 @@ export default new Command({
         }
     },
 });
-//# sourceMappingURL=commandresolverCommand.js.map
+export default SlashCommand;
+//# sourceMappingURL=commandresolver.js.map

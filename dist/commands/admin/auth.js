@@ -1,13 +1,12 @@
 import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import { Op } from "sequelize";
-import UserErrors from "../../configs/UserErrors.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { requestTokenRefresh } from "../../core/tokenManagement.js";
 import { Command } from "../../structures/command.js";
 import { isSnowflake } from "../../utils/general/utilities.js";
 import { AuthData } from "../../utils/persistence/sequelize.js";
-export default new Command({
+const SlashCommand = new Command({
     name: "auth",
     description: "Refresh of the user's authorisation data for the selected user",
     defaultMemberPermissions: ["Administrator"],
@@ -26,7 +25,7 @@ export default new Command({
             : interaction.options.getString("id", true);
         if (!isSnowflake(id)) {
             await deferredReply;
-            throw { errorType: UserErrors.WRONG_ID };
+            throw { errorType: "WRONG_ID" };
         }
         const data = await AuthData.findOne({
             where: { [Op.or]: [{ discordId: id }, { bungieId: id }] },
@@ -35,7 +34,7 @@ export default new Command({
         if (!data) {
             await deferredReply;
             const isSelf = id === interaction.user.id || id === "";
-            throw { errorType: UserErrors.DB_USER_NOT_FOUND, errorData: { isSelf } };
+            throw { errorType: "DB_USER_NOT_FOUND", errorData: { isSelf } };
         }
         try {
             var token = await requestTokenRefresh({ refresh_token: data.refreshToken, userId: data.discordId });
@@ -76,4 +75,5 @@ export default new Command({
         }
     },
 });
-//# sourceMappingURL=authCommand.js.map
+export default SlashCommand;
+//# sourceMappingURL=auth.js.map

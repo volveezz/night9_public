@@ -1,5 +1,5 @@
-import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
-import { getAdminAccessToken } from "../../commands/clanCommand.js";
+import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { getAdminAccessToken } from "../../commands/clan/main.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
@@ -34,6 +34,7 @@ async function kickMemberFromClan(id, interaction) {
         max: 1,
         message: confirmationMessage,
         time: 1000 * 60 * 5,
+        componentType: ComponentType.Button,
     });
     const adminAccessToken = await getAdminAccessToken(interaction.user.id);
     if (!adminAccessToken) {

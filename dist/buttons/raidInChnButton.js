@@ -1,10 +1,8 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, ComponentType, EmbedBuilder, ModalBuilder, RESTJSONErrorCodes, TextChannel, TextInputBuilder, TextInputStyle, } from "discord.js";
 import { Op } from "sequelize";
-import { RaidAdditionalFunctional, RaidButtons } from "../configs/Buttons.js";
-import { RaidNotifyEdit } from "../configs/Modals.js";
-import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
+import { Button } from "../structures/button.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { removeRaid } from "../utils/general/raidFunctions.js";
@@ -18,8 +16,8 @@ export async function handleDeleteRaid({ deferredUpdate, interaction, raidEvent,
             .setAuthor({ name: `Подтвердите удаление рейда ${raidEvent.id}-${raidEvent.raid}`, iconURL: icons.warning })
             .setDescription(`Если Вы хотите изменить рейд, то не удаляйте рейд, а измените его с помощью команды: \`/рейд изменить\` (</рейд изменить:1036145721696600134>)\n### Можно изменить следующие параметры рейда\n - Время: \`/рейд изменить новое-время:20 21/06\`\n - Описание: \`/рейд изменить новое-описание:Новое описание для сильных\`\n - Минимальное количество закрытий рейда для записи: \`/рейд изменить новое-требование-закрытий:5\`\n### В одной команде можно изменить сразу несколько параметров\n - \`/рейд изменить новый-рейд:Источник кошмаров новая-сложность:Мастер\``);
         const components = [
-            new ButtonBuilder().setCustomId(RaidButtons.deleteConfirm).setLabel("Подтвердить").setStyle(ButtonStyle.Danger),
-            new ButtonBuilder().setCustomId(RaidButtons.deleteCancel).setLabel("Отменить").setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder().setCustomId("raidAddFunc_delete_confirm").setLabel("Подтвердить").setStyle(ButtonStyle.Danger),
+            new ButtonBuilder().setCustomId("raidAddFunc_delete_cancel").setLabel("Отменить").setStyle(ButtonStyle.Secondary),
         ];
         await deferredUpdate;
         const message = await interaction.editReply({
@@ -31,15 +29,16 @@ export async function handleDeleteRaid({ deferredUpdate, interaction, raidEvent,
             time: 60 * 1000 * 2,
             max: 1,
             filter: (i) => i.user.id === interaction.user.id,
+            componentType: ComponentType.Button,
         });
         collector.on("collect", async (col) => {
-            if (col.customId === RaidButtons.deleteConfirm) {
+            if (col.customId === "raidAddFunc_delete_confirm") {
                 await removeRaid(raidEvent, col, requireMessageReply, interaction.channel?.isDMBased() ? interaction : undefined).catch((e) => {
                     console.error("[Error code: 1676]", e);
                 });
                 resolve(1);
             }
-            else if (col.customId === RaidButtons.deleteCancel) {
+            else if (col.customId === "raidAddFunc_delete_cancel") {
                 const canceledEmbed = new EmbedBuilder().setColor(colors.invisible).setTitle("Удаление рейда отменено");
                 await col.update({ components: [], embeds: [canceledEmbed] });
                 resolve(2);
@@ -56,19 +55,19 @@ export async function handleDeleteRaid({ deferredUpdate, interaction, raidEvent,
         });
     });
 }
-export default {
+const ButtonCommand = new Button({
     name: "raidInChnButton",
     run: async ({ client, interaction }) => {
         if (![
-            RaidButtons.notify,
-            RaidButtons.transfer,
-            RaidButtons.unlock,
-            RaidButtons.delete,
-            RaidButtons.resend,
-            RaidButtons.fireteamCheckerCancel,
+            "raidInChnButton_notify",
+            "raidInChnButton_transfer",
+            "raidInChnButton_unlock",
+            "raidInChnButton_delete",
+            "raidInChnButton_resend",
+            "raidInChnButton_fireteamChecker_cancel",
         ].includes(interaction.customId))
             return;
-        const deferredUpdate = [RaidButtons.transfer, RaidButtons.delete, RaidButtons.notify].includes(interaction.customId)
+        const deferredUpdate = ["raidInChnButton_transfer", "raidInChnButton_delete", "raidInChnButton_notify"].includes(interaction.customId)
             ? interaction.deferReply({ ephemeral: true })
             : interaction.deferUpdate();
         const attributes = ["creator", "id", "raid", "joined", "messageId", "channelId"];
@@ -104,13 +103,13 @@ export default {
             if (interaction.channel?.isDMBased())
                 interaction.message.edit({ components: [] });
             await deferredUpdate;
-            throw { errorType: UserErrors.RAID_NOT_FOUND };
+            throw { errorType: "RAID_NOT_FOUND" };
         }
         if (raidEvent.creator !== interaction.user.id && !interaction.memberPermissions?.has("Administrator")) {
             await deferredUpdate;
-            throw { errorType: UserErrors.RAID_MISSING_PERMISSIONS };
+            throw { errorType: "RAID_MISSING_PERMISSIONS" };
         }
-        if (interaction.customId === RaidButtons.notify) {
+        if (interaction.customId === "raidInChnButton_notify") {
             await deferredUpdate;
             interaction.editReply({
                 content: `Перейдите в [личные сообщения](https://discord.com/channels/@me/${client.user.dmChannel?.id || "774617169169743872"}) для настройки и отправки оповещения`,
@@ -181,11 +180,11 @@ export default {
                 return;
             }
             async function handleEditAction(collectorInteraction) {
-                const RaidModal = new ModalBuilder().setTitle("Измените текст оповещения").setCustomId(RaidAdditionalFunctional.modalEdit);
+                const RaidModal = new ModalBuilder().setTitle("Измените текст оповещения").setCustomId("raidAddFunc_modal_edit");
                 const RaidModal_title = new TextInputBuilder()
                     .setLabel("Заголовок")
                     .setStyle(TextInputStyle.Short)
-                    .setCustomId(RaidNotifyEdit.title)
+                    .setCustomId("RaidNotifyEdit_title")
                     .setPlaceholder(modalTitle.slice(0, 100) || "Укажите заголовок оповещения")
                     .setValue(modalTitle || "")
                     .setRequired(false)
@@ -193,7 +192,7 @@ export default {
                 const RaidModal_description = new TextInputBuilder()
                     .setLabel("Описание")
                     .setStyle(TextInputStyle.Paragraph)
-                    .setCustomId(RaidNotifyEdit.description)
+                    .setCustomId("RaidNotifyEdit_description")
                     .setPlaceholder(modalDescription.slice(0, 100) || "Укажите описание набора")
                     .setValue(modalDescription || "")
                     .setRequired(false)
@@ -201,7 +200,7 @@ export default {
                 const RaidModal_image = new TextInputBuilder()
                     .setLabel("Изображение")
                     .setStyle(TextInputStyle.Short)
-                    .setCustomId(RaidNotifyEdit.imageURL || null)
+                    .setCustomId("RaidNotifyEdit_image" || null)
                     .setPlaceholder(modalImage.slice(0, 100) || "Укажите ссылку на изображение набора")
                     .setValue(modalImage || "")
                     .setRequired(false);
@@ -229,9 +228,9 @@ export default {
                     console.error("[Error code: 1661] Edit button was deferred multiple times");
                     return;
                 }
-                const raidEditedTitle = interactionSubmit.fields.getTextInputValue(RaidNotifyEdit.title).trim();
-                const raidEditedDescription = interactionSubmit.fields.getTextInputValue(RaidNotifyEdit.description).trim();
-                const raidEditedImage = interactionSubmit.fields.getTextInputValue(RaidNotifyEdit.imageURL).trim();
+                const raidEditedTitle = interactionSubmit.fields.getTextInputValue("RaidNotifyEdit_title").trim();
+                const raidEditedDescription = interactionSubmit.fields.getTextInputValue("RaidNotifyEdit_description").trim();
+                const raidEditedImage = interactionSubmit.fields.getTextInputValue("RaidNotifyEdit_image").trim();
                 if (!raidEditedTitle && !raidEditedDescription && !raidEditedImage) {
                     const errorEmbed = new EmbedBuilder()
                         .setColor(colors.error)
@@ -293,9 +292,9 @@ export default {
                 }
             }
             const components = [
-                new ButtonBuilder().setCustomId(RaidButtons.confirmNotify).setLabel("Отправить").setStyle(ButtonStyle.Primary),
-                new ButtonBuilder().setCustomId(RaidButtons.editNotify).setLabel("Изменить текст").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId(RaidButtons.notifyCancel).setLabel("Отменить оповещение").setStyle(ButtonStyle.Danger),
+                new ButtonBuilder().setCustomId("raidAddFunc_notify_confirm").setLabel("Отправить").setStyle(ButtonStyle.Primary),
+                new ButtonBuilder().setCustomId("raidAddFunc_notify_edit").setLabel("Изменить текст").setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("raidAddFunc_notify_cancel").setLabel("Отменить оповещение").setStyle(ButtonStyle.Danger),
             ];
             const linkComponent = [];
             if (invite) {
@@ -318,7 +317,7 @@ export default {
             }
             catch (error) {
                 if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
-                    throw { errorType: UserErrors.CLOSED_DM };
+                    throw { errorType: "CLOSED_DM" };
                 }
                 else {
                     console.error("[Error code: 1960] Unexpected error", error);
@@ -329,19 +328,20 @@ export default {
             const collector = message.createMessageComponentCollector({
                 filter: (interaction) => interaction.user.id === member.id,
                 time: 60 * 1000 * 10,
+                componentType: ComponentType.Button,
             });
             const interactionId = interaction.id;
             collector.on("collect", async (collectorInteraction) => {
                 if (interactionId !== interaction.id)
                     return;
                 switch (collectorInteraction.customId) {
-                    case RaidAdditionalFunctional.confirm:
+                    case "raidAddFunc_notify_confirm":
                         await sendNotificationToMembers(allVoiceChannels, raidEvent, linkComponent, guild, interaction, message);
                         break;
-                    case RaidAdditionalFunctional.edit:
+                    case "raidAddFunc_notify_edit":
                         await handleEditAction(collectorInteraction);
                         break;
-                    case RaidAdditionalFunctional.cancel:
+                    case "raidAddFunc_notify_cancel":
                         await handleCancelAction(message, collector);
                         break;
                 }
@@ -353,7 +353,7 @@ export default {
                 }
             });
         }
-        else if (interaction.customId === RaidButtons.transfer) {
+        else if (interaction.customId === "raidInChnButton_transfer") {
             const guildVoiceChannels = guild.channels.cache.filter((chn) => chn.isVoiceBased() && chn.members.size > 0);
             const membersCollection = [];
             guildVoiceChannels.forEach((voiceChannel) => {
@@ -384,14 +384,14 @@ export default {
                 .setDescription(`${movedUsers.join("\n") + "\n" + alreadyMovedUsers.join("\n")}`);
             (await deferredUpdate) && interaction.editReply({ embeds: [replyEmbed] });
         }
-        else if (interaction.customId === RaidButtons.unlock) {
+        else if (interaction.customId === "raidInChnButton_unlock") {
             const raidChannel = await client.getAsyncTextChannel(process.env.RAID_CHANNEL_ID);
             const raidMsg = raidChannel.messages.cache.get(raidEvent.messageId) || (await raidChannel.messages.fetch(raidEvent.messageId));
             async function raidButtonsUnlocker() {
                 const inChannelMessageButtonRows = interaction.message.components.map((actionRow) => {
                     const inChannelMessageButtons = actionRow.components.map((component) => {
                         const unlockButton = component;
-                        if (component.customId === RaidButtons.unlock && unlockButton) {
+                        if (component.customId === "raidInChnButton_unlock" && unlockButton) {
                             if (unlockButton.label === "Закрыть набор") {
                                 return ButtonBuilder.from(unlockButton).setStyle(ButtonStyle.Success).setLabel("Открыть набор");
                             }
@@ -406,7 +406,7 @@ export default {
                 const raidMessageButtonRows = raidMsg.components.map((actionRow) => {
                     const raidMessageButtons = actionRow.components.map((component) => {
                         if (component.type === ComponentType.Button) {
-                            if (component.customId === RaidButtons.join || component.customId === RaidButtons.alt) {
+                            if (component.customId === "raidButton_action_join" || component.customId === "raidButton_action_alt") {
                                 return ButtonBuilder.from(component).setDisabled(!component.disabled);
                             }
                             else {
@@ -433,17 +433,17 @@ export default {
                 }),
             });
         }
-        else if (interaction.customId === RaidButtons.delete) {
+        else if (interaction.customId === "raidInChnButton_delete") {
             await handleDeleteRaid({ deferredUpdate, interaction, raidEvent });
             return;
         }
-        else if (interaction.customId === RaidButtons.resend) {
+        else if (interaction.customId === "raidInChnButton_resend") {
             const channel = interaction.channel instanceof TextChannel ? interaction.channel : await client.getAsyncTextChannel(interaction.channelId);
             const message = await channel.send({ embeds: [interaction.message.embeds[0]], components: interaction.message.components });
             await RaidEvent.update({ inChannelMessageId: message.id }, { where: { channelId: interaction.channelId } });
             await interaction.message.delete();
         }
-        else if (interaction.customId === RaidButtons.fireteamCheckerCancel) {
+        else if (interaction.customId === "raidInChnButton_fireteamChecker_cancel") {
             canceledFireteamCheckingRaids.add(raidEvent.id);
             const embed = EmbedBuilder.from(interaction.message.embeds[0])
                 .setTitle("Система слежки за боевой группой отключена")
@@ -452,5 +452,6 @@ export default {
             return;
         }
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=raidInChnButton.js.map

@@ -2,8 +2,9 @@ import { EmbedBuilder, StringSelectMenuBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import raidsGuide from "../configs/raidGuideData.js";
+import { Button } from "../structures/button.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
-export default {
+const ButtonCommand = new Button({
     name: "showEditMenu",
     run: async ({ interaction }) => {
         const raidName = interaction.customId.split("_")[1];
@@ -37,5 +38,6 @@ export default {
             ephemeral: true,
         });
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=showEditMenu.js.map

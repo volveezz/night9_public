@@ -1,7 +1,6 @@
 import { ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder, RESTJSONErrorCodes, } from "discord.js";
 import { schedule } from "node-cron";
 import { Op } from "sequelize";
-import { RaidButtons } from "../../../configs/Buttons.js";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
 import { client } from "../../../index.js";
@@ -175,7 +174,7 @@ async function notifyUserAboutNotifications(discordId) {
         .setAuthor({ name: "Похоже Вы впервые записались через систему рейдов", iconURL: icons.notify })
         .setDescription("За некоторое время до начала рейда система оповестит Вас об его приближении, рекомендуется настроить время оповещений вручную\n\n### Следуйте небольшой инструкции для настройки\n1. Нажмите кнопку ` Перейти к настройке оповещений ` под этим сообщением\n2. Изучите короткую инструкцию по настройке времени\n3. Настройте время в меню следующего сообщения");
     const components = new ButtonBuilder()
-        .setCustomId(RaidButtons.notificationsStart)
+        .setCustomId("raidNotifications_start")
         .setLabel("Перейти к настройке оповещений")
         .setStyle(ButtonStyle.Primary);
     const member = await client.getAsyncMember(discordId);
@@ -290,7 +289,7 @@ export async function sendNotificationInfo(interaction, deferredReply) {
         .setTitle("Настройка оповещений об рейдах")
         .setDescription("Вы можете настроить своё время уведомлений о начале рейда, определив заранее, за сколько минут до начала рейда Вы хотите получать уведомления\n\n### Шаги для настройки\n1. Нажмите кнопку ` Настроить свои оповещения ` под этим сообщением\n2. В открывшемся меню, введите желаемое количество минут до начала рейда, когда вы хотите получать уведомления\n- Пример: `10` - установит только оповещения на 10 и 15 (стандартных) минут, а `10 | 20 | 60` установит на 10, 15, 20, 60 минут до начала рейда\n3. Затем нажмите кнопку ` Подтвердить `. Всё готово!\n\n### Дополнительные сведения\n - Вы можете указать несколько временных интервалов, разделив их любым из следующих символов: `/` `\\` `|` `,` ` `\n - Стандартное время уведомления составляет `15` минут, его нельзя ни изменить, ни удалить\n - Вы можете указывать интервалы времени от `1` минуты до `1440` минут (24 часа) до начала рейда");
     const components = new ButtonBuilder()
-        .setCustomId(RaidButtons.notificationsShowModal)
+        .setCustomId("raidNotifications_showModal")
         .setLabel("Настроить свои оповещения")
         .setStyle(ButtonStyle.Primary);
     if (deferredReply) {

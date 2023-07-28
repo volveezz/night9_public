@@ -1,15 +1,14 @@
 import { EmbedBuilder } from "discord.js";
-import { AdminDMChannelButtons } from "../configs/Buttons.js";
-import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
+import { Button } from "../structures/button.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { descriptionFormatter } from "../utils/general/utilities.js";
 import { sendDmLogMessage } from "../utils/logging/logger.js";
 export const workingCollectors = new Map();
-export default {
+const ButtonCommand = new Button({
     name: "adminDirectMessageButton",
     run: async ({ client, interaction }) => {
-        if (interaction.customId !== AdminDMChannelButtons.delete && interaction.customId !== AdminDMChannelButtons.reply)
+        if (interaction.customId !== "adminDirectMessageButton_delete" && interaction.customId !== "adminDirectMessageButton_reply")
             return;
         const customId = interaction.customId;
         const messageId = interaction.message.embeds[0].footer.text.split(" | MId: ").pop();
@@ -18,10 +17,10 @@ export default {
         const channel = await client.getAsyncTextChannel(process.env.DIRECT_MESSAGES_CHANNEL_ID);
         if (!replyMember) {
             console.error("[Error code: 1728]", userId);
-            throw { errorType: UserErrors.MEMBER_NOT_FOUND };
+            throw { errorType: "MEMBER_NOT_FOUND" };
         }
         switch (customId) {
-            case AdminDMChannelButtons.reply: {
+            case "adminDirectMessageButton_reply": {
                 const embed = new EmbedBuilder()
                     .setColor(colors.default)
                     .setTitle("Введите текст сообщения для ответа")
@@ -66,7 +65,7 @@ export default {
                 });
                 return;
             }
-            case AdminDMChannelButtons.delete: {
+            case "adminDirectMessageButton_delete": {
                 const deferredUpdate = interaction.deferUpdate();
                 const user = client.users.cache.get(userId) || (await client.users.fetch(userId));
                 const DMChannel = user.dmChannel || (await user.createDM());
@@ -86,5 +85,6 @@ export default {
             }
         }
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=adminDirectMessageButton.js.map

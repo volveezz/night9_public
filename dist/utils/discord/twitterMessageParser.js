@@ -1,6 +1,4 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
-import { BungieTwitterAuthor } from "../../configs/BungieTwitterAuthor.js";
-import { TwitterButtons } from "../../configs/Buttons.js";
 import { client } from "../../index.js";
 import openai from "../../structures/OpenAI.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
@@ -38,33 +36,33 @@ async function generateTwitterEmbed(twitterData, author, icon) {
         return;
     const resolveAuthor = () => {
         const embed = new EmbedBuilder();
-        if (author === BungieTwitterAuthor.Bungie) {
-            return embed.setColor("#d3d2d0").setAuthor({
-                name: "Bungie",
-                iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1130624168568823899/BW5plrkw_400x400.png",
-                url: twitterData.link,
-            });
-        }
-        else if (author === BungieTwitterAuthor.BungieHelp) {
-            return embed.setColor("#FFA500").setAuthor({
-                name: "BungieHelp",
-                iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1097538580571758612/vNe1WM28_400x400.png",
-                url: twitterData.link,
-            });
-        }
-        else if (author === BungieTwitterAuthor.DestinyTheGame) {
-            return embed.setColor("#8fcdf6").setAuthor({
-                name: "DestinyTheGame",
-                iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1097538571142963280/1hh-HGZb_400x400.png",
-                url: twitterData.link,
-            });
-        }
-        else if (author === BungieTwitterAuthor.Destiny2Team) {
-            return embed.setColor("#68EDFF").setAuthor({
-                name: "Destiny2Team",
-                iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1098350594575577188/zPtKbIQx.jpg",
-                url: twitterData.link,
-            });
+        switch (author) {
+            case 2:
+                return embed.setColor("#d3d2d0").setAuthor({
+                    name: "Bungie",
+                    iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1130624168568823899/BW5plrkw_400x400.png",
+                    url: twitterData.link,
+                });
+            case 3:
+                return embed.setColor("#FFA500").setAuthor({
+                    name: "BungieHelp",
+                    iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1097538580571758612/vNe1WM28_400x400.png",
+                    url: twitterData.link,
+                });
+            case 1:
+                return embed.setColor("#8fcdf6").setAuthor({
+                    name: "DestinyTheGame",
+                    iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1097538571142963280/1hh-HGZb_400x400.png",
+                    url: twitterData.link,
+                });
+            case 4:
+                return embed.setColor("#68EDFF").setAuthor({
+                    name: "Destiny2Team",
+                    iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1098350594575577188/zPtKbIQx.jpg",
+                    url: twitterData.link,
+                });
+            default:
+                break;
         }
         return embed;
     };
@@ -81,7 +79,7 @@ async function generateTwitterEmbed(twitterData, author, icon) {
         const translateRequest = await translateTweet(replacedDescription);
         if (translateRequest && translateRequest.length > 1 && !translateRequest.includes("You exceeded your current quota")) {
             tranlsatedContent = translateRequest;
-            components = [new ButtonBuilder().setCustomId(TwitterButtons.showOriginal).setLabel("Оригинал").setStyle(ButtonStyle.Secondary)];
+            components = [new ButtonBuilder().setCustomId("twitter_showOriginal").setLabel("Оригинал").setStyle(ButtonStyle.Secondary)];
         }
         else {
             console.error("[Error code: 1966]", translateRequest);
@@ -109,7 +107,7 @@ async function translateTweet(sourceText) {
     const prompt = `You are an official Destiny 2 news translator. Please follow the instructions below and translate text in the 'user' role.
 1. You need to translate English source text in 'user' role to Russian.
 2. You need to use Destiny jargon, existing weapons, activity names, etc.
-3. If you don't have a translated version of something AND it's not present in the translated dataset below, don't translate it and leave the original name, this includes but is not limited to: resource names, character names, weapon names.
+3. If you don't know how to correctly translate a word and a word is not present in the translated dataset, leave original English name.
 4. If you see something like Precision Bow - it doesn't mean that a bow has high precision, but rather bow with precision frame (точной рамой).
 
 Translated dataset:

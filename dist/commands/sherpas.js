@@ -1,11 +1,12 @@
 import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
+import { raidSelectionOptions } from "../configs/Raids.js";
 import colors from "../configs/colors.js";
 import { client } from "../index.js";
 import { Command } from "../structures/command.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { getRaidDetails } from "../utils/general/raidFunctions.js";
 import { completedRaidsData } from "../utils/persistence/dataStore.js";
-export default new Command({
+const SlashCommand = new Command({
     name: "новички",
     nameLocalizations: { "en-GB": "sherpas", "en-US": "sherpas" },
     description: "Список новичков, которые никогда не ходили в те или иные рейды",
@@ -24,43 +25,7 @@ export default new Command({
                 "en-US": "Select the raid to which you are looking for newbies",
             },
             required: true,
-            choices: [
-                {
-                    name: "Источник кошмаров",
-                    nameLocalizations: { "en-US": "Root of Nightmares", "en-GB": "Root of Nightmares" },
-                    value: "ron",
-                },
-                {
-                    name: "Гибель короля",
-                    nameLocalizations: { "en-US": "King's Fall", "en-GB": "King's Fall" },
-                    value: "kf",
-                },
-                {
-                    name: "Клятва послушника",
-                    nameLocalizations: { "en-US": "Vow of the Disciple", "en-GB": "Vow of the Disciple" },
-                    value: "votd",
-                },
-                {
-                    name: "Хрустальный чертог",
-                    nameLocalizations: { "en-US": "Vault of Glass", "en-GB": "Vault of Glass" },
-                    value: "vog",
-                },
-                {
-                    name: "Склеп Глубокого камня",
-                    nameLocalizations: { "en-US": "Deep Stone Crypt", "en-GB": "Deep Stone Crypt" },
-                    value: "dsc",
-                },
-                {
-                    name: "Сад спасения",
-                    nameLocalizations: { "en-US": "Garden of Salvation", "en-GB": "Garden of Salvation" },
-                    value: "gos",
-                },
-                {
-                    name: "Последнее желание",
-                    nameLocalizations: { "en-US": "Last Wish", "en-GB": "Last Wish" },
-                    value: "lw",
-                },
-            ],
+            choices: raidSelectionOptions,
         },
     ],
     run: async ({ interaction, args }) => {
@@ -88,6 +53,8 @@ export default new Command({
                 return "нет данных по закрытиям";
             const member = client.getCachedMembers().get(discordId);
             const raidClears = [];
+            if (raidUserData.ce > 0)
+                raidClears.push(`${raidUserData.ce} КК`);
             if (raidUserData.ron > 0)
                 raidClears.push(`${raidUserData.ron}${raidUserData.ronMaster > 0 ? `(${raidUserData.ronMaster})` : ""} ИК`);
             if (raidUserData.kf > 0)
@@ -107,7 +74,7 @@ export default new Command({
                 : "Неизвстный пользователь";
             return ` **${memberDisplayName}** ${raidClears.length > 0
                 ? `завершил: ${raidClears.join(", ")}`
-                : raidUserData?.totalRaidCount === 0
+                : raidUserData?.totalRaidClears === 0
                     ? "не проходил ранее рейды"
                     : "не проходил доступные на данный момент рейды"}`;
         }
@@ -153,4 +120,5 @@ export default new Command({
         }
     },
 });
+export default SlashCommand;
 //# sourceMappingURL=sherpas.js.map

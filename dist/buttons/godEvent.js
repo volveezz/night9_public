@@ -1,14 +1,13 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder, Role, TextChannel, VoiceChannel, } from "discord.js";
 import { Op } from "sequelize";
-import { RaidButtons } from "../configs/Buttons.js";
-import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
+import { Button } from "../structures/button.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { updateRaidMessage } from "../utils/general/raidFunctions.js";
 import { RaidEvent } from "../utils/persistence/sequelize.js";
 let raidChannel = null;
-export default {
+const ButtonCommand = new Button({
     name: "godEvent",
     run: async ({ client, interaction }) => {
         const param = interaction.customId.split("_")[1];
@@ -133,9 +132,9 @@ export default {
             if (!raidChannel)
                 raidChannel = await client.getAsyncTextChannel(process.env.RAID_CHANNEL_ID);
             const baseComponents = [
-                new ButtonBuilder().setCustomId(RaidButtons.join).setLabel("Записаться").setStyle(ButtonStyle.Success),
-                new ButtonBuilder().setCustomId(RaidButtons.leave).setLabel("Выйти").setStyle(ButtonStyle.Danger),
-                new ButtonBuilder().setCustomId(RaidButtons.alt).setLabel("Возможно буду").setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("raidButton_action_join").setLabel("Записаться").setStyle(ButtonStyle.Success),
+                new ButtonBuilder().setCustomId("raidButton_action_leave").setLabel("Выйти").setStyle(ButtonStyle.Danger),
+                new ButtonBuilder().setCustomId("raidButton_action_alt").setLabel("Возможно буду").setStyle(ButtonStyle.Secondary),
             ];
             let sortedRaidCount = 0;
             for (const raid of currentRaids) {
@@ -214,15 +213,15 @@ export default {
                 m.delete();
                 const code = m.cleanContent.trim();
                 if (code.length > 9)
-                    throw { errorType: UserErrors.WRONG_HEX };
+                    throw { errorType: "WRONG_HEX" };
                 const role = member.roles.highest.name.startsWith("◈")
                     ? await member.roles.highest.edit({ color: code }).catch((e) => {
-                        throw { errorType: UserErrors.WRONG_HEX };
+                        throw { errorType: "WRONG_HEX" };
                     })
                     : await member.roles.add(await guild.roles
                         .create({ name: "◈", color: code, position: member.roles.highest.position + 1 })
                         .catch((e) => {
-                        throw { errorType: UserErrors.WRONG_HEX };
+                        throw { errorType: "WRONG_HEX" };
                     }));
                 const resultRole = role instanceof Role ? role : role.roles.highest;
                 const resultEmbed = new EmbedBuilder()
@@ -256,5 +255,6 @@ export default {
             }
         }
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=godEvent.js.map

@@ -1,16 +1,15 @@
 import { EmbedBuilder } from "discord.js";
-import { RaidButtons } from "../configs/Buttons.js";
-import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
+import { Button } from "../structures/button.js";
 import { updateNotifications } from "../utils/general/raidFunctions/raidNotifications.js";
 import { RaidUserNotification } from "../utils/persistence/sequelize.js";
-export default {
+const ButtonCommand = new Button({
     name: "changeCustomRaidNotifications",
     run: async ({ modalSubmit: interaction }) => {
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const { id: discordId } = interaction.user;
-        const userInputedTime = interaction.fields.getTextInputValue(RaidButtons.notificationsTime);
+        const userInputedTime = interaction.fields.getTextInputValue("raidNotifications_modal_time");
         let timesArray = userInputedTime
             .split(/[\s|/\\.,]+/)
             .map(Number)
@@ -49,12 +48,13 @@ export default {
         }
         catch (error) {
             if (error.code === "23503") {
-                throw { errorType: UserErrors.DB_USER_NOT_FOUND };
+                throw { errorType: "DB_USER_NOT_FOUND" };
             }
             else {
                 console.error("[Error code: 1912]", error.code, error.body?.code, error.status, error.body?.status);
             }
         }
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=changeCustomRaidNotifications.js.map

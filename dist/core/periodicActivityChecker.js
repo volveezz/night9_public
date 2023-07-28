@@ -6,7 +6,7 @@ import { pause } from "../utils/general/utilities.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 import { clanOnline } from "./userStatisticsManagement.js";
 async function checkClanActivitiesPeriodically() {
-    if (process.env.DEV_BUILD === "dev")
+    if (process.env.NODE_ENV === "development")
         return;
     setInterval(async () => {
         if (getEndpointStatus("activity") !== 1)

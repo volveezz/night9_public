@@ -1,8 +1,5 @@
-import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder, } from "discord.js";
+import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, } from "discord.js";
 import { Op } from "sequelize";
-import { DatabaseCommandButtons } from "../../configs/Buttons.js";
-import NightRoleCategory from "../../configs/RoleCategory.js";
-import UserErrors from "../../configs/UserErrors.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { activityRoles, raidRoles } from "../../configs/roles.js";
@@ -14,7 +11,7 @@ import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js"
 import { convertSeconds } from "../../utils/general/convertSeconds.js";
 import { completedRaidsData } from "../../utils/persistence/dataStore.js";
 import { AuthData, AutoRoleData, UserActivityData, database } from "../../utils/persistence/sequelize.js";
-export default new Command({
+const SlashCommand = new Command({
     name: "db",
     description: "Database",
     defaultMemberPermissions: ["Administrator"],
@@ -104,19 +101,19 @@ export default new Command({
                                 },
                                 {
                                     name: "Stats",
-                                    value: NightRoleCategory.Stats,
+                                    value: 1,
                                 },
                                 {
                                     name: "Titles",
-                                    value: NightRoleCategory.Titles,
+                                    value: 4,
                                 },
                                 {
                                     name: "Triumphs",
-                                    value: NightRoleCategory.Triumphs,
+                                    value: 8,
                                 },
                                 {
                                     name: "Activity",
-                                    value: NightRoleCategory.Activity,
+                                    value: 16,
                                 },
                             ],
                         },
@@ -188,7 +185,7 @@ export default new Command({
             if (!request || !request.discordId) {
                 await deferredReply;
                 const isSelf = id === interaction.user.id || id === "";
-                throw { errorType: UserErrors.DB_USER_NOT_FOUND, errorData: { isSelf } };
+                throw { errorType: "DB_USER_NOT_FOUND", errorData: { isSelf } };
             }
             const benchmarkEnd = client.uptime;
             const raidClears = completedRaidsData.get(request.discordId);
@@ -345,7 +342,7 @@ export default new Command({
                     ? "⚜️" + recordDefinition.titleInfo.titlesByGender.Male
                     : recordDefinition.titleInfo.titlesByGender.Male
                 : recordDefinition.displayProperties.name;
-            const category = (isTitle ? NightRoleCategory.Titles : args.getInteger("category")) ?? NightRoleCategory.Triumphs;
+            const category = (isTitle ? 4 : args.getInteger("category")) ?? 8;
             const embed = new EmbedBuilder().setColor(colors.default).setTitle("Создание авто-роли");
             if (recordDefinition.displayProperties.hasIcon) {
                 embed.setThumbnail(`https://www.bungie.net${recordDefinition.displayProperties.icon}`);
@@ -372,12 +369,12 @@ export default new Command({
                 });
             }
             const components = [
-                new ButtonBuilder().setCustomId(DatabaseCommandButtons.Confirm).setLabel("Создать").setStyle(ButtonStyle.Primary),
+                new ButtonBuilder().setCustomId("db_roles_add_confirm").setLabel("Создать").setStyle(ButtonStyle.Primary),
                 new ButtonBuilder()
-                    .setCustomId(DatabaseCommandButtons.ChangeName)
+                    .setCustomId("db_roles_add_change_name")
                     .setLabel("Изменить название")
                     .setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId(DatabaseCommandButtons.Cancel).setLabel("Отменить").setStyle(ButtonStyle.Danger),
+                new ButtonBuilder().setCustomId("db_roles_add_cancel").setLabel("Отменить").setStyle(ButtonStyle.Danger),
             ];
             await deferredReply;
             const interactionReply = await interaction.editReply({
@@ -388,17 +385,18 @@ export default new Command({
                 message: interactionReply,
                 time: 60 * 2 * 1000,
                 filter: (int) => interaction.user.id == int.user.id,
+                componentType: ComponentType.Button,
             });
             let messageCollector = null;
             collector
                 .on("collect", async (collected) => {
-                if (collected.customId === DatabaseCommandButtons.Confirm) {
+                if (collected.customId === "db_roles_add_confirm") {
                     return confromRoleAdd();
                 }
-                else if (collected.customId === DatabaseCommandButtons.Cancel) {
+                else if (collected.customId === "db_roles_add_cancel") {
                     return cancelRoleAdd();
                 }
-                else if (collected.customId === DatabaseCommandButtons.ChangeName) {
+                else if (collected.customId === "db_roles_add_change_name") {
                     return changeRoleName();
                 }
                 async function cancelRoleAdd() {
@@ -408,13 +406,13 @@ export default new Command({
                 async function confromRoleAdd() {
                     const gildedRoles = [];
                     const embed = new EmbedBuilder().setColor(colors.success);
-                    const rolePosition = interaction.guild.roles.cache.get(category === NightRoleCategory.Activity
+                    const rolePosition = interaction.guild.roles.cache.get(category === 16
                         ? activityRoles.category
-                        : category === NightRoleCategory.Triumphs
+                        : category === 8
                             ? process.env.TRIUMPHS_CATEGORY
-                            : category === NightRoleCategory.Titles
+                            : category === 4
                                 ? process.env.TITLE_CATEGORY
-                                : category === NightRoleCategory.Stats
+                                : category === 1
                                     ? process.env.STATISTICS_CATEGORY
                                     : raidRoles.roles[0].roleId)?.position ?? undefined;
                     const role = await interaction.guild.roles.create({
@@ -560,4 +558,5 @@ export default new Command({
         }
     },
 });
-//# sourceMappingURL=dbCommand.js.map
+export default SlashCommand;
+//# sourceMappingURL=db.js.map

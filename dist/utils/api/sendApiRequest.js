@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 import { WasRefreshedRecently } from "../../structures/tokenRefresher.js";
 const bungieNetUrl = "https://www.bungie.net";
-export async function sendApiRequest(apiEndpoint, authToken, returnResponse = true) {
+export async function sendApiRequest(apiEndpoint, authToken, serverResponse) {
     const headers = createHeaders(authToken);
     const response = await fetch(`${bungieNetUrl}${apiEndpoint}`, { headers }).catch((error) => {
         handleFetchError(error.code || error.message, error);
@@ -15,7 +15,7 @@ export async function sendApiRequest(apiEndpoint, authToken, returnResponse = tr
         handleFetchError(error.code || error.message, error);
         throw new Error("[Error code: 1953] Error happened during fetching data");
     });
-    return jsonResponse.Response && returnResponse ? jsonResponse.Response : jsonResponse;
+    return jsonResponse.Response && !serverResponse ? jsonResponse.Response : jsonResponse;
 }
 function createHeaders(authToken) {
     return {

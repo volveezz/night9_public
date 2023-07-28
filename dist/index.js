@@ -19,8 +19,7 @@ process.on("SIGINT", handleExit);
 process.on("SIGTERM", handleExit);
 async function handleExit(signal) {
     console.log(`Received ${signal}. Saving data...`);
-    await forceUpdateUserActivity();
-    await calculateVoteResults();
+    await Promise.all([forceUpdateUserActivity(), calculateVoteResults()]);
     console.log("Data saved. Exiting...");
     process.exit(0);
 }
@@ -41,7 +40,7 @@ process.on("unhandledRejection", (error) => {
     if (error.code === 50035)
         return console.error("[Error code: 1243]", error?.rawError?.errors, error?.rawError?.error, JSON.stringify(error));
     if (error.message?.startsWith("[Error code: 1952]"))
-        return;
+        return console.error("[Error code: 1974] Received error from sendApiRequest");
     console.error("UnhandledRejection at top level", error.stack || error);
 });
 const app = express();

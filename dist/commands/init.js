@@ -1,6 +1,6 @@
 import { Command } from "../structures/command.js";
 import sendRegistrationLink from "../utils/discord/registration.js";
-export default new Command({
+const SlashCommand = new Command({
     name: "init",
     description: "Свяжите свой аккаунт Destiny с аккаунтом Discord",
     descriptionLocalizations: { "en-US": "Connect your Destiny account to Discord", "en-GB": "Connect your Destiny account to Discord" },
@@ -13,4 +13,5 @@ export default new Command({
         return;
     },
 });
-//# sourceMappingURL=initCommand.js.map
+export default SlashCommand;
+//# sourceMappingURL=init.js.map

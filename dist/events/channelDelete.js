@@ -5,27 +5,24 @@ import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 let guildChannel = null;
 export default new Event("channelDelete", async (channel) => {
+    if (channel.isDMBased())
+        return;
     const embed = new EmbedBuilder().setColor(colors.error).setAuthor({
         name: "Канал удален",
         iconURL: icons.moderation,
     });
-    if (!channel.isDMBased()) {
-        embed.setFooter({ text: `ChnId: ${channel.id}` }).addFields([
-            {
-                name: "Название",
-                value: channel.name,
-                inline: true,
-            },
-            {
-                name: "Дата создания",
-                value: `<t:${Math.floor(channel.createdTimestamp / 1000)}>`,
-                inline: true,
-            },
-        ]);
-    }
-    else {
-        console.error("[Error code: 1640] Deleted channel found as DM", channel);
-    }
+    embed.setFooter({ text: `ChnId: ${channel.id}` }).addFields([
+        {
+            name: "Название",
+            value: channel.name,
+            inline: true,
+        },
+        {
+            name: "Дата создания",
+            value: `<t:${Math.floor(channel.createdTimestamp / 1000)}>`,
+            inline: true,
+        },
+    ]);
     if (!guildChannel)
         guildChannel =
             client.getCachedTextChannel(process.env.GUILD_CHANNEL_ID) || (await client.getAsyncTextChannel(process.env.GUILD_CHANNEL_ID));

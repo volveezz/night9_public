@@ -1,6 +1,6 @@
 import { ActivityType, ChannelType, Client, Collection, GatewayIntentBits, Partials, } from "discord.js";
 import { join, resolve } from "path";
-import periodicDestinyActivityChecker from "../core/periodicActivityChecker.js";
+import checkClanActivitiesPeriodically from "../core/periodicActivityChecker.js";
 import tokenManagment from "../core/tokenManagement.js";
 import handleMemberStatistics from "../core/userStatisticsManagement.js";
 import fetchNewsArticles from "../utils/api/bungieRssFetcher.js";
@@ -15,6 +15,7 @@ import { pause } from "../utils/general/utilities.js";
 import { restoreFetchedPGCRs } from "../utils/logging/activityLogger.js";
 import { lastAlertKeys, processedRssLinks } from "../utils/persistence/dataStore.js";
 const __dirname = resolve();
+const directory = process.env.NODE_ENV === "development" && process.env.LOCAL_ENV === "true" ? "src" : "dist";
 export class ExtendedClient extends Client {
     commands = new Collection();
     buttons = new Collection();
@@ -111,7 +112,7 @@ export class ExtendedClient extends Client {
     async loadCommands() {
         const guildCommands = [];
         const globalCommands = [];
-        const commandFiles = await getFiles(join(__dirname, "dist/commands/"));
+        const commandFiles = await getFiles(join(__dirname, `${directory}/commands/`));
         const commandReading = commandFiles.map((filePath) => {
             return this.importFile(`../commands/${filePath}`).then((command) => {
                 if (!command) {
@@ -152,7 +153,7 @@ export class ExtendedClient extends Client {
         await this.registerCommands({ global: false, commands: guildCommands });
     }
     async loadEvents() {
-        const eventFiles = await getFiles(join(__dirname, "dist/events/"));
+        const eventFiles = await getFiles(join(__dirname, `${directory}/events/`));
         const eventPromises = eventFiles.map((filePath) => {
             return this.importFile(`../events/${filePath}`).then((event) => {
                 if (!event) {
@@ -165,7 +166,7 @@ export class ExtendedClient extends Client {
         await Promise.all(eventPromises);
     }
     async loadButtons() {
-        const buttonFiles = await getFiles(join(__dirname, "dist/buttons/"));
+        const buttonFiles = await getFiles(join(__dirname, `${directory}/buttons/`));
         const buttonReading = buttonFiles.map((filePath) => {
             return this.importFile(`../buttons/${filePath}`).then((button) => {
                 if (!button) {
@@ -178,7 +179,7 @@ export class ExtendedClient extends Client {
         await Promise.all(buttonReading);
     }
     async loadAutocompletions() {
-        const autocompleteFiles = await getFiles(join(__dirname, "dist/autocompletions"));
+        const autocompleteFiles = await getFiles(join(__dirname, `${directory}/autocompletions/`));
         const autocompleteReading = autocompleteFiles.map((filePath) => {
             return this.importFile(`../autocompletions/${filePath}`).then((autocomplete) => {
                 if (!autocomplete) {
@@ -199,7 +200,7 @@ export class ExtendedClient extends Client {
         this.once("ready", async (client) => {
             this.guild = await this.fetchGuild(client);
             this.loadComponents().then(() => {
-                if (process.env.DEV_BUILD !== "dev") {
+                if (process.env.NODE_ENV !== "development") {
                     this.loadProdComponents();
                 }
                 console.info(`\x1b[32m${this.user.username} online since ${new Date().toLocaleString()}\x1b[0m`);
@@ -217,17 +218,13 @@ export class ExtendedClient extends Client {
         return guild;
     }
     loadComponents() {
-        let buttonsLoaded = this.loadButtons();
-        let eventsLoaded = this.loadEvents();
-        let commandsLoaded = this.loadCommands();
-        let autocompletionsLoaded = this.loadAutocompletions();
-        return Promise.all([buttonsLoaded, eventsLoaded, commandsLoaded, autocompletionsLoaded]);
+        return Promise.all([this.loadButtons(), this.loadEvents(), this.loadCommands(), this.loadAutocompletions()]);
     }
     async loadProdComponents() {
         await pause(5000);
         tokenManagment();
         clanOnlineMemberActivityChecker();
-        periodicDestinyActivityChecker();
+        checkClanActivitiesPeriodically();
         handleMemberStatistics();
         this.startUpdatingPresence();
         restoreFetchedPGCRs();

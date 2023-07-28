@@ -1,7 +1,6 @@
 import { ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder } from "discord.js";
 import { Op, Sequelize } from "sequelize";
 import { canceledFireteamCheckingRaids } from "../../../buttons/raidInChnButton.js";
-import { RaidButtons } from "../../../configs/Buttons.js";
 import colors from "../../../configs/colors.js";
 import { client } from "../../../index.js";
 import { sendApiRequest } from "../../api/sendApiRequest.js";
@@ -14,7 +13,7 @@ const MINUTES_AFTER_RAID = 5;
 const fireteamCheckingSystem = new Set();
 const previouslyCheckedMembers = new Map();
 async function raidFireteamChecker(id) {
-    if (process.env.DEV_BUILD === "dev")
+    if (process.env.NODE_ENV === "development")
         return;
     if (id)
         fireteamCheckingSystem.delete(id);
@@ -171,7 +170,7 @@ async function raidFireteamChecker(id) {
         async function sendPrivateChannelNotify() {
             const fireteamCheckingNotification = new EmbedBuilder().setColor(colors.default).setTitle("Система слежка за составом запущена");
             const fireTeamCheckingNotificationComponents = new ButtonBuilder()
-                .setCustomId(RaidButtons.fireteamCheckerCancel)
+                .setCustomId("raidInChnButton_fireteamChecker_cancel")
                 .setLabel("Отключить")
                 .setStyle(ButtonStyle.Danger);
             const privateRaidChannel = await client.getAsyncTextChannel(initialRaidEvent.channelId).catch((e) => {

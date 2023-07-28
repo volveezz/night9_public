@@ -1,10 +1,10 @@
 import { EmbedBuilder } from "discord.js";
-import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import { activityRoles, classRoles, statisticsRoles, trialsRoles } from "../configs/roles.js";
+import { Button } from "../structures/button.js";
 import { pause } from "../utils/general/utilities.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
-export default {
+const ButtonCommand = new Button({
     name: "roleChannel",
     run: async ({ client, interaction }) => {
         const defferedReply = interaction.deferReply({ ephemeral: true });
@@ -42,7 +42,7 @@ export default {
                     const roleStatus = commandFull.pop() === "enable";
                     const dbRow = await AuthData.findOne({ where: { discordId: interaction.user.id }, attributes: ["roleCategoriesBits"] });
                     if (!dbRow)
-                        throw { errorType: UserErrors.DB_USER_NOT_FOUND };
+                        throw { errorType: "DB_USER_NOT_FOUND" };
                     let { roleCategoriesBits } = dbRow;
                     const embed = new EmbedBuilder().setColor(colors.default);
                     if ((!(roleCategoriesBits & categoryId) && roleStatus) || (roleCategoriesBits & categoryId && !roleStatus)) {
@@ -99,5 +99,6 @@ export default {
                 return;
         }
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=roleChannel.js.map

@@ -1,11 +1,9 @@
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
-import { RegisterButtons } from "../../configs/Buttons.js";
-import UserErrors from "../../configs/UserErrors.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 function errorMessages(errorType, ...rest) {
     switch (errorType) {
-        case UserErrors.DB_USER_NOT_FOUND: {
+        case "DB_USER_NOT_FOUND": {
             const isSelf = rest[0]?.isSelf;
             return {
                 embeds: isSelf === false
@@ -34,11 +32,11 @@ function errorMessages(errorType, ...rest) {
                             type: ComponentType.ActionRow,
                             components: [
                                 new ButtonBuilder()
-                                    .setCustomId(RegisterButtons.register)
+                                    .setCustomId("initEvent_register")
                                     .setLabel("Начать регистрацию")
                                     .setStyle(ButtonStyle.Success),
                                 new ButtonBuilder()
-                                    .setCustomId(RegisterButtons.why)
+                                    .setCustomId("initEvent_why")
                                     .setLabel("Для чего нужна регистрация")
                                     .setStyle(ButtonStyle.Secondary),
                             ],
@@ -46,7 +44,7 @@ function errorMessages(errorType, ...rest) {
                     ],
             };
         }
-        case UserErrors.RAID_NOT_FOUND: {
+        case "RAID_NOT_FOUND": {
             return {
                 embeds: [
                     new EmbedBuilder()
@@ -59,7 +57,7 @@ function errorMessages(errorType, ...rest) {
                 ],
             };
         }
-        case UserErrors.RAID_MISSING_PERMISSIONS: {
+        case "RAID_MISSING_PERMISSIONS": {
             return {
                 embeds: [
                     new EmbedBuilder()
@@ -72,7 +70,7 @@ function errorMessages(errorType, ...rest) {
                 ],
             };
         }
-        case UserErrors.RAID_ALREADY_JOINED: {
+        case "RAID_ALREADY_JOINED": {
             return {
                 embeds: [
                     new EmbedBuilder()
@@ -84,7 +82,7 @@ function errorMessages(errorType, ...rest) {
                 ],
             };
         }
-        case UserErrors.MEMBER_NOT_FOUND: {
+        case "MEMBER_NOT_FOUND": {
             return {
                 embeds: [
                     new EmbedBuilder()
@@ -97,7 +95,7 @@ function errorMessages(errorType, ...rest) {
                 ],
             };
         }
-        case UserErrors.WRONG_ID: {
+        case "WRONG_ID": {
             return {
                 embeds: [
                     new EmbedBuilder()
@@ -109,7 +107,7 @@ function errorMessages(errorType, ...rest) {
                 ],
             };
         }
-        case UserErrors.WRONG_HEX: {
+        case "WRONG_HEX": {
             return {
                 embeds: [
                     new EmbedBuilder()
@@ -121,7 +119,7 @@ function errorMessages(errorType, ...rest) {
                 ],
             };
         }
-        case UserErrors.RAID_MISSING_DATA_FOR_CLEARS: {
+        case "RAID_MISSING_DATA_FOR_CLEARS": {
             return {
                 embeds: [
                     new EmbedBuilder()
@@ -134,7 +132,7 @@ function errorMessages(errorType, ...rest) {
                 ],
             };
         }
-        case UserErrors.RAID_NOT_ENOUGH_CLEARS: {
+        case "RAID_NOT_ENOUGH_CLEARS": {
             const userClears = rest[0][0];
             const raidRequirement = rest[0][1];
             return {
@@ -149,7 +147,7 @@ function errorMessages(errorType, ...rest) {
                 ],
             };
         }
-        case UserErrors.MISSING_PERMISSIONS: {
+        case "MISSING_PERMISSIONS": {
             return {
                 embeds: [
                     new EmbedBuilder().setColor(colors.error).setAuthor({
@@ -159,7 +157,7 @@ function errorMessages(errorType, ...rest) {
                 ],
             };
         }
-        case UserErrors.RAID_TIME_ERROR: {
+        case "RAID_TIME_ERROR": {
             return {
                 embeds: [
                     new EmbedBuilder().setColor(colors.warning).setAuthor({
@@ -169,7 +167,7 @@ function errorMessages(errorType, ...rest) {
                 ],
             };
         }
-        case UserErrors.RAID_MISSING_DLC: {
+        case "RAID_MISSING_DLC": {
             return {
                 embeds: [
                     new EmbedBuilder()
@@ -182,7 +180,7 @@ function errorMessages(errorType, ...rest) {
                 ],
             };
         }
-        case UserErrors.RAID_GUIDE_NOT_FOUND: {
+        case "RAID_GUIDE_NOT_FOUND": {
             return {
                 embeds: [
                     new EmbedBuilder().setColor(colors.error).setAuthor({
@@ -192,7 +190,7 @@ function errorMessages(errorType, ...rest) {
                 ],
             };
         }
-        case UserErrors.API_UNAVAILABLE: {
+        case "API_UNAVAILABLE": {
             return {
                 embeds: [
                     new EmbedBuilder().setColor(colors.error).setAuthor({
@@ -202,7 +200,7 @@ function errorMessages(errorType, ...rest) {
                 ],
             };
         }
-        case UserErrors.CLOSED_DM: {
+        case "CLOSED_DM": {
             return {
                 embeds: [
                     new EmbedBuilder()

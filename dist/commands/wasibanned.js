@@ -3,7 +3,7 @@ import colors from "../configs/colors.js";
 import { longOffline } from "../core/userStatisticsManagement.js";
 import { Command } from "../structures/command.js";
 import { getEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
-export default new Command({
+const SlashCommand = new Command({
     name: "wasibanned",
     description: "Проверьте свой статус бана",
     descriptionLocalizations: {
@@ -23,4 +23,5 @@ export default new Command({
         await interaction.reply({ embeds: [embed], ephemeral: true });
     },
 });
+export default SlashCommand;
 //# sourceMappingURL=wasibanned.js.map

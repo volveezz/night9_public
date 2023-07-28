@@ -1,12 +1,11 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
-import UserErrors from "../../../configs/UserErrors.js";
 import colors from "../../../configs/colors.js";
 import raidsGuide from "../../../configs/raidGuideData.js";
 import { addButtonsToMessage } from "../addButtonsToMessage.js";
 async function sendRaidGuide(interaction, raidName, deferredReply) {
     const raidGuide = raidsGuide[raidName];
     if (!raidGuide) {
-        throw { errorType: UserErrors.RAID_GUIDE_NOT_FOUND };
+        throw { errorType: "RAID_GUIDE_NOT_FOUND" };
     }
     for (const [encounterIndex, encounter] of raidGuide.entries()) {
         const embed = new EmbedBuilder()

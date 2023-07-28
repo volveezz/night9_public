@@ -1,6 +1,7 @@
 import { client } from "../../index.js";
 import { sendApiRequest } from "./sendApiRequest.js";
 let lastFetchedArticles = null;
+const checkedUrls = new Set();
 async function fetchNewsArticles() {
     try {
         const url = "/Platform/Content/Rss/NewsArticles/0/?includebody=false";
@@ -35,7 +36,7 @@ async function fetchNewsArticles() {
     }
 }
 function getNewArticles(currentArticles, lastFetchedArticles) {
-    return currentArticles.filter((article) => !lastFetchedArticles.some((lastArticle) => article.UniqueIdentifier === lastArticle.UniqueIdentifier));
+    return currentArticles.filter((article) => !lastFetchedArticles.some((lastArticle) => article.UniqueIdentifier === lastArticle.UniqueIdentifier && !checkedUrls.has(article.Link)));
 }
 let newsChannel = null;
 async function postArticlesToDiscord(articles) {
@@ -52,7 +53,9 @@ async function postArticlesToDiscord(articles) {
         try {
             if (!newsChannel)
                 newsChannel = await client.getAsyncTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
-            await newsChannel.send({ embeds: [embed] });
+            await newsChannel.send({ embeds: [embed] }).then((_) => {
+                checkedUrls.add(article.Link);
+            });
         }
         catch (error) {
             console.error("[Error code: 1936] Error posting article to Discord:", error);

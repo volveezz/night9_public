@@ -1,10 +1,9 @@
 import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
-import { ClanButtons, RegisterButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { Command } from "../../structures/command.js";
 import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
-export default new Command({
+const SlashCommand = new Command({
     name: "generator",
     description: "Embed or button generator",
     defaultMemberPermissions: ["Administrator"],
@@ -182,9 +181,9 @@ async function getPreset(presetName) {
                 },
             ]);
             const components = [
-                new ButtonBuilder().setCustomId(RegisterButtons.register).setLabel("Регистрация").setStyle(ButtonStyle.Success),
-                new ButtonBuilder().setCustomId(ClanButtons.modal).setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId(ClanButtons.invite).setLabel("Приглашение в клан").setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("initEvent_register").setLabel("Регистрация").setStyle(ButtonStyle.Success),
+                new ButtonBuilder().setCustomId("clanJoinEvent_modalBtn").setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("webhandlerEvent_clan_request").setLabel("Приглашение в клан").setStyle(ButtonStyle.Secondary),
             ];
             return { embeds: [embed], components };
         }
@@ -232,8 +231,8 @@ async function getPreset(presetName) {
         }
         case "leavedclanmsg": {
             const components = [
-                new ButtonBuilder().setCustomId(RegisterButtons.register).setLabel("Регистрация").setStyle(ButtonStyle.Success),
-                new ButtonBuilder().setCustomId(ClanButtons.invite).setLabel("Отправить приглашение в клан").setStyle(ButtonStyle.Success),
+                new ButtonBuilder().setCustomId("initEvent_register").setLabel("Регистрация").setStyle(ButtonStyle.Success),
+                new ButtonBuilder().setCustomId("webhandlerEvent_clan_request").setLabel("Отправить приглашение в клан").setStyle(ButtonStyle.Success),
             ];
             const embed = new EmbedBuilder()
                 .setColor(colors.default)
@@ -246,4 +245,5 @@ async function getPreset(presetName) {
     }
     return null;
 }
-//# sourceMappingURL=generatorCommand.js.map
+export default SlashCommand;
+//# sourceMappingURL=generator.js.map

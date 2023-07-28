@@ -1,5 +1,4 @@
 import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder } from "discord.js";
-import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { client } from "../index.js";
@@ -10,7 +9,7 @@ import { getEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js"
 import { convertSeconds } from "../utils/general/convertSeconds.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
-export default new Command({
+const SlashCommand = new Command({
     name: "закрытия",
     nameLocalizations: { "en-US": "completions", "en-GB": "completions" },
     description: "Проверьте статистику всех активностей в выбранной категории",
@@ -52,7 +51,7 @@ export default new Command({
     },
     run: async ({ args, interaction: slashInteraction, userMenuInteraction }) => {
         if (getEndpointStatus("activity") !== 1) {
-            throw { errorType: UserErrors.API_UNAVAILABLE };
+            throw { errorType: "API_UNAVAILABLE" };
         }
         const interaction = userMenuInteraction || slashInteraction;
         const deferredReply = interaction.deferReply({ ephemeral: true });
@@ -60,12 +59,12 @@ export default new Command({
         const targerMember = await client.getAsyncMember(interaction.targetId ? interaction.targetId : interaction.user.id);
         if (!targerMember) {
             await deferredReply;
-            throw { errorType: UserErrors.MEMBER_NOT_FOUND };
+            throw { errorType: "MEMBER_NOT_FOUND" };
         }
         const authData = await AuthData.findByPk(targerMember.id);
         if (!authData) {
             await deferredReply;
-            throw { errorType: UserErrors.DB_USER_NOT_FOUND, errorData: { isSelf: interaction.user.id === targerMember.id } };
+            throw { errorType: "DB_USER_NOT_FOUND", errorData: { isSelf: interaction.user.id === targerMember.id } };
         }
         const { platform, bungieId, accessToken } = authData;
         const characterIdList = (await sendApiRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken)).characters.map((characterData) => characterData.characterId);
@@ -313,4 +312,5 @@ export default new Command({
         return;
     },
 });
+export default SlashCommand;
 //# sourceMappingURL=completions.js.map

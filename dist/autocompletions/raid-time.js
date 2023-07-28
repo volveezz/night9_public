@@ -1,6 +1,7 @@
 import { userTimezones } from "../core/userStatisticsManagement.js";
+import { Autocomplete } from "../structures/autocomplete.js";
 import convertTimeStringToNumber from "../utils/general/raidFunctions/convertTimeStringToNumber.js";
-export default {
+const AutocompleteFile = new Autocomplete({
     name: "время",
     aliases: ["новое-время"],
     run: async ({ interaction, option }) => {
@@ -28,5 +29,6 @@ export default {
             return console.error("[Error code: 1681]", e);
         });
     },
-};
-//# sourceMappingURL=raidTime.js.map
+});
+export default AutocompleteFile;
+//# sourceMappingURL=raid-time.js.map

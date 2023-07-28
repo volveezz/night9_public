@@ -1,11 +1,9 @@
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
-import { AutonameButtons } from "../configs/Buttons.js";
-import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { Command } from "../structures/command.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
-export default new Command({
+const SlashCommand = new Command({
     name: "autoname",
     description: "Управление автоматической сменой установкой своего ника",
     descriptionLocalizations: {
@@ -15,7 +13,7 @@ export default new Command({
     run: async ({ interaction }) => {
         const dbInfo = await AuthData.findByPk(interaction.user.id);
         if (!dbInfo)
-            throw { errorType: UserErrors.DB_USER_NOT_FOUND };
+            throw { errorType: "DB_USER_NOT_FOUND" };
         const embed = new EmbedBuilder().setColor(colors.serious).setAuthor({
             name: "Идет обработка...",
             iconURL: icons.loading,
@@ -36,12 +34,12 @@ export default new Command({
                 type: ComponentType.ActionRow,
                 components: [
                     new ButtonBuilder()
-                        .setCustomId(AutonameButtons.enable)
+                        .setCustomId("autoname_enable")
                         .setLabel("Включить")
                         .setStyle(ButtonStyle.Success)
                         .setDisabled(!nameStatus),
                     new ButtonBuilder()
-                        .setCustomId(AutonameButtons.disable)
+                        .setCustomId("autoname_disable")
                         .setLabel("Отключить")
                         .setStyle(ButtonStyle.Danger)
                         .setDisabled(nameStatus),
@@ -52,6 +50,8 @@ export default new Command({
         const collector = (await interaction.editReply({ embeds: [embed], components })).createMessageComponentCollector({
             max: 1,
             time: 60 * 2 * 1000,
+            filter: (i) => i.user.id === interaction.user.id,
+            componentType: ComponentType.Button,
         });
         collector.on("collect", async (i) => {
             i.deferUpdate();
@@ -80,4 +80,5 @@ export default new Command({
         });
     },
 });
-//# sourceMappingURL=autonameCommand.js.map
+export default SlashCommand;
+//# sourceMappingURL=autoname.js.map

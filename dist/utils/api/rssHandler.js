@@ -1,5 +1,4 @@
 import Parser from "rss-parser";
-import { BungieTwitterAuthor } from "../../configs/BungieTwitterAuthor.js";
 import { generateTwitterEmbed } from "../discord/twitterMessageParser.js";
 import { processedRssLinks } from "../persistence/dataStore.js";
 import { ProcessedLink } from "../persistence/sequelize.js";
@@ -67,13 +66,13 @@ async function updateLatestLinkInDatabase(route, link) {
 function getBungieTwitterAuthor(creator) {
     switch (creator) {
         case "Destiny 2":
-            return BungieTwitterAuthor.DestinyTheGame;
+            return 1;
         case "Bungie":
-            return BungieTwitterAuthor.Bungie;
+            return 2;
         case "Bungie Help":
-            return BungieTwitterAuthor.BungieHelp;
+            return 3;
         case "Destiny 2 Team":
-            return BungieTwitterAuthor.Destiny2Team;
+            return 4;
         default:
             return null;
     }
@@ -93,10 +92,10 @@ function isValidTweet(author, guid) {
     if (!guid)
         return false;
     const guidLowerCase = guid.toLowerCase();
-    return ((author === BungieTwitterAuthor.Bungie && guidLowerCase.startsWith("https://twitter.com/bungie/")) ||
-        (author === BungieTwitterAuthor.BungieHelp && guidLowerCase.startsWith("https://twitter.com/bungiehelp/")) ||
-        (author === BungieTwitterAuthor.DestinyTheGame && guidLowerCase.startsWith("https://twitter.com/destinythegame/")) ||
-        (author === BungieTwitterAuthor.Destiny2Team && guidLowerCase.startsWith("https://twitter.com/destiny2team/")));
+    return ((author === 2 && guidLowerCase.startsWith("https://twitter.com/bungie/")) ||
+        (author === 3 && guidLowerCase.startsWith("https://twitter.com/bungiehelp/")) ||
+        (author === 1 && guidLowerCase.startsWith("https://twitter.com/destinythegame/")) ||
+        (author === 4 && guidLowerCase.startsWith("https://twitter.com/destiny2team/")));
 }
 const twitterAccounts = [
     {

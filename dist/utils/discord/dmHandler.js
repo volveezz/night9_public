@@ -1,5 +1,4 @@
 import { ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder } from "discord.js";
-import { AdminDMChannelButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import { client } from "../../index.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
@@ -24,7 +23,7 @@ async function sendAdminNotification(message, member) {
     if (message.stickers.size > 0) {
         embed.addFields([{ name: "Стикеры", value: message.stickers.map((sticker) => sticker.name + ":" + sticker.description).join("\n") }]);
     }
-    const buttons = [new ButtonBuilder().setCustomId(AdminDMChannelButtons.reply).setLabel("Reply").setStyle(ButtonStyle.Success)];
+    const buttons = [new ButtonBuilder().setCustomId("adminDirectMessageButton_reply").setLabel("Reply").setStyle(ButtonStyle.Success)];
     await dmChannel.send({
         embeds: [embed],
         components: addButtonsToMessage(buttons),

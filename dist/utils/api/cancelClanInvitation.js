@@ -1,4 +1,4 @@
-import { getAdminAccessToken } from "../../commands/clanCommand.js";
+import { getAdminAccessToken } from "../../commands/clan/main.js";
 import { parseIdentifierString } from "../general/utilities.js";
 import { sendApiPostRequest } from "./sendApiPostRequest.js";
 const timeouts = {};

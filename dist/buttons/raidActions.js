@@ -1,10 +1,9 @@
 import { EmbedBuilder, RESTJSONErrorCodes } from "discord.js";
 import { Op, Sequelize } from "sequelize";
-import { RaidButtons } from "../configs/Buttons.js";
-import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { client } from "../index.js";
+import { Button } from "../structures/button.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { checkRaidTimeConflicts, getRaidDetails, sendUserRaidGuideNoti, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
@@ -34,19 +33,19 @@ async function actionMessageHandler({ interaction, raidEvent, target }) {
     }
     else {
         switch (interaction.customId) {
-            case RaidButtons.join:
+            case "raidButton_action_join":
                 embed.setColor(colors.success).setAuthor({
                     name: `${displayName}: ${resolvedTarget}[Участник]`,
                     iconURL: member.displayAvatarURL(),
                 });
                 break;
-            case RaidButtons.alt:
+            case "raidButton_action_alt":
                 embed.setColor(colors.warning).setAuthor({
                     name: `${displayName}: ${resolvedTarget}[Возможный участник]`,
                     iconURL: member.displayAvatarURL(),
                 });
                 break;
-            case RaidButtons.leave:
+            case "raidButton_action_leave":
                 embed.setColor(colors.error).setAuthor({
                     name: `${displayName}: ${resolvedTarget}❌`,
                     iconURL: member.displayAvatarURL(),
@@ -109,11 +108,11 @@ async function joinedFromHotJoined(raidData) {
     await updatePrivateRaidMessage({ raidEvent: updatedRaidData });
     updateNotifications(member.id, true);
 }
-export default {
+const ButtonCommand = new Button({
     name: "raidButton",
     run: async ({ client, interaction }) => {
         const deferredUpdate = interaction.deferUpdate();
-        if (interaction.customId === RaidButtons.leave) {
+        if (interaction.customId === "raidButton_action_leave") {
             const raidDataBeforeLeave = RaidEvent.findOne({
                 where: { messageId: interaction.message.id },
                 attributes: ["joined", "hotJoined", "alt"],
@@ -155,7 +154,7 @@ export default {
             if (!raidEvent) {
                 await deferredUpdate;
                 console.error("[Error code: 1742]", { updateQuery }, { searchQuery });
-                throw { errorType: UserErrors.RAID_NOT_FOUND };
+                throw { errorType: "RAID_NOT_FOUND" };
             }
             updatePrivateRaidMessage({ raidEvent });
             updateRaidMessage({ raidEvent, interaction });
@@ -195,6 +194,7 @@ export default {
                 "joined",
                 "hotJoined",
                 "alt",
+                "time",
                 "messageId",
                 "raid",
                 "difficulty",
@@ -203,18 +203,18 @@ export default {
         });
         if (!raidEvent) {
             await deferredUpdate;
-            throw { errorType: UserErrors.RAID_NOT_FOUND };
+            throw { errorType: "RAID_NOT_FOUND" };
         }
         const raidData = getRaidDetails(raidEvent.raid, raidEvent.difficulty);
         const member = await client.getAsyncMember(interaction.user.id);
         if (raidData.requiredRole && member.roles.cache.has(process.env.VERIFIED) && !member.roles.cache.has(raidData.requiredRole)) {
             await deferredUpdate;
-            throw { errorType: UserErrors.RAID_MISSING_DLC, errorData: [`<@&${raidData.requiredRole}>`] };
+            throw { errorType: "RAID_MISSING_DLC", errorData: [`<@&${raidData.requiredRole}>`] };
         }
         const userAlreadyInHotJoined = raidEvent.hotJoined.includes(interaction.user.id);
         const userAlreadyJoined = raidEvent.joined.includes(interaction.user.id);
         const userAlreadyAlt = raidEvent.alt.includes(interaction.user.id);
-        const userTarget = interaction.customId === RaidButtons.join
+        const userTarget = interaction.customId === "raidButton_action_join"
             ? raidEvent.joined.length >= 6 && !userAlreadyInHotJoined
                 ? "hotJoined"
                 : "joined"
@@ -224,28 +224,33 @@ export default {
             hotJoined: Sequelize.fn("array_remove", Sequelize.col("hotJoined"), interaction.user.id),
             alt: Sequelize.fn("array_remove", Sequelize.col("alt"), interaction.user.id),
         };
-        if (interaction.customId === RaidButtons.join) {
+        if (interaction.customId === "raidButton_action_join") {
+            const isContestRaid = raidEvent.raid === "ce" && raidEvent.time >= 1693591200 && raidEvent.time <= 1693764000;
             const raidsCompletedByUser = completedRaidsData.get(interaction.user.id);
-            const raidClears = raidsCompletedByUser
-                ? raidsCompletedByUser[raidEvent.raid] + (raidsCompletedByUser[raidEvent.raid + "Master"] || 0)
-                : 0;
+            const raidClears = isContestRaid
+                ? raidsCompletedByUser
+                    ? raidsCompletedByUser["totalRaidClears"]
+                    : 0
+                : raidsCompletedByUser
+                    ? raidsCompletedByUser[raidEvent.raid] + (raidsCompletedByUser[raidEvent.raid + "Master"] || 0)
+                    : 0;
             if (raidEvent.requiredClears) {
                 if (!raidsCompletedByUser) {
                     await deferredUpdate;
-                    throw { errorType: UserErrors.RAID_MISSING_DATA_FOR_CLEARS };
+                    throw { errorType: "RAID_MISSING_DATA_FOR_CLEARS" };
                 }
                 if (raidEvent.requiredClears > raidClears) {
                     await deferredUpdate;
-                    throw { errorType: UserErrors.RAID_NOT_ENOUGH_CLEARS, errorData: [raidClears, raidEvent.requiredClears] };
+                    throw { errorType: "RAID_NOT_ENOUGH_CLEARS", errorData: [raidClears, raidEvent.requiredClears] };
                 }
             }
             if (userAlreadyJoined) {
                 await deferredUpdate;
-                throw { errorType: UserErrors.RAID_ALREADY_JOINED };
+                throw { errorType: "RAID_ALREADY_JOINED" };
             }
             if (raidEvent.joined.length >= 6 && userAlreadyInHotJoined) {
                 await deferredUpdate;
-                throw { errorType: UserErrors.RAID_ALREADY_JOINED };
+                throw { errorType: "RAID_ALREADY_JOINED" };
             }
             const sentUserSet = raidGuideSentUsers.get(raidEvent.raid) ?? new Set();
             if (!sentUserSet.has(interaction.user.id)) {
@@ -258,7 +263,7 @@ export default {
         }
         else if (userAlreadyAlt) {
             await deferredUpdate;
-            throw { errorType: UserErrors.RAID_ALREADY_JOINED };
+            throw { errorType: "RAID_ALREADY_JOINED" };
         }
         update[userTarget] = Sequelize.fn("array_append", Sequelize.col(userTarget), interaction.user.id);
         [, [raidEvent]] = await RaidEvent.update(update, {
@@ -275,11 +280,11 @@ export default {
         await (await client.getAsyncTextChannel(raidEvent.channelId)).permissionOverwrites.create(interaction.user.id, {
             ViewChannel: true,
         });
-        if (interaction.customId === RaidButtons.join) {
+        if (interaction.customId === "raidButton_action_join") {
             updateNotifications(interaction.user.id, true);
             checkRaidTimeConflicts(interaction, raidEvent);
         }
-        if (interaction.customId === RaidButtons.alt) {
+        if (interaction.customId === "raidButton_action_alt") {
             updateNotifications(interaction.user.id);
             if (userAlreadyJoined && raidEvent.joined.length === 5 && raidEvent.hotJoined.length > 0) {
                 setTimeout(async () => await joinedFromHotJoined(raidEvent), 500);
@@ -287,5 +292,6 @@ export default {
         }
         return;
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=raidActions.js.map

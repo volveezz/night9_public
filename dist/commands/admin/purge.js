@@ -2,7 +2,7 @@ import { ApplicationCommandOptionType, ChannelType, EmbedBuilder } from "discord
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { Command } from "../../structures/command.js";
-export default new Command({
+const SlashCommand = new Command({
     name: "purge",
     description: "Удаление нескольких сообщений одной командой",
     descriptionLocalizations: {
@@ -93,4 +93,5 @@ export default new Command({
         }
     },
 });
-//# sourceMappingURL=purgeCommand.js.map
+export default SlashCommand;
+//# sourceMappingURL=purge.js.map

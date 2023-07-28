@@ -5,8 +5,9 @@ import openai from "../../structures/OpenAI.js";
 import { Command } from "../../structures/command.js";
 import calculateVoteResults from "../../utils/discord/twitterTranslationVotes.js";
 import { convertSeconds } from "../../utils/general/convertSeconds.js";
+import { completedRaidsData } from "../../utils/persistence/dataStore.js";
 import { AuthData, UserActivityData } from "../../utils/persistence/sequelize.js";
-export default new Command({
+const SlashCommand = new Command({
     name: "scripts",
     description: "Script system",
     defaultMemberPermissions: ["Administrator"],
@@ -22,6 +23,27 @@ export default new Command({
         const defferedReply = interaction.deferReply({ ephemeral: true });
         const scriptId = args.getString("script", true).toLowerCase();
         switch (scriptId) {
+            case "setclears": {
+                completedRaidsData.set(interaction.user.id, {
+                    ce: 0,
+                    ron: 0,
+                    ronMaster: 0,
+                    kf: 2,
+                    kfMaster: 1,
+                    votd: 333,
+                    votdMaster: 4,
+                    dsc: 3,
+                    gos: 1,
+                    vog: 3,
+                    vogMaster: 2,
+                    lw: 1,
+                    totalRaidClears: 500,
+                });
+                await defferedReply;
+                const embed = new EmbedBuilder().setAuthor({ name: "Успешно", iconURL: icons.success }).setColor(colors.success);
+                interaction.editReply({ embeds: [embed] });
+                return;
+            }
             case "resolvevotes": {
                 await calculateVoteResults();
                 const embed = new EmbedBuilder()
@@ -98,4 +120,5 @@ export default new Command({
         }
     },
 });
-//# sourceMappingURL=scriptsCommand.js.map
+export default SlashCommand;
+//# sourceMappingURL=scripts.js.map

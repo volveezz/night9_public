@@ -1,26 +1,26 @@
 import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
-import { RaidButtons } from "../configs/Buttons.js";
+import { Button } from "../structures/button.js";
 import { sendNotificationInfo } from "../utils/general/raidFunctions/raidNotifications.js";
 import { RaidUserNotification } from "../utils/persistence/sequelize.js";
-export default {
+const ButtonCommand = new Button({
     name: "raidNotifications",
     run: async ({ interaction: commandInteraction, modalSubmit: modalInteraction }) => {
         const interaction = commandInteraction ?? modalInteraction;
         switch (interaction.customId) {
-            case RaidButtons.notificationsStart:
+            case "raidNotifications_start":
                 await sendNotificationInfo(interaction);
                 return;
-            case RaidButtons.notificationsShowModal:
+            case "raidNotifications_showModal":
                 showModal();
                 return;
         }
         async function showModal() {
             const modal = new ModalBuilder()
                 .setTitle("Настройка своего времени оповещения об рейдах")
-                .setCustomId(RaidButtons.notificationsConfirmModal);
+                .setCustomId("changeCustomRaidNotifications");
             const alreadyDefinedTimeByUser = await RaidUserNotification.findByPk(interaction.user.id);
             const specifiedTime = new TextInputBuilder()
-                .setCustomId(RaidButtons.notificationsTime)
+                .setCustomId("raidNotifications_modal_time")
                 .setLabel("Укажите время перед оповещением")
                 .setPlaceholder("5 | 10 | 15 | 60")
                 .setStyle(TextInputStyle.Paragraph);
@@ -31,5 +31,6 @@ export default {
             return await interaction.showModal(modal);
         }
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=raidNotifications.js.map

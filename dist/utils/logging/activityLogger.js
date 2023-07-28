@@ -1,6 +1,5 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { Op } from "sequelize";
-import { RaidButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import { activityIcons } from "../../configs/icons.js";
 import { client } from "../../index.js";
@@ -335,7 +334,7 @@ async function logActivityCompletion(pgcrId) {
                     .setTitle("Созданный вами рейд был завершен")
                     .setDescription(`Вы создавали рейд ${pastCreatedRaid.id}-${pastCreatedRaid.raid} на <t:${pastCreatedRaid.time}> и сейчас он был завершен\nПодтвердите завершение рейда для удаления набора\n\n[Результаты рейда](https://discord.com/channels/${resolvedMessage.guildId}/${resolvedMessage.channelId}/${resolvedMessage.id})`);
                 const deleteRaidButton = new ButtonBuilder()
-                    .setCustomId(RaidButtons.delete)
+                    .setCustomId("raidInChnButton_delete")
                     .setLabel("Удалить набор")
                     .setStyle(ButtonStyle.Danger);
                 const member = await client.getAsyncMember(pastCreatedRaid.creator);

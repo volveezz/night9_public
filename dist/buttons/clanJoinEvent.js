@@ -1,33 +1,32 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, } from "discord.js";
-import { ClanJoinButtons, RegisterButtons } from "../configs/Buttons.js";
-import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
+import { Button } from "../structures/button.js";
 let clanLogChannel = null;
-export default {
+const ButtonCommand = new Button({
     name: "clanJoinEvent",
     run: async ({ client, interaction: chatInteraction, modalSubmit }) => {
         const interaction = modalSubmit || chatInteraction;
         const member = client.getCachedMembers().get(interaction.user.id) || (await client.getCachedGuild().members.fetch(interaction.user.id));
         if (!member)
-            throw { errorType: UserErrors.MEMBER_NOT_FOUND };
+            throw { errorType: "MEMBER_NOT_FOUND" };
         if (chatInteraction) {
-            const modal = new ModalBuilder().setTitle("Форма вступления в клан").setCustomId(ClanJoinButtons.SubmitModal);
+            const modal = new ModalBuilder().setTitle("Форма вступления в клан").setCustomId("clanJoinEvent_modal_submit");
             const userName = new TextInputBuilder()
                 .setLabel("Ваш ник в игре")
                 .setRequired(false)
                 .setStyle(TextInputStyle.Short)
-                .setCustomId(ClanJoinButtons.modalUsername);
+                .setCustomId("clanJoinEvent_modal_username");
             const userAge = new TextInputBuilder()
                 .setLabel("Ваш возраст")
                 .setStyle(TextInputStyle.Short)
-                .setCustomId(ClanJoinButtons.modalAge)
+                .setCustomId("clanJoinEvent_modal_age")
                 .setMinLength(1)
                 .setMaxLength(2)
                 .setRequired(false);
             const userMicrophone = new TextInputBuilder()
                 .setLabel("Есть ли у вас микрофон")
                 .setStyle(TextInputStyle.Short)
-                .setCustomId(ClanJoinButtons.modalMicrophone)
+                .setCustomId("clanJoinEvent_modal_microphone")
                 .setPlaceholder("Есть/нет")
                 .setValue("Есть")
                 .setRequired(false)
@@ -35,11 +34,11 @@ export default {
             const userPower = new TextInputBuilder()
                 .setLabel("Максимальный уровень силы на персонаже")
                 .setStyle(TextInputStyle.Short)
-                .setCustomId(ClanJoinButtons.modalPowerlite)
+                .setCustomId("clanJoinEvent_modal_power")
                 .setPlaceholder("С учетом артефакта")
                 .setRequired(false);
             const additionalInfo = new TextInputBuilder()
-                .setCustomId(ClanJoinButtons.modalUserInfo)
+                .setCustomId("clanJoinEvent_modal_userInfo")
                 .setLabel("Любая дополнительная информация о вас для нас")
                 .setPlaceholder("по желанию")
                 .setStyle(TextInputStyle.Paragraph)
@@ -65,7 +64,7 @@ export default {
                     {
                         type: ComponentType.ActionRow,
                         components: [
-                            new ButtonBuilder().setCustomId(RegisterButtons.register).setLabel("Регистрация").setStyle(ButtonStyle.Success),
+                            new ButtonBuilder().setCustomId("initEvent_register").setLabel("Регистрация").setStyle(ButtonStyle.Success),
                         ],
                     },
                 ];
@@ -87,5 +86,6 @@ export default {
             await clanLogChannel.send({ embeds: [loggedEmbed] });
         }
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=clanJoinEvent.js.map

@@ -1,9 +1,9 @@
 import { EmbedBuilder } from "discord.js";
-import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import raidsGuide from "../configs/raidGuideData.js";
+import { Button } from "../structures/button.js";
 import sendRaidGuide from "../utils/general/raidFunctions/sendRaidGuide.js";
-export default {
+const ButtonCommand = new Button({
     name: "raidGuide",
     run: async ({ interaction }) => {
         const deferredReply = interaction.deferUpdate();
@@ -15,13 +15,13 @@ export default {
         }
         if (!(raidName in raidsGuide)) {
             await deferredReply;
-            throw { errorType: UserErrors.RAID_GUIDE_NOT_FOUND };
+            throw { errorType: "RAID_GUIDE_NOT_FOUND" };
         }
         const raidGuide = raidsGuide[raidName];
         if (!raidGuide) {
             console.error(`[Error code: 1641] ${interaction.user.username} used ${interaction.customId} and not found raidGuide data for it`);
             await deferredReply;
-            throw { errorType: UserErrors.RAID_GUIDE_NOT_FOUND };
+            throw { errorType: "RAID_GUIDE_NOT_FOUND" };
         }
         const encounterIndex = parseInt(interactionParts[2]);
         const buttonIndex = parseInt(interactionParts[3]);
@@ -56,5 +56,6 @@ export default {
             }
         }
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=raidGuide.js.map

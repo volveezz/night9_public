@@ -81,7 +81,7 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
         }
         if (mode === 4 && count === 250 && member) {
             const completedRaidCount = completedActivities.length;
-            const previousTotalRaidCount = completedRaidsData.get(discordId)?.totalRaidCount;
+            const previousTotalRaidCount = completedRaidsData.get(discordId)?.totalRaidClears;
             if (previousTotalRaidCount && previousTotalRaidCount > completedRaidCount) {
                 return;
             }
@@ -91,16 +91,16 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
                     counts[raidName] += 1;
                 }
                 return counts;
-            }, { ron: 0, ronMaster: 0, kf: 0, kfMaster: 0, votd: 0, votdMaster: 0, dsc: 0, gos: 0, vog: 0, vogMaster: 0, lw: 0 });
+            }, { ce: 0, ron: 0, ronMaster: 0, kf: 0, kfMaster: 0, votd: 0, votdMaster: 0, dsc: 0, gos: 0, vog: 0, vogMaster: 0, lw: 0 });
             completedRaidsData.set(discordId, {
                 ...raidCounts,
-                totalRaidCount: completedRaidCount,
+                totalRaidClears: completedRaidCount,
             });
             if (member.roles.cache.has(process.env.CLANMEMBER) ||
                 (member.roles.cache.has(process.env.MEMBER) &&
                     member.roles.cache.hasAny(...activityRoles.allMessages, ...activityRoles.allVoice)) ||
                 authData.UserActivityData !== undefined) {
-                const { ron, ronMaster, kf, kfMaster, votd, votdMaster, dsc, gos, vog, vogMaster, lw, totalRaidCount } = completedRaidsData.get(discordId);
+                const { ron, ronMaster, kf, kfMaster, votd, votdMaster, dsc, gos, vog, vogMaster, lw, totalRaidClears: totalRaidCount, } = completedRaidsData.get(discordId);
                 const ronClears = ron + ronMaster;
                 const kfClears = kf + kfMaster;
                 const votdClears = votd + votdMaster;

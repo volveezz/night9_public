@@ -1,31 +1,29 @@
-import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, } from "discord.js";
-import UserErrors from "../configs/UserErrors.js";
-import colors from "../configs/colors.js";
-import icons from "../configs/icons.js";
-import { client } from "../index.js";
-import { Command } from "../structures/command.js";
-import { cancelClanInvitation } from "../utils/api/cancelClanInvitation.js";
-import kickMemberFromClan from "../utils/api/clanMembersManagement.js";
-import { sendApiPostRequest } from "../utils/api/sendApiPostRequest.js";
-import { sendApiRequest } from "../utils/api/sendApiRequest.js";
-import createErrorEmbed from "../utils/errorHandling/createErrorEmbed.js";
-import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
-import { convertSeconds } from "../utils/general/convertSeconds.js";
-import { parseIdentifierString } from "../utils/general/utilities.js";
-import { AuthData, UserActivityData } from "../utils/persistence/sequelize.js";
-var CustomRuntimeGroupMemberType;
-(function (CustomRuntimeGroupMemberType) {
-    CustomRuntimeGroupMemberType[CustomRuntimeGroupMemberType["\u041D\u0435 \u0432 \u043A\u043B\u0430\u043D\u0435"] = 0] = "\u041D\u0435 \u0432 \u043A\u043B\u0430\u043D\u0435";
-    CustomRuntimeGroupMemberType[CustomRuntimeGroupMemberType["\u041D\u043E\u0432\u0438\u0447\u043E\u043A"] = 1] = "\u041D\u043E\u0432\u0438\u0447\u043E\u043A";
-    CustomRuntimeGroupMemberType[CustomRuntimeGroupMemberType["\u0423\u0447\u0430\u0441\u0442\u043D\u0438\u043A"] = 2] = "\u0423\u0447\u0430\u0441\u0442\u043D\u0438\u043A";
-    CustomRuntimeGroupMemberType[CustomRuntimeGroupMemberType["\u0410\u0434\u043C\u0438\u043D"] = 3] = "\u0410\u0434\u043C\u0438\u043D";
-    CustomRuntimeGroupMemberType[CustomRuntimeGroupMemberType["\u0414\u0435\u0439\u0441\u0442\u0432\u0443\u044E\u0449\u0438\u0439 \u043E\u0441\u043D\u043E\u0432\u0430\u0442\u0435\u043B\u044C"] = 4] = "\u0414\u0435\u0439\u0441\u0442\u0432\u0443\u044E\u0449\u0438\u0439 \u043E\u0441\u043D\u043E\u0432\u0430\u0442\u0435\u043B\u044C";
-    CustomRuntimeGroupMemberType[CustomRuntimeGroupMemberType["\u041E\u0441\u043D\u043E\u0432\u0430\u0442\u0435\u043B\u044C"] = 5] = "\u041E\u0441\u043D\u043E\u0432\u0430\u0442\u0435\u043B\u044C";
-})(CustomRuntimeGroupMemberType || (CustomRuntimeGroupMemberType = {}));
+import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, GuildMember, } from "discord.js";
+import colors from "../../configs/colors.js";
+import icons from "../../configs/icons.js";
+import { client } from "../../index.js";
+import { Command } from "../../structures/command.js";
+import { cancelClanInvitation } from "../../utils/api/cancelClanInvitation.js";
+import kickMemberFromClan from "../../utils/api/clanMembersManagement.js";
+import { sendApiPostRequest } from "../../utils/api/sendApiPostRequest.js";
+import { sendApiRequest } from "../../utils/api/sendApiRequest.js";
+import createErrorEmbed from "../../utils/errorHandling/createErrorEmbed.js";
+import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
+import { convertSeconds } from "../../utils/general/convertSeconds.js";
+import { parseIdentifierString } from "../../utils/general/utilities.js";
+import { AuthData, UserActivityData } from "../../utils/persistence/sequelize.js";
+const CustomRuntimeGroupMemberType = {
+    0: "Не в клане",
+    1: "Новичок",
+    2: "Участник",
+    3: "Админ",
+    4: "Действующий основатель",
+    5: "Основатель",
+};
 function getRuntimeGroupMemberTypeName(value) {
     return CustomRuntimeGroupMemberType[value];
 }
-export default new Command({
+const SlashCommand = new Command({
     name: "clan",
     nameLocalizations: { ru: "клан" },
     description: "Clan management",
@@ -141,7 +139,7 @@ export default new Command({
         else {
             const member = interaction.member instanceof GuildMember ? interaction.member : await client.getAsyncMember(interaction.user.id);
             if (!member || !member.permissions.has("Administrator")) {
-                throw { errorType: UserErrors.MISSING_PERMISSIONS };
+                throw { errorType: "MISSING_PERMISSIONS" };
             }
         }
         const deferredReply = interaction.deferReply({ ephemeral: true });
@@ -394,6 +392,7 @@ const handleManagement = async (interaction, clanMembers, defferedReply) => {
         message,
         filter: (i) => i.user.id === interaction.user.id,
         idle: 1000 * 60 * 5,
+        componentType: ComponentType.Button,
     });
     collector.on("collect", async (i) => {
         const deferredReply = i.customId === "clanManagement_kick" ? i.deferReply({ ephemeral: true }) : i.deferUpdate();
@@ -472,4 +471,5 @@ const sendInviteToClan = async (interaction, defferedReply, args) => {
         cancelClanInvitation(args.identifier, args.time, interaction.user.id);
     }
 };
-//# sourceMappingURL=clanCommand.js.map
+export default SlashCommand;
+//# sourceMappingURL=main.js.map

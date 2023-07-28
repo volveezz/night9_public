@@ -1,5 +1,4 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
-import { PatchnoteButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import { descriptionFormatter } from "../general/utilities.js";
@@ -16,9 +15,9 @@ export async function generatePatchNotes(message) {
         embed = new EmbedBuilder().setColor(colors.default).setDescription(patchnoteMessage || "nothing");
     }
     const components = [
-        new ButtonBuilder().setCustomId(PatchnoteButtons.sendToGods).setStyle(ButtonStyle.Primary).setLabel("Опубликовать в премиум-чате"),
-        new ButtonBuilder().setCustomId(PatchnoteButtons.sendToPublic).setStyle(ButtonStyle.Success).setLabel("Опубликовать для всех"),
-        new ButtonBuilder().setCustomId(PatchnoteButtons.cancel).setStyle(ButtonStyle.Danger).setLabel("Отменить"),
+        new ButtonBuilder().setCustomId("patchnoteEvent_sendToGods").setStyle(ButtonStyle.Primary).setLabel("Опубликовать в премиум-чате"),
+        new ButtonBuilder().setCustomId("patchnoteEvent_sendToPublic").setStyle(ButtonStyle.Success).setLabel("Опубликовать для всех"),
+        new ButtonBuilder().setCustomId("patchnoteEvent_cancel").setStyle(ButtonStyle.Danger).setLabel("Отменить"),
     ];
     channel
         .send({

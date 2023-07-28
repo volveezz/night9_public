@@ -1,6 +1,5 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder, RESTJSONErrorCodes } from "discord.js";
 import fetch from "node-fetch";
-import { RegisterButtons } from "../configs/Buttons.js";
 import colors from "../configs/colors.js";
 import { client } from "../index.js";
 import { UpdateTokenRefreshTime } from "../structures/tokenRefresher.js";
@@ -95,7 +94,7 @@ async function handleAuthorizationRecordExpired(row, table) {
                 .setTitle("Необходима повторная регистрация")
                 .setDescription("У вашего авторизационного токена истек срок годности. Зарегистрируйтесь повторно");
             const registerButton = new ButtonBuilder()
-                .setCustomId(RegisterButtons.register)
+                .setCustomId("initEvent_register")
                 .setLabel("Регистрация")
                 .setStyle(ButtonStyle.Success);
             const components = addButtonsToMessage([registerButton]);

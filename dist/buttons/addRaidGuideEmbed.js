@@ -2,7 +2,8 @@ import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import raidsGuide from "../configs/raidGuideData.js";
-export default {
+import { Button } from "../structures/button.js";
+const ButtonCommand = new Button({
     name: "addRaidGuideEmbed",
     run: async ({ interaction }) => {
         const customIdData = interaction.customId.split("_");
@@ -28,5 +29,6 @@ export default {
         const embed = new EmbedBuilder().setColor(colors.success).setAuthor({ name: "Новое сообщение добавлено", iconURL: icons.success });
         interaction.reply({ embeds: [embed], ephemeral: true });
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=addRaidGuideEmbed.js.map

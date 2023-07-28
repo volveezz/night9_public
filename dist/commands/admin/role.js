@@ -4,7 +4,7 @@ import icons from "../../configs/icons.js";
 import { Command } from "../../structures/command.js";
 import setMemberRoles from "../../utils/discord/setRoles.js";
 import { pause } from "../../utils/general/utilities.js";
-export default new Command({
+const SlashCommand = new Command({
     name: "role",
     description: "Управление и удаление ролей у пользователей",
     descriptionLocalizations: { "en-GB": "Managing and removing roles from users", "en-US": "Managing and removing roles from users" },
@@ -104,4 +104,5 @@ export default new Command({
         }
     },
 });
-//# sourceMappingURL=roleCommand.js.map
+export default SlashCommand;
+//# sourceMappingURL=role.js.map

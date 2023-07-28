@@ -1,29 +1,28 @@
 import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder, } from "discord.js";
 import { Op, Sequelize } from "sequelize";
-import { RaidButtons } from "../configs/Buttons.js";
-import UserErrors from "../configs/UserErrors.js";
-import colors from "../configs/colors.js";
-import icons, { activityIcons } from "../configs/icons.js";
-import raidsGuide from "../configs/raidGuideData.js";
-import { userTimezones } from "../core/userStatisticsManagement.js";
-import { Command } from "../structures/command.js";
-import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
-import nameCleaner from "../utils/general/nameClearer.js";
-import { generateRaidCompletionText, getRaidDatabaseInfo, getRaidDetails, raidChallenges, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
-import convertTimeStringToNumber from "../utils/general/raidFunctions/convertTimeStringToNumber.js";
-import raidFireteamChecker from "../utils/general/raidFunctions/raidFireteamChecker.js";
-import { clearNotifications, sendNotificationInfo, updateNotifications, updateNotificationsForEntireRaid, } from "../utils/general/raidFunctions/raidNotifications.js";
-import { descriptionFormatter, escapeString } from "../utils/general/utilities.js";
-import { completedRaidsData, recentRaidCreators } from "../utils/persistence/dataStore.js";
-import { RaidEvent, database } from "../utils/persistence/sequelize.js";
+import { raidSelectionOptions } from "../../configs/Raids.js";
+import colors from "../../configs/colors.js";
+import icons, { activityIcons } from "../../configs/icons.js";
+import raidsGuide from "../../configs/raidGuideData.js";
+import { userTimezones } from "../../core/userStatisticsManagement.js";
+import { Command } from "../../structures/command.js";
+import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
+import nameCleaner from "../../utils/general/nameClearer.js";
+import { generateRaidCompletionText, getRaidDatabaseInfo, getRaidDetails, raidChallenges, updatePrivateRaidMessage, updateRaidMessage, } from "../../utils/general/raidFunctions.js";
+import convertTimeStringToNumber from "../../utils/general/raidFunctions/convertTimeStringToNumber.js";
+import raidFireteamChecker from "../../utils/general/raidFunctions/raidFireteamChecker.js";
+import { clearNotifications, sendNotificationInfo, updateNotifications, updateNotificationsForEntireRaid, } from "../../utils/general/raidFunctions/raidNotifications.js";
+import { descriptionFormatter, escapeString } from "../../utils/general/utilities.js";
+import { completedRaidsData, recentRaidCreators } from "../../utils/persistence/dataStore.js";
+import { RaidEvent, database } from "../../utils/persistence/sequelize.js";
 function getDefaultComponents() {
     return [
-        new ButtonBuilder().setCustomId(RaidButtons.notify).setLabel("Оповестить участников").setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(RaidButtons.transfer).setLabel("Переместить участников в рейд-войс").setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(RaidButtons.unlock).setLabel("Закрыть набор").setStyle(ButtonStyle.Danger),
-        new ButtonBuilder().setCustomId(RaidButtons.delete).setLabel("Удалить набор").setStyle(ButtonStyle.Danger),
-        new ButtonBuilder().setCustomId(RaidButtons.resend).setLabel("Обновить сообщение").setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(RaidButtons.notificationsStart).setLabel("Настроить свои оповещения").setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId("raidInChnButton_notify").setLabel("Оповестить участников").setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder().setCustomId("raidInChnButton_transfer").setLabel("Переместить участников в рейд-войс").setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder().setCustomId("raidInChnButton_unlock").setLabel("Закрыть набор").setStyle(ButtonStyle.Danger),
+        new ButtonBuilder().setCustomId("raidInChnButton_delete").setLabel("Удалить набор").setStyle(ButtonStyle.Danger),
+        new ButtonBuilder().setCustomId("raidInChnButton_resend").setLabel("Обновить сообщение").setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder().setCustomId("raidNotifications_start").setLabel("Настроить свои оповещения").setStyle(ButtonStyle.Primary),
     ];
 }
 function checkIfUserRecentlyCreatedRaid(discordId) {
@@ -45,7 +44,24 @@ function checkIfUserRecentlyCreatedRaid(discordId) {
         recentRaidCreators.set(discordId, timeout);
     }
 }
-export default new Command({
+const raidDifficultiesChoices = [
+    {
+        name: "Нормальный",
+        nameLocalizations: { "en-US": "Normal", "en-GB": "Normal" },
+        value: 1,
+    },
+    {
+        name: "Мастер",
+        nameLocalizations: { "en-US": "Master", "en-GB": "Master" },
+        value: 2,
+    },
+    {
+        name: "Режим испытания",
+        nameLocalizations: { "en-US": "Contest", "en-GB": "Contest" },
+        value: 3,
+    },
+];
+const SlashCommand = new Command({
     name: "рейд",
     nameLocalizations: {
         "en-US": "raid",
@@ -68,43 +84,7 @@ export default new Command({
                     description: "Укажите рейд",
                     descriptionLocalizations: { "en-US": "Specify the raid", "en-GB": "Specify the raid" },
                     required: true,
-                    choices: [
-                        {
-                            name: "Источник кошмаров",
-                            nameLocalizations: { "en-US": "Root of Nightmares", "en-GB": "Root of Nightmares" },
-                            value: "ron",
-                        },
-                        {
-                            name: "Гибель короля",
-                            nameLocalizations: { "en-US": "King's Fall", "en-GB": "King's Fall" },
-                            value: "kf",
-                        },
-                        {
-                            name: "Клятва послушника",
-                            nameLocalizations: { "en-US": "Vow of the Disciple", "en-GB": "Vow of the Disciple" },
-                            value: "votd",
-                        },
-                        {
-                            name: "Хрустальный чертог",
-                            nameLocalizations: { "en-US": "Vault of Glass", "en-GB": "Vault of Glass" },
-                            value: "vog",
-                        },
-                        {
-                            name: "Склеп Глубокого камня",
-                            nameLocalizations: { "en-US": "Deep Stone Crypt", "en-GB": "Deep Stone Crypt" },
-                            value: "dsc",
-                        },
-                        {
-                            name: "Сад спасения",
-                            nameLocalizations: { "en-US": "Garden of Salvation", "en-GB": "Garden of Salvation" },
-                            value: "gos",
-                        },
-                        {
-                            name: "Последнее желание",
-                            nameLocalizations: { "en-US": "Last Wish", "en-GB": "Last Wish" },
-                            value: "lw",
-                        },
-                    ],
+                    choices: raidSelectionOptions,
                 },
                 {
                     type: ApplicationCommandOptionType.String,
@@ -132,7 +112,7 @@ export default new Command({
                 {
                     type: ApplicationCommandOptionType.Integer,
                     minValue: 1,
-                    maxValue: 2,
+                    maxValue: 3,
                     name: "сложность",
                     nameLocalizations: { "en-US": "difficulty", "en-GB": "difficulty" },
                     description: "Укажите сложность рейда. По умолч.: нормальный",
@@ -140,18 +120,7 @@ export default new Command({
                         "en-US": "Specify the difficulty of the raid. Default: Normal",
                         "en-GB": "Specify the difficulty of the raid. Default: Normal",
                     },
-                    choices: [
-                        {
-                            name: "Нормальный",
-                            nameLocalizations: { "en-US": "Normal", "en-GB": "Normal" },
-                            value: 1,
-                        },
-                        {
-                            name: "Мастер",
-                            nameLocalizations: { "en-US": "Master", "en-GB": "Master" },
-                            value: 2,
-                        },
-                    ],
+                    choices: raidDifficultiesChoices,
                 },
                 {
                     type: ApplicationCommandOptionType.Integer,
@@ -183,43 +152,7 @@ export default new Command({
                         "en-US": "Specify new raid if you want to change it",
                         "en-GB": "Specify new raid if you want to change it",
                     },
-                    choices: [
-                        {
-                            name: "Источник кошмаров",
-                            nameLocalizations: { "en-US": "Root of Nightmares", "en-GB": "Root of Nightmares" },
-                            value: "ron",
-                        },
-                        {
-                            name: "Гибель короля",
-                            nameLocalizations: { "en-US": "King's Fall", "en-GB": "King's Fall" },
-                            value: "kf",
-                        },
-                        {
-                            name: "Клятва послушника",
-                            nameLocalizations: { "en-US": "Vow of the Disciple", "en-GB": "Vow of the Disciple" },
-                            value: "votd",
-                        },
-                        {
-                            name: "Хрустальный чертог",
-                            nameLocalizations: { "en-US": "Vault of Glass", "en-GB": "Vault of Glass" },
-                            value: "vog",
-                        },
-                        {
-                            name: "Склеп Глубокого камня",
-                            nameLocalizations: { "en-US": "Deep Stone Crypt", "en-GB": "Deep Stone Crypt" },
-                            value: "dsc",
-                        },
-                        {
-                            name: "Сад спасения",
-                            nameLocalizations: { "en-US": "Garden of Salvation", "en-GB": "Garden of Salvation" },
-                            value: "gos",
-                        },
-                        {
-                            name: "Последнее желание",
-                            nameLocalizations: { "en-US": "Last Wish", "en-GB": "Last Wish" },
-                            value: "lw",
-                        },
-                    ],
+                    choices: raidSelectionOptions,
                 },
                 {
                     type: ApplicationCommandOptionType.String,
@@ -253,25 +186,14 @@ export default new Command({
                     type: ApplicationCommandOptionType.Integer,
                     name: "новая-сложность",
                     minValue: 1,
-                    maxValue: 2,
+                    maxValue: 3,
                     nameLocalizations: { "en-US": "new-difficulty", "en-GB": "new-difficulty" },
                     description: "Укажите сложность рейда. По умолч.: нормальный",
                     descriptionLocalizations: {
                         "en-US": "Specify the new difficulty of the raid. Default: Normal",
                         "en-GB": "Specify the new difficulty of the raid. Default: Normal",
                     },
-                    choices: [
-                        {
-                            name: "Нормальный",
-                            nameLocalizations: { "en-US": "Normal", "en-GB": "Normal" },
-                            value: 1,
-                        },
-                        {
-                            name: "Мастер",
-                            nameLocalizations: { "en-US": "Master", "en-GB": "Master" },
-                            value: 2,
-                        },
-                    ],
+                    choices: raidDifficultiesChoices,
                 },
                 {
                     type: ApplicationCommandOptionType.Integer,
@@ -414,9 +336,7 @@ export default new Command({
             const raid = args.getString("рейд", true);
             const time = args.getString("время", true);
             const raidDescription = args.getString("описание");
-            const difficulty = (args.getInteger("сложность") ?? 1);
-            const reqClears = args.getInteger("требуемых-закрытий") ?? 0;
-            const raidData = getRaidDetails(raid, difficulty);
+            const difficulty = args.getInteger("сложность") ?? 1;
             const parsedTime = convertTimeStringToNumber(time, userTimezones.get(interaction.user.id));
             if (parsedTime <= Math.floor(Date.now() / 1000)) {
                 await deferredReply;
@@ -433,8 +353,11 @@ export default new Command({
                 };
             }
             else if (isNaN(parsedTime) || parsedTime < 1000) {
-                throw { errorType: UserErrors.RAID_TIME_ERROR };
+                throw { errorType: "RAID_TIME_ERROR" };
             }
+            const isContestRaid = raid === "ce" && parsedTime >= 1693591200 && parsedTime <= 1693764000;
+            const raidData = getRaidDetails(raid, isContestRaid ? 3 : difficulty);
+            const requiredClears = args.getInteger("требуемых-закрытий") ?? 0;
             const raidDb = await RaidEvent.create({
                 channelId: member.id,
                 inChannelMessageId: member.id,
@@ -443,14 +366,14 @@ export default new Command({
                 joined: [member.id],
                 time: parsedTime,
                 raid: raidData.raid,
-                difficulty,
-                requiredClears: reqClears,
+                difficulty: isContestRaid ? 3 : difficulty,
+                requiredClears,
             });
             const raidClears = completedRaidsData.get(interaction.user.id);
             const mainComponents = [
-                new ButtonBuilder().setCustomId(RaidButtons.join).setLabel("Записаться").setStyle(ButtonStyle.Success),
-                new ButtonBuilder().setCustomId(RaidButtons.leave).setLabel("Выйти").setStyle(ButtonStyle.Danger),
-                new ButtonBuilder().setCustomId(RaidButtons.alt).setLabel("Возможно буду").setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("raidButton_action_join").setLabel("Записаться").setStyle(ButtonStyle.Success),
+                new ButtonBuilder().setCustomId("raidButton_action_leave").setLabel("Выйти").setStyle(ButtonStyle.Danger),
+                new ButtonBuilder().setCustomId("raidButton_action_alt").setLabel("Возможно буду").setStyle(ButtonStyle.Secondary),
             ];
             const isUserCreatedRaidRecently = checkIfUserRecentlyCreatedRaid(interaction.user.id);
             const roleMention = !isUserCreatedRaidRecently
@@ -489,8 +412,13 @@ export default new Command({
                 embeds: [premiumEmbed],
                 components: addButtonsToMessage(components),
             });
+            const raidClearsText = isContestRaid && raidClears
+                ? isContestRaid
+                    ? ` — ${raidClears["totalRaidClears"]} закрытий всех рейдов`
+                    : ` — ${generateRaidCompletionText(raidClears[raidData.raid])}${raidClears[raidData.raid + "Master"] ? ` (+**${raidClears[raidData.raid + "Master"]}** на мастере)` : ""}`
+                : "";
             const embed = new EmbedBuilder()
-                .setTitle(`Рейд: ${raidData.raidName}${reqClears >= 1 ? ` от ${reqClears} закрыт${reqClears === 1 ? "ия" : "ий"}` : ""}`)
+                .setTitle(`Рейд: ${raidData.raidName}${requiredClears >= 1 ? ` от ${requiredClears} закрыт${requiredClears === 1 ? "ия" : "ий"}` : ""}`)
                 .setColor(raidData.raidColor)
                 .setFooter({
                 text: `Создатель рейда: ${nameCleaner(member.displayName)}`,
@@ -510,9 +438,7 @@ export default new Command({
                 },
                 {
                     name: "Участник: 1/6",
-                    value: `⁣　1. **${nameCleaner(member.displayName, true)}**${raidClears
-                        ? ` — ${generateRaidCompletionText(raidClears[raidData.raid])}${raidClears[raidData.raid + "Master"] ? ` (+**${raidClears[raidData.raid + "Master"]}** на мастере)` : ""}`
-                        : ""}`,
+                    value: `⁣　1. **${nameCleaner(member.displayName, true)}**${raidClearsText}`,
                 },
             ]);
             if (raidDescription !== null && raidDescription.length < 1024) {
@@ -556,21 +482,31 @@ export default new Command({
             const newTime = args.getString("новое-время");
             const newRaidLeader = args.getUser("новый-создатель");
             const newDescription = args.getString("новое-описание");
-            const newDifficulty = args.getInteger("новая-сложность");
+            let newDifficulty = args.getInteger("новая-сложность");
             const newReqClears = args.getInteger("новое-требование-закрытий");
-            const isSilent = args.getBoolean("silent") || false;
+            const isSilent = !(args.getBoolean("silent") || false);
             let raidData = await getRaidDatabaseInfo(raidId, interaction);
-            if (raidData == null || (Array.isArray(raidData) && raidData.length === 0)) {
+            if (!raidData || (Array.isArray(raidData) && raidData.length === 0)) {
                 await deferredReply;
-                throw { errorType: UserErrors.RAID_NOT_FOUND };
+                throw { errorType: "RAID_NOT_FOUND" };
+            }
+            const isContestRaid = (newRaid || raidData.raid) === "ce" && (raidData.time >= 1693591200 || raidData.time <= 1693764000);
+            if (isContestRaid &&
+                ((newDifficulty && newDifficulty !== 3) ||
+                    (!newDifficulty && newRaid === "ce" && raidData.difficulty !== 3))) {
+                newDifficulty = 3;
             }
             const raidInfo = getRaidDetails((newRaid || raidData.raid), newDifficulty ?? raidData.difficulty);
+            if ((newDifficulty || raidData.difficulty) > raidInfo.maxDifficulty) {
+                newDifficulty = 1;
+            }
             const changes = [];
             const raidMessage = await client.getAsyncMessage(process.env.RAID_CHANNEL_ID, raidData.messageId);
             const raidEmbed = EmbedBuilder.from(raidMessage?.embeds[0]);
             const t = await database.transaction();
             const changesForChannel = [];
-            const inChannelMessage = await client.getAsyncMessage(raidData.channelId, raidData.inChannelMessageId);
+            const raidPrivateChannel = await client.getAsyncTextChannel(raidData.channelId);
+            const inChannelMessage = await client.getAsyncMessage(raidPrivateChannel, raidData.inChannelMessageId);
             if (!raidMessage) {
                 console.error("[Error code: 1750]", raidData);
                 throw { name: "Ошибка", description: "Не удалось найти сообщение рейда" };
@@ -588,12 +524,17 @@ export default new Command({
             }
             const updateDifficulty = async (newDifficulty, raidInfo, raidData, t) => {
                 if (newDifficulty != null && raidInfo.maxDifficulty >= newDifficulty && newDifficulty != raidData.difficulty) {
-                    const difficultyText = newDifficulty === 2 ? "Мастер" : newDifficulty === 1 ? "Нормальный" : "*неизвестная сложность*";
+                    const difficultyText = newDifficulty === 3
+                        ? "Режим состязания"
+                        : newDifficulty === 2
+                            ? "Мастер"
+                            : "Нормальный";
                     changesForChannel.push({
                         name: "Сложность рейда",
                         value: `Сложность рейда была изменена - \`${difficultyText}\``,
                     });
-                    await RaidEvent.update({ difficulty: newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : 1 }, { where: { id: raidData.id }, transaction: t });
+                    raidData.difficulty = newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : 1;
+                    await raidData.save({ transaction: t });
                 }
             };
             async function updateRequiredClears(newReqClears, raidData, t) {
@@ -729,7 +670,6 @@ export default new Command({
             }
             if (newRaidLeader !== null) {
                 if (!newRaidLeader.bot) {
-                    const raidPrivateChannel = client.getCachedTextChannel(raidData.channelId);
                     const raidLeaderName = nameCleaner((await client.getAsyncMember(newRaidLeader.id)).displayName);
                     raidPrivateChannel.permissionOverwrites.edit(raidData.creator, { ManageMessages: null, MentionEveryone: null });
                     raidPrivateChannel.permissionOverwrites.edit(newRaidLeader.id, {
@@ -748,9 +688,8 @@ export default new Command({
                             : `Права создателя были переданы ${escapeString(raidLeaderName)}`,
                     });
                     changes.push("Создатель рейда был изменен");
-                    await RaidEvent.update({
-                        creator: newRaidLeader.id,
-                    }, { where: { id: raidData.id }, transaction: t });
+                    raidData.creator = newRaidLeader.id;
+                    await raidData.save({ transaction: t });
                 }
                 else {
                     changes.push("Создатель рейда не был изменен поскольку нельзя назначить бота создателем");
@@ -781,7 +720,7 @@ export default new Command({
                     text: `Изменение ${raidData.creator === interaction.user.id ? "создателем рейда" : "администратором"}`,
                 });
                 editedEmbedReplyInChn.addFields(changesForChannel);
-                !isSilent && client.getCachedTextChannel(raidData.channelId).send({ embeds: [editedEmbedReplyInChn] });
+                isSilent && client.getCachedTextChannel(raidData.channelId).send({ embeds: [editedEmbedReplyInChn] });
             }
             else {
                 await t.rollback();
@@ -935,7 +874,7 @@ export default new Command({
                 }
                 if (!raidEvent) {
                     await deferredReply;
-                    throw { errorType: UserErrors.RAID_NOT_FOUND };
+                    throw { errorType: "RAID_NOT_FOUND" };
                 }
                 updatePrivateRaidMessage({ raidEvent });
                 updateRaidMessage({ raidEvent, interaction });
@@ -972,4 +911,5 @@ export default new Command({
         }
     },
 });
-//# sourceMappingURL=raidCommand.js.map
+export default SlashCommand;
+//# sourceMappingURL=main.js.map

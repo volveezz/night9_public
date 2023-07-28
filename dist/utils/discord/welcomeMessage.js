@@ -1,5 +1,4 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder, RESTJSONErrorCodes } from "discord.js";
-import { ClanButtons, RegisterButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import { escapeString } from "../general/utilities.js";
@@ -32,8 +31,8 @@ export default async function welcomeMessage(member) {
         .setDescription(`Вы можете задать их [в канале по вопросам](https://discord.com/channels/${process.env
         .GUILD_ID}/694119710677008425) или написав лично лидеру клана <@${process.env.OWNER_ID}> ||(пишите даже если не в сети)||`);
     const components = [
-        new ButtonBuilder().setCustomId(RegisterButtons.register).setLabel("Регистрация").setStyle(ButtonStyle.Success),
-        new ButtonBuilder().setCustomId(ClanButtons.modal).setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder().setCustomId("initEvent_register").setLabel("Регистрация").setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId("clanJoinEvent_modalBtn").setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
     ];
     const message = await member
         .send({
@@ -65,7 +64,7 @@ export default async function welcomeMessage(member) {
                 embeds: [registrationRestoredEmbed],
             });
             const clanJoinButton = [
-                new ButtonBuilder().setCustomId(ClanButtons.modal).setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder().setCustomId("clanJoinEvent_modalBtn").setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
             ];
             await message.edit({
                 components: addButtonsToMessage(clanJoinButton),

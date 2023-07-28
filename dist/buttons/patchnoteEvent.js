@@ -1,18 +1,18 @@
 import { ButtonBuilder, ButtonStyle } from "discord.js";
-import { PatchnoteButtons } from "../configs/Buttons.js";
 import { client } from "../index.js";
+import { Button } from "../structures/button.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 let channelOfGods = null;
 let newsChannel = null;
-export default {
+const ButtonCommand = new Button({
     name: "patchnoteEvent",
     run: async ({ interaction }) => {
         const content = interaction.message.content;
         switch (interaction.customId) {
-            case PatchnoteButtons.sendToGods: {
+            case "patchnoteEvent_sendToGods": {
                 const components = addButtonsToMessage([
                     new ButtonBuilder()
-                        .setCustomId(PatchnoteButtons.sendToPublic)
+                        .setCustomId("patchnoteEvent_sendToPublic")
                         .setStyle(ButtonStyle.Success)
                         .setLabel("Опубликовать для всех"),
                 ]);
@@ -26,7 +26,7 @@ export default {
                 await interaction.message.delete();
                 return;
             }
-            case PatchnoteButtons.sendToPublic: {
+            case "patchnoteEvent_sendToPublic": {
                 if (!newsChannel)
                     newsChannel =
                         client.getCachedTextChannel(process.env.NEWS_CHANNEL_ID) ||
@@ -36,12 +36,13 @@ export default {
                 await interaction.message.delete();
                 return;
             }
-            case PatchnoteButtons.cancel: {
+            case "patchnoteEvent_cancel": {
                 await interaction.message.delete();
                 await interaction.deferUpdate();
                 return;
             }
         }
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=patchnoteEvent.js.map

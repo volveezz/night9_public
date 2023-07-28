@@ -2,9 +2,10 @@ import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { client } from "../index.js";
+import { Button } from "../structures/button.js";
 import { removeChannelData } from "../utils/discord/lfgSystem/handleLfgJoin.js";
 import { channelDataMap } from "../utils/persistence/dataStore.js";
-export default {
+const ButtonCommand = new Button({
     name: "lfgSystem",
     run: async ({ interaction }) => {
         let keyValueBasedOnMessageId;
@@ -35,5 +36,6 @@ export default {
         await interaction.editReply({ embeds: [embed] });
         return;
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=lfgSystem.js.map

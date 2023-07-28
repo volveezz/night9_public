@@ -1,9 +1,9 @@
 import { EmbedBuilder, StringSelectMenuBuilder } from "discord.js";
-import { TimezoneButtons } from "../configs/Buttons.js";
 import { timezoneSelectMenuData } from "../configs/SelectMenuOptions.js";
 import colors from "../configs/colors.js";
+import { Button } from "../structures/button.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
-export default {
+const ButtonCommand = new Button({
     name: "timezoneButton",
     run: async ({ interaction }) => {
         const embed = new EmbedBuilder()
@@ -11,7 +11,7 @@ export default {
             .setTitle("Установите свой часовой пояс")
             .setDescription("Если не знаете свой, то в описании каждого часового пояса есть текущее время по нему\nЧасовой пояс устанавливается от Гринвича! От +00:00, а не от Московского времени");
         const tzBlank = new StringSelectMenuBuilder()
-            .setCustomId(TimezoneButtons.selectMenu)
+            .setCustomId("tzEvent_selectmenu")
             .setPlaceholder("Часовой пояс не выбран")
             .addOptions(timezoneSelectMenuData);
         const tzTime = new Date();
@@ -22,5 +22,6 @@ export default {
         });
         interaction.reply({ ephemeral: true, embeds: [embed], components: addButtonsToMessage([tzBlank]) });
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=timezoneButton.js.map

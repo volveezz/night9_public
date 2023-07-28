@@ -1,19 +1,18 @@
-import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
-import { StatsButton } from "../configs/Buttons.js";
-import UserErrors from "../configs/UserErrors.js";
+import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
+import { Button } from "../structures/button.js";
 import { GetManifest } from "../utils/api/ManifestManager.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { getEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
-export default {
+const ButtonCommand = new Button({
     name: "statsEvent",
-    async run({ interaction }) {
-        if (interaction.customId !== StatsButton.oldEvents && interaction.customId !== StatsButton.pinnacle)
+    run: async ({ interaction }) => {
+        if (interaction.customId !== "statsEvent_old_events" && interaction.customId !== "statsEvent_pinnacle")
             return;
         if (getEndpointStatus("account") !== 1) {
-            throw { errorType: UserErrors.API_UNAVAILABLE };
+            throw { errorType: "API_UNAVAILABLE" };
         }
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const footerText = interaction.message.embeds[0]?.footer?.text || "";
@@ -24,11 +23,11 @@ export default {
         });
         if (!userData) {
             const isSelf = id === interaction.user.id || id === "";
-            throw { errorType: UserErrors.DB_USER_NOT_FOUND, errorData: { isSelf } };
+            throw { errorType: "DB_USER_NOT_FOUND", errorData: { isSelf } };
         }
         const { platform, bungieId } = userData;
         switch (interaction.customId) {
-            case StatsButton.oldEvents: {
+            case "statsEvent_old_events": {
                 const data = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${bungieId}/?components=202`, userData);
                 const factions = data.characterProgressions?.data?.[Object.keys(data.characterProgressions.data)[0]].factions || {};
                 const dataFact = Object.entries(factions)
@@ -57,7 +56,7 @@ export default {
                 await interaction.editReply({ embeds: [embed] });
                 return;
             }
-            case StatsButton.pinnacle: {
+            case "statsEvent_pinnacle": {
                 const data = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${bungieId}/?components=200,202`, userData);
                 if (!data.characterProgressions.data) {
                     throw { name: "Ошибка", description: "Не найти данные об ваших персонажах" };
@@ -100,6 +99,7 @@ export default {
                     filter: ({ user }) => user.id === interaction.user.id,
                     time: 60 * 1000 * 2,
                     max: 1,
+                    componentType: ComponentType.Button,
                 });
                 collector.on("collect", async (collected) => {
                     collected.deferUpdate();
@@ -149,5 +149,6 @@ export default {
             }
         }
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=statsEvent.js.map

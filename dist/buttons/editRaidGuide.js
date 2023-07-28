@@ -2,7 +2,8 @@ import { ActionRowBuilder, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInp
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import raidsGuide from "../configs/raidGuideData.js";
-export default {
+import { Button } from "../structures/button.js";
+const ButtonCommand = new Button({
     name: "editRaidGuide",
     run: async ({ selectMenu: interaction }) => {
         const customIdData = interaction.values[0].split("_");
@@ -49,5 +50,6 @@ export default {
         ]);
         await interaction.showModal(modal);
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=editRaidGuide.js.map

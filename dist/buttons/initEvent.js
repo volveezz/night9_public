@@ -1,12 +1,12 @@
 import { EmbedBuilder } from "discord.js";
-import { RegisterButtons } from "../configs/Buttons.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
+import { Button } from "../structures/button.js";
 import sendRegistrationLink from "../utils/discord/registration.js";
-export default {
+const ButtonCommand = new Button({
     name: "initEvent",
     run: async ({ interaction }) => {
-        if (interaction.customId === RegisterButtons.why) {
+        if (interaction.customId === "initEvent_why") {
             const replyEmbed = new EmbedBuilder()
                 .setColor(colors.serious)
                 .setAuthor({ name: "Для чего нужна регистрация?", iconURL: icons.notify })
@@ -19,5 +19,6 @@ export default {
         await interaction.editReply({ embeds: [embed] });
         return;
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=initEvent.js.map

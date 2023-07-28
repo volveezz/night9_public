@@ -1,5 +1,6 @@
+import { Autocomplete } from "../structures/autocomplete.js";
 import { RaidEvent } from "../utils/persistence/sequelize.js";
-export default {
+const AutocompleteFile = new Autocomplete({
     name: "id-рейда",
     run: async ({ interaction }) => {
         const raidData = interaction.memberPermissions?.has("Administrator")
@@ -20,5 +21,6 @@ export default {
                 return console.error("[Error code: 1045]", e);
         });
     },
-};
-//# sourceMappingURL=raidId.js.map
+});
+export default AutocompleteFile;
+//# sourceMappingURL=raid-id.js.map

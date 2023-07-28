@@ -1,4 +1,26 @@
 const destinyRaidChallanges = {
+    ce: [
+        {
+            hash: 9999999999,
+            encounter: 1,
+            description: "Not a real challenge",
+        },
+        {
+            hash: 9999999998,
+            encounter: 2,
+            description: "Not a real challenge",
+        },
+        {
+            hash: 9999999997,
+            encounter: 3,
+            description: "Not a real challenge",
+        },
+        {
+            hash: 9999999996,
+            encounter: 4,
+            description: "Not a real challenge",
+        },
+    ],
     ron: [
         {
             hash: 766975360,

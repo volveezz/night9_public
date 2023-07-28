@@ -1,16 +1,16 @@
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
-import { TwitterVoteButtons } from "../../configs/Buttons.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
+import { Button } from "../../structures/button.js";
 import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
 import { originalTweetData, twitterOriginalVoters } from "../../utils/persistence/dataStore.js";
 const TweetNotFoundEmbed = new EmbedBuilder()
     .setColor(colors.error)
     .setAuthor({ name: "Ошибка. Оригинал сообщения не найден", iconURL: icons.error });
 const TwitterVoteButtonsComponents = [
-    new ButtonBuilder().setCustomId(TwitterVoteButtons.originalBetter).setLabel("Оригинал лучше перевода").setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId("twitterVote_originalBetter").setLabel("Оригинал лучше перевода").setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
-        .setCustomId(TwitterVoteButtons.translationBetter)
+        .setCustomId("twitterVote_translationBetter")
         .setLabel("Перевод лучше оригинала")
         .setStyle(ButtonStyle.Secondary),
 ];
@@ -51,19 +51,19 @@ const handleVote = async (interaction, userVote) => {
         interaction.reply({ embeds: [VoteRecordedEmbed], ephemeral: true });
     }
 };
-export default {
+const ButtonCommand = new Button({
     name: "twitter",
     run: async ({ interaction }) => {
         const interactionReply = await handleMessageInteraction(interaction);
+        if (!interactionReply) {
+            return;
+        }
         const uniqueId = Symbol();
         const userAwaiter = activeAwaiters.get(interaction.user.id);
         if (userAwaiter) {
             userAwaiter.interaction.deleteReply();
         }
         activeAwaiters.set(interaction.user.id, { uniqueId, interaction });
-        if (!interactionReply) {
-            return;
-        }
         try {
             const userInteraction = await interactionReply.awaitMessageComponent({
                 time: 1000 * 60 * 5,
@@ -75,10 +75,10 @@ export default {
             }
             let userVote;
             switch (userInteraction.customId) {
-                case TwitterVoteButtons.originalBetter:
+                case "twitterVote_originalBetter":
                     userVote = "originalBetter";
                     break;
-                case TwitterVoteButtons.translationBetter:
+                case "twitterVote_translationBetter":
                     userVote = "translationBetter";
                     break;
                 default:
@@ -92,5 +92,6 @@ export default {
             interaction.deleteReply();
         }
     },
-};
-//# sourceMappingURL=twitter.js.map
+});
+export default ButtonCommand;
+//# sourceMappingURL=main.js.map

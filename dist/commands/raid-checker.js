@@ -1,12 +1,11 @@
 import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
-import UserErrors from "../configs/UserErrors.js";
 import colors from "../configs/colors.js";
 import { Command } from "../structures/command.js";
 import { GetManifest } from "../utils/api/ManifestManager.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { getEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
-export default new Command({
+const SlashCommand = new Command({
     name: "закрытия_рейдов",
     nameLocalizations: {
         "en-US": "raid-checker",
@@ -35,7 +34,7 @@ export default new Command({
     ],
     run: async ({ interaction, args }) => {
         if (getEndpointStatus("activity") !== 1) {
-            throw { errorType: UserErrors.API_UNAVAILABLE };
+            throw { errorType: "API_UNAVAILABLE" };
         }
         const ephemeralReply = interaction.deferReply({ ephemeral: true });
         const targetUser = args.getUser("пользователь")?.id || interaction.user.id;
@@ -44,7 +43,7 @@ export default new Command({
             attributes: ["bungieId", "platform", "accessToken"],
         });
         if (!authData) {
-            throw { errorType: UserErrors.DB_USER_NOT_FOUND, errorData: { isSelf: targetUser === interaction.user.id } };
+            throw { errorType: "DB_USER_NOT_FOUND", errorData: { isSelf: targetUser === interaction.user.id } };
         }
         const profileUrl = `/Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=200`;
         const userProfile = await sendApiRequest(profileUrl, authData.accessToken);
@@ -166,4 +165,5 @@ export default new Command({
         }
     },
 });
-//# sourceMappingURL=raidChecker.js.map
+export default SlashCommand;
+//# sourceMappingURL=raid-checker.js.map

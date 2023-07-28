@@ -1,6 +1,5 @@
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, RESTJSONErrorCodes, } from "discord.js";
 import { handleDeleteRaid } from "../../../buttons/raidInChnButton.js";
-import { RaidButtons } from "../../../configs/Buttons.js";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
 import { client } from "../../../index.js";
@@ -24,8 +23,8 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
     const cancelButton = new ButtonBuilder()
         .setLabel("Отменить передачу прав")
         .setStyle(ButtonStyle.Primary)
-        .setCustomId(RaidButtons.transitionCancel);
-    const deleteButton = new ButtonBuilder().setLabel("Удалить рейд").setStyle(ButtonStyle.Danger).setCustomId(RaidButtons.transitionDelete);
+        .setCustomId("raidCreatorHandler_cancel");
+    const deleteButton = new ButtonBuilder().setLabel("Удалить рейд").setStyle(ButtonStyle.Danger).setCustomId("raidCreatorHandler_delete");
     const buttons = addButtonsToMessage([cancelButton, deleteButton]);
     let message = null;
     try {
@@ -41,7 +40,7 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
         }
     }
     if (!message) {
-        console.error("[Error code: 1964] Not managed to send a message, exiting", raid.channelId, creator.id);
+        console.error("[Error code: 1964] Not managed to send a message about raid creator leaving, exiting", raid.channelId, creator.id);
         return;
     }
     const collector = (creator.dmChannel || (await creator.createDM())).createMessageComponentCollector({
@@ -52,13 +51,13 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
     });
     const sendedButtons = new Set();
     collector.on("collect", async (button) => {
-        if (button.customId === RaidButtons.transitionCancel) {
+        if (button.customId === "raidCreatorHandler_cancel") {
             button.deferUpdate();
             return collector.stop("canceled");
         }
         const deferredUpdate = button.deferReply({ ephemeral: true });
         sendedButtons.add(button);
-        if (button.customId === RaidButtons.transitionDelete) {
+        if (button.customId === "raidCreatorHandler_delete") {
             const isRaidDeleted = await handleDeleteRaid({ interaction: button, raidEvent: raid, deferredUpdate, requireMessageReply: false });
             if (isRaidDeleted === 1) {
                 sendedButtons.delete(button);
@@ -88,14 +87,15 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
         }));
         sendedButtons.clear();
         const handleEndReason = () => {
+            const embed = new EmbedBuilder().setColor(colors.invisible);
             if (reason === "canceled") {
-                return new EmbedBuilder().setColor(colors.invisible).setTitle(`Вы отменили передачу прав рейда ${raid.id}-${raid.raid}`);
+                return embed.setTitle(`Вы отменили передачу прав рейда ${raid.id}-${raid.raid}`);
             }
-            if (reason === "deleted") {
-                return new EmbedBuilder().setColor(colors.invisible).setTitle(`Вы удалили рейд ${raid.id}-${raid.raid}`);
+            else if (reason === "deleted") {
+                return embed.setTitle(`Вы удалили рейд ${raid.id}-${raid.raid}`);
             }
-            if (reason === "deleteError") {
-                return new EmbedBuilder()
+            else if (reason === "deleteError") {
+                return embed
                     .setColor(colors.error)
                     .setTitle(`Произошла ошибка во время удаления ${raid.id}-${raid.raid}`)
                     .setDescription("Скорее всего, рейд уже был удален");
@@ -105,7 +105,7 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
             const updatedRaidData = await RaidEvent.findByPk(raid.id);
             if (!updatedRaidData ||
                 updatedRaidData.creator !== raid.creator ||
-                ![...updatedRaidData.joined, ...updatedRaidData.hotJoined, ...updatedRaidData.alt].includes(raid.creator)) {
+                [...updatedRaidData.joined, ...updatedRaidData.hotJoined, ...updatedRaidData.alt].includes(raid.creator)) {
                 if (updatedRaidData && updatedRaidData.creator !== raid.creator) {
                     const embed = new EmbedBuilder()
                         .setColor(colors.serious)
@@ -123,7 +123,7 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
                 });
                 return;
             }
-            const newRaidCreator = await findNewRaidCreator(raid);
+            const newRaidCreator = await findNewRaidCreator(updatedRaidData);
             const timeEndEmbed = new EmbedBuilder().setColor(colors.serious);
             if (newRaidCreator != null) {
                 timeEndEmbed.setAuthor({ name: `Время вышло. Права на рейд ${raid.id}-${raid.raid} были переданы`, iconURL: icons.notify });
@@ -179,7 +179,22 @@ async function raidCreatorTransition(member, raid) {
             name: "Изменение времени набора",
             value: "⁣　`/рейд изменить новое-время:ВРЕМЯ_В_ФОРМАТЕ`\n　`/raid edit new-time:ВРЕМЯ_В_ФОРМАТЕ`\nВместо `ВРЕМЯ_В_ФОРМАТЕ` - необходимо указать время в следующем формате: `ЧАС:МИНУТЫ ДЕНЬ/МЕСЯЦ` (т.е. время разделяется двоеточием `:`, а дата точкой или слешем `/`)",
         });
-        await member.send({ embeds: [embed] });
+        try {
+            await member.send({ embeds: [embed] });
+        }
+        catch (error) {
+            if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
+                const privateRaidChannel = client.getCachedTextChannel(raid.channelId) || (await client.getCachedGuild().channels.fetch(raid.channelId));
+                const modifiedDescription = embed.data.description?.slice(11);
+                embed
+                    .setAuthor({ name: `${nameCleaner(member.displayName)} получил права на этот рейд`, url: embed.data.author?.url })
+                    .setDescription("Он получил" + modifiedDescription);
+                privateRaidChannel.send({ embeds: [embed], content: `<@${member.id}>` });
+            }
+            else {
+                console.error("[Error code: 1975]", error);
+            }
+        }
     };
     await Promise.all([sendPrivateChannelNotify(), notifyNewCreator()]);
     return;

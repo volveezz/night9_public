@@ -1,9 +1,10 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import { userTimezones } from "../core/userStatisticsManagement.js";
+import { Button } from "../structures/button.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
-export default {
+const ButtonCommand = new Button({
     name: "tzEvent",
     run: async ({ client, selectMenu: interaction }) => {
         const deferredInteraction = interaction.deferUpdate();
@@ -17,5 +18,6 @@ export default {
         }
         (await deferredInteraction) && interaction.editReply({ embeds: [embed], components: [] });
     },
-};
+});
+export default ButtonCommand;
 //# sourceMappingURL=tzEvent.js.map

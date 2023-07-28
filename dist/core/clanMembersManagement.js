@@ -1,6 +1,5 @@
 import { ActivityType } from "discord.js";
-import { getAdminAccessToken } from "../commands/clanCommand.js";
-import NightRoleCategory from "../configs/RoleCategory.js";
+import { getAdminAccessToken } from "../commands/clan/main.js";
 import { clanJoinDateRoles } from "../configs/roles.js";
 import { client } from "../index.js";
 import getClanMemberData from "../utils/api/getClanMemberData.js";
@@ -125,7 +124,7 @@ async function clanMembersManagement(databaseData) {
                 await memberAuthData.save();
             }
             if (!joinDateCheckedClanMembers.has(membershipId)) {
-                if (!(memberAuthData.roleCategoriesBits & NightRoleCategory.Triumphs))
+                if (!(memberAuthData.roleCategoriesBits & 8))
                     return;
                 const userJoinDate = new Date(clanMember.joinDate).getTime();
                 const userInClanDays = (Date.now() - userJoinDate) / 1000 / 60 / 60 / 24;

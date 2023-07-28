@@ -2,7 +2,7 @@ import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { Command } from "../structures/command.js";
-export default new Command({
+const SlashCommand = new Command({
     name: "access",
     nameLocalizations: { ru: "доступ" },
     description: "Receive access to a specific text channel of the guild",
@@ -50,4 +50,5 @@ export default new Command({
         await interaction.reply({ embeds: [embed], ephemeral: true });
     },
 });
-//# sourceMappingURL=accessCommand.js.map
+export default SlashCommand;
+//# sourceMappingURL=access.js.map
