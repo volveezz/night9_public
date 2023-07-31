@@ -3,7 +3,7 @@ import { generateTwitterEmbed } from "../discord/twitterHandler/twitterMessagePa
 import { processedRssLinks } from "../persistence/dataStore.js";
 import { ProcessedLink } from "../persistence/sequelize.js";
 const parser = new Parser();
-const hostUrl = "rsshub-production-e9d1.up.railway.app";
+const hostUrl = "rsshub.railway.internal";
 const readable = 0;
 var TwitterAccountNames;
 (function (TwitterAccountNames) {
