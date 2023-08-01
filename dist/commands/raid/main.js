@@ -737,29 +737,33 @@ const SlashCommand = new Command({
         else if (subCommand === "удалить") {
             const raidId = args.getInteger("id-рейда");
             const raidData = await getRaidDatabaseInfo(raidId, interaction);
-            await RaidEvent.destroy({ where: { id: raidData.id }, limit: 1 })
+            const { channelId, id, messageId, raid } = raidData;
+            await RaidEvent.destroy({ where: { id }, limit: 1 })
                 .then(async () => {
-                clearNotifications(raidData.id);
-                const raidsChannel = await client.getAsyncTextChannel(process.env.RAID_CHANNEL_ID);
-                const privateRaidChannel = await client.getAsyncTextChannel(raidData.channelId);
+                clearNotifications(id);
+                const raidsChannel = client.getCachedTextChannel(process.env.RAID_CHANNEL_ID);
+                const privateRaidChannel = await client.getAsyncTextChannel(channelId);
                 try {
-                    await privateRaidChannel.delete(`${interaction.member.displayName} deleted the raid ${raidData.id}-${raidData.raid}`);
+                    await privateRaidChannel.delete(`${interaction.member.displayName} deleted the raid ${id}-${raid}`);
                 }
                 catch (e) {
-                    console.error(`[Error code: 1069] Channel during raid manual delete for raidId ${raidData.id} wasn't found`);
+                    console.error(`[Error code: 1069] Channel during raid manual delete for raidId ${id} wasn't found`);
                     e.code !== 10008 ? console.error("[Error code: 1913]", e) : "";
                 }
                 try {
-                    const message = await client.getAsyncMessage(raidsChannel, raidData.messageId);
+                    const message = await client.getAsyncMessage(raidsChannel, messageId);
                     if (message)
                         await message.delete();
                 }
                 catch (e) {
-                    console.error(`[Error code: 1070] Message during raid manual delete for raidId ${raidData.id} wasn't found`);
+                    console.error(`[Error code: 1070] Message during raid manual delete for raidId ${id} wasn't found`);
                     e.code !== 10008 ? console.error("[Error code: 1240]", e) : "";
                 }
-                const embed = new EmbedBuilder().setColor(colors.success).setTitle(`Рейд ${raidData.id}-${raidData.raid} был удален`);
+                if (interaction.channelId === channelId) {
+                    return await deferredReply;
+                }
                 await deferredReply;
+                const embed = new EmbedBuilder().setColor(colors.success).setTitle(`Рейд ${id}-${raid} был удален`);
                 await interaction.editReply({ embeds: [embed] });
             })
                 .catch((e) => console.error("[Error code: 1206]", e));

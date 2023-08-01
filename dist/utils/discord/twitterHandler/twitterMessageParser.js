@@ -22,18 +22,18 @@ function extractMediaUrl(content, preferable = "image") {
     return null;
 }
 function clearText(content) {
-    content = content.replace(/<br\s*\/?>/gi, "\n");
-    content = content.replace(/&gt;/gi, ">");
-    content = content.replace(/&lt;/gi, "<");
-    content = content.replace(/&amp;/gi, "&");
-    content = content.replace(/&quot;/gi, '"');
-    content = content.replace(/&apos;/gi, "'");
-    content = content.replace(/<div class="rsshub-quote">[\s\S]*?<\/div>|<[^>]*>|https:\/\/t\.co\/\S+|https:\/\/twitter\.com\/i\/web\/status\/\S+/g, "");
-    if (content.startsWith("Re "))
-        content = content.slice(3);
-    content = content.replace(/^ +/gm, (match) => "\u00A0".repeat(match.length));
-    content = content.trim();
-    return content;
+    return content
+        .replace(/&nbsp;/g, " ")
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/&gt;/gi, ">")
+        .replace(/&lt;/gi, "<")
+        .replace(/&amp;/gi, "&")
+        .replace(/&quot;/gi, '"')
+        .replace(/&apos;/gi, "'")
+        .replace(/<div class="rsshub-quote">[\s\S]*?<\/div>|<[^>]*>|https:\/\/t\.co\/\S+|https:\/\/twitter\.com\/i\/web\/status\/\S+/g, "")
+        .replace(/^Re /, "")
+        .replace(/^ +/gm, (match) => "\u00A0".repeat(match.length))
+        .trim();
 }
 async function generateTwitterEmbed(twitterData, author, icon) {
     if (!twitterData.content)
@@ -70,7 +70,7 @@ async function generateTwitterEmbed(twitterData, author, icon) {
         }
         return embed;
     };
-    const cleanContent = clearText(twitterData.content || "");
+    const cleanContent = clearText(twitterData.content);
     if (!cleanContent || cleanContent.length === 0) {
         console.error("[Error code: 1754]", twitterData);
         return null;
@@ -191,6 +191,7 @@ Translated dataset:
         "Xivu Arath": "Зиву Арат",
         "The Traveler": "Странник",
 		"Postmaster": "Почтмейстер",
+		"Xur": "Зур",
 	},
 	"Resources": {
         "Ascendant Shards": "Высшие осколоки",

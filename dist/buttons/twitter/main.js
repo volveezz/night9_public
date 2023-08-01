@@ -1,4 +1,4 @@
-import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, RESTJSONErrorCodes } from "discord.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { Button } from "../../structures/button.js";
@@ -86,10 +86,19 @@ const ButtonCommand = new Button({
             }
             await handleVote(userInteraction, userVote);
             activeAwaiters.delete(interaction.user.id);
-            await interactionReply.edit({ components: [] });
+            await interactionReply.edit({ components: [] }).catch((e) => {
+                console.error("[Error code: 1979]", e.code === RESTJSONErrorCodes.UnknownMessage
+                    ? "Message was deleted before the bot could edit it"
+                    : `Received a unknown error code: ${e.code}`);
+            });
         }
         catch (error) {
-            interaction.deleteReply();
+            console.error("[Error code: 1978]", error.code);
+            interaction.deleteReply().catch((e) => {
+                console.error("[Error code: 1979]", e.code === RESTJSONErrorCodes.InvalidWebhookToken
+                    ? "Invalid Webhook token. Most likely the message was hidden by the user"
+                    : `Received a unknown error code: ${e.code}`);
+            });
         }
     },
 });

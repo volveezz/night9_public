@@ -45,7 +45,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                 throttleSet.add(member.id);
                 return;
             }
-            return console.error("[Error code: 1039]", displayName, !destinyProfileResponse, !destinyProfileResponse?.metrics, !destinyProfileResponse?.profileRecords?.data?.activeScore != null, !destinyProfileResponse?.characterRecords, !destinyProfileResponse?.profile, !destinyProfileResponse?.profile?.data);
+            return console.error("[Error code: 1039]", displayName, destinyProfileResponse == null, destinyProfileResponse?.metrics == null, destinyProfileResponse?.profileRecords?.data?.activeScore == null, destinyProfileResponse?.characterRecords == null, destinyProfileResponse?.profile == null, destinyProfileResponse?.profile?.data == null);
         }
         if (!bungieNames.get(discordId)) {
             let bungieCode = (destinyProfileResponse.profile.data.userInfo.bungieGlobalDisplayNameCode ?? "0000").toString();
