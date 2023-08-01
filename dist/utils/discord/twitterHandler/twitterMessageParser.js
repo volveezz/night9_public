@@ -80,7 +80,7 @@ async function generateTwitterEmbed(twitterData, author, icon) {
     const replacedDescription = replaceTimeWithEpoch(cleanContent);
     let tranlsatedContent = null;
     try {
-        const translateRequest = await translateTweet(replacedDescription);
+        const translateRequest = await translateDestinyText(replacedDescription);
         if (translateRequest && translateRequest.length > 1 && !translateRequest.includes("You exceeded your current quota")) {
             tranlsatedContent = translateRequest;
             components = [new ButtonBuilder().setCustomId("twitter_showOriginal").setLabel("Оригинал").setStyle(ButtonStyle.Secondary)];
@@ -117,7 +117,7 @@ async function convertVideoToGif(videoUrl, message, embed) {
         return;
     processTwitterGifFile(gifUrl, message, embed);
 }
-async function translateTweet(sourceText) {
+export async function translateDestinyText(sourceText) {
     const prompt = `You are an official Destiny 2 news translator. Please follow the instructions below and translate text in the 'user' role.
 1. You need to translate English source text in 'user' role to Russian.
 2. You need to use Destiny jargon, existing weapons, activity names, etc.

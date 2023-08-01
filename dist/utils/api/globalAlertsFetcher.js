@@ -1,7 +1,9 @@
-import { EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
 import { client } from "../../index.js";
-import { lastAlertKeys } from "../persistence/dataStore.js";
+import { translateDestinyText } from "../discord/twitterHandler/twitterMessageParser.js";
+import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
+import { lastAlertKeys, originalTweetData, twitterOriginalVoters } from "../persistence/dataStore.js";
 import { sendApiRequest } from "./sendApiRequest.js";
 let newsChannel = null;
 const alertLevelColors = {
@@ -33,7 +35,27 @@ async function fetchAndPostAlerts() {
                     if (latestAlert.StreamInfo?.ChannelName) {
                         embed.addFields([{ name: "Stream Channel", value: latestAlert.StreamInfo.ChannelName }]);
                     }
-                    await newsChannel.send({ embeds: [embed] });
+                    let translatedDescription = undefined;
+                    let components = [];
+                    try {
+                        translatedDescription = await translateDestinyText(latestAlert.AlertHtml);
+                        if (translatedDescription && translatedDescription !== latestAlert.AlertHtml) {
+                            embed.setDescription(translatedDescription);
+                            components = [
+                                new ButtonBuilder().setCustomId("twitter_showOriginal").setLabel("Оригинал").setStyle(ButtonStyle.Secondary),
+                            ];
+                        }
+                    }
+                    catch (error) {
+                        console.error("[Error code: 1980] Error translating global alert:", error);
+                    }
+                    await newsChannel.send({ embeds: [embed], components: addButtonsToMessage(components) }).then((message) => {
+                        if (translatedDescription) {
+                            const voteRecord = { original: new Set(), translation: new Set() };
+                            twitterOriginalVoters.set(message.id, voteRecord);
+                            originalTweetData.set(message.id, latestAlert.AlertHtml);
+                        }
+                    });
                 });
             }
         }

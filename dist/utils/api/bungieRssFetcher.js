@@ -1,4 +1,8 @@
+import { ButtonBuilder, ButtonStyle } from "discord.js";
 import { client } from "../../index.js";
+import { translateDestinyText } from "../discord/twitterHandler/twitterMessageParser.js";
+import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
+import { originalTweetData, twitterOriginalVoters } from "../persistence/dataStore.js";
 import { sendApiRequest } from "./sendApiRequest.js";
 let lastFetchedArticles = null;
 const checkedUrls = new Set();
@@ -38,13 +42,26 @@ async function fetchNewsArticles() {
 function getNewArticles(currentArticles, lastFetchedArticles) {
     return currentArticles.filter((article) => !lastFetchedArticles.some((lastArticle) => article.UniqueIdentifier === lastArticle.UniqueIdentifier && !checkedUrls.has(article.Link)));
 }
-let newsChannel = null;
+let newsChannel = client.getCachedTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
 async function postArticlesToDiscord(articles) {
     for (const article of articles) {
+        let translatedDescription = undefined;
+        let components = [];
+        try {
+            translatedDescription = await translateDestinyText(article.Description);
+            if (translatedDescription && translatedDescription !== article.Description) {
+                components = [
+                    new ButtonBuilder().setCustomId("twitter_showOriginal").setLabel("Оригинал").setStyle(ButtonStyle.Secondary),
+                ];
+            }
+        }
+        catch (error) {
+            console.error("[Error code: 1981]", error);
+        }
         const embed = {
             title: article.Title,
             url: `https://www.bungie.net${article.Link}`,
-            description: article.Description,
+            description: translatedDescription || article.Description,
             image: {
                 url: article.ImagePath,
             },
@@ -53,8 +70,13 @@ async function postArticlesToDiscord(articles) {
         try {
             if (!newsChannel)
                 newsChannel = await client.getAsyncTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
-            await newsChannel.send({ embeds: [embed] }).then((_) => {
+            await newsChannel.send({ embeds: [embed], components: addButtonsToMessage(components) }).then((message) => {
                 checkedUrls.add(article.Link);
+                if (translatedDescription) {
+                    const voteRecord = { original: new Set(), translation: new Set() };
+                    twitterOriginalVoters.set(message.id, voteRecord);
+                    originalTweetData.set(message.id, article.Description);
+                }
             });
         }
         catch (error) {
