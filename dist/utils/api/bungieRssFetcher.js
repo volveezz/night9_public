@@ -42,7 +42,7 @@ async function fetchNewsArticles() {
 function getNewArticles(currentArticles, lastFetchedArticles) {
     return currentArticles.filter((article) => !lastFetchedArticles.some((lastArticle) => article.UniqueIdentifier === lastArticle.UniqueIdentifier && !checkedUrls.has(article.Link)));
 }
-let newsChannel = client.getCachedTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
+let newsChannel = null;
 async function postArticlesToDiscord(articles) {
     for (const article of articles) {
         let translatedDescription = undefined;
