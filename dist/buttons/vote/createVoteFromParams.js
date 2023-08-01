@@ -68,6 +68,7 @@ async function createVoteFromParams({ interaction, question, description, answer
             });
             if (!modalReply)
                 return;
+            modalReply.deferUpdate();
             validatedQuestion = modalReply.fields.getField("modifyVote_question", ComponentType.TextInput).value;
             validatedDescription = modalReply.fields.getField("modifyVote_description", ComponentType.TextInput).value;
             validatedAnswers = modalReply.fields.getField("modifyVote_answers", ComponentType.TextInput).value.split(" | ");
@@ -143,7 +144,6 @@ async function createVoteFromParams({ interaction, question, description, answer
         }
     });
     collector.on("end", (c, r) => {
-        console.debug("Collector ended", r);
         if (r === "time")
             reply.edit({ components: [], content: "Время ожидания истекло" });
     });

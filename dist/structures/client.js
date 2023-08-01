@@ -230,10 +230,10 @@ export class ExtendedClient extends Client {
         handleMemberStatistics();
         this.startUpdatingPresence();
         restoreFetchedPGCRs();
-        this.importFile("../utils/api/rssHandler.js");
-        this.importFile("../core/guildNicknameManagement.js");
     }
     loadDelayedComponents() {
+        this.importFile("../core/guildNicknameManagement.js");
+        this.importFile("../utils/api/rssHandler.js");
         cacheRaidMilestones();
         raidFireteamChecker();
         loadNotifications();
@@ -251,7 +251,7 @@ export class ExtendedClient extends Client {
             }
             if (channel.isTextBased()) {
                 setTimeout(async () => {
-                    if (channel.id === process.env.NEWS_CHANNEL_ID) {
+                    if (channel.id === process.env.ENGLISH_NEWS_CHANNEL_ID) {
                         channel.messages.fetch({ limit: 100 }).then((channelMessages) => {
                             const twitterMessages = channelMessages.filter((m) => m.author.id === this.user.id && m.embeds?.[0]?.author?.url != null);
                             const alertMessages = channelMessages.filter((m) => m.author.id === this.user.id && m.embeds?.[0]?.title?.startsWith("D2-"));

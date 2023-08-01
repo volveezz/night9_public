@@ -38,8 +38,6 @@ process.on("unhandledRejection", (error) => {
         return console.error(`[Error code: 1214] ${error.statusCode}`);
     if (error.code >= 400 && error.code <= 599)
         return console.error(`[Error code: 1215] ${error.code}`);
-    if (error.message?.startsWith("[Error code: 1952]"))
-        return console.error("[Error code: 1974] Received error from sendApiRequest");
     console.error("UnhandledRejection at top level", error.stack || error);
 });
 const app = express();

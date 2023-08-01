@@ -3,7 +3,7 @@ import { generateTwitterEmbed } from "../discord/twitterHandler/twitterMessagePa
 import { processedRssLinks } from "../persistence/dataStore.js";
 import { ProcessedLink } from "../persistence/sequelize.js";
 const parser = new Parser();
-const hostUrl = "rsshub.railway.internal";
+const hostUrl = "n9-rss.up.railway.app";
 var TwitterAccountNames;
 (function (TwitterAccountNames) {
     TwitterAccountNames["BungieHelp"] = "bungiehelp";
