@@ -14,6 +14,7 @@ import { cacheRaidMilestones } from "../utils/general/raidMilestones.js";
 import { pause } from "../utils/general/utilities.js";
 import { restoreFetchedPGCRs } from "../utils/logging/activityLogger.js";
 import { lastAlertKeys, processedRssLinks } from "../utils/persistence/dataStore.js";
+import VoteSystem from "./VoteSystem.js";
 const __dirname = resolve();
 const directory = process.env.NODE_ENV === "development" && process.env.LOCAL_ENV === "true" ? "src" : "dist";
 export class ExtendedClient extends Client {
@@ -208,6 +209,7 @@ export class ExtendedClient extends Client {
                     this.loadDelayedComponents();
                     fetchNewsArticles();
                 }, 1000 * 30);
+                VoteSystem.getInstance().init();
                 this.fetchMembersAndMessages();
             });
         });

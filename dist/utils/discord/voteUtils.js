@@ -1,5 +1,4 @@
 import { TextInputBuilder, TextInputStyle } from "discord.js";
-import { VoteModal } from "../../configs/Modals.js";
 import { addModalComponents } from "../general/addModalComponents.js";
 export function createProgressBar(totalVotes, votesForOption) {
     const filledLength = Math.round((votesForOption / totalVotes || 0) * 40);
@@ -10,7 +9,7 @@ export function createVoteOption(index) {
     return new TextInputBuilder()
         .setLabel("Вариант ответа")
         .setStyle(TextInputStyle.Short)
-        .setCustomId(`${VoteModal.ModifyVoteOption}${index}`)
+        .setCustomId(`${"modifyVote_option"}${index}`)
         .setPlaceholder("До 100 символов")
         .setRequired(index === 0 ? true : false);
 }

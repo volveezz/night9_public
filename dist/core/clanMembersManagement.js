@@ -6,8 +6,10 @@ import getClanMemberData from "../utils/api/getClanMemberData.js";
 import kickClanMember from "../utils/api/kickClanMember.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { getEndpointStatus, updateEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
+import checkUserRequirements from "../utils/general/newbieRequirementsChecker/checkUserRequirements.js";
+import notifyUserNotMeetRequirements from "../utils/general/newbieRequirementsChecker/notifyUserNotMeetRequirements.js";
 import { updateClanRolesWithLogging } from "../utils/logging/clanEventLogger.js";
-import { joinDateCheckedClanMembers, nonRegClanMembers, recentlyExpiredAuthUsersBungieIds } from "../utils/persistence/dataStore.js";
+import { joinDateCheckedClanMembers, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, } from "../utils/persistence/dataStore.js";
 import { clanOnline } from "./userStatisticsManagement.js";
 let lastLoggedErrorCode = 1;
 async function clanMembersManagement(databaseData) {
@@ -68,7 +70,6 @@ async function clanMembersManagement(databaseData) {
                 if (member.clan === true) {
                     const memberData = await getClanMemberData(member);
                     if (memberData.member?.groupId !== process.env.GROUP_ID) {
-                        console.debug("UPDATING", member.displayName, "AS HE LEFT THE CLAN");
                         member.clan = false;
                         await member.save();
                         await updateClanRolesWithLogging(member, false);
@@ -103,18 +104,27 @@ async function clanMembersManagement(databaseData) {
                 try {
                     const clanMemberData = await getClanMemberData(memberAuthData);
                     if (clanMemberData.member?.groupId === process.env.GROUP_ID) {
-                        console.debug("User joined the clan", memberAuthData.displayName);
-                    }
-                    else {
-                        console.debug("User wasn't found in the clan", memberAuthData.displayName, clanMemberData.member);
+                        const isUserMeetsRequirements = await checkUserRequirements(memberAuthData);
+                        if (typeof isUserMeetsRequirements === "boolean" && isUserMeetsRequirements === true) {
+                            memberAuthData.clan = true;
+                            await memberAuthData.save();
+                            updateClanRolesWithLogging(memberAuthData, true);
+                        }
+                        else if (typeof isUserMeetsRequirements === "string") {
+                            const { platform, accessToken, bungieId } = memberAuthData;
+                            kickClanMember(platform, bungieId, accessToken);
+                            if (!recentlyNotifiedKickedMembers.has(bungieId)) {
+                                await notifyUserNotMeetRequirements(memberAuthData, isUserMeetsRequirements);
+                            }
+                        }
+                        else {
+                            console.error("[Error code: 1976]", isUserMeetsRequirements, memberAuthData.platform, memberAuthData.bungieId, memberAuthData.accessToken?.length);
+                        }
                     }
                 }
                 catch (error) {
                     console.error("[Error code: 1924]", error);
                 }
-                memberAuthData.clan = true;
-                await memberAuthData.save();
-                updateClanRolesWithLogging(memberAuthData, true);
             }
             const destinyUserName = clanMember.destinyUserInfo.bungieGlobalDisplayName ||
                 clanMember.destinyUserInfo.LastSeenDisplayName ||
@@ -155,20 +165,8 @@ async function clanMembersManagement(databaseData) {
             const bungieId = clanMember.destinyUserInfo.membershipId;
             if (recentlyExpiredAuthUsersBungieIds.has(bungieId))
                 return;
-            if (nonRegClanMembers.has(bungieId)) {
-                const userKickChance = nonRegClanMembers.get(bungieId);
-                const randomNumber = Math.floor(Math.random() * 100);
-                if (randomNumber > userKickChance) {
-                    const adminAccessToken = (await getAdminAccessToken(process.env.OWNER_ID));
-                    await kickClanMember(clanMember.destinyUserInfo.membershipType, bungieId, adminAccessToken);
-                }
-                else {
-                    nonRegClanMembers.set(bungieId, randomNumber);
-                }
-            }
-            else {
-                nonRegClanMembers.set(bungieId, 20);
-            }
+            const adminAccessToken = (await getAdminAccessToken(process.env.OWNER_ID));
+            await kickClanMember(clanMember.destinyUserInfo.membershipType, bungieId, adminAccessToken);
         }
     }
     catch (e) {

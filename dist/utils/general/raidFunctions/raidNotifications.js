@@ -4,7 +4,7 @@ import { Op } from "sequelize";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
 import { client } from "../../../index.js";
-import { completedRaidsData, nonRegClanMembers, recentlyCreatedRaidInvites } from "../../persistence/dataStore.js";
+import { completedRaidsData, recentlyCreatedRaidInvites } from "../../persistence/dataStore.js";
 import { RaidEvent, RaidUserNotification } from "../../persistence/sequelize.js";
 import { addButtonsToMessage } from "../addButtonsToMessage.js";
 import nameCleaner from "../nameClearer.js";
@@ -13,7 +13,6 @@ import { getRandomGIF, getRandomRaidGIF, pause } from "../utilities.js";
 import raidFireteamChecker from "./raidFireteamChecker.js";
 schedule("0 23 * * *", () => {
     recentlyCreatedRaidInvites.clear();
-    nonRegClanMembers.clear();
     raidFireteamChecker();
     tasks = [];
     while (runningTimeouts.length > 0) {

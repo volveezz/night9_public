@@ -4,7 +4,6 @@ import { processedRssLinks } from "../persistence/dataStore.js";
 import { ProcessedLink } from "../persistence/sequelize.js";
 const parser = new Parser();
 const hostUrl = "rsshub.railway.internal";
-const readable = 0;
 var TwitterAccountNames;
 (function (TwitterAccountNames) {
     TwitterAccountNames["BungieHelp"] = "bungiehelp";
@@ -12,7 +11,7 @@ var TwitterAccountNames;
     TwitterAccountNames["DestinyTheGame"] = "destinythegame";
     TwitterAccountNames["Destiny2Team"] = "destiny2team";
 })(TwitterAccountNames || (TwitterAccountNames = {}));
-const createTwitterAccountUrl = (accountName, limit) => `https://${hostUrl}/twitter/user/${accountName}?readable=${readable}&limit=${limit}`;
+const createTwitterAccountUrl = (accountName, limit) => `http://${hostUrl}/twitter/user/${accountName}?readable=0&limit=${limit}`;
 const rssUrls = {
     BungieHelp: createTwitterAccountUrl(TwitterAccountNames.BungieHelp, 10),
     Bungie: createTwitterAccountUrl(TwitterAccountNames.Bungie, 5),

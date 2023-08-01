@@ -212,5 +212,29 @@ ProcessedLink.init({
     freezeTableName: true,
     name: { singular: "ProcessedLink", plural: "ProcessedLink" },
 });
-export { AuthData, AutoRoleData, InitData, LeavedUsersData, ProcessedLink, RaidEvent, RaidUserNotification, UserActivityData, VoiceChannels, sequelize as database, };
+class VotingDatabase extends Model {
+}
+VotingDatabase.init({
+    uniqueId: {
+        type: DataTypes.STRING(8),
+        primaryKey: true,
+        allowNull: false,
+    },
+    multiVote: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+    },
+    votes: {
+        type: DataTypes.ARRAY(DataTypes.JSON),
+        defaultValue: [],
+    },
+}, {
+    sequelize,
+    timestamps: false,
+    createdAt: false,
+    updatedAt: false,
+    freezeTableName: true,
+    tableName: "VotingDatabase",
+});
+export { AuthData, AutoRoleData, InitData, LeavedUsersData, ProcessedLink, RaidEvent, RaidUserNotification, UserActivityData, VoiceChannels, VotingDatabase, sequelize as database, };
 //# sourceMappingURL=sequelize.js.map

@@ -1,5 +1,5 @@
+const recentlyNotifiedKickedMembers = new Set();
 const joinDateCheckedClanMembers = new Set();
-const nonRegClanMembers = new Map();
 const recentRaidCreators = new Map();
 const recentlyExpiredAuthUsersBungieIds = new Set();
 const recentlyCreatedRaidInvites = new Map();
@@ -10,5 +10,5 @@ const completedRaidsData = new Map();
 const lastAlertKeys = new Set();
 const originalTweetData = new Map();
 const twitterOriginalVoters = new Map();
-export { channelDataMap, channelsForDeletion, completedRaidsData, joinDateCheckedClanMembers, lastAlertKeys, nonRegClanMembers, originalTweetData, processedRssLinks, recentRaidCreators, recentlyCreatedRaidInvites, recentlyExpiredAuthUsersBungieIds, twitterOriginalVoters, };
+export { channelDataMap, channelsForDeletion, completedRaidsData, joinDateCheckedClanMembers, lastAlertKeys, originalTweetData, processedRssLinks, recentRaidCreators, recentlyCreatedRaidInvites, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, twitterOriginalVoters, };
 //# sourceMappingURL=dataStore.js.map

@@ -2,6 +2,7 @@ import cookieParser from "cookie-parser";
 import "dotenv/config";
 import express from "express";
 import { join, resolve } from "path";
+import VoteSystem from "./structures/VoteSystem.js";
 import { ExtendedClient } from "./structures/client.js";
 import webHandler from "./utils/api/webHandler.js";
 import calculateVoteResults from "./utils/discord/twitterHandler/twitterTranslationVotes.js";
@@ -19,7 +20,7 @@ process.on("SIGINT", handleExit);
 process.on("SIGTERM", handleExit);
 async function handleExit(signal) {
     console.log(`Received ${signal}. Saving data...`);
-    await Promise.all([forceUpdateUserActivity(), calculateVoteResults()]);
+    await Promise.all([forceUpdateUserActivity(), calculateVoteResults(), VoteSystem.getInstance().flushSaveToDatabase()]);
     console.log("Data saved. Exiting...");
     process.exit(0);
 }
@@ -37,8 +38,6 @@ process.on("unhandledRejection", (error) => {
         return console.error(`[Error code: 1214] ${error.statusCode}`);
     if (error.code >= 400 && error.code <= 599)
         return console.error(`[Error code: 1215] ${error.code}`);
-    if (error.code === 50035)
-        return console.error("[Error code: 1243]", error?.rawError?.errors, error?.rawError?.error, JSON.stringify(error));
     if (error.message?.startsWith("[Error code: 1952]"))
         return console.error("[Error code: 1974] Received error from sendApiRequest");
     console.error("UnhandledRejection at top level", error.stack || error);

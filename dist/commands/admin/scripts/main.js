@@ -1,4 +1,5 @@
 import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
+import Parser from "rss-parser";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
 import openai from "../../../structures/OpenAI.js";
@@ -34,6 +35,46 @@ const SlashCommand = new Command({
             case "getmodels": {
                 const request = await openai.listModels();
                 console.debug(request.data.data);
+                return;
+            }
+            case "rsstry": {
+                const parser = new Parser();
+                const feed = await parser.parseURL(`https://rsshub-production-e9d1.up.railway.app/twitter/user/destinythegame?readable=0&limit=1`);
+                return console.debug(feed.items[0]);
+                function getBungieTwitterAuthor(creator) {
+                    switch (creator) {
+                        case "Destiny 2":
+                            return 1;
+                        case "Bungie":
+                            return 2;
+                        case "Bungie Help":
+                            return 3;
+                        case "Destiny 2 Team":
+                            return 4;
+                        default:
+                            return null;
+                    }
+                }
+                function isRetweet(item) {
+                    const retweetPattern = /^RT/;
+                    if (!item.content || !item.contentSnippet) {
+                        console.error("[Error code: 1709]", item);
+                        return true;
+                    }
+                    if (retweetPattern.test(item.content || item.contentSnippet)) {
+                        return true;
+                    }
+                    return false;
+                }
+                function isValidTweet(author, guid) {
+                    if (!guid)
+                        return false;
+                    const guidLowerCase = guid.toLowerCase();
+                    return ((author === 2 && guidLowerCase.startsWith("https://twitter.com/bungie/")) ||
+                        (author === 3 && guidLowerCase.startsWith("https://twitter.com/bungiehelp/")) ||
+                        (author === 1 && guidLowerCase.startsWith("https://twitter.com/destinythegame/")) ||
+                        (author === 4 && guidLowerCase.startsWith("https://twitter.com/destiny2team/")));
+                }
                 return;
             }
             case "checkrole": {

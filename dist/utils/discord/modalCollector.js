@@ -5,7 +5,6 @@ async function createModalCollector(ineraction, options) {
     activeModals.set(userId, modalId);
     const result = await ineraction.awaitModalSubmit(options);
     if (activeModals.get(userId) === modalId) {
-        console.debug("Received interaction!");
         activeModals.delete(userId);
         return result;
     }
