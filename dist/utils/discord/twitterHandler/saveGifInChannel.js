@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 import stream from "stream";
 import { promisify } from "util";
 import { client } from "../../../index.js";
-const textChannel = await client.getAsyncTextChannel(process.env.STORAGE_CHANNEL_ID);
+let textChannel = null;
 async function downloadFile(url, fileName) {
     const response = await fetch(url);
     const fileStream = fs.createWriteStream(fileName);
@@ -11,6 +11,8 @@ async function downloadFile(url, fileName) {
     return fileName;
 }
 async function sendFileToDiscord(filePath) {
+    if (!textChannel)
+        textChannel = await client.getAsyncTextChannel(process.env.STORAGE_CHANNEL_ID);
     return await textChannel.send({
         files: [
             {
