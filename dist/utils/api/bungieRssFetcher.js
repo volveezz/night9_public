@@ -45,7 +45,7 @@ function getNewArticles(currentArticles, lastFetchedArticles) {
 let newsChannel = null;
 async function postArticlesToDiscord(articles) {
     for (const article of articles) {
-        let translatedDescription = undefined;
+        let translatedDescription = null;
         let components = [];
         try {
             translatedDescription = await translateDestinyText(article.Description);

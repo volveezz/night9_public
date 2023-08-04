@@ -118,115 +118,122 @@ async function convertVideoToGif(videoUrl, message, embed) {
     processTwitterGifFile(gifUrl, message, embed);
 }
 export async function translateDestinyText(sourceText) {
-    const prompt = `You are an official Destiny 2 news translator. Please follow the instructions below and translate text in the 'user' role.
-1. You need to translate English source text in 'user' role to Russian.
-2. You need to use Destiny jargon, existing weapons, activity names, etc.
-3. If you don't know how to correctly translate a word and a word is not present in the translated dataset, leave original English name.
-4. If you see something like Precision Bow - it doesn't mean that a bow has high precision, but rather bow with precision frame (точной рамой).
+    if (sourceText.length === 1) {
+        return sourceText;
+    }
+    const prompt = `Slightly translate following text into Russian, but you must keep all words or phrases that are specific to the game Destiny 2 in their original form.
 
-Translated dataset:
-{
-    "DLC": {
-        "Forsaken": "Отвергнутые",
-        "Shadowkeep": "Обитель теней",
-        "Beyond Light": "За гранью Света",
-        "The Witch Queen": "Королева-Ведьма",
-        "Lightfall": "Конец Света",
-        "The Final Shape": "Финальная Форма",
-        "30th Anniversary Pack": "Пак 30-летия"
-    },
-    "Activities": {
-        "Crucible": "Горнило",
-        "Trials of Osiris": "Испытания Осириса",
-        "Strike": "Налет",
-        "Nightfall": "Сумрачный налет",
-        "Gambit": "Гамбит",
-        "Dungeon": "Подземелье",
-        "Shattered Throne": "Расколотый Трон",
-        "Pit of Heresy": "Яма Ереси",
-        "Prophecy": "Откровение",
-        "Last Wish": "Последнее Желание",
-        "Garden of Salvation": "Сад Спасения",
-        "Deep Stone Crypt": "Склеп Глубокого камня",
-        "Vault of Glass": "Хрустальный чертог",
-        "Root of Nightmares": "Источник Кошмаров",
-        "Vow of the Disciple": "Клятва Послушника",
-        "King’s Fall": "Гибель Короля",
-        "Duality": "Дуальность",
-        "Grasp of Avarice": "Тиски алчности",
-        "Spire of the Watcher": "Шпиль хранителя",
-        "Ghosts of the Deep": "Призраки Глубин"
-        "The Lightblade": "Клинок Света",
-    },
-    "Events": {
-        "Solstice": "Солнцестояние",
-        "Solstice of heroes": "Солнцестояние Героев",
-        "The Dawning": "Рассвет",
-        "Iron Banner": "Железное Знамя",
-        "Festival of the Lost": "Фестиваль Усопших",
-        "Guardian Games": "Игры Стражей"
-    },
-    "Weapons": {
-        "The Immortal": "Бесмертный",
-        "Witherhoard": "Горстка пепла",
-        "Arbalest": "Арбалет",
-        "Gjallarhorn": "Гьяллархорн",
-        "Osteo Striga": "Остео Стрига",
-        "Xenophage": "Ксенофаг",
-        "Izanagi’s Burden": "Бремя Идзанаги",
-        "Outbreak Perfected": "Идеальная эпидемия",
-        "Divinity": "Божественность",
-        "Anarchy": "Анархия",
-        "The Lament": "Плач",
-	},
-	"Factions/races": {
-        "Vanguard": "Авангард",
-        "Taken": "Одержимые",
-        "Vex": "Вексы",
-	},
-	"Character names": {
-        "Saint-14": "Сейнт-14",
-        "Cayde": "Кейд",
-        "Rhulk": "Рулк",
-        "Xivu Arath": "Зиву Арат",
-        "The Traveler": "Странник",
-		"Postmaster": "Почтмейстер",
-		"Xur": "Зур",
-	},
-	"Resources": {
-        "Ascendant Shards": "Высшие осколоки",
-        "Ascendant Alloy": "Высшие сплавы",
-		"Enhancement Prisms": "Улучшающие призмы",
-        "Masterwork": "Абсолют"
-    },
-	"Misc": {
-		"Player Removal": "Отключение игроков",
-        "Adept": "Адепт",
-        "Fireteam": "боевая группа",
-        "Hive Rune": "руна Улья",
-		"Veil Containment": "Защитная оболочка вуали",
-		"Veil": "Вуаль",
-	}
-}
-`;
+Translated dataset: ###
+DLC:
+Forsaken:  Отвергнутые
+Shadowkeep:  Обитель теней
+Beyond Light:  За гранью Света
+The Witch Queen:  Королева-ведьма
+Lightfall:  Конец Света
+The Final Shape:  Финальная Форма
+30th Anniversary Pack:  Пак 30-летия
+Season Pass:  Сезонный пропуск
+
+Activities:
+Crucible:  Горнило
+Trials of Osiris:  Испытания Осириса
+Strike:  Налет
+Nightfall:  Сумрачный налет
+Gambit:  Гамбит
+Dungeon:  Подземелье
+Shattered Throne:  Расколотый Трон
+Pit of Heresy:  Яма Ереси
+Prophecy:  Откровение
+Last Wish:  Последнее Желание
+Garden of Salvation:  Сад Спасения
+Deep Stone Crypt:  Склеп Глубокого камня
+Vault of Glass:  Хрустальный чертог
+Root of Nightmares:  Источник Кошмаров
+Vow of the Disciple:  Клятва Послушника
+King’s Fall:  Гибель Короля
+Duality:  Дуальность
+Grasp of Avarice:  Тиски алчности
+Spire of the Watcher:  Шпиль хранителя
+Ghosts of the Deep:  Призраки Глубин
+The Lightblade:  Клинок Света
+
+Events:
+Solstice:  Солнцестояние
+The Dawning:  Рассвет
+Iron Banner:  Железное знамя
+Festival of the Lost:  Фестиваль Усопших
+Guardian Games:  Игры Стражей
+
+Weapons:
+The Immortal:  Бесмертный
+Witherhoard:  Горстка пепла
+Arbalest:  Арбалет
+Gjallarhorn:  Гьяллархорн
+Osteo Striga:  Остео Стрига
+Xenophage:  Ксенофаг
+Izanagi’s Burden:  Бремя Идзанаги
+Outbreak Perfected:  Идеальная эпидемия
+Divinity:  Божественность
+Anarchy:  Анархия
+The Lament:  Плач
+
+Factions/Races:
+Vanguard:  Авангард
+Taken:  Одержимые
+Vex:  Вексы
+Shadow Legion:  Легион Теней
+Lucent Hive:  Сияющий улей
+
+Character Names:
+Saint-14:  Сейнт-14
+Cayde:  Кейд
+Rhulk:  Рулк
+Xivu Arath:  Зиву Арат
+The Traveler:  Странник
+Postmaster:  Почтмейстер
+Xur:  Зур
+
+Resources:
+Ascendant Shard:  Высший осколок
+Ascendant Alloy:  Высший сплав
+Enhancement Prism:  Улучшающая призма
+Masterwork:  Абсолют
+
+Misc:
+Player Removal:  Отключение игроков
+Adept:  Адепт
+Fireteam:  Боевая группа
+Hive Rune:  Руна Улья
+Veil Containment:  Защитная оболочка вуали
+Veil:  Вуаль
+Guardian Rank:  Ранг Стража
+Developer Insights:  Комментарии разработчиков
+Community Focus:  Сообщество в фокусе
+Strand:  Нить
+Hunter:  Охотник`;
     const output = await openai.createChatCompletion({
         model: "gpt-3.5-turbo",
         temperature: 0,
         top_p: 1,
         messages: [
             { role: "system", name: "prompt", content: prompt },
-            { role: "user", name: "translation", content: sourceText },
+            { role: "user", name: "translation", content: `Provided text: ###\n${sourceText}\n###` },
         ],
     });
     let outputText = output.data.choices[0].message?.content;
-    if (outputText?.startsWith("Text you need to translate")) {
-        outputText = outputText.slice(outputText.indexOf("\n") + 1);
+    if (!outputText)
+        return null;
+    if (outputText?.startsWith("Provided text")) {
+        outputText = outputText.slice(outputText.indexOf("\n") + 1).trim();
     }
-    if (outputText?.startsWith("Text you need to translate")) {
-        outputText = outputText.replace("Text you need to translate", "");
+    if (outputText?.startsWith("Provided text")) {
+        outputText = outputText.replace("Provided text", "").trim();
     }
     while (outputText && (outputText.startsWith("\n") || outputText.startsWith(":"))) {
         outputText = outputText.slice(1).trim();
+    }
+    if (outputText.startsWith("###")) {
+        outputText.slice(3).trim();
     }
     return outputText;
 }

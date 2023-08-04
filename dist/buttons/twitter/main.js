@@ -61,7 +61,12 @@ const ButtonCommand = new Button({
         const uniqueId = Symbol();
         const userAwaiter = activeAwaiters.get(interaction.user.id);
         if (userAwaiter) {
-            userAwaiter.interaction.deleteReply();
+            try {
+                userAwaiter.interaction.deleteReply();
+            }
+            catch (error) {
+                console.error("[Error code: 1983]", error.stack || error);
+            }
         }
         activeAwaiters.set(interaction.user.id, { uniqueId, interaction });
         try {
@@ -86,19 +91,27 @@ const ButtonCommand = new Button({
             }
             await handleVote(userInteraction, userVote);
             activeAwaiters.delete(interaction.user.id);
-            await interactionReply.edit({ components: [] }).catch((e) => {
-                console.error("[Error code: 1979]", e.code === RESTJSONErrorCodes.UnknownMessage
+            try {
+                await interactionReply.edit({ components: [] });
+            }
+            catch (e) {
+                console.error("[Error code: 1979]", e.code == RESTJSONErrorCodes.UnknownMessage
                     ? "Message was deleted before the bot could edit it"
-                    : `Received a unknown error code: ${e.code}`);
-            });
+                    : `Received a unknown error code: ${e.code}/${e.code == 10008}`);
+            }
         }
         catch (error) {
             console.error("[Error code: 1978]", error.code);
-            interaction.deleteReply().catch((e) => {
-                console.error("[Error code: 1979]", e.code === RESTJSONErrorCodes.InvalidWebhookToken
+            try {
+                interaction.deleteReply();
+            }
+            catch (e) {
+                console.error("[Error code: 1982]", e.code === RESTJSONErrorCodes.InvalidWebhookToken
                     ? "Invalid Webhook token. Most likely the message was hidden by the user"
-                    : `Received a unknown error code: ${e.code}`);
-            });
+                    : e.code == RESTJSONErrorCodes.UnknownMessage
+                        ? "Message was deleted before the bot could edit it"
+                        : `Received a unknown error code: ${e.code}`);
+            }
         }
     },
 });

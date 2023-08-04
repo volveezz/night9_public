@@ -35,7 +35,7 @@ async function fetchAndPostAlerts() {
                     if (latestAlert.StreamInfo?.ChannelName) {
                         embed.addFields([{ name: "Stream Channel", value: latestAlert.StreamInfo.ChannelName }]);
                     }
-                    let translatedDescription = undefined;
+                    let translatedDescription = null;
                     let components = [];
                     try {
                         translatedDescription = await translateDestinyText(latestAlert.AlertHtml);

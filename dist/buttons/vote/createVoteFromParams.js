@@ -53,13 +53,13 @@ async function createVoteFromParams({ interaction, question, description, answer
             case VoteButtons.Send:
                 return sendVote();
             case VoteButtons.Edit:
-                return handleAddingOptions();
+                return editVote();
             case VoteButtons.Delete:
                 return deleteVote();
             case VoteButtons.AllowMultipleAnswers:
                 return handleMultipleAnswersButton();
         }
-        async function handleAddingOptions() {
+        async function editVote() {
             const updatedModal = generateVoteEditModal({ answersInput: validatedAnswers, embed });
             await buttonInteraction.showModal(updatedModal);
             const modalReply = await createModalCollector(buttonInteraction, {
@@ -84,8 +84,11 @@ async function createVoteFromParams({ interaction, question, description, answer
             if (description) {
                 validatedDescription = description.trim();
             }
-            if (image) {
-                embed.setImage(image);
+            if (imageUrl && imageUrl.startsWith("http")) {
+                embed.setImage(imageUrl);
+            }
+            else if (imageUrl) {
+                imageUrl = null;
             }
             embed.setDescription(validatedDescription).setFields(...validatedAnswers.map((answer) => ({ name: answer, value: progressBar })), {
                 name: "Ответы [будет скрыто при публикации]",
@@ -145,7 +148,7 @@ async function createVoteFromParams({ interaction, question, description, answer
     });
     collector.on("end", (c, r) => {
         if (r === "time")
-            reply.edit({ components: [], content: "Время ожидания истекло" });
+            reply.edit({ components: [], content: "Время ожидания истекло. Вы можете скопировать текст из сообщения ниже" });
     });
 }
 export default createVoteFromParams;

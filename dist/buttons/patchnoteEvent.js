@@ -19,10 +19,10 @@ const ButtonCommand = new Button({
                 const messageOptions = { content, components };
                 if (!channelOfGods)
                     channelOfGods =
-                        client.getCachedTextChannel(process.env.GOD_CHANNEL_ID) ||
-                            (await client.getAsyncTextChannel(process.env.GOD_CHANNEL_ID));
+                        client.getCachedTextChannel(process.env.GOD_BOT_CHANNEL_ID) ||
+                            (await client.getAsyncTextChannel(process.env.GOD_BOT_CHANNEL_ID));
                 await channelOfGods.send(messageOptions);
-                await interaction.reply({ content: `Отправлено в <#${process.env.GOD_CHANNEL_ID}>`, ephemeral: true });
+                await interaction.reply({ content: `Отправлено в <#${process.env.GOD_BOT_CHANNEL_ID}>`, ephemeral: true });
                 await interaction.message.delete();
                 return;
             }
