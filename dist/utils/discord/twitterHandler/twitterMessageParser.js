@@ -121,113 +121,112 @@ export async function translateDestinyText(sourceText) {
     if (sourceText.length === 1) {
         return sourceText;
     }
-    const prompt = `Slightly translate following text into Russian, but you must keep all words or phrases that are specific to the game Destiny 2 in their original form.
+    const prompt = `Translate the text in the user role into Russian. If you find game-specific phrases, do not translate it, example: "Hand Cannon Ace of Spades" should be translated as: "револьвер Ace of Spades".
 
-Translated dataset: ###
-DLC:
-Forsaken:  Отвергнутые
-Shadowkeep:  Обитель теней
-Beyond Light:  За гранью Света
-The Witch Queen:  Королева-ведьма
-Lightfall:  Конец Света
-The Final Shape:  Финальная Форма
-30th Anniversary Pack:  Пак 30-летия
-Season Pass:  Сезонный пропуск
+More examples:
+Original 1: "Xûr's will is not their own."
+Translation 1: "Воля Зура не принадлежит ему самому."
+^ Xur is exists in the provided dataset.
 
-Activities:
-Crucible:  Горнило
-Trials of Osiris:  Испытания Осириса
-Strike:  Налет
-Nightfall:  Сумрачный налет
-Gambit:  Гамбит
-Dungeon:  Подземелье
-Shattered Throne:  Расколотый Трон
-Pit of Heresy:  Яма Ереси
-Prophecy:  Откровение
-Last Wish:  Последнее Желание
-Garden of Salvation:  Сад Спасения
-Deep Stone Crypt:  Склеп Глубокого камня
-Vault of Glass:  Хрустальный чертог
-Root of Nightmares:  Источник Кошмаров
-Vow of the Disciple:  Клятва Послушника
-King’s Fall:  Гибель Короля
-Duality:  Дуальность
-Grasp of Avarice:  Тиски алчности
-Spire of the Watcher:  Шпиль хранителя
-Ghosts of the Deep:  Призраки Глубин
-The Lightblade:  Клинок Света
-
-Events:
-Solstice:  Солнцестояние
-The Dawning:  Рассвет
-Iron Banner:  Железное знамя
-Festival of the Lost:  Фестиваль Усопших
-Guardian Games:  Игры Стражей
-
-Weapons:
-The Immortal:  Бесмертный
-Witherhoard:  Горстка пепла
-Arbalest:  Арбалет
-Gjallarhorn:  Гьяллархорн
-Osteo Striga:  Остео Стрига
-Xenophage:  Ксенофаг
-Izanagi’s Burden:  Бремя Идзанаги
-Outbreak Perfected:  Идеальная эпидемия
-Divinity:  Божественность
-Anarchy:  Анархия
-The Lament:  Плач
-
-Factions/Races:
-Vanguard:  Авангард
-Taken:  Одержимые
-Vex:  Вексы
-Shadow Legion:  Легион Теней
-Lucent Hive:  Сияющий улей
-
-Character Names:
-Saint-14:  Сейнт-14
-Cayde:  Кейд
-Rhulk:  Рулк
-Xivu Arath:  Зиву Арат
-The Traveler:  Странник
-Postmaster:  Почтмейстер
-Xur:  Зур
-
-Resources:
-Ascendant Shard:  Высший осколок
-Ascendant Alloy:  Высший сплав
-Enhancement Prism:  Улучшающая призма
-Masterwork:  Абсолют
-
-Misc:
-Player Removal:  Отключение игроков
-Adept:  Адепт
-Fireteam:  Боевая группа
-Hive Rune:  Руна Улья
-Veil Containment:  Защитная оболочка вуали
-Veil:  Вуаль
-Guardian Rank:  Ранг Стража
-Developer Insights:  Комментарии разработчиков
-Community Focus:  Сообщество в фокусе
-Strand:  Нить
-Hunter:  Охотник`;
+Original 2: "Visit Eva Levante in the Tower to begin."
+Translation 2: "Посетите Eva Levante в Башне, чтобы начать."
+^ Eva Levante is not present in the dataset.
+ 
+Dataset:
+{
+"Forsaken": "Отвергнутые",
+"Shadowkeep": "Обитель теней",
+"Beyond Light": "За гранью Света",
+"The Witch Queen": "Королева-ведьма",
+"Lightfall": "Конец Света",
+"The Final Shape": "Финальная Форма",
+"30th Anniversary Pack": "Пак 30-летия",
+"Season Pass": "Сезонный пропуск",
+"Crucible": "Горнило",
+"Trials of Osiris": "Испытания Осириса",
+"Strike": "Налет",
+"Nightfall": "Сумрачный налет",
+"Gambit": "Гамбит",
+"Dungeon": "Подземелье",
+"Shattered Throne": "Расколотый Трон",
+"Pit of Heresy": "Яма Ереси",
+"Prophecy": "Откровение",
+"Last Wish": "Последнее Желание",
+"Garden of Salvation": "Сад Спасения",
+"Deep Stone Crypt": "Склеп Глубокого камня",
+"Vault of Glass": "Хрустальный чертог",
+"Root of Nightmares": "Источник Кошмаров",
+"Vow of the Disciple": "Клятва Послушника",
+"King’s Fall": "Гибель Короля",
+"Duality": "Дуальность",
+"Grasp of Avarice": "Тиски алчности",
+"Spire of the Watcher": "Шпиль хранителя",
+"Ghosts of the Deep": "Призраки Глубин",
+"The Lightblade": "Клинок Света",
+"Solstice": "Солнцестояние",
+"The Dawning": "Рассвет",
+"Iron Banner": "Железное знамя",
+"Festival of the Lost": "Фестиваль Усопших",
+"Guardian Games": "Игры Стражей",
+"The Immortal": "Бесмертный",
+"Witherhoard": "Горстка пепла",
+"Arbalest": "Арбалет",
+"Gjallarhorn": "Гьяллархорн",
+"Osteo Striga": "Остео Стрига",
+"Xenophage": "Ксенофаг",
+"Izanagi’s Burden": "Бремя Идзанаги",
+"Outbreak Perfected": "Идеальная эпидемия",
+"Divinity": "Божественность",
+"Anarchy": "Анархия",
+"The Lament": "Плач",
+"Vanguard": "Авангард",
+"Taken": "Одержимые",
+"Vex": "Вексы",
+"Shadow Legion": "Легион Теней",
+"Lucent Hive": "Сияющий улей",
+"Saint-14": "Сейнт-14",
+"Cayde": "Кейд",
+"Rhulk": "Рулк",
+"Xivu Arath": "Зиву Арат",
+"The Traveler": "Странник",
+"Postmaster": "Почтмейстер",
+"Xur": "Зур",
+"Ascendant Shard": "Высший осколок",
+"Ascendant Alloy": "Высший сплав",
+"Enhancement Prism": "Улучшающая призма",
+"Masterwork": "Абсолют",
+"Player Removal": "Отключение игроков",
+"Adept": "Адепт",
+"Fireteam": "Боевая группа",
+"Hive Rune": "Руна Улья",
+"Veil Containment": "Защитная оболочка вуали",
+"Veil": "Вуаль",
+"Guardian Rank": "Ранг Стража",
+"Developer Insights": "Комментарии разработчиков",
+"Community Focus": "Сообщество в фокусе",
+"Strand": "Нить",
+"Hunter": "Охотник",
+"Backend Server Maintenance": "Фоновое техническое обслуживание",
+"Bounties": "Контракты",
+"Destination": "Пункт назначения"
+}`;
     const output = await openai.createChatCompletion({
         model: "gpt-3.5-turbo",
         temperature: 0,
         top_p: 1,
         messages: [
             { role: "system", name: "prompt", content: prompt },
-            { role: "user", name: "translation", content: `Provided text: ###\n${sourceText}\n###` },
+            { role: "user", name: "translation", content: `Translate the following text: ###\n${sourceText}\n###` },
         ],
     });
     let outputText = output.data.choices[0].message?.content;
     if (!outputText)
         return null;
-    if (outputText?.startsWith("Provided text")) {
+    if (outputText?.startsWith("Translate the following text")) {
         outputText = outputText.slice(outputText.indexOf("\n") + 1).trim();
     }
-    if (outputText?.startsWith("Provided text")) {
-        outputText = outputText.replace("Provided text", "").trim();
+    if (outputText?.startsWith("Translate the following text")) {
+        outputText = outputText.replace("Translate the following text", "").trim();
     }
     while (outputText && (outputText.startsWith("\n") || outputText.startsWith(":"))) {
         outputText = outputText.slice(1).trim();

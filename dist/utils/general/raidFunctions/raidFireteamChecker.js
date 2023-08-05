@@ -175,7 +175,10 @@ async function raidFireteamChecker(id) {
                 .setStyle(ButtonStyle.Danger);
             const privateRaidChannel = await client.getAsyncTextChannel(initialRaidEvent.channelId).catch((e) => {
                 if (e.code === 50001) {
-                    console.error("[Error code: 1739] Missing access to fetch channel");
+                    console.error("[Error code: 1739] Missing access to fetch channel", {
+                        id: initialRaidEvent.id,
+                        channelId: initialRaidEvent.channelId,
+                    });
                 }
             });
             if (!privateRaidChannel) {

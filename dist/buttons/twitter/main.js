@@ -101,7 +101,7 @@ const ButtonCommand = new Button({
             }
         }
         catch (error) {
-            console.error("[Error code: 1978]", error.code);
+            console.error("[Error code: 1978]", error.stack || error);
             try {
                 interaction.deleteReply();
             }

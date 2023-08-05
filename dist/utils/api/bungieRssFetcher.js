@@ -13,6 +13,9 @@ async function fetchNewsArticles() {
         const currentArticles = response?.NewsArticles;
         if (!response || !currentArticles) {
             console.error("[Error code: 1944] Invalid response from Bungie API");
+            if (response && !currentArticles) {
+                console.debug("[Error code: 1984]", response);
+            }
             return;
         }
         if (lastFetchedArticles === null) {
