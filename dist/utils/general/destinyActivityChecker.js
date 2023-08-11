@@ -14,7 +14,7 @@ const MEMBER = envs.MEMBER;
 const cachedKDData = new Map();
 async function processActivities(activity, completedActivities, mode, activityAvaliableTime, { isPreviousMatchWintraded, isWintrader, wintradedMatches, kills, deaths }) {
     const activityMode = activity.activityDetails.mode;
-    if (activity.values.completed.basic.value &&
+    if (activity.values.completed.basic.value === 1 &&
         (activityMode === 82 ||
             (activityMode === 46 &&
                 (await getGrandmasterHashes()).has(activity.activityDetails.referenceId)) ||
@@ -35,13 +35,11 @@ async function processActivities(activity, completedActivities, mode, activityAv
                 isPreviousMatchWintraded = true;
             }
         }
-        else {
-            if (isPreviousMatchWintraded === true) {
-                isPreviousMatchWintraded = false;
-                if (isWintrader === true) {
-                    wintradedMatches++;
-                    isWintrader = false;
-                }
+        else if (isPreviousMatchWintraded === true) {
+            isPreviousMatchWintraded = false;
+            if (isWintrader === true) {
+                wintradedMatches++;
+                isWintrader = false;
             }
         }
         kills += activity.values.kills.basic.value;

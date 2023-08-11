@@ -38,7 +38,6 @@ async function scheduleNextNotification() {
     while (tasks[0] && nextTask.notifyTime === tasks[0].notifyTime) {
         nextTask = tasks.shift();
         handleNotification(nextTask);
-        console.debug("Next task has the same time, adding from the loop");
     }
     async function handleNotification(task) {
         const sleepDuration = task.notifyTime - Date.now();
@@ -135,7 +134,6 @@ export async function loadNotifications() {
             notificationTimes.forEach((minutesBefore) => {
                 const notifyTime = (raid.time - minutesBefore * 60) * 1000;
                 if (notifyTime > Date.now()) {
-                    console.debug("Adding a new notification task for", discordId, notifyTime);
                     tasks.push({ notifyTime, discordId, raidId: raid.id, isReadinessSystemTime: minutesBefore === 60 ? true : false });
                 }
             });
