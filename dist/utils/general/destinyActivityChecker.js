@@ -75,10 +75,8 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
             if (getEndpointStatus("activity") !== 1) {
                 return;
             }
-            const serverResponse = await sendApiRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Character/${character}/Stats/Activities/?count=${count}&mode=${mode}&page=${page}`, accessToken, true);
-            console.debug(serverResponse);
-            const response = serverResponse?.Response;
-            if (!response || !response.activities) {
+            const response = await sendApiRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Character/${character}/Stats/Activities/?count=${count}&mode=${mode}&page=${page}`, accessToken);
+            if (!response) {
                 console.error(`[Error code: 1018] Response error for ${bungieId} during checking ${mode} mode`, response);
                 return;
             }
