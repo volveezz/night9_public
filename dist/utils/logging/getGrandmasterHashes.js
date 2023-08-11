@@ -4,12 +4,13 @@ async function getGrandmasterHashes() {
     if (grandmasterHashes.size > 0)
         return grandmasterHashes;
     const manifest = await GetManifest("DestinyActivityDefinition");
-    const grandmasterObject = Object.values(manifest).filter((activity) => {
-        return activity.modifiers.includes({
-            activityModifierHash: 791047754,
-        });
+    Object.keys(manifest).forEach((activityHash) => {
+        const key = Number(activityHash);
+        const activity = manifest[key];
+        if (activity.modifiers && activity.modifiers.some((modifier) => modifier.activityModifierHash === 791047754)) {
+            grandmasterHashes.add(activity.hash);
+        }
     });
-    grandmasterObject.forEach((activity) => grandmasterHashes.add(activity.hash));
     return grandmasterHashes;
 }
 export default getGrandmasterHashes;
