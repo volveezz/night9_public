@@ -15,18 +15,20 @@ async function removeUserAndSaveLeavedData({ discordMessage, discordMember }) {
                 transaction,
                 limit: 1,
             }),
-            LeavedUsersData.create({
-                discordId,
-                bungieId,
-                displayName,
-                platform,
-                accessToken,
-                refreshToken,
-                membershipId,
-                timezone,
-            }, {
-                transaction,
-            }),
+            accessToken && refreshToken
+                ? LeavedUsersData.create({
+                    discordId,
+                    bungieId,
+                    displayName,
+                    platform,
+                    accessToken,
+                    refreshToken,
+                    membershipId,
+                    timezone,
+                }, {
+                    transaction,
+                })
+                : Promise.resolve(),
         ]);
         await transaction.commit();
         addFieldsToEmbed(embed, {

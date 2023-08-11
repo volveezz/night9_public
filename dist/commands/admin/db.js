@@ -3,13 +3,12 @@ import { Op } from "sequelize";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { activityRoles, raidRoles } from "../../configs/roles.js";
-import { longOffline, userTimezones } from "../../core/userStatisticsManagement.js";
 import { Command } from "../../structures/command.js";
 import { GetManifest } from "../../utils/api/ManifestManager.js";
 import setMemberRoles from "../../utils/discord/setRoles.js";
 import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
 import { convertSeconds } from "../../utils/general/convertSeconds.js";
-import { completedRaidsData } from "../../utils/persistence/dataStore.js";
+import { completedRaidsData, longOffline, userTimezones } from "../../utils/persistence/dataStore.js";
 import { AuthData, AutoRoleData, UserActivityData, database } from "../../utils/persistence/sequelize.js";
 const SlashCommand = new Command({
     name: "db",

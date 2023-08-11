@@ -6,7 +6,7 @@ import { Event } from "../structures/event.js";
 import { RefreshManifest } from "../utils/api/ManifestManager.js";
 import { manageAdminDMChannel } from "../utils/discord/adminDmManager.js";
 import { handleDm } from "../utils/discord/dmHandler.js";
-import { lfgHandler } from "../utils/discord/lfgSystem/handleLFG.js";
+import { handleLfgMessage } from "../utils/discord/lfgSystem/handleLFG.js";
 import { generatePatchNotes } from "../utils/discord/patchnoteGenerator.js";
 import sendRegistrationLink from "../utils/discord/registration.js";
 import { cacheUserActivity } from "../utils/discord/userActivityHandler.js";
@@ -20,7 +20,7 @@ async function handleMessage(message) {
         return generatePatchNotes(message);
     }
     if (message.channelId === process.env.PVE_PARTY_CHANNEL_ID) {
-        return lfgHandler(message);
+        return handleLfgMessage(message);
     }
     if (message.channel.isDMBased()) {
         return handleDirectMessage(message);

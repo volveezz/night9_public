@@ -8,6 +8,7 @@ import webHandler from "./utils/api/webHandler.js";
 import calculateVoteResults from "./utils/discord/twitterHandler/twitterTranslationVotes.js";
 import { forceUpdateUserActivity } from "./utils/discord/userActivityHandler.js";
 import { getOAuthTokens, getOAuthUrl, getUserData, updateMetadata } from "./utils/general/linkedRoles.js";
+import { stopAllRaidReadinessCollectors } from "./utils/general/raidFunctions/raidReadiness/askUserRaidReadiness.js";
 import * as storage from "./utils/persistence/webStorage.js";
 export const client = new ExtendedClient();
 client.rest.on("rateLimited", (rateLimit) => {
@@ -20,7 +21,12 @@ process.on("SIGINT", handleExit);
 process.on("SIGTERM", handleExit);
 async function handleExit(signal) {
     console.log(`Received ${signal}. Saving data...`);
-    await Promise.all([forceUpdateUserActivity(), calculateVoteResults(), VoteSystem.getInstance().flushSaveToDatabase()]);
+    await Promise.all([
+        VoteSystem.getInstance().flushSaveToDatabase(),
+        forceUpdateUserActivity(),
+        calculateVoteResults(),
+        stopAllRaidReadinessCollectors(),
+    ]);
     console.log("Data saved. Exiting...");
     process.exit(0);
 }

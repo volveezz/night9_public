@@ -14,6 +14,9 @@ export async function generatePatchNotes(message) {
         patchnoteMessage = patchnoteMessage.slice(0, -5).trim();
         embed = new EmbedBuilder().setColor(colors.default).setDescription(patchnoteMessage || "nothing");
     }
+    if (!embed && patchnoteMessage.length > 2000) {
+        throw new Error("Патчноут слишком длинный");
+    }
     const components = [
         new ButtonBuilder().setCustomId("patchnoteEvent_sendToGods").setStyle(ButtonStyle.Primary).setLabel("Опубликовать в премиум-чате"),
         new ButtonBuilder().setCustomId("patchnoteEvent_sendToPublic").setStyle(ButtonStyle.Success).setLabel("Опубликовать для всех"),

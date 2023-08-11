@@ -6,8 +6,10 @@ import { client } from "../index.js";
 import { Button } from "../structures/button.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../utils/general/nameClearer.js";
-import { checkRaidTimeConflicts, getRaidDetails, sendUserRaidGuideNoti, updatePrivateRaidMessage, updateRaidMessage, } from "../utils/general/raidFunctions.js";
+import { checkRaidTimeConflicts, getRaidDetails, sendUserRaidGuideNoti, updateRaidMessage } from "../utils/general/raidFunctions.js";
+import updatePrivateRaidMessage from "../utils/general/raidFunctions/privateMessage/updatePrivateMessage.js";
 import { handleRaidCreatorLeaving } from "../utils/general/raidFunctions/raidCreatorHandler.js";
+import { raidEmitter } from "../utils/general/raidFunctions/raidEmitter.js";
 import { updateNotifications } from "../utils/general/raidFunctions/raidNotifications.js";
 import { completedRaidsData } from "../utils/persistence/dataStore.js";
 import { RaidEvent } from "../utils/persistence/sequelize.js";
@@ -105,8 +107,9 @@ async function joinedFromHotJoined(raidData) {
     }
     if (!updatedRaidData)
         return console.error("[Error code: 1637]", updatedRaidData);
-    await updatePrivateRaidMessage({ raidEvent: updatedRaidData });
+    await updatePrivateRaidMessage(updatedRaidData);
     updateNotifications(member.id, true);
+    raidEmitter.emit("join", updatedRaidData, member.id);
 }
 const ButtonCommand = new Button({
     name: "raidButton",
@@ -156,7 +159,8 @@ const ButtonCommand = new Button({
                 console.error("[Error code: 1742]", { updateQuery }, { searchQuery });
                 throw { errorType: "RAID_NOT_FOUND" };
             }
-            updatePrivateRaidMessage({ raidEvent });
+            raidEmitter.emit("leave", raidEvent, interaction.user.id);
+            updatePrivateRaidMessage(raidEvent);
             updateRaidMessage({ raidEvent, interaction });
             (await client.getAsyncTextChannel(raidEvent.channelId)).permissionOverwrites.delete(interaction.user.id);
             raidDataBeforeLeave.then((updatedRaidEvent) => {
@@ -260,6 +264,7 @@ const ButtonCommand = new Button({
                 sentUserSet.add(interaction.user.id);
                 raidGuideSentUsers.set(raidEvent.raid, sentUserSet);
             }
+            raidEmitter.emit("join", raidEvent, interaction.user.id);
         }
         else if (userAlreadyAlt) {
             await deferredUpdate;
@@ -270,7 +275,7 @@ const ButtonCommand = new Button({
             where: { messageId: interaction.message.id },
             returning: ["id", "channelId", "inChannelMessageId", "joined", "hotJoined", "alt", "messageId", "time", "raid", "difficulty"],
         });
-        updatePrivateRaidMessage({ raidEvent });
+        updatePrivateRaidMessage(raidEvent);
         updateRaidMessage({ raidEvent, interaction });
         actionMessageHandler({
             interaction,

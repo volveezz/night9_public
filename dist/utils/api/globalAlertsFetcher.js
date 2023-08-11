@@ -37,17 +37,22 @@ async function fetchAndPostAlerts() {
                     }
                     let translatedDescription = null;
                     let components = [];
-                    try {
-                        translatedDescription = await translateDestinyText(latestAlert.AlertHtml);
-                        if (translatedDescription && translatedDescription !== latestAlert.AlertHtml) {
-                            embed.setDescription(translatedDescription);
-                            components = [
-                                new ButtonBuilder().setCustomId("twitter_showOriginal").setLabel("Оригинал").setStyle(ButtonStyle.Secondary),
-                            ];
+                    if (latestAlert.AlertHtml && latestAlert.AlertHtml !== "") {
+                        try {
+                            translatedDescription = await translateDestinyText(latestAlert.AlertHtml);
+                            if (translatedDescription && translatedDescription !== latestAlert.AlertHtml) {
+                                embed.setDescription(translatedDescription);
+                                components = [
+                                    new ButtonBuilder()
+                                        .setCustomId("twitter_showOriginal")
+                                        .setLabel("Оригинал")
+                                        .setStyle(ButtonStyle.Secondary),
+                                ];
+                            }
                         }
-                    }
-                    catch (error) {
-                        console.error("[Error code: 1980] Error translating global alert:", error);
+                        catch (error) {
+                            console.error("[Error code: 1980] Error translating global alert:", error);
+                        }
                     }
                     await newsChannel.send({ embeds: [embed], components: addButtonsToMessage(components) }).then((message) => {
                         if (translatedDescription) {

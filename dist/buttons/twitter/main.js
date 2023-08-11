@@ -19,7 +19,7 @@ const activeAwaiters = new Map();
 const handleMessageInteraction = async (interaction) => {
     const messageData = originalTweetData.get(interaction.message.id);
     if (!messageData) {
-        await interaction.reply({ embeds: [TweetNotFoundEmbed], ephemeral: true });
+        interaction.reply({ embeds: [TweetNotFoundEmbed], ephemeral: true });
         await interaction.message.edit({ components: [] });
         return;
     }
@@ -30,11 +30,10 @@ const handleMessageInteraction = async (interaction) => {
     if (voteData) {
         components = TwitterVoteButtonsComponents;
     }
-    return await interaction.reply({ embeds: [embed], components: addButtonsToMessage(components), ephemeral: true });
+    return interaction.reply({ embeds: [embed], components: addButtonsToMessage(components), ephemeral: true });
 };
-const handleVote = async (interaction, userVote) => {
+const handleVote = async (interaction, userVote, messageId) => {
     const userId = interaction.user.id;
-    const messageId = interaction.message.id;
     let voteRecord = twitterOriginalVoters.get(messageId);
     if (!voteRecord) {
         voteRecord = { original: new Set(), translation: new Set() };
@@ -56,6 +55,7 @@ const ButtonCommand = new Button({
     run: async ({ interaction }) => {
         const interactionReply = await handleMessageInteraction(interaction);
         if (!interactionReply) {
+            console.error("[Error code: 1987]", interactionReply);
             return;
         }
         const uniqueId = Symbol();
@@ -69,13 +69,19 @@ const ButtonCommand = new Button({
             }
         }
         activeAwaiters.set(interaction.user.id, { uniqueId, interaction });
+        setTimeout(() => {
+            const awaiter = activeAwaiters.get(interaction.user.id);
+            if (awaiter?.uniqueId === uniqueId)
+                activeAwaiters.delete(interaction.user.id);
+        }, 1000 * 60 * 5);
         try {
-            const userInteraction = await interactionReply.awaitMessageComponent({
+            const userInteraction = await interaction.message.channel.awaitMessageComponent({
                 time: 1000 * 60 * 5,
-                filter: (i) => i.user.id === interaction.user.id,
+                filter: (btnI) => btnI.user.id === interaction.user.id,
                 componentType: ComponentType.Button,
             });
             if (activeAwaiters.get(interaction.user.id)?.uniqueId !== uniqueId || !userInteraction) {
+                console.info("Received an incorrect interaction component");
                 return;
             }
             let userVote;
@@ -89,10 +95,10 @@ const ButtonCommand = new Button({
                 default:
                     return;
             }
-            await handleVote(userInteraction, userVote);
+            await handleVote(userInteraction, userVote, interaction.message.id);
             activeAwaiters.delete(interaction.user.id);
             try {
-                await interactionReply.edit({ components: [] });
+                interactionReply.edit({ components: [] });
             }
             catch (e) {
                 console.error("[Error code: 1979]", e.code == RESTJSONErrorCodes.UnknownMessage
@@ -101,7 +107,7 @@ const ButtonCommand = new Button({
             }
         }
         catch (error) {
-            console.error("[Error code: 1978]", error.stack || error);
+            console.error("[Error code: 1978]", error.stack || error, error?.code);
             try {
                 interaction.deleteReply();
             }

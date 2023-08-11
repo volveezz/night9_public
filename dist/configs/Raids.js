@@ -1,5 +1,5 @@
 export const raidSelectionOptions = [
-    { name: "[PH] Будущий Рейд", nameLocalizations: { "en-US": "[PH] Upcoming Raid", "en-GB": "[PH] Upcoming Raid" }, value: "ce" },
+    { name: "Конец Кроты", nameLocalizations: { "en-US": "Crota's End", "en-GB": "Crota's End" }, value: "ce" },
     {
         name: "Источник кошмаров",
         nameLocalizations: { "en-US": "Root of Nightmares", "en-GB": "Root of Nightmares" },
@@ -34,6 +34,23 @@ export const raidSelectionOptions = [
         name: "Последнее желание",
         nameLocalizations: { "en-US": "Last Wish", "en-GB": "Last Wish" },
         value: "lw",
+    },
+];
+export const raidDifficultiesChoices = [
+    {
+        name: "Нормальный",
+        nameLocalizations: { "en-US": "Normal", "en-GB": "Normal" },
+        value: 1,
+    },
+    {
+        name: "Мастер",
+        nameLocalizations: { "en-US": "Master", "en-GB": "Master" },
+        value: 2,
+    },
+    {
+        name: "Режим испытания",
+        nameLocalizations: { "en-US": "Contest", "en-GB": "Contest" },
+        value: 3,
     },
 ];
 //# sourceMappingURL=Raids.js.map

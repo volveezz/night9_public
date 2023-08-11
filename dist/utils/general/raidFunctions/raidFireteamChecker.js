@@ -8,7 +8,8 @@ import { getEndpointStatus } from "../../api/statusCheckers/statusTracker.js";
 import { AuthData, RaidEvent } from "../../persistence/sequelize.js";
 import { addButtonsToMessage } from "../addButtonsToMessage.js";
 import nameCleaner from "../nameClearer.js";
-import { getRaidNameFromHash, updatePrivateRaidMessage, updateRaidMessage } from "../raidFunctions.js";
+import { getRaidNameFromHash, updateRaidMessage } from "../raidFunctions.js";
+import updatePrivateRaidMessage from "./privateMessage/updatePrivateMessage.js";
 const MINUTES_AFTER_RAID = 5;
 const fireteamCheckingSystem = new Set();
 const previouslyCheckedMembers = new Map();
@@ -39,6 +40,9 @@ async function raidFireteamChecker(id) {
                     console.debug(`Raid with ID: ${initialRaidEvent.id} has changed time, rescheduling update`);
                 }
                 return false;
+            }
+            else if (!raidEvent.time || !initialRaidEvent.time) {
+                console.trace("[Error code: 1989]", raidEvent.id, raidEvent.time, initialRaidEvent.id, initialRaidEvent.time);
             }
             const voiceChannels = (await client.getCachedGuild().channels.fetch()).filter((channel) => channel && channel.type === ChannelType.GuildVoice);
             if (!voiceChannels) {
@@ -92,7 +96,7 @@ async function raidFireteamChecker(id) {
                     await Promise.all([
                         sendChannelEmbed(),
                         updateRaidMessageEmbed(updatedRaidEvent),
-                        updatePrivateRaidMessageEmbed(updatedRaidEvent),
+                        updatePrivateRaidMessage(updatedRaidEvent),
                     ]);
                     return updatedData ? updatedData[0] : 0;
                 };
@@ -132,9 +136,6 @@ async function raidFireteamChecker(id) {
                 const updateRaidMessageEmbed = async (raidEvent) => {
                     const updatedMessageOptions = await updateRaidMessage({ raidEvent });
                     return updatedMessageOptions ?? null;
-                };
-                const updatePrivateRaidMessageEmbed = async (raidEvent) => {
-                    return await updatePrivateRaidMessage({ raidEvent });
                 };
                 const isUserAdded = await updateRaidDatabase(raidEvent);
                 if (isUserAdded === 1) {

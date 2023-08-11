@@ -1,66 +1,24 @@
-import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder, } from "discord.js";
+import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { Op, Sequelize } from "sequelize";
-import { raidSelectionOptions } from "../../configs/Raids.js";
+import { raidDifficultiesChoices, raidSelectionOptions } from "../../configs/Raids.js";
 import colors from "../../configs/colors.js";
 import icons, { activityIcons } from "../../configs/icons.js";
 import raidsGuide from "../../configs/raidGuideData.js";
-import { userTimezones } from "../../core/userStatisticsManagement.js";
 import { Command } from "../../structures/command.js";
+import checkIfUserRecentlyCreatedActivity from "../../utils/discord/checkRecentlyCreatedActivity.js";
 import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../../utils/general/nameClearer.js";
-import { generateRaidCompletionText, getRaidDatabaseInfo, getRaidDetails, raidChallenges, updatePrivateRaidMessage, updateRaidMessage, } from "../../utils/general/raidFunctions.js";
+import { generateRaidCompletionText, getRaidDatabaseInfo, getRaidDetails, raidChallenges, updateRaidMessage, } from "../../utils/general/raidFunctions.js";
 import convertTimeStringToNumber from "../../utils/general/raidFunctions/convertTimeStringToNumber.js";
+import getDefaultRaidComponents from "../../utils/general/raidFunctions/getDefaultRaidComponents.js";
+import sendRaidPrivateMessage from "../../utils/general/raidFunctions/privateMessage/sendPrivateMessage.js";
+import updatePrivateRaidMessage from "../../utils/general/raidFunctions/privateMessage/updatePrivateMessage.js";
+import { raidEmitter } from "../../utils/general/raidFunctions/raidEmitter.js";
 import raidFireteamChecker from "../../utils/general/raidFunctions/raidFireteamChecker.js";
 import { clearNotifications, sendNotificationInfo, updateNotifications, updateNotificationsForEntireRaid, } from "../../utils/general/raidFunctions/raidNotifications.js";
 import { descriptionFormatter, escapeString } from "../../utils/general/utilities.js";
-import { completedRaidsData, recentRaidCreators } from "../../utils/persistence/dataStore.js";
+import { completedRaidsData, userTimezones } from "../../utils/persistence/dataStore.js";
 import { RaidEvent, database } from "../../utils/persistence/sequelize.js";
-function getDefaultComponents() {
-    return [
-        new ButtonBuilder().setCustomId("raidInChnButton_notify").setLabel("Оповестить участников").setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId("raidInChnButton_transfer").setLabel("Переместить участников в рейд-войс").setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId("raidInChnButton_unlock").setLabel("Закрыть набор").setStyle(ButtonStyle.Danger),
-        new ButtonBuilder().setCustomId("raidInChnButton_delete").setLabel("Удалить набор").setStyle(ButtonStyle.Danger),
-        new ButtonBuilder().setCustomId("raidInChnButton_resend").setLabel("Обновить сообщение").setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId("raidNotifications_start").setLabel("Настроить свои оповещения").setStyle(ButtonStyle.Primary),
-    ];
-}
-function checkIfUserRecentlyCreatedRaid(discordId) {
-    const FIVE_MINUTES_MS = 1000 * 60 * 5;
-    const existingTimeout = recentRaidCreators.get(discordId);
-    if (existingTimeout) {
-        clearTimeout(existingTimeout);
-        setNewTimeout();
-        return true;
-    }
-    else {
-        setNewTimeout();
-        return false;
-    }
-    function setNewTimeout() {
-        const timeout = setTimeout(() => {
-            recentRaidCreators.delete(discordId);
-        }, FIVE_MINUTES_MS);
-        recentRaidCreators.set(discordId, timeout);
-    }
-}
-const raidDifficultiesChoices = [
-    {
-        name: "Нормальный",
-        nameLocalizations: { "en-US": "Normal", "en-GB": "Normal" },
-        value: 1,
-    },
-    {
-        name: "Мастер",
-        nameLocalizations: { "en-US": "Master", "en-GB": "Master" },
-        value: 2,
-    },
-    {
-        name: "Режим испытания",
-        nameLocalizations: { "en-US": "Contest", "en-GB": "Contest" },
-        value: 3,
-    },
-];
 const SlashCommand = new Command({
     name: "рейд",
     nameLocalizations: {
@@ -358,7 +316,7 @@ const SlashCommand = new Command({
             const isContestRaid = raid === "ce" && parsedTime >= 1693591200 && parsedTime <= 1693764000;
             const raidData = getRaidDetails(raid, isContestRaid ? 3 : difficulty);
             const requiredClears = args.getInteger("требуемых-закрытий") ?? 0;
-            const raidDb = await RaidEvent.create({
+            const raidEvent = await RaidEvent.create({
                 channelId: member.id,
                 inChannelMessageId: member.id,
                 messageId: member.id,
@@ -375,18 +333,17 @@ const SlashCommand = new Command({
                 new ButtonBuilder().setCustomId("raidButton_action_leave").setLabel("Выйти").setStyle(ButtonStyle.Danger),
                 new ButtonBuilder().setCustomId("raidButton_action_alt").setLabel("Возможно буду").setStyle(ButtonStyle.Secondary),
             ];
-            const isUserCreatedRaidRecently = checkIfUserRecentlyCreatedRaid(interaction.user.id);
+            const isUserCreatedRaidRecently = checkIfUserRecentlyCreatedActivity(interaction.user.id);
             const roleMention = !isUserCreatedRaidRecently
                 ? raidData.requiredRole !== null
                     ? `<@&${raidData.requiredRole}>`
                     : member.guild.roles.everyone
                 : "";
             const content = `Открыт набор в рейд: ${raidData.raidName} ${roleMention}`;
-            const raidChannel = guild.channels.cache.get(process.env.RAID_CHANNEL_ID) ||
-                (await guild.channels.fetch(process.env.RAID_CHANNEL_ID));
+            const raidChannel = client.getCachedTextChannel(process.env.RAID_CHANNEL_ID) || (await client.getAsyncTextChannel(process.env.RAID_CHANNEL_ID));
             const additionalPosition = guild.channels.cache.get(process.env.RAID_CATEGORY)?.children?.cache.size || 1;
             const privateRaidChannel = await member.guild.channels.create({
-                name: `🔥｜${raidDb.id}-${raidData.channelName}`,
+                name: `🔥｜${raidEvent.id}-${raidData.channelName}`,
                 parent: process.env.RAID_CATEGORY,
                 position: raidChannel.rawPosition + additionalPosition,
                 permissionOverwrites: [
@@ -401,18 +358,9 @@ const SlashCommand = new Command({
                 ],
                 reason: `${nameCleaner(member.displayName)} created new raid`,
             });
-            const premiumEmbed = new EmbedBuilder()
-                .setColor("#F3AD0C")
-                .addFields([{ name: "Испытания этой недели", value: "⁣　⁣*на одном из этапов*\n\n**Модификаторы рейда**\n　*если есть...*" }]);
-            const components = getDefaultComponents();
-            if (raidData.raid in raidsGuide) {
-                components.push(new ButtonBuilder().setCustomId(`raidGuide_${raidData.raid}`).setLabel("Инструкция по рейду").setStyle(ButtonStyle.Primary));
-            }
-            const inChnMsg = privateRaidChannel.send({
-                embeds: [premiumEmbed],
-                components: addButtonsToMessage(components),
-            });
-            const raidClearsText = isContestRaid && raidClears
+            raidEvent.channelId = privateRaidChannel.id;
+            const inChannelMessagePromise = sendRaidPrivateMessage({ channel: privateRaidChannel, raidEvent });
+            const raidClearsText = (isContestRaid && raidClears) || raidClears
                 ? isContestRaid
                     ? ` — ${raidClears["totalRaidClears"]} закрытий всех рейдов`
                     : ` — ${generateRaidCompletionText(raidClears[raidData.raid])}${raidClears[raidData.raid + "Master"] ? ` (+**${raidClears[raidData.raid + "Master"]}** на мастере)` : ""}`
@@ -428,7 +376,7 @@ const SlashCommand = new Command({
                 .addFields([
                 {
                     name: "Id",
-                    value: `[${raidDb.id}](https://discord.com/channels/${interaction.guildId}/${privateRaidChannel.id})`,
+                    value: `[${raidEvent.id}](https://discord.com/channels/${interaction.guildId}/${privateRaidChannel.id})`,
                     inline: true,
                 },
                 {
@@ -447,36 +395,27 @@ const SlashCommand = new Command({
                     value: descriptionFormatter(raidDescription),
                 });
             }
-            const msg = await raidChannel.send({
+            const message = await raidChannel.send({
                 content,
                 embeds: [embed],
                 components: addButtonsToMessage(mainComponents),
             });
-            const insertedRaidData = await RaidEvent.update({
-                channelId: privateRaidChannel.id,
-                inChannelMessageId: (await inChnMsg).id,
-                messageId: msg.id,
-            }, { where: { channelId: member.id }, returning: true });
+            const inChannelMessage = await inChannelMessagePromise;
+            raidEvent.inChannelMessageId = inChannelMessage.id;
+            raidEvent.messageId = message.id;
+            await raidEvent.save();
             deferredReply.then(async (_) => {
                 const embed = new EmbedBuilder()
                     .setColor(colors.success)
-                    .setAuthor({ name: "Рейд создан!", iconURL: icons.success })
+                    .setAuthor({ name: "Рейд создан", iconURL: icons.success })
                     .setDescription(`Канал рейда: <#${privateRaidChannel.id}>, [ссылка на сообщение набора](https://discord.com/channels/${guild.id}/${process
-                    .env.RAID_CHANNEL_ID}/${msg.id})`);
+                    .env.RAID_CHANNEL_ID}/${message.id})`);
                 interaction.editReply({ embeds: [embed] });
             });
-            await updatePrivateRaidMessage({ raidEvent: insertedRaidData[1][0] });
-            const privateChannelMessage = (await inChnMsg) || (await privateRaidChannel.messages.fetch((await inChnMsg).id));
             if (parsedTime <= Math.floor(Date.now() / 1000 + 24 * 60 * 60 * 2)) {
                 updateNotifications(interaction.user.id);
             }
-            raidFireteamChecker(raidDb.id);
-            try {
-                raidChallenges(raidData, privateChannelMessage, parsedTime, difficulty);
-            }
-            catch (error) {
-                console.error("[Error code: 1652]", error, error.stack);
-            }
+            raidFireteamChecker(raidEvent.id);
         }
         else if (subCommand === "изменить") {
             const raidId = args.getInteger("id-рейда");
@@ -505,10 +444,11 @@ const SlashCommand = new Command({
             const changes = [];
             const raidMessage = await client.getAsyncMessage(process.env.RAID_CHANNEL_ID, raidData.messageId);
             const raidEmbed = EmbedBuilder.from(raidMessage?.embeds[0]);
-            const t = await database.transaction();
+            const transaction = await database.transaction();
             const changesForChannel = [];
             const raidPrivateChannel = await client.getAsyncTextChannel(raidData.channelId);
-            const inChannelMessage = await client.getAsyncMessage(raidPrivateChannel, raidData.inChannelMessageId);
+            const inChannelMessage = (await client.getAsyncMessage(raidPrivateChannel, raidData.inChannelMessageId)) ||
+                (await sendRaidPrivateMessage({ raidEvent: raidData, channel: raidPrivateChannel }));
             if (!raidMessage) {
                 console.error("[Error code: 1750]", raidData);
                 throw { name: "Ошибка", description: "Не удалось найти сообщение рейда" };
@@ -521,10 +461,10 @@ const SlashCommand = new Command({
             if ((newRaid && newRaid in raidsGuide) || raidData.raid in raidsGuide) {
                 components.push(new ButtonBuilder()
                     .setCustomId(`raidGuide_${newRaid || raidData.raid}`)
-                    .setLabel("Инструкция по рейду")
+                    .setLabel("Руководство по рейду")
                     .setStyle(ButtonStyle.Primary));
             }
-            const updateDifficulty = async (newDifficulty, raidInfo, raidData, t) => {
+            const updateDifficulty = async (newDifficulty, raidInfo, raidData, transaction) => {
                 if (newDifficulty != null && raidInfo.maxDifficulty >= newDifficulty && newDifficulty != raidData.difficulty) {
                     const difficultyText = newDifficulty === 3
                         ? "Режим состязания"
@@ -536,10 +476,10 @@ const SlashCommand = new Command({
                         value: `Сложность рейда была изменена - \`${difficultyText}\``,
                     });
                     raidData.difficulty = newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : 1;
-                    await raidData.save({ transaction: t });
+                    await raidData.save({ transaction });
                 }
             };
-            async function updateRequiredClears(newReqClears, raidData, t) {
+            async function updateRequiredClears(newReqClears, raidData, transaction) {
                 if (newReqClears != null && raidData.requiredClears != newReqClears) {
                     const requiredClearsText = newReqClears === 0
                         ? "Требование для вступления `отключено`"
@@ -548,10 +488,10 @@ const SlashCommand = new Command({
                         name: "Требование для вступления",
                         value: requiredClearsText,
                     });
-                    await RaidEvent.update({ requiredClears: newReqClears }, { where: { id: raidData.id }, transaction: t });
+                    await RaidEvent.update({ requiredClears: newReqClears }, { where: { id: raidData.id }, transaction });
                 }
             }
-            async function updateRaid(newRaid, raidInfo, raidData, t, raidEmbed, newDifficulty) {
+            async function updateRaid(newRaid, raidInfo, raidData, transaction, raidEmbed) {
                 if (newRaid !== null) {
                     changesForChannel.push({
                         name: "Рейд набора был изменен",
@@ -559,7 +499,7 @@ const SlashCommand = new Command({
                     });
                     const [_, [updatedRaid]] = await RaidEvent.update({ raid: raidInfo.raid }, {
                         where: { id: raidData.id },
-                        transaction: t,
+                        transaction,
                         returning: [
                             "id",
                             "channelId",
@@ -578,7 +518,7 @@ const SlashCommand = new Command({
                     if (updatedRaidMessage) {
                         raidEmbed.setFields(updatedRaidMessage.embeds[0].data.fields);
                     }
-                    raidChallenges(raidInfo, inChannelMessage, raidData.time, newDifficulty != null && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : updatedRaid.difficulty);
+                    raidChallenges({ privateChannelMessage: inChannelMessage, raidData: raidInfo, raidEvent: raidData });
                     const channel = await client.getAsyncTextChannel(updatedRaid.channelId);
                     channel.edit({ name: `🔥｜${updatedRaid.id}${raidInfo.channelName}` }).catch((e) => console.error("[Error code: 1696]", e));
                 }
@@ -587,9 +527,9 @@ const SlashCommand = new Command({
                 (newDifficulty != null && newDifficulty != raidData.difficulty) ||
                 (newReqClears != null && newReqClears != raidData.requiredClears)) {
                 changes.push("Рейд был измнен");
-                await updateDifficulty(newDifficulty, raidInfo, raidData, t);
-                await updateRequiredClears(newReqClears, raidData, t);
-                await updateRaid(newRaid, raidInfo, raidData, t, raidEmbed, newDifficulty);
+                await updateDifficulty(newDifficulty, raidInfo, raidData, transaction);
+                await updateRequiredClears(newReqClears, raidData, transaction);
+                await updateRaid(newRaid, raidInfo, raidData, transaction, raidEmbed);
                 raidEmbed
                     .setColor(raidData.joined.length === 6 ? colors.invisible : raidInfo.raidColor)
                     .setTitle(newReqClears != null || raidData.requiredClears >= 1 || newDifficulty != null
@@ -663,8 +603,9 @@ const SlashCommand = new Command({
                     changes.push("Время старта было изменено");
                     const [_, updatedRaiddata] = await RaidEvent.update({
                         time: changedTime,
-                    }, { where: { id: raidData.id }, transaction: t, returning: ["id", "time"], limit: 1 });
+                    }, { where: { id: raidData.id }, transaction: transaction, returning: ["id", "time"], limit: 1 });
                     updateNotificationsForEntireRaid(updatedRaiddata[0].id);
+                    raidFireteamChecker(raidData.id);
                 }
                 else {
                     changes.push(`Время старта осталось без изменений\nУказаное время <t:${changedTime}>, <t:${changedTime}:R> находится в прошлом`);
@@ -691,7 +632,7 @@ const SlashCommand = new Command({
                     });
                     changes.push("Создатель рейда был изменен");
                     raidData.creator = newRaidLeader.id;
-                    await raidData.save({ transaction: t });
+                    await raidData.save({ transaction: transaction });
                 }
                 else {
                     changes.push("Создатель рейда не был изменен поскольку нельзя назначить бота создателем");
@@ -699,18 +640,18 @@ const SlashCommand = new Command({
             }
             if (changes.length > 0 && changesForChannel.length > 0) {
                 try {
-                    await t.commit();
+                    await transaction.commit();
                 }
                 catch (error) {
                     console.error("[Error code: 1207]", error);
-                    await t.rollback();
+                    await transaction.rollback();
                 }
                 const messageOptions = {
                     embeds: [raidEmbed],
                     ...(!newRaid ? { content: "" } : {}),
                 };
                 inChannelMessage.edit({
-                    components: addButtonsToMessage([...getDefaultComponents(), ...components]),
+                    components: addButtonsToMessage([...getDefaultRaidComponents(), ...components]),
                 });
                 raidMessage.edit(messageOptions);
                 const replyEmbed = new EmbedBuilder()
@@ -725,7 +666,7 @@ const SlashCommand = new Command({
                 isSilent && client.getCachedTextChannel(raidData.channelId).send({ embeds: [editedEmbedReplyInChn] });
             }
             else {
-                await t.rollback();
+                await transaction.rollback();
                 await deferredReply;
                 throw {
                     name: "Изменения не были внесены",
@@ -759,6 +700,7 @@ const SlashCommand = new Command({
                     console.error(`[Error code: 1070] Message during raid manual delete for raidId ${id} wasn't found`);
                     e.code !== 10008 ? console.error("[Error code: 1240]", e) : "";
                 }
+                raidEmitter.emit("deleted", raidData);
                 if (interaction.channelId === channelId) {
                     return await deferredReply;
                 }
@@ -847,8 +789,9 @@ const SlashCommand = new Command({
                 ViewChannel: true,
             });
             updateRaidMessage({ raidEvent, interaction });
-            updatePrivateRaidMessage({ raidEvent });
+            updatePrivateRaidMessage(raidEvent);
             updateNotifications(addedUser.id);
+            raidEmitter.emit("join", raidEvent, addedUser.id);
             await deferredReply;
             await interaction.editReply({ embeds: [embed] });
         }
@@ -882,8 +825,9 @@ const SlashCommand = new Command({
                     await deferredReply;
                     throw { errorType: "RAID_NOT_FOUND" };
                 }
-                updatePrivateRaidMessage({ raidEvent });
+                updatePrivateRaidMessage(raidEvent);
                 updateRaidMessage({ raidEvent, interaction });
+                raidEmitter.emit("leave", raidEvent, kickableUser.id);
                 const kickedUserDisplayName = nameCleaner((await client.getAsyncMember(kickableUser.id)).displayName);
                 const embed = new EmbedBuilder()
                     .setColor(colors.success)

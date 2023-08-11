@@ -1,11 +1,11 @@
 import { ApplicationCommandType, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType, EmbedBuilder, } from "discord.js";
 import colors from "../configs/colors.js";
-import { bungieNames } from "../core/userStatisticsManagement.js";
 import { Command } from "../structures/command.js";
 import { GetManifest } from "../utils/api/ManifestManager.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { getEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
+import { bungieNames } from "../utils/persistence/dataStore.js";
 import { AuthData, UserActivityData } from "../utils/persistence/sequelize.js";
 const SlashCommand = new Command({
     name: "информация",

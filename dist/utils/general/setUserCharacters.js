@@ -1,21 +1,28 @@
-import { userCharactersId } from "../../core/userStatisticsManagement.js";
 import { sendApiRequest } from "../api/sendApiRequest.js";
-export async function setUserCharacters(authData) {
-    const { discordId, platform, bungieId, accessToken } = authData;
+import { userCharactersId } from "../persistence/dataStore.js";
+async function fetchCharacterStatsAndCache({ discordId, platform, bungieId, accessToken }) {
     try {
-        const destinyCharacterRequest = await sendApiRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
-        if (!destinyCharacterRequest.characters)
-            return console.error(`[Error code: 1105] Error during caching characters of ${bungieId} for ${discordId}`);
-        const charIdArray = [];
-        destinyCharacterRequest.characters.sort((a, b) => (a.deleted === false ? 1 : 0));
-        destinyCharacterRequest.characters.forEach((ch) => charIdArray.push(ch.characterId));
-        userCharactersId.set(discordId, charIdArray);
+        const statsRequestUrl = `/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`;
+        const characterStats = await sendApiRequest(statsRequestUrl, accessToken);
+        if (!characterStats.characters) {
+            console.error(`[Error code: 1105] Error during caching characters of ${bungieId} for ${discordId}`);
+            return;
+        }
+        const validCharacters = characterStats.characters
+            .filter((ch) => !ch.deleted)
+            .sort((a, b) => (a.deleted === false ? 1 : 0))
+            .map((ch) => ch.characterId);
+        userCharactersId.set(discordId, validCharacters);
     }
-    catch (e) {
-        if (e.statusCode >= 400 || e.statusCode <= 599)
-            console.error(`[Error code: 1017] ${e.statusCode} error for ${bungieId}`);
-        else
-            console.error("[Error code: 1241]", e.error?.message || e.error?.name || e.message || e.name, bungieId, e.statusCode);
+    catch (error) {
+        const { bungieId, statusCode } = error;
+        if (statusCode >= 400 || statusCode <= 599) {
+            console.error(`[Error code: 1017] ${statusCode} error for ${bungieId}`);
+        }
+        else {
+            console.error("[Error code: 1241]", error.error?.message || error.error?.name || error.message || error.name, bungieId, statusCode);
+        }
     }
 }
+export default fetchCharacterStatsAndCache;
 //# sourceMappingURL=setUserCharacters.js.map

@@ -21,6 +21,7 @@ const hashToImageMap = {
 };
 const checkedPGCRIds = new Set();
 const ACTIVITY_LEAVE_TIME = 300;
+let activityChannel = null;
 const PLACEHOLDER_TEXTS = [": Нормальный", "Засекречено"];
 async function restoreFetchedPGCRs() {
     const completedActivitiesChannels = await client.getAsyncTextChannel(process.env.ACTIVITY_CHANNEL_ID);
@@ -42,23 +43,50 @@ function findCorrectedName(hash) {
             return "Засекречено";
     }
 }
+function getActivityImage(hash, manifestImage) {
+    if (hashToImageMap[hash]) {
+        return hashToImageMap[hash];
+    }
+    else {
+        return `https://bungie.net${manifestImage}`;
+    }
+}
+function getActivityTitle(hash, manifestTitle) {
+    if (!manifestTitle || PLACEHOLDER_TEXTS.includes(manifestTitle)) {
+        return findCorrectedName(hash);
+    }
+    return manifestTitle;
+}
+function getActivityCompletionText(mode, fromBeginning) {
+    return ((mode === 4
+        ? "Рейд был закрыт"
+        : mode === 82
+            ? "Подземелье было закрыто"
+            : mode === 46
+                ? "Сумрачный налет был закрыт"
+                : "Активность была закрыта") + (fromBeginning ? " с начала" : " с контрольной точки"));
+}
+function getActivityAuthorObject(mode, pgcrId) {
+    return {
+        name: mode === 4
+            ? "Raid Report"
+            : mode === 82
+                ? "Dungeon Report"
+                : mode === 46
+                    ? "Strike Report"
+                    : "Braytech PGCR",
+        url: mode === 4
+            ? `https://raid.report/pgcr/${pgcrId}`
+            : mode === 82
+                ? `https://dungeon.report/pgcr/${pgcrId}`
+                : mode === 46
+                    ? `https://strike.report/pgcr/${pgcrId}`
+                    : `https://bray.tech/report/${pgcrId}`,
+    };
+}
 async function logActivityCompletion(pgcrId) {
     if (checkedPGCRIds.has(pgcrId))
         return;
-    function getActivityImage(hash, manifestImage) {
-        if (hashToImageMap[hash]) {
-            return hashToImageMap[hash];
-        }
-        else {
-            return `https://bungie.net${manifestImage}`;
-        }
-    }
-    function getActivityTitle(hash, manifestTitle) {
-        if (!manifestTitle || PLACEHOLDER_TEXTS.includes(manifestTitle)) {
-            return findCorrectedName(hash);
-        }
-        return manifestTitle;
-    }
     const response = await sendApiRequest(`/Platform/Destiny2/Stats/PostGameCarnageReport/${pgcrId}/`).catch((e) => console.error("[Error code: 1072] activityReporter error", pgcrId, e, e.statusCode));
     if (!response || !response.activityDetails) {
         console.error("[Error code: 1009]", pgcrId, response);
@@ -74,27 +102,12 @@ async function logActivityCompletion(pgcrId) {
         .replace("h", "ч")
         .replace("m", "м")
         .replace("s", "с");
-    const footerText = (mode === 4
-        ? "Рейд был закрыт"
-        : mode === 82
-            ? "Подземелье было закрыто"
-            : "Активность была закрыта") + (response.activityWasStartedFromBeginning ? " с начала" : " с контрольной точки");
+    const footerText = getActivityCompletionText(mode, response.activityWasStartedFromBeginning ?? false);
     const thumbnailUrl = getActivityImage(referenceId, manifestData.pgcrImage);
     const embed = new EmbedBuilder()
         .setColor(colors.success)
         .setTimestamp(new Date(response.period))
-        .setAuthor({
-        name: mode === 4
-            ? "Raid Report"
-            : mode === 82
-                ? "Dungeon Report"
-                : "Braytech PGCR",
-        url: mode === 4
-            ? `https://raid.report/pgcr/${pgcrId}`
-            : mode === 82
-                ? `https://dungeon.report/pgcr/${pgcrId}`
-                : `https://bray.tech/report/${pgcrId}`,
-    })
+        .setAuthor(getActivityAuthorObject(mode, pgcrId))
         .setTitle(`${activityTitle} - ${activityReplacedTime}`)
         .setFooter({
         text: footerText,
@@ -158,6 +171,8 @@ async function logActivityCompletion(pgcrId) {
             return;
         if (mode === 2 &&
             !((clanMembersInActivity === 1 && membersMembershipIds.length === 1) || clanMembersInActivity > 1))
+            return;
+        if (mode === 46 && clanMembersInActivity !== membersMembershipIds.length)
             return;
         let completedUsersCount = 0;
         let uncompletedUsersCount = 0;
@@ -307,7 +322,9 @@ async function logActivityCompletion(pgcrId) {
                 console.error("[Error code: 1823]", error);
             }
         }
-        const msg = (await client.getAsyncTextChannel(process.env.ACTIVITY_CHANNEL_ID)).send({ embeds: [embed] });
+        if (!activityChannel)
+            activityChannel = await client.getAsyncTextChannel(process.env.ACTIVITY_CHANNEL_ID);
+        const activityMessage = activityChannel.send({ embeds: [embed] });
         const currentTime = Math.floor(Date.now() / 1000);
         databaseData.forEach(async (dbMemberData) => {
             if (mode === 82 && clanMembersInActivity > 1)
@@ -327,7 +344,7 @@ async function logActivityCompletion(pgcrId) {
                     },
                 }));
             if (pastCreatedRaid && pastCreatedRaid.time < currentTime) {
-                const resolvedMessage = await msg;
+                const resolvedMessage = await activityMessage;
                 const raidCompletionEmbed = new EmbedBuilder()
                     .setColor(colors.serious)
                     .setFooter({ text: `RId: ${pastCreatedRaid.id}` })

@@ -184,7 +184,7 @@ function errorMessages(errorType, ...rest) {
             return {
                 embeds: [
                     new EmbedBuilder().setColor(colors.error).setAuthor({
-                        name: "Ошибка. Инструкция по этому рейду не найдена",
+                        name: "Ошибка. Руководство по этому рейду не найдена",
                         iconURL: icons.error,
                     }),
                 ],

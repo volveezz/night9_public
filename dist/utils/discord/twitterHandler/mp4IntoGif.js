@@ -13,8 +13,8 @@ async function convertMp4ToGif(inputUrl) {
                 output_format: "gif",
                 input_format: "mp4",
                 video_codec: "gif",
-                fps: 20,
-                width: 460,
+                fps: 24,
+                width: 560,
             },
             "export-my-file": {
                 operation: "export/url",

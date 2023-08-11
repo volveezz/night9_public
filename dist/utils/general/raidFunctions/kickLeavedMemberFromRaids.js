@@ -4,7 +4,8 @@ import colors from "../../../configs/colors.js";
 import { client } from "../../../index.js";
 import { RaidEvent } from "../../persistence/sequelize.js";
 import nameCleaner from "../nameClearer.js";
-import { updatePrivateRaidMessage, updateRaidMessage } from "../raidFunctions.js";
+import { updateRaidMessage } from "../raidFunctions.js";
+import updatePrivateRaidMessage from "./privateMessage/updatePrivateMessage.js";
 import { transferRaidCreator } from "./raidCreatorHandler.js";
 export default async function kickLeavedUserFromRaids(member) {
     const userId = member.user.id;
@@ -36,7 +37,7 @@ export default async function kickLeavedUserFromRaids(member) {
                 console.error("[Error code: 1942]", error.stack);
             }
             try {
-                await updatePrivateRaidMessage({ raidEvent });
+                await updatePrivateRaidMessage(raidEvent);
             }
             catch (error) {
                 console.error("[Error code: 1943]", error.stack);

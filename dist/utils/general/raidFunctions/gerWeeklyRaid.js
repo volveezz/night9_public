@@ -1,6 +1,7 @@
 import { schedule } from "node-cron";
 import { RefreshManifest } from "../../api/ManifestManager.js";
 import { sendApiRequest } from "../../api/sendApiRequest.js";
+import { grandmasterHashes } from "../../persistence/dataStore.js";
 const raidChallengeObjHashes = [406803827, 897950155, 3211393925, 1283234589, 3838169295];
 let raidActivityHashes = { normal: null, master: null };
 const fetchWeeklyRaid = async (retryCount = 0) => {
@@ -11,6 +12,7 @@ const fetchWeeklyRaid = async (retryCount = 0) => {
             (milestone.activities.some((activity) => raidChallengeObjHashes.some((value) => activity.challengeObjectiveHashes.includes(value))) ||
                 milestone.activities.some((activity) => raidChallengeObjHashes.some((_) => activity.challengeObjectiveHashes.length === 1))));
         if (raidMilestone && raidMilestone.activities) {
+            console.debug("Weekly raid found. This week raid:", raidMilestone.activities[0]?.activityHash);
             raidActivityHashes.normal = raidMilestone.activities[0]?.activityHash || null;
             raidActivityHashes.master = raidMilestone.activities[1]?.activityHash || null;
         }
@@ -30,6 +32,7 @@ schedule("1 17 * * 2", () => {
     console.debug("Updating a new weekly raid");
     fetchWeeklyRaid();
     RefreshManifest();
+    grandmasterHashes.clear();
 }, {
     timezone: "GMT",
 });

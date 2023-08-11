@@ -1,7 +1,7 @@
-import { clanOnline } from "../../core/userStatisticsManagement.js";
 import { GetManifest } from "../api/ManifestManager.js";
 import { sendApiRequest } from "../api/sendApiRequest.js";
 import { getEndpointStatus } from "../api/statusCheckers/statusTracker.js";
+import { clanOnline } from "../persistence/dataStore.js";
 import { AuthData } from "../persistence/sequelize.js";
 import { getRaidDetails } from "./raidFunctions.js";
 import { getWeeklyRaidActivityHashes } from "./raidFunctions/gerWeeklyRaid.js";

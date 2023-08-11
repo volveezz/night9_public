@@ -11,3 +11,4 @@ public/**/*.max.*
 generateEnvDeclarations.js
 *.js.map
 nodemon.json
+exportedCode.js

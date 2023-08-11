@@ -15,6 +15,7 @@ class VoteSystem {
         return VoteSystem.instance;
     }
     flushSaveToDatabase() {
+        console.debug("Received a call. Beginning of database synchronization.");
         this.saveToDatabaseDebounced.flush();
     }
     async init() {

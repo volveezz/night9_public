@@ -6,6 +6,7 @@ const colors = {
     success: "#28A745",
     kicked: "#704214",
     invisible: "#2b2d31",
+    deepBlue: "#5662e8",
 };
 export default colors;
 //# sourceMappingURL=colors.js.map

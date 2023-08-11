@@ -160,32 +160,15 @@ const SlashCommand = new Command({
 });
 async function getPreset(presetName) {
     switch (presetName) {
-        case "clanjoin": {
-            const embed = new EmbedBuilder()
-                .setColor(colors.default)
-                .setTitle("Вступление в клан")
-                .setDescription("Приём в клан у нас полностью автоматизирован\nВыполните 3 простых условия ниже и Вы будете приняты в кратчайшие сроки\nПо любым вопросам пишите <@719557130188750920> или <@298353895258980362>")
-                .addFields([
-                {
-                    name: "<:eine:1087575481647374416> Зарегистрируйтесь у кланового бота",
-                    value: "Нажмите кнопку `Регистрация` ниже или введите `/init`",
-                },
-                {
-                    name: "<:zwei:1087575495912206357> Заполните форму на вступление в клан",
-                    value: "Сделать это можно нажав на кнопку `Форма на вступление`",
-                },
-                {
-                    name: "<:drei:1087575479617331253> Вступите в клан",
-                    value: `[Подайте заявку в клан](https://www.bungie.net/ru/ClanV2?groupid=${process.env
-                        .GROUP_ID}) или отправьте её себе сами нажав \`Приглашение в клан\``,
-                },
-            ]);
-            const components = [
-                new ButtonBuilder().setCustomId("initEvent_register").setLabel("Регистрация").setStyle(ButtonStyle.Success),
-                new ButtonBuilder().setCustomId("clanJoinEvent_modalBtn").setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId("webhandlerEvent_clan_request").setLabel("Приглашение в клан").setStyle(ButtonStyle.Secondary),
+        case "lfg": {
+            const components = [new ButtonBuilder().setCustomId("lfg_show").setLabel("Создать сбор").setStyle(ButtonStyle.Primary)];
+            const embeds = [
+                new EmbedBuilder()
+                    .setColor(colors.deepBlue)
+                    .setTitle("Создание сборов через меню")
+                    .setDescription("В дополнение к существующему методу (через час) вы можете создать сбор через меню\nОдно отличие - через меню надо устанавливать лимит комнаты, а не число искомых вами участников\n\nПример:\n- При сборе через чат вы указываете: `+2 грандмастер`\n- При сборе через меню вы указываете: в лимит участников: `3`, в название комнаты: `грандмастер`"),
             ];
-            return { embeds: [embed], components };
+            return { components, embeds };
         }
         case "godmsg1": {
             const components = [
@@ -213,33 +196,6 @@ async function getPreset(presetName) {
             const embed = new EmbedBuilder()
                 .setColor("#ff7624")
                 .setDescription("Hex-код для установки собственного цвета роли можно найти [на этом сайте](https://htmlcolorcodes.com/)");
-            return { embeds: [embed], components };
-        }
-        case "godmsg2": {
-            const components = [
-                new ButtonBuilder().setCustomId("godEvent_color_red").setEmoji("🟥").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId("godEvent_color_white").setEmoji("⬜").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId("godEvent_color_purple").setEmoji("🟪").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId("godEvent_color_brown").setEmoji("🟫").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId("godEvent_color_blue").setEmoji("🟦").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId("godEvent_color_orange").setEmoji("🟧").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId("godEvent_color_green").setEmoji("🟩").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId("godEvent_color_reset").setEmoji("❌").setStyle(ButtonStyle.Secondary),
-            ];
-            const embed = new EmbedBuilder().setColor("DarkGold").setTitle("Выберите любой из цветов ника");
-            return { embeds: [embed], components };
-        }
-        case "leavedclanmsg": {
-            const components = [
-                new ButtonBuilder().setCustomId("initEvent_register").setLabel("Регистрация").setStyle(ButtonStyle.Success),
-                new ButtonBuilder().setCustomId("webhandlerEvent_clan_request").setLabel("Отправить приглашение в клан").setStyle(ButtonStyle.Success),
-            ];
-            const embed = new EmbedBuilder()
-                .setColor(colors.default)
-                .setTitle("Возвращение в клан")
-                .setDescription(`Нажмите на кнопку ниже для получения приглашения в клан в игре или перейдите на [страницу клана](https://www.bungie.net/ru/ClanV2?groupid=${process
-                .env
-                .GROUP_ID}) и вступите там\n -  Приглашение можно принять на [Bungie.net](https://bungie.net/) или в игре\n - Доступно **только для зарегистрированных** пользователей`);
             return { embeds: [embed], components };
         }
     }

@@ -64,7 +64,7 @@ function createProgressBar(totalVotes, votesForOption) {
 }
 function convertAnswersInButtonLabels(answers) {
     const answersArray = Array.isArray(answers) ? answers : answers.split(" | ");
-    return answersArray.every((answer) => answer.length < 30)
+    return answersArray.every((answer) => answer.length <= 50)
         ? `\`${answersArray.join("`, `")}\``
         : answersArray.map((_, i) => `\`${i + 1} ответ\``).join(", ");
 }

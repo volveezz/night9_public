@@ -244,9 +244,9 @@ export class ExtendedClient extends Client {
         this.guild.channels.cache.forEach(async (channel) => {
             if (channel.type === ChannelType.GuildVoice && channel.id !== this.guild.afkChannelId) {
                 channel.members.forEach((member) => {
-                    if (!member.user.bot) {
-                        voiceChannelJoinTimestamps.set(member.id, Date.now());
-                    }
+                    if (member.user.bot)
+                        return;
+                    voiceChannelJoinTimestamps.set(member.id, Date.now());
                 });
             }
             if (channel.isTextBased()) {
@@ -255,16 +255,17 @@ export class ExtendedClient extends Client {
                         channel.messages.fetch({ limit: 100 }).then((channelMessages) => {
                             const twitterMessages = channelMessages.filter((m) => m.author.id === this.user.id && m.embeds?.[0]?.author?.url != null);
                             const alertMessages = channelMessages.filter((m) => m.author.id === this.user.id && m.embeds?.[0]?.title?.startsWith("D2-"));
-                            twitterMessages.forEach((message) => {
-                                processedRssLinks.add(message.embeds[0].author.url);
-                            });
-                            alertMessages.forEach((message) => {
-                                lastAlertKeys.add(message.embeds[0].title);
-                            });
+                            twitterMessages.forEach((message) => processedRssLinks.add(message.embeds[0].author.url));
+                            alertMessages.forEach((message) => lastAlertKeys.add(message.embeds[0].title));
                         });
                     }
                     else {
-                        await channel.messages.fetch({ limit: 15 });
+                        try {
+                            await channel.messages.fetch({ limit: 15 });
+                        }
+                        catch (error) {
+                            console.error(`[Error code: 1991] Looks like channel ${channel.name} was deleted during caching messages. Error: ${error.code}`);
+                        }
                     }
                 }, 10000 * Math.random());
             }

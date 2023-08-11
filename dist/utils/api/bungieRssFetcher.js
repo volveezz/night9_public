@@ -13,9 +13,6 @@ async function fetchNewsArticles() {
         const currentArticles = response?.NewsArticles;
         if (!response || !currentArticles) {
             console.error("[Error code: 1944] Invalid response from Bungie API");
-            if (response && !currentArticles) {
-                console.debug("[Error code: 1984]", response);
-            }
             return;
         }
         if (lastFetchedArticles === null) {
@@ -50,21 +47,25 @@ async function postArticlesToDiscord(articles) {
     for (const article of articles) {
         let translatedDescription = null;
         let components = [];
-        try {
-            translatedDescription = await translateDestinyText(article.Description);
-            if (translatedDescription && translatedDescription !== article.Description) {
-                components = [
-                    new ButtonBuilder().setCustomId("twitter_showOriginal").setLabel("Оригинал").setStyle(ButtonStyle.Secondary),
-                ];
+        if (article.Description && article.Description.trim() !== "") {
+            try {
+                translatedDescription = await translateDestinyText(article.Description);
+                if (translatedDescription && translatedDescription !== article.Description) {
+                    components = [
+                        new ButtonBuilder().setCustomId("twitter_showOriginal").setLabel("Оригинал").setStyle(ButtonStyle.Secondary),
+                    ];
+                }
             }
-        }
-        catch (error) {
-            console.error("[Error code: 1981]", error);
+            catch (error) {
+                console.error("[Error code: 1981]", error);
+            }
         }
         const embed = {
             title: article.Title,
             url: `https://www.bungie.net${article.Link}`,
-            description: translatedDescription || article.Description,
+            ...((translatedDescription && translatedDescription.length > 1) || (article.Description && article.Description.length > 1)
+                ? { description: translatedDescription || article.Description }
+                : {}),
             image: {
                 url: article.ImagePath,
             },

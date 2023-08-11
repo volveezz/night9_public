@@ -86,8 +86,14 @@ async function handleSpecificError(request, row, table) {
 async function handleAuthorizationRecordExpired(row, table) {
     if (table === 1) {
         recentlyExpiredAuthUsersBungieIds.add(row.bungieId);
-        const { discordId } = (await AuthData.findOne({ where: { bungieId: row.bungieId }, attributes: ["discordId"] }));
-        await AuthData.destroy({ where: { bungieId: row.bungieId }, limit: 1 }).then(async (_) => {
+        const authData = (await AuthData.findOne({
+            where: { bungieId: row.bungieId },
+            attributes: ["id", "discordId", "accessToken", "refreshToken"],
+        }));
+        const { discordId } = authData;
+        authData.accessToken = null;
+        authData.refreshToken = null;
+        await authData.save().then(async (_) => {
             console.log(`The user (${row.bungieId}) was deleted from the main table because his authorization token expired`);
             const embed = new EmbedBuilder()
                 .setColor(colors.warning)

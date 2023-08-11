@@ -118,21 +118,12 @@ async function convertVideoToGif(videoUrl, message, embed) {
     processTwitterGifFile(gifUrl, message, embed);
 }
 export async function translateDestinyText(sourceText) {
-    if (sourceText.length === 1) {
+    if (!sourceText || sourceText.length <= 1) {
         return sourceText;
     }
-    const prompt = `Translate the text in the user role into Russian. If you find game-specific phrases, do not translate it, example: "Hand Cannon Ace of Spades" should be translated as: "револьвер Ace of Spades".
+    const prompt = `Translate the following text into Russian, while adhering to the context of the game "Destiny." Any game-specific terms, items, character names, locations, or other specialized vocabulary should remain in their original English form or use known translations provided in examples below. Your answer should be the translation of the text, do not answer with explanations or additional notes.
 
-More examples:
-Original 1: "Xûr's will is not their own."
-Translation 1: "Воля Зура не принадлежит ему самому."
-^ Xur is exists in the provided dataset.
-
-Original 2: "Visit Eva Levante in the Tower to begin."
-Translation 2: "Посетите Eva Levante в Башне, чтобы начать."
-^ Eva Levante is not present in the dataset.
- 
-Dataset:
+Translated dataset:
 {
 "Forsaken": "Отвергнутые",
 "Shadowkeep": "Обитель теней",
@@ -206,9 +197,14 @@ Dataset:
 "Community Focus": "Сообщество в фокусе",
 "Strand": "Нить",
 "Hunter": "Охотник",
-"Backend Server Maintenance": "Фоновое техническое обслуживание",
+"Warlock": "Варлок",
+"Titan": "Титан",
+"European Dead Zone": "Европейская мертвая зона",
+"Savathun": "Саватун",
+"UPCOMING DESTINY BACKGROUND MAINTENANCE": "Предстоящее фоновое техническое обслуживание Destiny",
 "Bounties": "Контракты",
-"Destination": "Пункт назначения"
+"Destination": "Пункт назначения",
+"TIMELINE": "Время"
 }`;
     const output = await openai.createChatCompletion({
         model: "gpt-3.5-turbo",
@@ -222,18 +218,9 @@ Dataset:
     let outputText = output.data.choices[0].message?.content;
     if (!outputText)
         return null;
-    if (outputText?.startsWith("Translate the following text")) {
-        outputText = outputText.slice(outputText.indexOf("\n") + 1).trim();
-    }
-    if (outputText?.startsWith("Translate the following text")) {
-        outputText = outputText.replace("Translate the following text", "").trim();
-    }
-    while (outputText && (outputText.startsWith("\n") || outputText.startsWith(":"))) {
-        outputText = outputText.slice(1).trim();
-    }
-    if (outputText.startsWith("###")) {
-        outputText.slice(3).trim();
-    }
+    outputText = outputText.replace(/^Translate the following text[:\n]*/, "");
+    outputText = outputText.replace(/^###/, "");
+    outputText = outputText.trim();
     return outputText;
 }
 function replaceTimeWithEpoch(text) {

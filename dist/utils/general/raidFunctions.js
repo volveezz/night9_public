@@ -13,12 +13,13 @@ import { completedRaidsData } from "../persistence/dataStore.js";
 import { RaidEvent } from "../persistence/sequelize.js";
 import { addButtonsToMessage } from "./addButtonsToMessage.js";
 import nameCleaner from "./nameClearer.js";
+import { raidEmitter } from "./raidFunctions/raidEmitter.js";
 import { clearNotifications } from "./raidFunctions/raidNotifications.js";
 const blockedModifierHashesArray = [
     1123720291, 1783825372, 782039530, 2006149364, 197794292, 3307318061, 438106166, 2288210988, 3282103678, 3119632620,
 ];
 const raidsWithoutData = new Set();
-function getDefaultRaidButtons() {
+function getDefaultRaidActionsComponents() {
     return [
         new ButtonBuilder().setCustomId("raidButton_action_join").setLabel("Записаться").setStyle(ButtonStyle.Success),
         new ButtonBuilder().setCustomId("raidButton_action_leave").setLabel("Выйти").setStyle(ButtonStyle.Danger),
@@ -36,16 +37,17 @@ export function generateRaidCompletionText(clears = 0) {
     }
     return baseText + ending;
 }
+const MASTER_DIFFICULTY_COLOR = "#FF063A";
 export function getRaidDetails(raid, difficulty = 1) {
     switch (raid) {
         case "ce": {
             return {
                 raid,
-                raidName: difficulty != 1 ? "[PH] Будущий рейд: Режим состязания" : "[PH] Будущий рейд",
+                raidName: difficulty != 1 ? "Конец Кроты: Режим состязания" : "Конец Кроты",
                 maxDifficulty: 3,
                 raidBanner: "https://cdn.discordapp.com/attachments/679191036849029167/1134306618213937263/ce.jpg",
-                raidColor: (difficulty >= 2 ? "#FF063A" : "#5da75c"),
-                channelName: "-будущий-рейд",
+                raidColor: (difficulty >= 2 ? MASTER_DIFFICULTY_COLOR : "#5da75c"),
+                channelName: "-конец-кроты",
                 requiredRole: null,
                 milestoneHash: 999999999,
             };
@@ -56,7 +58,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 raidName: difficulty === 2 ? "Источник кошмаров: Мастер" : "Источник кошмаров",
                 maxDifficulty: 2,
                 raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/raid_root_of_nightmares.jpg",
-                raidColor: (difficulty === 2 ? "#FF063A" : "#ffa8ae"),
+                raidColor: (difficulty === 2 ? MASTER_DIFFICULTY_COLOR : "#ffa8ae"),
                 channelName: "-источник-кошмаров",
                 requiredRole: dlcRoles.lf,
                 milestoneHash: 3699252268,
@@ -67,7 +69,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 raidName: difficulty === 2 ? "Гибель короля: Мастер" : "Гибель короля",
                 maxDifficulty: 2,
                 raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/raid_kings_fall.jpg",
-                raidColor: (difficulty === 2 ? "#FF063A" : "#a02200"),
+                raidColor: (difficulty === 2 ? MASTER_DIFFICULTY_COLOR : "#a02200"),
                 channelName: "-гибель-короля",
                 requiredRole: null,
                 milestoneHash: 292102995,
@@ -78,7 +80,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 raidName: difficulty === 2 ? "Клятва послушника: Мастер" : "Клятва послушника",
                 maxDifficulty: 2,
                 raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/raid_nemesis.jpg",
-                raidColor: (difficulty === 2 ? "#FF063A" : "#52E787"),
+                raidColor: (difficulty === 2 ? MASTER_DIFFICULTY_COLOR : "#52E787"),
                 channelName: "-клятва-послушника",
                 requiredRole: dlcRoles.twq,
                 milestoneHash: 2136320298,
@@ -89,7 +91,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 raidName: difficulty === 2 ? "Хрустальный чертог: Мастер" : "Хрустальный чертог",
                 maxDifficulty: 2,
                 raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/vault_of_glass.jpg",
-                raidColor: (difficulty === 2 ? "#FF063A" : "#52E787"),
+                raidColor: (difficulty === 2 ? MASTER_DIFFICULTY_COLOR : "#52E787"),
                 channelName: "-хрустальный-чертог",
                 requiredRole: null,
                 milestoneHash: 1888320892,
@@ -128,16 +130,6 @@ export function getRaidDetails(raid, difficulty = 1) {
                 milestoneHash: 3181387331,
             };
     }
-    return {
-        raid: "kf",
-        raidName: "",
-        maxDifficulty: 0,
-        raidBanner: "",
-        raidColor: "#000000",
-        channelName: "",
-        requiredRole: null,
-        milestoneHash: 0,
-    };
 }
 export async function getRaidDatabaseInfo(raidId, interaction) {
     if (raidId === null) {
@@ -155,10 +147,11 @@ export async function getRaidDatabaseInfo(raidId, interaction) {
         }
         else {
             if (raidData[0].creator !== interaction.user.id && !interaction.memberPermissions?.has("Administrator")) {
+                const displayName = (client.getCachedMembers().get(raidData[0].creator)?.displayName ||
+                    client.users.cache.get(raidData[0].creator)?.username);
                 throw {
                     name: "Недостаточно прав",
-                    description: `Управление рейдом ${raidId} доступно лишь ${nameCleaner((interaction.guild.members.cache.get(raidData[0].creator)?.displayName ||
-                        client.users.cache.get(raidData[0].creator)?.username))}`,
+                    description: `Управление рейдом ${raidId} доступно лишь ${nameCleaner(displayName)}`,
                 };
             }
             else {
@@ -171,33 +164,33 @@ export async function getRaidDatabaseInfo(raidId, interaction) {
         if (raidData === null || !raidData?.creator) {
             throw { errorType: "RAID_NOT_FOUND" };
         }
+        else if (raidData.creator !== interaction.user.id && !interaction.memberPermissions?.has("Administrator")) {
+            throw { errorType: "RAID_MISSING_PERMISSIONS" };
+        }
         else {
-            if (raidData.creator !== interaction.user.id && !interaction.memberPermissions?.has("Administrator")) {
-                throw { errorType: "RAID_MISSING_PERMISSIONS" };
-            }
-            else {
-                return raidData;
-            }
+            return raidData;
         }
     }
 }
 export async function updateRaidMessage(options) {
     const { raidEvent, interaction, returnComponents } = options;
     const { id, messageId, joined, raid: raidName, alt, hotJoined, difficulty: raidDifficulty } = raidEvent;
-    const raidChannel = await client.getAsyncTextChannel(process.env.RAID_CHANNEL_ID);
-    const raidMessage = await client.getAsyncMessage(raidChannel, messageId);
+    const raidChannel = client.getCachedTextChannel(process.env.RAID_CHANNEL_ID);
+    const raidMessage = interaction instanceof ButtonInteraction ? interaction.message : await client.getAsyncMessage(raidChannel, messageId);
     if (!raidMessage || !raidMessage.embeds || !raidMessage.embeds[0]) {
         console.error("[Error code: 1803]", raidMessage);
         return;
     }
     const embed = EmbedBuilder.from(raidMessage.embeds[0]);
     const cleanMemberName = async (id) => nameCleaner((await client.getAsyncMember(id))?.displayName || "неизвестный пользователь", true);
-    const joinedUsersText = await generateJoinedAdvancedRoster(joined);
-    const hotJoinedUsersText = await generateUsersRoster(hotJoined, cleanMemberName);
-    const altUsersText = await generateUsersRoster(alt, cleanMemberName);
+    const [joinedUsersText, hotJoinedUsersText, altUsersText] = await Promise.all([
+        generateJoinedAdvancedRoster(joined, raidName, cleanMemberName, id, raidEvent),
+        generateUsersRoster(hotJoined, cleanMemberName),
+        generateUsersRoster(alt, cleanMemberName),
+    ]);
     let components = updateComponents(embed, raidMessage, joined, raidName, raidDifficulty, interaction);
     if (components.length === 0) {
-        components = getDefaultRaidButtons();
+        components = getDefaultRaidActionsComponents();
     }
     updateEmbedFields(embed, joined, hotJoined, alt, joinedUsersText, hotJoinedUsersText, altUsersText);
     if (returnComponents) {
@@ -210,33 +203,33 @@ export async function updateRaidMessage(options) {
     else {
         return await raidMessage.edit(messageOptions);
     }
-    async function generateJoinedAdvancedRoster(users) {
-        if (!users || users.length < 1)
-            return "Никого";
-        const joinedUsersText = await Promise.all(users.map(async (userId, index) => {
-            const userName = await cleanMemberName(userId);
-            const raidClears = completedRaidsData.get(userId);
-            if (raidClears) {
-                if (raidName === "ce") {
-                    return `⁣　${index + 1}. **${userName}** — ${raidClears["totalRaidClears"]} закрытий всех рейдов`;
-                }
-                else {
-                    const clearsText = generateRaidCompletionText(raidClears[raidName]);
-                    const masterClearsText = raidClears[raidName + "Master"] ? ` (+**${raidClears[raidName + "Master"]}** на мастере)` : "";
-                    return `⁣　${index + 1}. **${userName}** — ${clearsText}${masterClearsText}`;
-                }
+}
+async function generateJoinedAdvancedRoster(users, raidName, cleanMemberName, id, raidEvent) {
+    if (!users || users.length < 1)
+        return "Никого";
+    const joinedUsersText = await Promise.all(users.map(async (userId, index) => {
+        const userName = await cleanMemberName(userId);
+        const raidClears = completedRaidsData.get(userId);
+        if (raidClears) {
+            if (raidName === "ce") {
+                return `⁣　${index + 1}. **${userName}** — ${raidClears["totalRaidClears"]} закрытий всех рейдов`;
             }
-            else if (!raidsWithoutData.has(id)) {
-                raidsWithoutData.add(id);
-                setTimeout(async () => {
-                    await updateRaidMessage({ raidEvent });
-                    raidsWithoutData.delete(id);
-                }, 1000 * 60 * 5);
+            else {
+                const clearsText = generateRaidCompletionText(raidClears[raidName]);
+                const masterClearsText = raidClears[raidName + "Master"] ? ` (+**${raidClears[raidName + "Master"]}** на мастере)` : "";
+                return `⁣　${index + 1}. **${userName}** — ${clearsText}${masterClearsText}`;
             }
-            return `⁣　${index + 1}. **${userName}**`;
-        }));
-        return joinedUsersText.join("\n");
-    }
+        }
+        else if (!raidsWithoutData.has(id)) {
+            raidsWithoutData.add(id);
+            setTimeout(async () => {
+                await updateRaidMessage({ raidEvent });
+                raidsWithoutData.delete(id);
+            }, 1000 * 60 * 5);
+        }
+        return `⁣　${index + 1}. **${userName}**`;
+    }));
+    return joinedUsersText.join("\n");
 }
 async function generateUsersRoster(users, cleanMemberName) {
     if (!users || users.length < 1)
@@ -266,7 +259,7 @@ function updateComponents(embed, raidMessage, joined, raidName, raidDifficulty, 
         });
     }
     else if (components.length === 0 && !interaction) {
-        components = getDefaultRaidButtons();
+        components = getDefaultRaidActionsComponents();
     }
     return components;
 }
@@ -313,12 +306,13 @@ function updateField(embed, fieldName, users, usersText, findFieldIndex) {
         embed?.spliceFields(fieldIndex, fieldIndex !== -1 ? 1 : 0);
     }
 }
-export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) {
+export async function raidChallenges({ raidData, raidEvent, privateChannelMessage }) {
+    const { difficulty, time: startTime } = raidEvent;
     if (difficulty === 3 || (raidData.raid === "ce" && startTime >= 1693591200 && startTime <= 1693764000)) {
-        const embed = EmbedBuilder.from(inChnMsg.embeds[0]);
+        const embed = EmbedBuilder.from(privateChannelMessage.embeds[0]);
         embed.data.fields[0].name = "**Модификатор рейда**";
         embed.data.fields[0].value = "⁣　⁣**Режим состязания**: задание фиксированной сложности. Испытайте свои силы";
-        await inChnMsg.edit({ embeds: [embed] });
+        await privateChannelMessage.edit({ embeds: [embed] });
         return;
     }
     if (difficulty > 2 || getEndpointStatus("account") !== 1)
@@ -332,12 +326,12 @@ export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) 
     const raidChallengesArray = [];
     const raidModifiersArray = [];
     const raidDataChallanges = destinyRaidsChallenges[raidData.raid];
-    const embed = EmbedBuilder.from(inChnMsg.embeds[0]);
+    const embed = EmbedBuilder.from(privateChannelMessage.embeds[0]);
     if (!raidMilestone ||
         raidMilestone.activities[raidMilestone?.activities.length > 1 ? (difficulty === 1 ? 0 : 1) : 0]?.modifierHashes === undefined) {
         embed.data.fields[0].name = "**Испытания рейда**";
         embed.data.fields[0].value = "⁣　⁣*отсутствуют*";
-        await inChnMsg.edit({ embeds: [embed] });
+        await privateChannelMessage.edit({ embeds: [embed] });
         return;
     }
     raidMilestone.activities[raidMilestone?.activities.length > 1 ? (difficulty === 1 ? 0 : 1) : 0].modifierHashes.forEach((modifier) => {
@@ -424,83 +418,7 @@ export async function raidChallenges(raidData, inChnMsg, startTime, difficulty) 
         : ""}${raidModifiersArray.join("\n")}${raidChallengesArray.length === 0 && raidModifiersArray.length === 0
         ? "⁣　⁣Продается __утепленный__ гараж в восточном ГК. ***Дешево***. За подробностями в личку <@298353895258980362>, торопитесь!"
         : ""}`;
-    return inChnMsg.edit({ embeds: [embed] });
-}
-export async function updatePrivateRaidMessage({ raidEvent, retry }) {
-    if (!raidEvent) {
-        console.error("[Error code: 1051] raidDataInChnMsg, no raidData info");
-        return null;
-    }
-    if (retry) {
-        raidEvent = await RaidEvent.findByPk(raidEvent.id);
-        if (!raidEvent)
-            return null;
-    }
-    const inChnMsgPromise = (await client.getAsyncTextChannel(raidEvent.channelId)).messages.fetch(raidEvent.inChannelMessageId);
-    const raidUserDataManager = async (discordId) => {
-        const raidUserData = completedRaidsData.get(discordId);
-        const member = await client.getAsyncMember(discordId);
-        if (!raidUserData) {
-            if (!retry && member?.roles.cache.has(process.env.VERIFIED)) {
-                setTimeout(async () => {
-                    if (raidEvent == null)
-                        return;
-                    await updatePrivateRaidMessage({ raidEvent, retry: true });
-                }, 1000 * 60 * 5);
-            }
-            if (member?.roles.cache.has(process.env.VERIFIED)) {
-                setTimeout(async () => {
-                    const updatedRaidEvent = await RaidEvent.findByPk(raidEvent.id);
-                    if (!updatedRaidEvent)
-                        return;
-                    await updateRaidMessage({ raidEvent: updatedRaidEvent });
-                }, 1000 * 60 * 3);
-                return `⁣　<@${discordId}> не закеширован`;
-            }
-            else if (!member) {
-                return `⁣　<@${discordId}> не найден на сервере`;
-            }
-            else {
-                return `⁣　<@${discordId}> не зарегистрирован`;
-            }
-        }
-        const raidClears = [];
-        if (raidUserData.ron > 0)
-            raidClears.push(`${raidUserData.ron}${raidUserData.ronMaster > 0 ? `(${raidUserData.ronMaster})` : ""} ИК`);
-        if (raidUserData.kf > 0)
-            raidClears.push(`${raidUserData.kf}${raidUserData.kfMaster > 0 ? `(${raidUserData.kfMaster})` : ""} ГК`);
-        if (raidUserData.votd > 0)
-            raidClears.push(`${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП`);
-        if (raidUserData.vog > 0)
-            raidClears.push(`${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ`);
-        if (raidUserData.dsc > 0)
-            raidClears.push(`${raidUserData.dsc} СГК`);
-        if (raidUserData.gos > 0)
-            raidClears.push(`${raidUserData.gos} СС`);
-        if (raidUserData.lw > 0)
-            raidClears.push(`${raidUserData.lw} ПЖ`);
-        return `⁣　**${nameCleaner(member?.displayName || member?.user.username || "неизвестный пользователь", true)}** ${raidClears.length > 0
-            ? `завершил: ${raidClears.join(", ")}`
-            : raidUserData?.totalRaidClears === 0
-                ? "не проходил ранее рейды"
-                : "не проходил доступные на данный момент рейды"}`;
-    };
-    const joined = raidEvent.joined.map(async (userId) => raidUserDataManager(userId));
-    const hotJoined = raidEvent.hotJoined.map(async (userId) => raidUserDataManager(userId));
-    const alt = raidEvent.alt.map(async (userId) => raidUserDataManager(userId));
-    const inChnMsg = await inChnMsgPromise;
-    if (!inChnMsg || !inChnMsg.embeds || !inChnMsg.embeds[0]) {
-        return console.error("[Error code: 1208] raidDataInChnMsg", raidEvent.channelId, raidEvent.inChannelMessageId, inChnMsg, inChnMsg?.embeds);
-    }
-    const embed = EmbedBuilder.from(inChnMsg.embeds[0]);
-    embed.spliceFields(1, 3);
-    if (raidEvent.joined.length > 0)
-        embed.spliceFields(1, 0, { name: "Закрытия рейдов у основной группы", value: (await Promise.all(joined)).join("\n") });
-    if (raidEvent.hotJoined.length > 0)
-        embed.spliceFields(2, 0, { name: "Закрытия рейдов у запасных участников", value: (await Promise.all(hotJoined)).join("\n") });
-    if (raidEvent.alt.length > 0)
-        embed.spliceFields(3, 0, { name: "Закрытия рейдов у возможных участников", value: (await Promise.all(alt)).join("\n") });
-    return await inChnMsg.edit({ embeds: [embed] });
+    return privateChannelMessage.edit({ embeds: [embed] });
 }
 export async function checkRaidTimeConflicts(interaction, raidEvent) {
     const member = client.getCachedMembers().get(interaction.user.id) || (await client.getCachedGuild().members.fetch(interaction.user.id));
@@ -570,6 +488,7 @@ export async function removeRaid(raid, interaction, requireMessageReply = true, 
         catch (e) {
             console.error("[Error code: 1667]", e);
         }
+        raidEmitter.emit("deleted", raid);
         clearNotifications(raid.id);
         if (!interaction)
             return;
@@ -641,7 +560,7 @@ export async function sendUserRaidGuideNoti(user, raidName, raidChannelId) {
         .setAuthor({ name: "Ознакомьтесь с текстовым прохождением рейда перед его началом", iconURL: icons.notify })
         .setColor(colors.serious);
     const components = [
-        new ButtonBuilder().setCustomId(`raidGuide_${raidName}`).setLabel("Инструкция по рейду").setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId(`raidGuide_${raidName}`).setLabel("Руководство по рейду").setStyle(ButtonStyle.Primary),
     ];
     try {
         user.send({ embeds: [embed], components: addButtonsToMessage(components) });

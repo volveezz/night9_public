@@ -9,8 +9,7 @@ import { getEndpointStatus, updateEndpointStatus } from "../utils/api/statusChec
 import checkUserRequirements from "../utils/general/newbieRequirementsChecker/checkUserRequirements.js";
 import notifyUserNotMeetRequirements from "../utils/general/newbieRequirementsChecker/notifyUserNotMeetRequirements.js";
 import { updateClanRolesWithLogging } from "../utils/logging/clanEventLogger.js";
-import { joinDateCheckedClanMembers, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, } from "../utils/persistence/dataStore.js";
-import { clanOnline } from "./userStatisticsManagement.js";
+import { clanOnline, joinDateCheckedClanMembers, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, } from "../utils/persistence/dataStore.js";
 let lastLoggedErrorCode = 1;
 async function clanMembersManagement(databaseData) {
     try {

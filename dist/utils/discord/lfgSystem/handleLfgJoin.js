@@ -1,8 +1,7 @@
 import { EmbedBuilder } from "discord.js";
-import { bungieNames } from "../../../core/userStatisticsManagement.js";
 import { client } from "../../../index.js";
 import { escapeString } from "../../general/utilities.js";
-import { channelDataMap, channelsForDeletion } from "../../persistence/dataStore.js";
+import { bungieNames, channelDataMap, channelsForDeletion } from "../../persistence/dataStore.js";
 export async function removeChannelData(data) {
     const channelData = typeof data === "string" ? channelDataMap.get(data) : data;
     if (!channelData)

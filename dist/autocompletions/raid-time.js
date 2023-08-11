@@ -1,6 +1,6 @@
-import { userTimezones } from "../core/userStatisticsManagement.js";
 import { Autocomplete } from "../structures/autocomplete.js";
 import convertTimeStringToNumber from "../utils/general/raidFunctions/convertTimeStringToNumber.js";
+import { userTimezones } from "../utils/persistence/dataStore.js";
 const AutocompleteFile = new Autocomplete({
     name: "время",
     aliases: ["новое-время"],

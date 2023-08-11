@@ -16,8 +16,8 @@ AuthData.init({
     platform: { type: DataTypes.SMALLINT },
     clan: { type: DataTypes.BOOLEAN, values: ["true", "false"], defaultValue: false },
     displayName: { type: DataTypes.STRING(30) },
-    accessToken: { type: DataTypes.TEXT },
-    refreshToken: { type: DataTypes.TEXT },
+    accessToken: { type: DataTypes.TEXT, allowNull: true },
+    refreshToken: { type: DataTypes.TEXT, allowNull: true },
     membershipId: {
         type: DataTypes.STRING(30),
         unique: true,

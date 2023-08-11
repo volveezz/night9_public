@@ -3,8 +3,8 @@ import { client } from "../index.js";
 import { getEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import { destinyActivityChecker } from "../utils/general/destinyActivityChecker.js";
 import { pause } from "../utils/general/utilities.js";
+import { clanOnline } from "../utils/persistence/dataStore.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
-import { clanOnline } from "./userStatisticsManagement.js";
 async function checkClanActivitiesPeriodically() {
     if (process.env.NODE_ENV === "development")
         return;
@@ -35,21 +35,10 @@ async function checkClanActivitiesPeriodically() {
                 console.error("[Error code: 1007]", memberData.displayName);
                 continue;
             }
-            const activityCheckValue = Math.floor(Math.random() * 100);
-            switch (true) {
-                case activityCheckValue < 40:
-                    destinyActivityChecker({ authData: memberData, mode: 4, count: 3 });
-                    break;
-                case activityCheckValue < 80:
-                    destinyActivityChecker({ authData: memberData, mode: 82, count: 3 });
-                    break;
-                default:
-                    destinyActivityChecker({ authData: memberData, mode: 2, count: 3 });
-                    break;
-            }
+            destinyActivityChecker({ authData: memberData, mode: 7, count: 3 });
             await pause(250);
         }
-    }, 1000 * 66);
+    }, 1000 * 60);
 }
 export default checkClanActivitiesPeriodically;
 //# sourceMappingURL=periodicActivityChecker.js.map

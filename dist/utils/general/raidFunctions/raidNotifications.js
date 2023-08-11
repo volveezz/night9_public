@@ -4,15 +4,15 @@ import { Op } from "sequelize";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
 import { client } from "../../../index.js";
-import { completedRaidsData, recentlyCreatedRaidInvites } from "../../persistence/dataStore.js";
+import { completedRaidsData } from "../../persistence/dataStore.js";
 import { RaidEvent, RaidUserNotification } from "../../persistence/sequelize.js";
 import { addButtonsToMessage } from "../addButtonsToMessage.js";
 import nameCleaner from "../nameClearer.js";
 import { generateRaidCompletionText, getRaidDetails } from "../raidFunctions.js";
 import { getRandomGIF, getRandomRaidGIF, pause } from "../utilities.js";
 import raidFireteamChecker from "./raidFireteamChecker.js";
+import { askRaidReadinessNotification } from "./raidReadiness/askUserRaidReadiness.js";
 schedule("0 23 * * *", () => {
-    recentlyCreatedRaidInvites.clear();
     raidFireteamChecker();
     tasks = [];
     while (runningTimeouts.length > 0) {
@@ -25,6 +25,7 @@ schedule("0 23 * * *", () => {
 });
 let tasks = [];
 let runningTimeouts = [];
+const DEFAULT_NOTIFICATIONS_TIMES = [15, 60];
 async function scheduleNextNotification() {
     console.debug("Scheduling the next notification task.");
     if (tasks.length === 0) {
@@ -37,12 +38,19 @@ async function scheduleNextNotification() {
     while (tasks[0] && nextTask.notifyTime === tasks[0].notifyTime) {
         nextTask = tasks.shift();
         handleNotification(nextTask);
+        console.debug("Next task has the same time, adding from the loop");
     }
     async function handleNotification(task) {
         const sleepDuration = task.notifyTime - Date.now();
-        console.debug("Sleep duration is", sleepDuration);
-        console.debug("Tasks:", tasks.map((t) => t.notifyTime));
-        if (sleepDuration > -1000) {
+        if (task.isReadinessSystemTime) {
+            console.debug(`Next scheduled notification for ${task.discordId} is from ReadinessSystem`);
+            const timeout = setTimeout(async () => {
+                console.debug("Sending readiness system message", task.discordId);
+                askRaidReadinessNotification(task.discordId, task.raidId);
+            }, sleepDuration);
+            runningTimeouts.push({ discordId: task.discordId, timeout });
+        }
+        else if (sleepDuration > -1000) {
             console.debug("Scheduled a new notification task for", task.discordId, new Date(task.notifyTime));
             const timeout = setTimeout(async () => {
                 console.debug("Sending a notification for", task.discordId, new Date(task.notifyTime));
@@ -56,7 +64,7 @@ async function scheduleNextNotification() {
             runningTimeouts.push({ discordId: task.discordId, timeout });
         }
         else {
-            console.debug("Notification task is already expired.");
+            console.debug("Notification task is already expired.", task);
         }
     }
 }
@@ -112,32 +120,32 @@ export async function loadNotifications() {
         },
     });
     const raidUserNotifications = [];
-    for (const raid of raidsInNextDay) {
-        const users = [...new Set([...raid.joined])];
-        for (const discordId of users) {
+    raidsInNextDay.forEach(async (raid) => {
+        const users = [...new Set(raid.joined)];
+        users.forEach(async (discordId) => {
             const userNotification = await RaidUserNotification.findOne({ where: { discordId } });
-            const notificationTimes = userNotification ? userNotification.notificationTimes : [15];
+            const notificationTimes = userNotification ? userNotification.notificationTimes : DEFAULT_NOTIFICATIONS_TIMES;
             raidUserNotifications.push({ discordId, notificationTimes });
-        }
-    }
-    for (const { discordId, notificationTimes } of raidUserNotifications) {
-        for (const raid of raidsInNextDay) {
-            for (const minutesBefore of notificationTimes) {
+        });
+    });
+    raidUserNotifications.forEach(({ discordId, notificationTimes }) => {
+        raidsInNextDay.forEach((raid) => {
+            notificationTimes.forEach((minutesBefore) => {
                 const notifyTime = (raid.time - minutesBefore * 60) * 1000;
                 if (notifyTime > Date.now()) {
                     console.debug("Adding a new notification task for", discordId, notifyTime);
-                    tasks.push({ notifyTime, discordId, raidId: raid.id });
+                    tasks.push({ notifyTime, discordId, raidId: raid.id, isReadinessSystemTime: minutesBefore === 60 ? true : false });
                 }
-            }
-        }
-    }
+            });
+        });
+    });
     scheduleNextNotification();
 }
 export async function updateNotifications(discordId, joinStatus) {
     tasks = tasks.filter((task) => task.discordId !== discordId);
     runningTimeouts.filter((t) => t.discordId === discordId).forEach((t) => clearTimeout(t.timeout));
     const notification = await RaidUserNotification.findOne({ where: { discordId } });
-    const notificationTimes = notification ? notification.notificationTimes : [15];
+    const notificationTimes = notification ? notification.notificationTimes : DEFAULT_NOTIFICATIONS_TIMES;
     const raidsInNextDay = await RaidEvent.findAll({
         where: {
             time: {
@@ -149,14 +157,14 @@ export async function updateNotifications(discordId, joinStatus) {
             },
         },
     });
-    for (const raid of raidsInNextDay) {
-        for (const minutesBefore of notificationTimes) {
+    raidsInNextDay.forEach((raid) => {
+        notificationTimes.forEach((minutesBefore) => {
             const notifyTime = (raid.time - minutesBefore * 60) * 1000;
             if (notifyTime > Date.now()) {
-                tasks.push({ notifyTime, discordId, raidId: raid.id });
+                tasks.push({ notifyTime, discordId, raidId: raid.id, isReadinessSystemTime: minutesBefore === 60 ? true : false });
             }
-        }
-    }
+        });
+    });
     if (tasks.length > 0 && tasks[0].notifyTime > Date.now()) {
         scheduleNextNotification();
     }
@@ -192,17 +200,17 @@ export async function updateNotificationsForEntireRaid(raidId) {
     const raid = await RaidEvent.findByPk(raidId, { attributes: ["joined"] });
     if (!raid)
         return;
-    for (const userId of raid.joined) {
+    raid.joined.forEach(async (userId) => {
         await updateNotifications(userId);
-    }
+    });
 }
-async function announceRaidEvent(previousRaidEvent, discordUserId) {
-    const { id: previousRaidId, time: previousRaidTime } = previousRaidEvent;
-    const currentRaidEvent = await RaidEvent.findByPk(previousRaidId, {
+async function announceRaidEvent(oldRaidEvent, discordUserId) {
+    const { id: raidId, time: previousRaidTime } = oldRaidEvent;
+    const currentRaidEvent = await RaidEvent.findByPk(raidId, {
         attributes: ["id", "raid", "difficulty", "joined", "messageId", "creator", "time"],
     });
     if (!currentRaidEvent || (currentRaidEvent && currentRaidEvent.time !== previousRaidTime)) {
-        console.error(`[Error code: 1807] Raid ${previousRaidId} not found.`, currentRaidEvent?.time, previousRaidTime, previousRaidId, discordUserId);
+        console.error(`[Error code: 1807] Raid ${raidId} not found`, currentRaidEvent?.time, previousRaidTime, raidId, discordUserId);
         return;
     }
     const raidDetails = getRaidDetails(currentRaidEvent.raid, currentRaidEvent.difficulty);
@@ -223,10 +231,10 @@ async function announceRaidEvent(previousRaidEvent, discordUserId) {
     const timeUntilRaid = Math.round((currentRaidEvent.time - Math.trunc(Date.now() / 1000)) / 60);
     const raidEmbed = new EmbedBuilder()
         .setColor(raidDetails ? raidDetails.raidColor : colors.default)
-        .setTitle("Уведомление о скором рейде")
+        .setTitle(`Уведомление о скором рейде ${currentRaidEvent.id}-${currentRaidEvent.raid}`)
+        .setURL(`https://discord.com/channels/${process.env.GUILD_ID}/${process.env.RAID_CHANNEL_ID}/${currentRaidEvent.messageId}`)
         .setThumbnail(raidDetails?.raidBanner || null)
-        .setDescription(`Рейд [${currentRaidEvent.id}-${currentRaidEvent.raid}](https://discord.com/channels/${process.env.GUILD_ID}/${process.env
-        .RAID_CHANNEL_ID}/${currentRaidEvent.messageId}) начнется в течение ${timeUntilRaid} минут!\nВ: <t:${currentRaidEvent.time}>, <t:${currentRaidEvent.time}:R>`)
+        .setDescription(`Рейд ${currentRaidEvent.id}-${currentRaidEvent.raid} начнется в течение ${timeUntilRaid} минут!\nВ: <t:${currentRaidEvent.time}>, <t:${currentRaidEvent.time}:R>`)
         .addFields({
         name: "Текущий состав группы:",
         value: participantNames.join("\n") || "⁣　*никого*",
@@ -241,13 +249,9 @@ async function announceRaidEvent(previousRaidEvent, discordUserId) {
         .filter((channel) => channel.parentId === process.env.RAID_CATEGORY && channel.type === ChannelType.GuildVoice && channel.name.includes("Raid"))
         .reverse();
     const buttonComponents = [];
-    const raidInviteUrl = await createRaidVoiceInvite(raidVoiceChannels, currentRaidEvent.creator, currentRaidEvent.id);
+    const raidInviteUrl = await createRaidVoiceInvite(raidId, raidVoiceChannels, currentRaidEvent.creator);
     if (raidInviteUrl) {
-        buttonComponents.push(new ButtonBuilder({
-            style: ButtonStyle.Link,
-            url: raidInviteUrl,
-            label: "Перейти в рейдовый канал",
-        }));
+        buttonComponents.push(new ButtonBuilder().setLabel("Перейти в рейдовый голосовой").setURL(raidInviteUrl).setStyle(ButtonStyle.Link));
     }
     const discordUser = raidParticipants.find((participant) => participant.id === discordUserId);
     if (!discordUser) {
@@ -261,32 +265,41 @@ async function announceRaidEvent(previousRaidEvent, discordUserId) {
         components: addButtonsToMessage(buttonComponents),
     });
 }
-async function createRaidVoiceInvite(channels, creatorId, raidId) {
-    const raidInviteUrl = recentlyCreatedRaidInvites.get(raidId);
-    if (!raidInviteUrl) {
+let isCreatingInvite = false;
+let raidInvites = new Map();
+async function createRaidVoiceInvite(raidId, channels, creatorId) {
+    try {
+        while (isCreatingInvite) {
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            return raidInvites.get(raidId);
+        }
+        isCreatingInvite = true;
         let raidInviteChannel;
         raidInviteChannel = channels.find((channel) => channel.members.has(creatorId));
         if (!raidInviteChannel) {
             raidInviteChannel = channels.find((channel) => channel.userLimit === 0 || channel.userLimit - 6 > channel.members.size);
         }
         if (raidInviteChannel) {
-            if (recentlyCreatedRaidInvites.has(raidId)) {
-                console.debug("Managed to get an invite url, returning it");
-                return recentlyCreatedRaidInvites.get(raidId);
-            }
             console.debug(`[DEBUG] Creating invite for ${raidInviteChannel.name}`);
             const newRaidInvite = (await raidInviteChannel.createInvite({ reason: "Raid automatic invite", maxAge: 60 * 1440 })).url;
-            recentlyCreatedRaidInvites.set(raidId, newRaidInvite);
+            raidInvites.set(raidId, newRaidInvite);
+            isCreatingInvite = false;
             return newRaidInvite;
         }
+        isCreatingInvite = false;
     }
-    return raidInviteUrl;
+    catch (error) {
+        console.error("[Error code: 1993]", error);
+    }
+    finally {
+        isCreatingInvite = false;
+    }
 }
 export async function sendNotificationInfo(interaction, deferredReply) {
     const embed = new EmbedBuilder()
         .setColor(colors.serious)
         .setTitle("Настройка оповещений об рейдах")
-        .setDescription("Вы можете настроить своё время уведомлений о начале рейда, определив заранее, за сколько минут до начала рейда Вы хотите получать уведомления\n\n### Шаги для настройки\n1. Нажмите кнопку ` Настроить свои оповещения ` под этим сообщением\n2. В открывшемся меню, введите желаемое количество минут до начала рейда, когда вы хотите получать уведомления\n- Пример: `10` - установит только оповещения на 10 и 15 (стандартных) минут, а `10 | 20 | 60` установит на 10, 15, 20, 60 минут до начала рейда\n3. Затем нажмите кнопку ` Подтвердить `. Всё готово!\n\n### Дополнительные сведения\n - Вы можете указать несколько временных интервалов, разделив их любым из следующих символов: `/` `\\` `|` `,` ` `\n - Стандартное время уведомления составляет `15` минут, его нельзя ни изменить, ни удалить\n - Вы можете указывать интервалы времени от `1` минуты до `1440` минут (24 часа) до начала рейда");
+        .setDescription("Вы можете настроить своё время уведомлений о начале рейда, определив заранее, за сколько минут до начала рейда Вы хотите получать уведомления\n\n### Шаги для настройки\n1. Нажмите кнопку ` Настроить свои оповещения ` под этим сообщением\n2. В открывшемся меню, введите желаемое количество минут до начала рейда, когда вы хотите получать уведомления\n- Пример: `10` - установит оповещения за 10 минут и 15, 60 стандартных минут, а `10 | 20 | 60` установит на 10, 15, 20, 60 минут до начала рейда\n3. Затем нажмите кнопку ` Подтвердить `. Всё готово!\n\n### Дополнительные сведения\n - Вы можете указать несколько временных интервалов, разделив их любым из следующих символов: `/` `\\` `|` `,` ` `\n - Стандартные время уведомлений составляют `15` и `60` минут. Их нельзя ни изменить, ни удалить\n - Вы можете указывать интервалы времени от `1` минуты до `1440` минут (24 часа) до начала рейда");
     const components = new ButtonBuilder()
         .setCustomId("raidNotifications_showModal")
         .setLabel("Настроить свои оповещения")

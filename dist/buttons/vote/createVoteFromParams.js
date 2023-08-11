@@ -74,7 +74,7 @@ async function createVoteFromParams({ interaction, question, description, answer
             validatedAnswers = modalReply.fields.getField("modifyVote_answers", ComponentType.TextInput).value.split(" | ");
             imageUrl = modalReply.fields.getField("modifyVote_image", ComponentType.TextInput).value;
             if (answers && answers.length >= 2) {
-                if (!validatedAnswers.every((a) => a.length < 30 && a.length > 0)) {
+                if (!validatedAnswers.every((a) => a.length <= 50 && a.length > 0)) {
                     validatedAnswers = validatedAnswers.map((_, i) => `Ответ ${i + 1}`);
                 }
             }
@@ -114,7 +114,7 @@ async function createVoteFromParams({ interaction, question, description, answer
                     uniqueId,
                     components: [],
                 };
-                if (fieldTitles.every((title) => title.length < 36)) {
+                if (fieldTitles.every((title) => title.length <= 50)) {
                     returnValues["components"] = fieldTitles.map((title, i) => {
                         return new ButtonBuilder()
                             .setCustomId(`${VoteButtons.BaseCustomId}_${uniqueId}_${i}`)

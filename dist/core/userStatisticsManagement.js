@@ -5,14 +5,10 @@ import { client } from "../index.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { getEndpointStatus, updateEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import { destinyActivityChecker } from "../utils/general/destinyActivityChecker.js";
+import { pause } from "../utils/general/utilities.js";
+import { bungieNames, longOffline, userTimezones } from "../utils/persistence/dataStore.js";
 import { AuthData, AutoRoleData, UserActivityData } from "../utils/persistence/sequelize.js";
 import clanMembersManagement from "./clanMembersManagement.js";
-const timer = (ms) => new Promise((res) => setTimeout(res, ms));
-export const userCharactersId = new Map();
-export const longOffline = new Set();
-export const bungieNames = new Map();
-export const userTimezones = new Map();
-export const clanOnline = new Map();
 const throttleSet = new Set();
 const dungeonRoles = await AutoRoleData.findAll({ where: { category: 8 } }).then((rolesData) => {
     return rolesData.filter((roleData) => dungeonsTriumphHashes.includes(roleData.triumphRequirement)).map((r) => r.roleId);
@@ -399,7 +395,7 @@ async function checkUserKDRatio({ platform, bungieId, accessToken }, member) {
 async function handleMemberStatistics() {
     (async () => {
         try {
-            await timer(3000);
+            await pause(3000);
             const userDatabaseData = await AuthData.findAll({
                 attributes: ["discordId", "platform", "bungieId", "clan", "timezone", "accessToken", "roleCategoriesBits"],
             });
@@ -423,7 +419,7 @@ async function handleMemberStatistics() {
                 }
                 if (!cachedMember)
                     continue;
-                await timer(1000);
+                await pause(1000);
                 destinyActivityChecker({ authData: userData, member: cachedMember, mode: 4, count: 250 });
             }
         }
@@ -499,7 +495,7 @@ async function handleMemberStatistics() {
                                 checkUserKDRatioStats();
                                 break;
                         }
-                        await timer(1000);
+                        await pause(1000);
                     }
                     function checkUserStats() {
                         checkUserStatisticsRoles(userDatabaseData, member, autoRoleData);
