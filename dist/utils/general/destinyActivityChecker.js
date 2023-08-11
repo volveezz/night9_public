@@ -80,7 +80,7 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
                 console.error(`[Error code: 1018] Response error for ${bungieId} during checking ${mode} mode`, response);
                 return;
             }
-            if (response.activities.length <= 0) {
+            if (!response.activities || response.activities.length <= 0) {
                 return;
             }
             const activityRequests = response.activities.map((activity) => processActivities(activity, completedActivities, mode, activityAvaliableTime, {
