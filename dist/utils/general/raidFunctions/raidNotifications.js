@@ -119,6 +119,7 @@ export async function loadNotifications() {
             },
         },
     });
+    console.debug("Found", raidsInNextDay.length, "raids in the next 24 hours");
     const raidUserNotifications = [];
     raidsInNextDay.forEach(async (raid) => {
         const users = [...new Set(raid.joined)];
@@ -128,6 +129,7 @@ export async function loadNotifications() {
             raidUserNotifications.push({ discordId, notificationTimes });
         });
     });
+    console.debug("Found", raidUserNotifications.length, "raid user notifications");
     raidUserNotifications.forEach(({ discordId, notificationTimes }) => {
         raidsInNextDay.forEach((raid) => {
             notificationTimes.forEach((minutesBefore) => {
@@ -139,6 +141,7 @@ export async function loadNotifications() {
             });
         });
     });
+    console.debug("Scheduled", tasks.length, "notification tasks");
     scheduleNextNotification();
 }
 export async function updateNotifications(discordId, joinStatus) {
