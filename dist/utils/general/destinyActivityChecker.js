@@ -12,7 +12,7 @@ const OWNER_ID = envs.OWNER_ID;
 const CLANMEMBER = envs.CLANMEMBER;
 const MEMBER = envs.MEMBER;
 const cachedKDData = new Map();
-async function processActivities(activity, completedActivities, mode, activityAvaliableTime, { isPreviousMatchWintraded, isWintrader, wintradedMatches, kills, deaths }) {
+async function processPveActivities(activity, completedActivities, activityAvailableTime) {
     const activityMode = activity.activityDetails.mode;
     if (activity.values.completed.basic.value === 1 &&
         (activityMode === 82 ||
@@ -20,36 +20,37 @@ async function processActivities(activity, completedActivities, mode, activityAv
                 (await getGrandmasterHashes()).has(activity.activityDetails.referenceId)) ||
             activityMode === 4 ||
             (activityMode === 2 && checkedStoryActivities.includes(activity.activityDetails.referenceId)))) {
-        if (new Date(activity.period).getTime() + activity.values.activityDurationSeconds.basic.value * 1000 > activityAvaliableTime)
+        if (new Date(activity.period).getTime() + activity.values.activityDurationSeconds.basic.value * 1000 > activityAvailableTime)
             logActivityCompletion(activity.activityDetails.instanceId);
-        if (mode === 4 && !forbiddenRaidIds.includes(activity.activityDetails.referenceId))
+        if (activityMode === 4 && !forbiddenRaidIds.includes(activity.activityDetails.referenceId))
             completedActivities.push(activity.activityDetails.referenceId);
     }
-    else if (mode === 84) {
-        if (activity.values.completionReason.basic.value === 3) {
-            if (isPreviousMatchWintraded === true) {
-                wintradedMatches++;
-                isWintrader = true;
-            }
-            else {
-                isPreviousMatchWintraded = true;
-            }
+}
+async function processTrialsOfOsirisActivities(activity, { isPreviousMatchWintraded, isWintrader, wintradedMatches, kills, deaths }) {
+    if (activity.values.completionReason.basic.value === 3) {
+        if (isPreviousMatchWintraded === true) {
+            wintradedMatches++;
+            isWintrader = true;
         }
-        else if (isPreviousMatchWintraded === true) {
-            isPreviousMatchWintraded = false;
-            if (isWintrader === true) {
-                wintradedMatches++;
-                isWintrader = false;
-            }
+        else {
+            isPreviousMatchWintraded = true;
         }
-        kills += activity.values.kills.basic.value;
-        deaths += activity.values.deaths.basic.value;
     }
+    else if (isPreviousMatchWintraded === true) {
+        isPreviousMatchWintraded = false;
+        if (isWintrader === true) {
+            wintradedMatches++;
+            isWintrader = false;
+        }
+    }
+    kills += activity.values.kills.basic.value;
+    deaths += activity.values.deaths.basic.value;
+    return { kills, deaths, wintradedMatches, isWintrader, isPreviousMatchWintraded };
 }
 export async function destinyActivityChecker({ authData, mode, member, count = 250 }) {
     if (getEndpointStatus("activity") !== 1)
         return;
-    const activityAvaliableTime = Date.now() - 1000 * 60 * 60 * 2;
+    const activityAvailableTime = Date.now() - 1000 * 60 * 60 * 2;
     const { platform, bungieId, accessToken, discordId } = authData;
     const userCharactersArray = userCharactersId.get(discordId);
     if (!userCharactersArray) {
@@ -81,13 +82,21 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
             if (!response.activities || response.activities.length <= 0) {
                 return;
             }
-            const activityRequests = response.activities.map((activity) => processActivities(activity, completedActivities, mode, activityAvaliableTime, {
-                isPreviousMatchWintraded,
-                isWintrader,
-                wintradedMatches,
-                kills,
-                deaths,
-            }));
+            const activityRequests = response.activities.map(async (activity) => {
+                if (mode !== 84) {
+                    await processPveActivities(activity, completedActivities, activityAvailableTime);
+                }
+                else {
+                    const result = await processTrialsOfOsirisActivities(activity, {
+                        isPreviousMatchWintraded,
+                        isWintrader,
+                        wintradedMatches,
+                        kills,
+                        deaths,
+                    });
+                    ({ isPreviousMatchWintraded, isWintrader, wintradedMatches, kills, deaths } = result);
+                }
+            });
             await Promise.all([activityRequests]);
             if (response.activities.length === 250) {
                 page++;

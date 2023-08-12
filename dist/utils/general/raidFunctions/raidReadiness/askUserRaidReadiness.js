@@ -91,7 +91,7 @@ export async function askRaidReadinessNotification(discordId, raidId) {
         if (i.customId === "raidReadiness_willBeReady") {
             const components = [
                 new ButtonBuilder()
-                    .setCustomId("modalRaidReadiness_lateReason")
+                    .setCustomId("modalRaidReadiness_lateReason" + `_${raidId}`)
                     .setLabel("Указать причину и время опоздания")
                     .setStyle(ButtonStyle.Secondary),
             ];

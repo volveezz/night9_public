@@ -55,10 +55,10 @@ class RaidReadiness {
             this.raidDetailsMap.delete(raidId);
             return;
         }
-        const updateStatusList = async (statusSet, targetList, emoji) => {
+        const updateStatusList = async (statusSet, targetList, emoji, isLateUsers = false) => {
             Array.from(statusSet).forEach(async (userId) => {
                 const memberName = client.getCachedMembers().get(userId)?.displayName || (await client.getAsyncMember(userId)).displayName;
-                targetList.push(`⁣　${emoji} ${sanitizeName(memberName, true)}`);
+                targetList.push(`⁣　${emoji} ${sanitizeName(memberName, true)}${isLateUsers && currentRaidDetails.lateReasons.has(userId) ? `: ${currentRaidDetails.lateReasons.get(userId)}` : ""}`);
             });
         };
         const readyList = [];
@@ -67,7 +67,7 @@ class RaidReadiness {
         const unmarkedList = [];
         await Promise.all([
             updateStatusList(currentRaidDetails.readyMembers, readyList, "<:verified:1138549280550965308>"),
-            updateStatusList(currentRaidDetails.lateMembers, lateList, "<:warning:1138257725835444374>"),
+            updateStatusList(currentRaidDetails.lateMembers, lateList, "<:warning:1138257725835444374>", true),
             updateStatusList(currentRaidDetails.notReadyMembers, notReadyList, "<:crossmark:1020504750350934026>"),
             updateStatusList(currentRaidDetails.unmarkedMembers, unmarkedList, "<:question:1138549285219225600>"),
         ]);
@@ -105,6 +105,19 @@ class RaidReadiness {
                 break;
         }
         await this.updateReadinessMessage(raidId);
+    }
+    async setUserReadinessLateReason({ discordId, raidId, reason }) {
+        let currentRaidDetails = this.raidDetailsMap.get(raidId);
+        if (!currentRaidDetails)
+            await this.fetchSystemMessage(raidId);
+        currentRaidDetails = this.raidDetailsMap.get(raidId);
+        if (!currentRaidDetails) {
+            console.error("[Error code: 1988] Raid Readiness System Error", raidId, discordId, reason);
+            throw new Error("Ошибка системы готовности к рейду");
+        }
+        currentRaidDetails.lateReasons.set(discordId, reason);
+        await this.updateReadinessMessage(raidId);
+        return true;
     }
 }
 const readinessInstance = new RaidReadiness();
