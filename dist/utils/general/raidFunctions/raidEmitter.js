@@ -6,25 +6,28 @@ class RaidEmitter extends TypedEmitter {
     }
 }
 export const raidEmitter = new RaidEmitter();
-raidEmitter.on("join", (raidData, joinedUserId) => {
-    if (!readinessSystemInstance.raidDetailsMap.has(raidData.id))
-        return;
-    const raidInfo = readinessSystemInstance.raidDetailsMap.get(raidData.id);
+raidEmitter.on("join", async (raidData, userId) => {
+    const raidInfo = await defaultEmitFunction(raidData.id, userId);
     if (!raidInfo)
         return;
-    raidInfo.unmarkedMembers.add(joinedUserId);
+    raidInfo.unmarkedMembers.add(userId);
     readinessSystemInstance.updateReadinessMessage(raidData.id);
 });
-raidEmitter.on("leave", (raidData, userId) => {
-    if (!readinessSystemInstance.raidDetailsMap.has(raidData.id))
+raidEmitter.on("leave", async (raidData, userId) => {
+    const raidInfo = await defaultEmitFunction(raidData.id, userId);
+    if (!raidInfo)
         return;
-    const raidInfo = readinessSystemInstance.raidDetailsMap.get(raidData.id);
+    readinessSystemInstance.updateReadinessMessage(raidData.id);
+});
+async function defaultEmitFunction(raidId, userId) {
+    const raidInfo = readinessSystemInstance.raidDetailsMap.get(raidId);
     if (!raidInfo)
         return;
     raidInfo.unmarkedMembers.delete(userId);
     raidInfo.readyMembers.delete(userId);
     raidInfo.notReadyMembers.delete(userId);
     raidInfo.lateMembers.delete(userId);
-    readinessSystemInstance.updateReadinessMessage(raidData.id);
-});
+    raidInfo.lateReasons.delete(userId);
+    return raidInfo;
+}
 //# sourceMappingURL=raidEmitter.js.map

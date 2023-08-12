@@ -1,6 +1,6 @@
 {
 	"name": "nightfuture",
-	"version": "2.19.10",
+	"version": "2.19.11",
 	"engines": {
 		"node": "18.x"
 	},

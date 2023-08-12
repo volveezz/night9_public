@@ -80,8 +80,8 @@ async function raidFireteamChecker(id) {
                 isFirstCheck = 0;
             }
             for (const memberAuthData of voiceChannelMembersAuthData) {
-                const discordId = memberAuthData.discordId;
-                const userInFireteam = partyMembers.some((member) => member.membershipId === memberAuthData.bungieId);
+                const { discordId, bungieId } = memberAuthData;
+                const userInFireteam = partyMembers.some((member) => member.membershipId === bungieId);
                 if ((raidEvent.joined.includes(discordId) && userInFireteam) ||
                     (raidEvent.hotJoined.includes(discordId) && !userInFireteam) ||
                     (!raidEvent.joined.includes(discordId) && !userInFireteam))
@@ -134,8 +134,9 @@ async function raidFireteamChecker(id) {
                     }
                 };
                 const updateRaidMessageEmbed = async (raidEvent) => {
+                    console.debug("Updating raid message embed");
                     const updatedMessageOptions = await updateRaidMessage({ raidEvent });
-                    return updatedMessageOptions ?? null;
+                    return updatedMessageOptions;
                 };
                 const isUserAdded = await updateRaidDatabase(raidEvent);
                 if (isUserAdded === 1) {
@@ -183,7 +184,7 @@ async function raidFireteamChecker(id) {
                 }
             });
             if (!privateRaidChannel) {
-                console.error("[Error code: 1926] Channel not found");
+                console.error("[Error code: 1926] Channel not found", initialRaidEvent.id, initialRaidEvent.channelId);
                 return;
             }
             await privateRaidChannel.send({
@@ -244,9 +245,14 @@ async function checkFireteamRoster(voiceChannelMembersAuthData, raidName, raidId
                 const currentActivityModeHash = characterActivities[characterId].currentActivityModeHash;
                 const currentActivityModeType = characterActivities[characterId].currentActivityModeType;
                 if (currentActivityModeHash === 2166136261 || currentActivityModeType === 4) {
-                    const activityName = getRaidNameFromHash(characterActivities[characterId].currentActivityHash).replace("Master", "");
-                    if (activityName !== raidName)
+                    if (characterActivities[characterId].currentActivityHash === 82913930) {
+                        console.debug("Found user in orbit", currentActivityModeHash, currentActivityModeType);
                         continue;
+                    }
+                    const activityName = getRaidNameFromHash(characterActivities[characterId].currentActivityHash).replace("Master", "");
+                    if (activityName !== raidName) {
+                        continue;
+                    }
                     return destinyProfile.profileTransitoryData.data.partyMembers;
                 }
             }
@@ -258,6 +264,7 @@ async function checkFireteamRoster(voiceChannelMembersAuthData, raidName, raidId
     return null;
 }
 async function updateRaidJoinedRoster(joined, raidEvent, discordId) {
+    console.debug(`Updating raid ID: ${raidEvent.id} joined roster`);
     const updateOptions = joined
         ? {
             joined: Sequelize.fn("array_append", Sequelize.col("joined"), discordId),

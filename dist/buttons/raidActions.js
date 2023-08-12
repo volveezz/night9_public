@@ -239,6 +239,10 @@ const ButtonCommand = new Button({
                     ? raidsCompletedByUser[raidEvent.raid] + (raidsCompletedByUser[raidEvent.raid + "Master"] || 0)
                     : 0;
             if (raidEvent.requiredClears) {
+                if (userAlreadyJoined || (raidEvent.joined.length >= 6 && userAlreadyInHotJoined)) {
+                    await deferredUpdate;
+                    throw { errorType: "RAID_ALREADY_JOINED" };
+                }
                 if (!raidsCompletedByUser) {
                     await deferredUpdate;
                     throw { errorType: "RAID_MISSING_DATA_FOR_CLEARS" };
@@ -248,14 +252,6 @@ const ButtonCommand = new Button({
                     throw { errorType: "RAID_NOT_ENOUGH_CLEARS", errorData: [raidClears, raidEvent.requiredClears] };
                 }
             }
-            if (userAlreadyJoined) {
-                await deferredUpdate;
-                throw { errorType: "RAID_ALREADY_JOINED" };
-            }
-            if (raidEvent.joined.length >= 6 && userAlreadyInHotJoined) {
-                await deferredUpdate;
-                throw { errorType: "RAID_ALREADY_JOINED" };
-            }
             const sentUserSet = raidGuideSentUsers.get(raidEvent.raid) ?? new Set();
             if (!sentUserSet.has(interaction.user.id)) {
                 if (raidClears <= 5) {
@@ -264,7 +260,6 @@ const ButtonCommand = new Button({
                 sentUserSet.add(interaction.user.id);
                 raidGuideSentUsers.set(raidEvent.raid, sentUserSet);
             }
-            raidEmitter.emit("join", raidEvent, interaction.user.id);
         }
         else if (userAlreadyAlt) {
             await deferredUpdate;
@@ -285,7 +280,8 @@ const ButtonCommand = new Button({
         await (await client.getAsyncTextChannel(raidEvent.channelId)).permissionOverwrites.create(interaction.user.id, {
             ViewChannel: true,
         });
-        if (interaction.customId === "raidButton_action_join") {
+        if (interaction.customId === "raidButton_action_join" && userTarget === "joined") {
+            raidEmitter.emit("join", raidEvent, interaction.user.id);
             updateNotifications(interaction.user.id, true);
             checkRaidTimeConflicts(interaction, raidEvent);
         }

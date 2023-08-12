@@ -4,7 +4,6 @@ import { addModalComponents } from "../utils/general/addModalComponents.js";
 const ButtonCommand = new Button({
     name: "modalRaidReadiness",
     run: async ({ interaction }) => {
-        console.debug("modalRaidReadiness");
         const raidId = interaction.customId.split("_")[2];
         const modal = new ModalBuilder()
             .setTitle("Укажите причину опоздания")

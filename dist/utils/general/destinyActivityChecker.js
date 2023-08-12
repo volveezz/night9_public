@@ -15,6 +15,7 @@ const cachedKDData = new Map();
 async function processPveActivities(activity, completedActivities, activityAvailableTime) {
     const activityMode = activity.activityDetails.mode;
     if (activity.values.completed.basic.value === 1 &&
+        activity.values.completionReason.basic.value === 0 &&
         (activityMode === 82 ||
             (activityMode === 46 &&
                 (await getGrandmasterHashes()).has(activity.activityDetails.referenceId)) ||
@@ -184,8 +185,10 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
             if (!member.roles.cache.has(trialsRoles.category)) {
                 addedRoles.push(trialsRoles.category);
             }
-            if (!member.roles.cache.has(step.roleId)) {
+            if (member.roles.cache.hasAny(...trialsRoles.allKd.filter((r) => r !== step.roleId))) {
                 await member.roles.remove(trialsRoles.allKd.filter((r) => r !== step.roleId));
+            }
+            if (!member.roles.cache.has(step.roleId)) {
                 await member.roles.add(step.roleId, ...addedRoles);
             }
             return;

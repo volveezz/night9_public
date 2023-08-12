@@ -552,6 +552,7 @@ async function checkIndiviualUserStatistics(user) {
         return;
     }
     await checkUserStatisticsRoles(memberAuthData, member, autoRoleData, true);
+    await destinyActivityChecker({ authData: memberAuthData, member, mode: 4, count: 250 });
 }
 export { checkIndiviualUserStatistics };
 export default handleMemberStatistics;

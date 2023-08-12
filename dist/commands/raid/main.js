@@ -531,7 +531,7 @@ const SlashCommand = new Command({
                 await updateRequiredClears(newReqClears, raidData, transaction);
                 await updateRaid(newRaid, raidInfo, raidData, transaction, raidEmbed);
                 raidEmbed
-                    .setColor(raidData.joined.length === 6 ? colors.invisible : raidInfo.raidColor)
+                    .setColor(raidData.joined.length >= 6 ? colors.invisible : raidInfo.raidColor)
                     .setTitle(newReqClears != null || raidData.requiredClears >= 1 || newDifficulty != null
                     ? `Рейд: ${raidInfo.raidName}${(newReqClears != null && newReqClears === 0) || (newReqClears == null && raidData.requiredClears === 0)
                         ? ""

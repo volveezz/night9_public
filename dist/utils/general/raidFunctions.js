@@ -238,7 +238,7 @@ async function generateUsersRoster(users, cleanMemberName) {
 }
 function updateComponents(embed, raidMessage, joined, raidName, raidDifficulty, interaction) {
     let components = [];
-    if (joined && joined.length === 6) {
+    if (joined && joined.length >= 6) {
         embed.setColor(colors.invisible);
         components = raidMessage.components[0].components.map((button) => {
             const btn = ButtonBuilder.from(button);

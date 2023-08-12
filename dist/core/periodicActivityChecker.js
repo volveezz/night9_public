@@ -35,7 +35,7 @@ async function checkClanActivitiesPeriodically() {
                 console.error("[Error code: 1007]", memberData.displayName);
                 continue;
             }
-            destinyActivityChecker({ authData: memberData, mode: 7, count: 3 });
+            await destinyActivityChecker({ authData: memberData, mode: 7, count: 3 });
             await pause(250);
         }
     }, 1000 * 60);
