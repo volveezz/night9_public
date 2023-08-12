@@ -94,7 +94,11 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
                         kills,
                         deaths,
                     });
-                    ({ isPreviousMatchWintraded, isWintrader, wintradedMatches, kills, deaths } = result);
+                    kills += result.kills;
+                    deaths += result.deaths;
+                    wintradedMatches += result.wintradedMatches;
+                    isWintrader = result.isWintrader;
+                    isPreviousMatchWintraded = result.isPreviousMatchWintraded;
                 }
             });
             await Promise.all([activityRequests]);
