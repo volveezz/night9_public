@@ -114,7 +114,7 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
     if (mode === 4 && count === 250) {
         const completedRaidCount = completedActivities.length;
         const previousTotalRaidCount = completedRaidsData.get(discordId)?.totalRaidClears;
-        if (previousTotalRaidCount && previousTotalRaidCount > completedRaidCount) {
+        if (previousTotalRaidCount && previousTotalRaidCount >= completedRaidCount) {
             return;
         }
         const raidCounts = completedActivities.reduce((counts, activity) => {
@@ -128,6 +128,7 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
             ...raidCounts,
             totalRaidClears: completedRaidCount,
         });
+        console.debug(`Counted ${completedRaidCount} raids for ${member.user.id}`);
         if (member.roles.cache.has(CLANMEMBER) ||
             (member.roles.cache.has(MEMBER) && member.roles.cache.hasAny(...activityRoles.allMessages, ...activityRoles.allVoice)) ||
             authData.UserActivityData !== undefined) {
