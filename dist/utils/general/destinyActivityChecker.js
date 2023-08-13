@@ -128,7 +128,6 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
             ...raidCounts,
             totalRaidClears: completedRaidCount,
         });
-        console.debug(`Counted ${completedRaidCount} raids for ${member.user.id}`);
         if (member.roles.cache.has(CLANMEMBER) ||
             (member.roles.cache.has(MEMBER) && member.roles.cache.hasAny(...activityRoles.allMessages, ...activityRoles.allVoice)) ||
             authData.UserActivityData !== undefined) {

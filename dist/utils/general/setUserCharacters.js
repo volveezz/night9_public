@@ -9,7 +9,6 @@ async function fetchCharacterStatsAndCache({ discordId, platform, bungieId, acce
             return;
         }
         const validCharacters = characterStats.characters
-            .filter((ch) => !ch.deleted)
             .sort((a, b) => (a.deleted === false ? 1 : 0))
             .map((ch) => ch.characterId);
         userCharactersId.set(discordId, validCharacters);
