@@ -1,5 +1,6 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder, RESTJSONErrorCodes } from "discord.js";
 import fetch from "node-fetch";
+import { Op } from "sequelize";
 import colors from "../configs/colors.js";
 import { client } from "../index.js";
 import { UpdateTokenRefreshTime } from "../structures/tokenRefresher.js";
@@ -7,6 +8,7 @@ import { getEndpointStatus, updateEndpointStatus } from "../utils/api/statusChec
 import setMemberRoles from "../utils/discord/setRoles.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../utils/general/nameClearer.js";
+import { pause } from "../utils/general/utilities.js";
 import { recentlyExpiredAuthUsersBungieIds } from "../utils/persistence/dataStore.js";
 import { AuthData, LeavedUsersData } from "../utils/persistence/sequelize.js";
 const BUNGIE_TOKEN_URL = "https://www.bungie.net/Platform/App/OAuth/Token/";
@@ -88,7 +90,7 @@ async function handleAuthorizationRecordExpired(row, table) {
         recentlyExpiredAuthUsersBungieIds.add(row.bungieId);
         const authData = (await AuthData.findOne({
             where: { bungieId: row.bungieId },
-            attributes: ["id", "discordId", "accessToken", "refreshToken"],
+            attributes: ["discordId", "accessToken", "refreshToken"],
         }));
         const { discordId } = authData;
         authData.accessToken = null;
@@ -132,13 +134,21 @@ async function refreshTokens(table) {
     if (getEndpointStatus("oauth") !== 1)
         return;
     const data = table === 1
-        ? await AuthData.findAll({ attributes: ["discordId", "bungieId", "refreshToken"] })
+        ? await AuthData.findAll({
+            attributes: ["discordId", "bungieId", "refreshToken"],
+            where: {
+                refreshToken: {
+                    [Op.ne]: null,
+                },
+            },
+        })
         : await LeavedUsersData.findAll({ attributes: ["discordId", "bungieId", "refreshToken"] });
     for (const row of data) {
         try {
             if (!row.refreshToken)
                 return;
             await bungieGrantRequest(row, table, false);
+            await pause(1000);
         }
         catch (error) {
             console.error(`[Error code: 1242] Error during refreshing token of ${row.bungieId}: ${error}`);
