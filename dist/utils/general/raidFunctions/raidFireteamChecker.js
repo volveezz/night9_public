@@ -242,11 +242,12 @@ async function checkFireteamRoster(voiceChannelMembersAuthData, raidName, raidId
             if (!partyMembers || !characterActivities)
                 continue;
             for (const characterId in characterActivities) {
-                const currentActivityModeHash = characterActivities[characterId].currentActivityModeHash;
                 const currentActivityModeType = characterActivities[characterId].currentActivityModeType;
-                if (currentActivityModeHash === 2166136261 || currentActivityModeType === 4) {
+                const currentActivityModeTypes = characterActivities[characterId].currentActivityModeTypes;
+                if (currentActivityModeType === 4 ||
+                    currentActivityModeTypes.includes(4)) {
                     if (characterActivities[characterId].currentActivityHash === 82913930) {
-                        console.debug("Found user in orbit", currentActivityModeHash, currentActivityModeType);
+                        console.debug("Found user in orbit");
                         continue;
                     }
                     const activityName = getRaidNameFromHash(characterActivities[characterId].currentActivityHash).replace("Master", "");

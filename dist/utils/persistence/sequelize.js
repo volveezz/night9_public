@@ -152,7 +152,7 @@ RaidUserNotification.init({
     notificationTimes: {
         type: DataTypes.ARRAY(DataTypes.SMALLINT),
         allowNull: false,
-        defaultValue: [15],
+        defaultValue: [15, 60],
     },
 }, {
     sequelize,

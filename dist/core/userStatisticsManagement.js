@@ -372,12 +372,15 @@ async function checkUserKDRatio({ platform, bungieId, accessToken }, member) {
         for (const step of statisticsRoles.kd) {
             if (step.kd <= request?.mergedAllCharacters?.results?.allPvP?.allTime?.killsDeathsRatio?.basic.value) {
                 const addedRoles = [];
-                if (!member.roles.cache.has(process.env.STATISTICS_CATEGORY))
+                if (!member.roles.cache.has(process.env.STATISTICS_CATEGORY)) {
                     addedRoles.push(process.env.STATISTICS_CATEGORY);
+                }
+                const rolesExceptTheNeeded = statisticsRoles.allKd.filter((r) => r !== step.roleId);
+                if (member.roles.cache.hasAny(...rolesExceptTheNeeded)) {
+                    await member.roles.remove(rolesExceptTheNeeded);
+                }
                 if (!member.roles.cache.has(step.roleId)) {
-                    await member.roles.remove(statisticsRoles.allKd.filter((r) => r !== step.roleId)).then(async (_) => {
-                        await member.roles.add([step.roleId, ...addedRoles]);
-                    });
+                    await member.roles.add([step.roleId, ...addedRoles]);
                 }
                 break;
             }

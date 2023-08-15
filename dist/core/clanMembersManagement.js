@@ -140,9 +140,12 @@ async function clanMembersManagement(databaseData) {
                 for (const { days: daysRequiredInClan, roleId } of clanJoinDateRoles.roles) {
                     if (daysRequiredInClan <= userInClanDays) {
                         const member = await client.getAsyncMember(memberAuthData.discordId);
-                        if (!member.roles.cache.has(roleId)) {
-                            try {
-                                await member.roles.remove(clanJoinDateRoles.allRoles.filter((r) => r !== roleId));
+                        const rolesExceptTheNeeded = clanJoinDateRoles.allRoles.filter((r) => r !== roleId);
+                        try {
+                            if (member.roles.cache.hasAny(...rolesExceptTheNeeded)) {
+                                await member.roles.remove(rolesExceptTheNeeded);
+                            }
+                            if (!member.roles.cache.has(roleId)) {
                                 if (!member.roles.cache.has(process.env.TRIUMPHS_CATEGORY)) {
                                     await member.roles.add([process.env.TRIUMPHS_CATEGORY, roleId]);
                                 }
@@ -150,9 +153,9 @@ async function clanMembersManagement(databaseData) {
                                     await member.roles.add(roleId);
                                 }
                             }
-                            catch (error) {
-                                console.error("[Error code: 1238]", error);
-                            }
+                        }
+                        catch (error) {
+                            console.error("[Error code: 1238]", error);
                         }
                         break;
                     }

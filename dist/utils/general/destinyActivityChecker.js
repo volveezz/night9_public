@@ -189,7 +189,7 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
                 await member.roles.remove(trialsRoles.allKd.filter((r) => r !== step.roleId));
             }
             if (!member.roles.cache.has(step.roleId)) {
-                await member.roles.add(step.roleId, ...addedRoles);
+                await member.roles.add([step.roleId, ...addedRoles]);
             }
             return;
         }

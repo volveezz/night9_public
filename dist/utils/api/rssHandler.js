@@ -21,7 +21,7 @@ const rssUrls = {
 async function fetchAndSendLatestTweets(url, latestLink, routeName) {
     try {
         const feed = await parser.parseURL(url).catch((e) => {
-            console.error("[Error code: 1706] Error fetching RSS feed:", e.message, e.status, url.split("/")?.[5]);
+            console.error("[Error code: 1706] Error fetching RSS feed:", e.message, e.errorMessage, e.error?.message, e.name, url.split("/")?.[5]);
             return;
         });
         if (!feed || !feed.items || feed.items.length < 2)
