@@ -137,9 +137,9 @@ async function clanMembersManagement(databaseData) {
                     return;
                 const userJoinDate = new Date(clanMember.joinDate).getTime();
                 const userInClanDays = (Date.now() - userJoinDate) / 1000 / 60 / 60 / 24;
+                const member = await client.getAsyncMember(memberAuthData.discordId);
                 for (const { days: daysRequiredInClan, roleId } of clanJoinDateRoles.roles) {
                     if (daysRequiredInClan <= userInClanDays) {
-                        const member = await client.getAsyncMember(memberAuthData.discordId);
                         const rolesExceptTheNeeded = clanJoinDateRoles.allRoles.filter((r) => r !== roleId);
                         try {
                             if (member.roles.cache.hasAny(...rolesExceptTheNeeded)) {
@@ -159,6 +159,15 @@ async function clanMembersManagement(databaseData) {
                         }
                         break;
                     }
+                }
+                if (!member.roles.cache.has(process.env.CLANMEMBER)) {
+                    await member.roles.add(process.env.CLANMEMBER);
+                }
+                if (member.roles.cache.hasAny(process.env.MEMBER, process.env.NEWBIE, process.env.KICKED)) {
+                    await member.roles.remove([process.env.MEMBER, process.env.NEWBIE, process.env.KICKED]);
+                }
+                if (!member.roles.cache.has(process.env.VERIFIED)) {
+                    await member.roles.add(process.env.VERIFIED);
                 }
                 joinDateCheckedClanMembers.add(membershipId);
             }
