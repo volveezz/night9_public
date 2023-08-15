@@ -478,6 +478,9 @@ async function handleMemberStatistics() {
                     if (userDatabaseData.clan === false && !member.roles.cache.has(process.env.MEMBER)) {
                         await member.roles.add(process.env.MEMBER);
                     }
+                    if (member.roles.cache.has(process.env.NEWBIE)) {
+                        await member.roles.remove(process.env.NEWBIE);
+                    }
                     if (member.roles.cache.has(process.env.CLANMEMBER) ||
                         (userDatabaseData.UserActivityData &&
                             (userDatabaseData.UserActivityData.voice > 120 || userDatabaseData.UserActivityData.messages > 5))) {
