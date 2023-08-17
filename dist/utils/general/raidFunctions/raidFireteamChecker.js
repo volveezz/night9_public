@@ -3,6 +3,7 @@ import { Op, Sequelize } from "sequelize";
 import { canceledFireteamCheckingRaids } from "../../../buttons/raidInChnButton.js";
 import colors from "../../../configs/colors.js";
 import { client } from "../../../index.js";
+import tokenRefresher from "../../../structures/tokenRefresher.js";
 import { sendApiRequest } from "../../api/sendApiRequest.js";
 import { getEndpointStatus } from "../../api/statusCheckers/statusTracker.js";
 import { AuthData, RaidEvent } from "../../persistence/sequelize.js";
@@ -213,12 +214,19 @@ async function getOngoingRaids(id) {
 }
 async function getVoiceChannelMembersAuthData(raidId, voiceChannelMemberIds) {
     const previouslyCheckedRaid = previouslyCheckedMembers.get(raidId);
-    if (previouslyCheckedRaid?.length === voiceChannelMemberIds.length &&
-        previouslyCheckedRaid.every((r) => voiceChannelMemberIds.includes(r.discordId))) {
-        return previouslyCheckedRaid;
-    }
-    else if (previouslyCheckedRaid) {
+    const lastRefreshTime = tokenRefresher.getLatestRefreshTime();
+    if (previouslyCheckedRaid) {
+        const { lastRequestTime, usersData } = previouslyCheckedRaid;
+        if (lastRequestTime === lastRefreshTime &&
+            usersData.length === voiceChannelMemberIds.length &&
+            usersData.every((r) => voiceChannelMemberIds.includes(r.discordId))) {
+            return usersData;
+        }
         previouslyCheckedMembers.delete(raidId);
+        console.debug(`Saved authData of users in ${raidId} was deleted as it became old`);
+    }
+    if (!lastRefreshTime) {
+        console.error("[Error code: 1994] Time of the last token refresh wasn't found");
     }
     const usersData = await AuthData.findAll({
         where: {
@@ -228,7 +236,7 @@ async function getVoiceChannelMembersAuthData(raidId, voiceChannelMemberIds) {
         },
         attributes: ["platform", "bungieId", "discordId", "accessToken"],
     });
-    previouslyCheckedMembers.set(raidId, usersData);
+    previouslyCheckedMembers.set(raidId, { usersData, lastRequestTime: lastRefreshTime || 0 });
     return usersData;
 }
 async function checkFireteamRoster(voiceChannelMembersAuthData, raidName, raidId) {

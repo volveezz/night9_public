@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import { WasRefreshedRecently } from "../../structures/tokenRefresher.js";
+import tokenRefresher from "../../structures/tokenRefresher.js";
 const bungieNetUrl = "https://www.bungie.net";
 export async function sendApiRequest(apiEndpoint, authToken, serverResponse) {
     const headers = createHeaders(authToken);
@@ -21,7 +21,7 @@ function createHeaders(authToken) {
     return {
         "X-API-KEY": process.env.XAPI,
         "Content-Type": "application/json",
-        ...(authToken && WasRefreshedRecently() ? { Authorization: `Bearer ${authToken.accessToken || authToken}` } : {}),
+        ...(authToken && tokenRefresher.wasRefreshedRecently() ? { Authorization: `Bearer ${authToken.accessToken || authToken}` } : {}),
     };
 }
 async function parseJsonResponse(response) {

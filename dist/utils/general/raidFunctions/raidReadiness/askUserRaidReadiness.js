@@ -2,7 +2,7 @@ import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, RESTJSONErrorC
 import colors from "../../../../configs/colors.js";
 import icons from "../../../../configs/icons.js";
 import { client } from "../../../../index.js";
-import readinessSystemInstance from "../../../../structures/RaidReadinessSystem.js";
+import { default as readinessInstance, default as readinessSystemInstance } from "../../../../structures/RaidReadinessSystem.js";
 import { RaidEvent } from "../../../persistence/sequelize.js";
 import { addButtonsToMessage } from "../../addButtonsToMessage.js";
 import nameCleaner from "../../nameClearer.js";
@@ -77,6 +77,7 @@ export async function askRaidReadinessNotification(discordId, raidId) {
     });
     if (!raidCollectors.has(raidId)) {
         raidCollectors.set(raidId, []);
+        await readinessInstance.updateReadinessMessage(raidId);
     }
     const raidCollectorsArray = raidCollectors.get(raidId);
     if (raidCollectorsArray) {

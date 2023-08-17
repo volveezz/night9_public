@@ -1,13 +1,19 @@
-let lastRefresh = Date.now();
-export function UpdateTokenRefreshTime() {
-    return (lastRefresh = Date.now());
-}
-export function WasRefreshedRecently() {
-    if (Date.now() - lastRefresh < 1000 * 60 * 60) {
-        return true;
+class TokenRefresherSystem {
+    lastRefresh = null;
+    constructor() { }
+    updateTokenRefreshTime() {
+        return (this.lastRefresh = Date.now());
     }
-    else {
+    getLatestRefreshTime() {
+        return this.lastRefresh;
+    }
+    wasRefreshedRecently() {
+        if (this.lastRefresh && Date.now() - this.lastRefresh < 1000 * 60 * 60) {
+            return true;
+        }
         return false;
     }
 }
+const tokenRefresher = new TokenRefresherSystem();
+export default tokenRefresher;
 //# sourceMappingURL=tokenRefresher.js.map

@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 import { Op } from "sequelize";
 import colors from "../configs/colors.js";
 import { client } from "../index.js";
-import { UpdateTokenRefreshTime } from "../structures/tokenRefresher.js";
+import tokenRefresher from "../structures/tokenRefresher.js";
 import { getEndpointStatus, updateEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import setMemberRoles from "../utils/discord/setRoles.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
@@ -47,7 +47,7 @@ async function bungieGrantRequest(row, table, retry = false) {
             row.accessToken = request.access_token;
             row.refreshToken = request.refresh_token;
             await row.save();
-            UpdateTokenRefreshTime();
+            tokenRefresher.updateTokenRefreshTime();
         }
         else {
             handleRequestError(request, row, table, retry);

@@ -229,6 +229,10 @@ const ButtonCommand = new Button({
             alt: Sequelize.fn("array_remove", Sequelize.col("alt"), interaction.user.id),
         };
         if (interaction.customId === "raidButton_action_join") {
+            if (userAlreadyJoined || (raidEvent.joined.length >= 6 && userAlreadyInHotJoined)) {
+                await deferredUpdate;
+                throw { errorType: "RAID_ALREADY_JOINED" };
+            }
             const isContestRaid = raidEvent.raid === "ce" && raidEvent.time >= 1693591200 && raidEvent.time <= 1693764000;
             const raidsCompletedByUser = completedRaidsData.get(interaction.user.id);
             const raidClears = isContestRaid
@@ -239,10 +243,6 @@ const ButtonCommand = new Button({
                     ? raidsCompletedByUser[raidEvent.raid] + (raidsCompletedByUser[raidEvent.raid + "Master"] || 0)
                     : 0;
             if (raidEvent.requiredClears) {
-                if (userAlreadyJoined || (raidEvent.joined.length >= 6 && userAlreadyInHotJoined)) {
-                    await deferredUpdate;
-                    throw { errorType: "RAID_ALREADY_JOINED" };
-                }
                 if (!raidsCompletedByUser) {
                     await deferredUpdate;
                     throw { errorType: "RAID_MISSING_DATA_FOR_CLEARS" };
