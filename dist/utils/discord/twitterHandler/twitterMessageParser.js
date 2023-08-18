@@ -206,7 +206,7 @@ Translated dataset:
 "Destination": "Пункт назначения",
 "TIMELINE": "Время"
 }`;
-    const output = await openai.createChatCompletion({
+    const output = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         temperature: 0,
         top_p: 1,
@@ -215,7 +215,7 @@ Translated dataset:
             { role: "user", name: "translation", content: `Translate the following text: ###\n${sourceText}\n###` },
         ],
     });
-    let outputText = output.data.choices[0].message?.content;
+    let outputText = output.choices[0].message?.content;
     if (!outputText)
         return null;
     outputText = outputText.replace(/^Translate the following text[:\n]*/, "");

@@ -58,10 +58,10 @@ async function clanMembersManagement(databaseData) {
         clanOnline.clear();
         const onlineCounter = clanList.results.reduce((acc, f) => (f.isOnline === true ? acc + 1 : acc), 0);
         if (onlineCounter === 0) {
-            client.user.setActivity(`${clanList.results.length} участников в клане`, { type: ActivityType.Watching });
+            client.user.setActivity({ name: `${clanList.results.length} участников в клане`, type: ActivityType.Custom });
         }
         else {
-            client.user.setActivity(`${onlineCounter} онлайн из ${clanList.results.length}`, { type: ActivityType.Watching });
+            client.user.setActivity({ name: `${onlineCounter} онлайн в клане из ${clanList.results.length}`, type: ActivityType.Custom });
         }
         processClanMembers();
         async function handleClanLeftMembers() {

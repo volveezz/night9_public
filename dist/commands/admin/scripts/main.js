@@ -43,8 +43,8 @@ const SlashCommand = new Command({
                 return;
             }
             case "getmodels": {
-                const request = await openai.listModels();
-                console.debug(request.data.data);
+                const request = await openai.models.list();
+                console.debug(request.data);
                 return;
             }
             case "rsstry": {

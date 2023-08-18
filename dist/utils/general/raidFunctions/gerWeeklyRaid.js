@@ -12,7 +12,6 @@ const fetchWeeklyRaid = async (retryCount = 0) => {
             (milestone.activities.some((activity) => raidChallengeObjHashes.some((value) => activity.challengeObjectiveHashes.includes(value))) ||
                 milestone.activities.some((activity) => raidChallengeObjHashes.some((_) => activity.challengeObjectiveHashes.length === 1))));
         if (raidMilestone && raidMilestone.activities) {
-            console.debug("Weekly raid found. This week raid:", raidMilestone.activities[0]?.activityHash);
             raidActivityHashes.normal = raidMilestone.activities[0]?.activityHash || null;
             raidActivityHashes.master = raidMilestone.activities[1]?.activityHash || null;
         }

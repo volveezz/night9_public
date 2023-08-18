@@ -99,37 +99,27 @@ function isValidTweet(author, guid) {
 const twitterAccounts = [
     {
         name: TwitterAccountNames.BungieHelp,
-        interval: 1000 * 50 * 20,
+        interval: 1000 * 60 * 60 * 1,
         rssUrl: rssUrls.BungieHelp,
     },
     {
         name: TwitterAccountNames.Destiny2Team,
-        interval: 1000 * 58 * 30,
+        interval: 1000 * 60 * 58 * 4,
         rssUrl: rssUrls.Destiny2Team,
     },
     {
         name: TwitterAccountNames.Bungie,
-        interval: 1000 * 66 * 50,
+        interval: 1000 * 60 * 57 * 6,
         rssUrl: rssUrls.Bungie,
     },
     {
         name: TwitterAccountNames.DestinyTheGame,
-        interval: 1000 * 72 * 30,
+        interval: 1000 * 60 * 53 * 2,
         rssUrl: rssUrls.DestinyTheGame,
     },
 ];
-function getCurrentUtcHour() {
-    const currentUtcDate = new Date().getUTCHours();
-    return currentUtcDate;
-}
 function calculateDestinyInterval() {
-    const hour = getCurrentUtcHour();
-    if (hour >= 12 && hour <= 20) {
-        return 1000 * 60 * 15;
-    }
-    else {
-        return 1000 * 60 * 60;
-    }
+    return 1000 * 60 * 60 * 2;
 }
 (async () => {
     const fetchAndReschedule = async (account) => {

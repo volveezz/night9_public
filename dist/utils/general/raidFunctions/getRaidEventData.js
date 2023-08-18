@@ -19,7 +19,7 @@ export default async function getRaidEventData(id) {
     activeRaidEventFunctions.set(id, raidData);
     setTimeout(() => {
         activeRaidEventFunctions.delete(id);
-    }, 60 * 1000);
+    }, 30 * 1000);
     return raidData;
 }
 //# sourceMappingURL=getRaidEventData.js.map

@@ -18,6 +18,9 @@ const ButtonCommand = new Button({
         if (!timesArray.includes(15)) {
             timesArray.push(15);
         }
+        if (!timesArray.includes(60)) {
+            timesArray.push(60);
+        }
         timesArray.sort((a, b) => a - b).slice(0, 100);
         try {
             const userNotification = await RaidUserNotification.findOne({ where: { discordId } });

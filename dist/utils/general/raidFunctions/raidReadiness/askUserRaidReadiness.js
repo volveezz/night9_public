@@ -46,6 +46,10 @@ export async function askRaidReadinessNotification(discordId, raidId) {
         console.error("[Error code: 1985] Raid wasn't found", raidId);
         return;
     }
+    if (!raidEventData.joined.includes(discordId)) {
+        console.error("[Error code: 1995] User wasn't found in raid", raidId, discordId);
+        return;
+    }
     const embeds = generateEmbed(raidEventData);
     const message = await member.send({ embeds, components: addButtonsToMessage(components) }).catch(async (e) => {
         if (e.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {

@@ -9,7 +9,7 @@ function generateVoteEditModal({ answersInput, embed, isEditModal = true }) {
         ? embed.data.description
         : "Укажите новое описание";
     const joinedAnswers = answersInput && answersInput.join(" | ");
-    const answersPlaceholder = joinedAnswers && joinedAnswers.length > 0 && joinedAnswers.length < 100 ? joinedAnswers : "Укажите новые варианты ответов";
+    const answersPlaceholder = joinedAnswers && joinedAnswers.length > 0 && joinedAnswers.length < 100 ? joinedAnswers : "Разделяются знаком |";
     const imagePlaceholder = embed?.data?.image?.url &&
         embed.data.image.url.startsWith("http") &&
         embed.data.image.url.length > 0 &&

@@ -70,7 +70,13 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
             return;
         }
         let page = 0;
-        await fetchAndProcessActivities();
+        try {
+            await fetchAndProcessActivities();
+        }
+        catch (error) {
+            console.error(`[Error code: 1996] Error happened during checking ${mode} mode of ${authData.displayName || discordId || bungieId}`, error);
+            return;
+        }
         async function fetchAndProcessActivities() {
             if (getEndpointStatus("activity") !== 1) {
                 return;

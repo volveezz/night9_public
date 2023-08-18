@@ -41,26 +41,27 @@ async function scheduleNextNotification() {
     }
     async function handleNotification(task) {
         const sleepDuration = task.notifyTime - Date.now();
-        if (task.isReadinessSystemTime) {
-            console.debug(`Next scheduled notification for ${task.discordId} is from ReadinessSystem`);
+        const { discordId, notifyTime, raidId, isReadinessSystemTime } = task;
+        if (isReadinessSystemTime) {
+            console.debug(`Next scheduled notification for ${discordId} is from ReadinessSystem for raidId: ${raidId}`);
             const timeout = setTimeout(async () => {
-                console.debug("Sending readiness system message", task.discordId);
-                askRaidReadinessNotification(task.discordId, task.raidId);
+                console.debug(`Sending readiness system message to ${discordId} for raidId: ${raidId}`);
+                askRaidReadinessNotification(discordId, raidId);
             }, sleepDuration);
-            runningTimeouts.push({ discordId: task.discordId, timeout });
+            runningTimeouts.push({ discordId, timeout });
         }
         else if (sleepDuration > -1000) {
-            console.debug("Scheduled a new notification task for", task.discordId, new Date(task.notifyTime));
+            console.debug("Scheduled a new notification task for", discordId, new Date(notifyTime));
             const timeout = setTimeout(async () => {
-                console.debug("Sending a notification for", task.discordId, new Date(task.notifyTime));
+                console.debug("Sending a notification for", discordId, new Date(notifyTime));
                 await sendNotification(task).catch((err) => {
                     if (err.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
-                        return notifyAboutClosedDM(task.raidId, task.discordId);
+                        return notifyAboutClosedDM(raidId, discordId);
                     }
                     console.error("[Error code: 1954]", err.stack || err);
                 });
             }, sleepDuration);
-            runningTimeouts.push({ discordId: task.discordId, timeout });
+            runningTimeouts.push({ discordId: discordId, timeout });
         }
         else {
             console.debug("Notification task is already expired.", task);
@@ -131,6 +132,9 @@ export async function loadNotifications() {
     console.debug("Found", raidUserNotifications.length, "raid user notifications");
     const promise = raidUserNotifications.map(async ({ discordId, notificationTimes }) => {
         const promise = raidsInNextDay.map((raid) => {
+            if (!raid.joined.includes(discordId))
+                return Promise.resolve();
+            console.debug(`Checking raid ${raid.id} for ${discordId}`);
             notificationTimes.forEach((minutesBefore) => {
                 const notifyTime = (raid.time - minutesBefore * 60) * 1000;
                 if (notifyTime > Date.now()) {

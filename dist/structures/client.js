@@ -24,11 +24,11 @@ export class ExtendedClient extends Client {
     guild;
     intervalId;
     activities = [
-        { name: "🔁 Подготовка рейдов", type: ActivityType.Listening, url: undefined },
-        { name: "🔁 Обновление статистики", type: ActivityType.Playing, url: undefined },
-        { name: "🔁 Загрузка свежих данных", type: ActivityType.Playing, url: undefined },
-        { name: "🔁 Устранение ошибок", type: ActivityType.Competing, url: undefined },
-        { name: "🔁 Благодарность меценатам", type: ActivityType.Watching, url: undefined },
+        { name: "🔁 Подготовка рейдов", type: ActivityType.Custom },
+        { name: "🔁 Обновление статистики", type: ActivityType.Custom },
+        { name: "🔁 Загрузка свежих данных", type: ActivityType.Custom },
+        { name: "🔁 Устранение ошибок", type: ActivityType.Custom },
+        { name: "🔁 Благодарность меценатам", type: ActivityType.Custom },
         {
             name: "🔁 Слежка за революцией",
             type: ActivityType.Streaming,
@@ -54,6 +54,10 @@ export class ExtendedClient extends Client {
     }
     async start() {
         await this.login(process.env.TOKEN);
+        this.user.setPresence({
+            activities: [this.activities[Math.floor(Math.random() * this.activities.length)]],
+            status: "idle",
+        });
         this.registerModules();
     }
     startUpdatingPresence() {
