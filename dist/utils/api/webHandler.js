@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import guildNicknameManagement from "../../core/guildNicknameManagement.js";
-import { checkIndiviualUserStatistics } from "../../core/userStatisticsManagement.js";
+import { checkIndiviualUserStatistics } from "../../core/statisticsChecker/userStatisticsManagement.js";
 import { client } from "../../index.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import nameCleaner from "../general/nameClearer.js";

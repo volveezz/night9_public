@@ -1,8 +1,8 @@
 import { EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import guildNicknameManagement from "../core/guildNicknameManagement.js";
+import { checkIndiviualUserStatistics } from "../core/statisticsChecker/userStatisticsManagement.js";
 import { requestTokenRefresh } from "../core/tokenManagement.js";
-import { checkIndiviualUserStatistics } from "../core/userStatisticsManagement.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import welcomeMessage from "../utils/discord/welcomeMessage.js";

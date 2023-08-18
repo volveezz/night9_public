@@ -10,7 +10,7 @@ import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import { convertSeconds } from "../general/convertSeconds.js";
 import { getRaidNameFromHash, removeRaid } from "../general/raidFunctions.js";
 import { escapeString } from "../general/utilities.js";
-import { completedRaidsData } from "../persistence/dataStore.js";
+import { completedRaidsData, grandmasterHashes } from "../persistence/dataStore.js";
 import { AuthData, RaidEvent, UserActivityData } from "../persistence/sequelize.js";
 const hashToImageMap = {
     313828469: "https://cdn.discordapp.com/attachments/679191036849029167/1111828224956170290/2023_Ghost_of_the_Deep_Press_Kit_Dungeon_LARGE_002.jpg",
@@ -51,9 +51,16 @@ function getActivityImage(hash, manifestImage) {
         return `https://bungie.net${manifestImage}`;
     }
 }
-function getActivityTitle(hash, manifestTitle) {
+async function getActivityTitle(hash, manifestTitle) {
     if (!manifestTitle || PLACEHOLDER_TEXTS.includes(manifestTitle)) {
         return findCorrectedName(hash);
+    }
+    if (grandmasterHashes.has(hash)) {
+        const activityManifest = await GetManifest("DestinyActivityDefinition");
+        const activityData = activityManifest[hash];
+        if (activityData.displayProperties.name.includes("Грандмастер")) {
+            return `${activityData.selectionScreenDisplayProperties.name}: ${activityData.displayProperties.description}`;
+        }
     }
     return manifestTitle;
 }
@@ -97,7 +104,7 @@ async function logActivityCompletion(pgcrId) {
     checkedPGCRIds.add(pgcrId);
     const { mode, referenceId } = response.activityDetails;
     const manifestData = (await GetManifest("DestinyActivityDefinition"))[referenceId];
-    const activityTitle = getActivityTitle(referenceId, manifestData.displayProperties.name);
+    const activityTitle = await getActivityTitle(referenceId, manifestData.displayProperties.name);
     const activityReplacedTime = response.entries[0].values.activityDurationSeconds.basic.displayValue
         .replace("h", "ч")
         .replace("m", "м")

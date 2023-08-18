@@ -1,8 +1,8 @@
 import { ActivityType, ChannelType, Client, Collection, GatewayIntentBits, Partials, } from "discord.js";
 import { join, resolve } from "path";
 import checkClanActivitiesPeriodically from "../core/periodicActivityChecker.js";
+import handleMemberStatistics from "../core/statisticsChecker/userStatisticsManagement.js";
 import tokenManagment from "../core/tokenManagement.js";
-import handleMemberStatistics from "../core/userStatisticsManagement.js";
 import fetchNewsArticles from "../utils/api/bungieRssFetcher.js";
 import { fetchGlobalAlerts } from "../utils/api/globalAlertsFetcher.js";
 import { voiceChannelJoinTimestamps } from "../utils/discord/userActivityHandler.js";

@@ -20,7 +20,14 @@ export async function clanOnlineMemberActivityChecker() {
         for (const [discordId, { membershipId, platform }] of checkingUsers) {
             if (getEndpointStatus("activity") !== 1)
                 return;
-            const response = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204`);
+            let response;
+            try {
+                response = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204`);
+            }
+            catch (error) {
+                console.error("[Error code: 1997]", error);
+                continue;
+            }
             if (!response || !response.characterActivities) {
                 console.error(`[Error code: 1612] ${platform}/${membershipId} of ${discordId}`, response);
                 break;
