@@ -23,7 +23,7 @@ function extractMediaUrl(content, preferable = "image") {
     return null;
 }
 function clearText(content) {
-    return content
+    return (content
         .replace(/&nbsp;/g, " ")
         .replace(/<br\s*\/?>/gi, "\n")
         .replace(/&gt;/gi, ">")
@@ -31,10 +31,10 @@ function clearText(content) {
         .replace(/&amp;/gi, "&")
         .replace(/&quot;/gi, '"')
         .replace(/&apos;/gi, "'")
-        .replace(/<div class="rsshub-quote">[\s\S]*?<\/div>|<[^>]*>|https:\/\/t\.co\/\S+|https:\/\/twitter\.com\/i\/web\/status\/\S+/g, "")
+        .replace(/<div class="rsshub-quote">[\s\S]*?<\/div>|<[^>]*>/g, "")
         .replace(/^Re /, "")
         .replace(/^ +/gm, (match) => "\u00A0".repeat(match.length))
-        .trim();
+        .trim());
 }
 async function generateTwitterEmbed({ twitterData, author, icon, url, originalEmbed }) {
     if (!twitterData.content)
@@ -45,7 +45,7 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
         return;
     }
     let components = [];
-    const embedMedia = originalEmbed?.data && originalEmbed.data.thumbnail?.url;
+    const embedMedia = originalEmbed?.data && (originalEmbed.data.thumbnail?.url || originalEmbed.data.image?.url || originalEmbed.data.video?.url);
     const extractedMedia = embedMedia || extractMediaUrl(twitterData.content)?.replaceAll("&amp;", "&");
     const replacedDescription = replaceTimeWithEpoch(cleanContent);
     let tranlsatedContent = null;
