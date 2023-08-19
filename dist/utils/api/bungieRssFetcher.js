@@ -1,9 +1,9 @@
 import { ButtonBuilder, ButtonStyle } from "discord.js";
 import { client } from "../../index.js";
-import { translateDestinyText } from "../discord/twitterHandler/twitterMessageParser.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import { originalTweetData, twitterOriginalVoters } from "../persistence/dataStore.js";
 import { sendApiRequest } from "./sendApiRequest.js";
+import translateDestinyText from "./translateDestinyText.js";
 let lastFetchedArticles = null;
 const checkedUrls = new Set();
 async function fetchNewsArticles() {
@@ -12,7 +12,7 @@ async function fetchNewsArticles() {
         const response = await sendApiRequest(url);
         const currentArticles = response?.NewsArticles;
         if (!response || !currentArticles) {
-            console.error("[Error code: 1944] Invalid response from Bungie API");
+            console.error("[Error code: 1944] Invalid response from Bungie API", response);
             return;
         }
         if (lastFetchedArticles === null) {

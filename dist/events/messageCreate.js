@@ -9,6 +9,7 @@ import { handleDm } from "../utils/discord/dmHandler.js";
 import { handleLfgMessage } from "../utils/discord/lfgSystem/handleLFG.js";
 import { generatePatchNotes } from "../utils/discord/patchnoteGenerator.js";
 import sendRegistrationLink from "../utils/discord/registration.js";
+import parseTwitterLinkMessage from "../utils/discord/twitterHandler/parseTwitterLink.js";
 import { cacheUserActivity } from "../utils/discord/userActivityHandler.js";
 async function handleMessage(message) {
     if (message.channelId === process.env.MANIFEST_CHANNEL_ID) {
@@ -29,6 +30,10 @@ async function handleMessage(message) {
         message.member?.permissions.has("Administrator") &&
         !workingCollectors.has(message.author.id)) {
         return manageAdminDMChannel(message);
+    }
+    if (message.channelId === process.env.ENGLISH_NEWS_CHANNEL_ID &&
+        message.content.match(/^https:\/\/twitter\.com\/[a-zA-Z0-9_]{1,15}\/status\/\d+$/)) {
+        return parseTwitterLinkMessage(message);
     }
     if (message.member?.roles.cache.has(process.env.VERIFIED)) {
         cacheUserActivity({ userId: message.author.id, messageId: message.id });

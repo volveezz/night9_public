@@ -1,9 +1,10 @@
-import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle } from "discord.js";
 import { client } from "../../../index.js";
-import openai from "../../../structures/OpenAI.js";
+import translateDestinyText from "../../api/translateDestinyText.js";
 import { addButtonsToMessage } from "../../general/addButtonsToMessage.js";
 import { originalTweetData, twitterOriginalVoters } from "../../persistence/dataStore.js";
 import convertMp4ToGif from "./mp4IntoGif.js";
+import resolveAuthor from "./resolveAuthor.js";
 import { processTwitterGifFile } from "./saveGifInChannel.js";
 let publicNewsChannel = null;
 function extractMediaUrl(content, preferable = "image") {
@@ -35,48 +36,17 @@ function clearText(content) {
         .replace(/^ +/gm, (match) => "\u00A0".repeat(match.length))
         .trim();
 }
-async function generateTwitterEmbed(twitterData, author, icon) {
+async function generateTwitterEmbed({ twitterData, author, icon, url, originalEmbed }) {
     if (!twitterData.content)
         return;
-    const resolveAuthor = () => {
-        const embed = new EmbedBuilder();
-        switch (author) {
-            case 2:
-                return embed.setColor("#d3d2d0").setAuthor({
-                    name: "Bungie",
-                    iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1130624168568823899/BW5plrkw_400x400.png",
-                    url: twitterData.link,
-                });
-            case 3:
-                return embed.setColor("#FFA500").setAuthor({
-                    name: "BungieHelp",
-                    iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1097538580571758612/vNe1WM28_400x400.png",
-                    url: twitterData.link,
-                });
-            case 1:
-                return embed.setColor("#8fcdf6").setAuthor({
-                    name: "DestinyTheGame",
-                    iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1097538571142963280/1hh-HGZb_400x400.png",
-                    url: twitterData.link,
-                });
-            case 4:
-                return embed.setColor("#68EDFF").setAuthor({
-                    name: "Destiny2Team",
-                    iconURL: icon || "https://cdn.discordapp.com/attachments/679191036849029167/1098350594575577188/zPtKbIQx.jpg",
-                    url: twitterData.link,
-                });
-            default:
-                break;
-        }
-        return embed;
-    };
     const cleanContent = clearText(twitterData.content);
     if (!cleanContent || cleanContent.length === 0) {
         console.error("[Error code: 1754]", twitterData);
-        return null;
+        return;
     }
     let components = [];
-    const extractedMedia = extractMediaUrl(twitterData.content)?.replaceAll("&amp;", "&");
+    const embedMedia = originalEmbed?.data && originalEmbed.data.thumbnail?.url;
+    const extractedMedia = embedMedia || extractMediaUrl(twitterData.content)?.replaceAll("&amp;", "&");
     const replacedDescription = replaceTimeWithEpoch(cleanContent);
     let tranlsatedContent = null;
     try {
@@ -92,7 +62,12 @@ async function generateTwitterEmbed(twitterData, author, icon) {
     catch (error) {
         console.error("[Error code: 1967]", error);
     }
-    const embed = resolveAuthor().setDescription(tranlsatedContent && tranlsatedContent.length > 1 ? tranlsatedContent : replacedDescription.length > 0 ? replacedDescription : null);
+    const embed = resolveAuthor({ author, icon, url });
+    if (!embed) {
+        console.error("[Error code: 1998]", embed, author, icon, url);
+        return;
+    }
+    embed.setDescription(tranlsatedContent && tranlsatedContent.length > 1 ? tranlsatedContent : replacedDescription.length > 0 ? replacedDescription : null);
     if (extractedMedia) {
         embed.setImage(extractedMedia);
     }
@@ -116,112 +91,6 @@ async function convertVideoToGif(videoUrl, message, embed) {
     if (!gifUrl)
         return;
     processTwitterGifFile(gifUrl, message, embed);
-}
-export async function translateDestinyText(sourceText) {
-    if (!sourceText || sourceText.length <= 1) {
-        return sourceText;
-    }
-    const prompt = `Translate the following text into Russian, while adhering to the context of the game "Destiny." Any game-specific terms, items, character names, locations, or other specialized vocabulary should remain in their original English form or use known translations provided in examples below. Your answer should be the translation of the text, do not answer with explanations or additional notes.
-
-Translated dataset:
-{
-"Forsaken": "Отвергнутые",
-"Shadowkeep": "Обитель теней",
-"Beyond Light": "За гранью Света",
-"The Witch Queen": "Королева-ведьма",
-"Lightfall": "Конец Света",
-"The Final Shape": "Финальная Форма",
-"30th Anniversary Pack": "Пак 30-летия",
-"Season Pass": "Сезонный пропуск",
-"Crucible": "Горнило",
-"Trials of Osiris": "Испытания Осириса",
-"Strike": "Налет",
-"Nightfall": "Сумрачный налет",
-"Gambit": "Гамбит",
-"Dungeon": "Подземелье",
-"Shattered Throne": "Расколотый Трон",
-"Pit of Heresy": "Яма Ереси",
-"Prophecy": "Откровение",
-"Last Wish": "Последнее Желание",
-"Garden of Salvation": "Сад Спасения",
-"Deep Stone Crypt": "Склеп Глубокого камня",
-"Vault of Glass": "Хрустальный чертог",
-"Root of Nightmares": "Источник Кошмаров",
-"Vow of the Disciple": "Клятва Послушника",
-"King’s Fall": "Гибель Короля",
-"Duality": "Дуальность",
-"Grasp of Avarice": "Тиски алчности",
-"Spire of the Watcher": "Шпиль хранителя",
-"Ghosts of the Deep": "Призраки Глубин",
-"The Lightblade": "Клинок Света",
-"Solstice": "Солнцестояние",
-"The Dawning": "Рассвет",
-"Iron Banner": "Железное знамя",
-"Festival of the Lost": "Фестиваль Усопших",
-"Guardian Games": "Игры Стражей",
-"The Immortal": "Бесмертный",
-"Witherhoard": "Горстка пепла",
-"Arbalest": "Арбалет",
-"Gjallarhorn": "Гьяллархорн",
-"Osteo Striga": "Остео Стрига",
-"Xenophage": "Ксенофаг",
-"Izanagi’s Burden": "Бремя Идзанаги",
-"Outbreak Perfected": "Идеальная эпидемия",
-"Divinity": "Божественность",
-"Anarchy": "Анархия",
-"The Lament": "Плач",
-"Vanguard": "Авангард",
-"Taken": "Одержимые",
-"Vex": "Вексы",
-"Shadow Legion": "Легион Теней",
-"Lucent Hive": "Сияющий улей",
-"Saint-14": "Сейнт-14",
-"Cayde": "Кейд",
-"Rhulk": "Рулк",
-"Xivu Arath": "Зиву Арат",
-"The Traveler": "Странник",
-"Postmaster": "Почтмейстер",
-"Xur": "Зур",
-"Ascendant Shard": "Высший осколок",
-"Ascendant Alloy": "Высший сплав",
-"Enhancement Prism": "Улучшающая призма",
-"Masterwork": "Абсолют",
-"Player Removal": "Отключение игроков",
-"Adept": "Адепт",
-"Fireteam": "Боевая группа",
-"Hive Rune": "Руна Улья",
-"Veil Containment": "Защитная оболочка вуали",
-"Veil": "Вуаль",
-"Guardian Rank": "Ранг Стража",
-"Developer Insights": "Комментарии разработчиков",
-"Community Focus": "Сообщество в фокусе",
-"Strand": "Нить",
-"Hunter": "Охотник",
-"Warlock": "Варлок",
-"Titan": "Титан",
-"European Dead Zone": "Европейская мертвая зона",
-"Savathun": "Саватун",
-"UPCOMING DESTINY BACKGROUND MAINTENANCE": "Предстоящее фоновое техническое обслуживание Destiny",
-"Bounties": "Контракты",
-"Destination": "Пункт назначения",
-"TIMELINE": "Время"
-}`;
-    const output = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        temperature: 0,
-        top_p: 1,
-        messages: [
-            { role: "system", name: "prompt", content: prompt },
-            { role: "user", name: "translation", content: `Translate the following text: ###\n${sourceText}\n###` },
-        ],
-    });
-    let outputText = output.choices[0].message?.content;
-    if (!outputText)
-        return null;
-    outputText = outputText.replace(/^Translate the following text[:\n]*/, "");
-    outputText = outputText.replace(/^###/, "");
-    outputText = outputText.trim();
-    return outputText;
 }
 function replaceTimeWithEpoch(text) {
     const dateRegex = /❖\s+((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d+)/i;

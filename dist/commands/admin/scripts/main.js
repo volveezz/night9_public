@@ -29,7 +29,7 @@ const SlashCommand = new Command({
         const defferedReply = interaction.deferReply({ ephemeral: true });
         const scriptId = args.getString("script", true).toLowerCase();
         switch (scriptId) {
-            case "exportraiddata": {
+            case "exportraidguide": {
                 exportCodeToFile(interaction, defferedReply);
                 return;
             }
@@ -52,7 +52,7 @@ const SlashCommand = new Command({
                 const feed = await parser.parseURL(`https://n9-rss.up.railway.app/twitter/user/destiny2team?readable=0&limit=1`);
                 const entry = feed.items[0];
                 const author = getBungieTwitterAuthor(entry.creator);
-                await generateTwitterEmbed(entry, author, feed.image?.url);
+                await generateTwitterEmbed({ twitterData: entry, author, icon: feed.image?.url, url: entry.link });
                 function getBungieTwitterAuthor(creator) {
                     switch (creator) {
                         case "Destiny 2":

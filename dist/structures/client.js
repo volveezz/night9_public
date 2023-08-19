@@ -10,7 +10,7 @@ import { clanOnlineMemberActivityChecker } from "../utils/general/activityComple
 import getFiles from "../utils/general/fileReader.js";
 import raidFireteamChecker from "../utils/general/raidFunctions/raidFireteamChecker.js";
 import { loadNotifications } from "../utils/general/raidFunctions/raidNotifications.js";
-import { cacheRaidMilestones } from "../utils/general/raidMilestones.js";
+import cacheRaidMilestones from "../utils/general/raidMilestones.js";
 import { pause } from "../utils/general/utilities.js";
 import { restoreFetchedPGCRs } from "../utils/logging/activityLogger.js";
 import { lastAlertKeys, processedRssLinks } from "../utils/persistence/dataStore.js";

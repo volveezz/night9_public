@@ -1,10 +1,10 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
 import { client } from "../../index.js";
-import { translateDestinyText } from "../discord/twitterHandler/twitterMessageParser.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import { lastAlertKeys, originalTweetData, twitterOriginalVoters } from "../persistence/dataStore.js";
 import { sendApiRequest } from "./sendApiRequest.js";
+import translateDestinyText from "./translateDestinyText.js";
 let newsChannel = null;
 const alertLevelColors = {
     [0]: "Grey",

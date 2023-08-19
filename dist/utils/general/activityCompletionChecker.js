@@ -1,11 +1,10 @@
 import { GetManifest } from "../api/ManifestManager.js";
 import { sendApiRequest } from "../api/sendApiRequest.js";
 import { getEndpointStatus } from "../api/statusCheckers/statusTracker.js";
-import { clanOnline } from "../persistence/dataStore.js";
+import { clanOnline, raidMilestoneHashes } from "../persistence/dataStore.js";
 import { AuthData } from "../persistence/sequelize.js";
 import { getRaidDetails } from "./raidFunctions.js";
 import { getWeeklyRaidActivityHashes } from "./raidFunctions/gerWeeklyRaid.js";
-import { raidMilestoneHashes } from "./raidMilestones.js";
 import { pause } from "./utilities.js";
 export const completedPhases = new Map();
 const activityDefinition = await GetManifest("DestinyActivityDefinition");
@@ -49,7 +48,7 @@ export async function clanOnlineMemberActivityChecker() {
                     continue;
                 }
                 if (!raidMilestoneHash) {
-                    console.error(`[Error code: 1440] No raid milestone data for user ${authData.bungieId}\n${activeCharacter.currentActivityHash} - ${raidMilestoneHash}\n`, JSON.parse(activeCharacter.toString()));
+                    console.error(`[Error code: 1440] No raid milestone data for user ${authData.bungieId}\n${activeCharacter.currentActivityHash} - ${raidMilestoneHash}`);
                     continue;
                 }
                 activityCompletionChecker({
@@ -60,7 +59,7 @@ export async function clanOnlineMemberActivityChecker() {
                     discordId,
                 });
             }
-            await pause(4000);
+            await pause(3333);
         }
     }, 60 * 1000 * 8);
 }
@@ -101,14 +100,14 @@ async function fetchCharacterResponse({ bungieId, characterId, platform, }) {
             where: { bungieId },
             attributes: ["accessToken"],
         });
-        if (authData && authData.accessToken) {
+        if (authData) {
             const response = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${bungieId}/Character/${characterId}/?components=202,204`, {
                 accessToken: authData.accessToken,
             });
             return response;
         }
         else {
-            console.error(`[Error code: 1657] No accessToken for ${bungieId}`);
+            console.error(`[Error code: 1657] No authorization data was found for ${bungieId}`);
             return null;
         }
     }

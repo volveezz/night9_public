@@ -15,9 +15,6 @@ import { AuthData, RaidEvent, UserActivityData } from "../persistence/sequelize.
 const hashToImageMap = {
     313828469: "https://cdn.discordapp.com/attachments/679191036849029167/1111828224956170290/2023_Ghost_of_the_Deep_Press_Kit_Dungeon_LARGE_002.jpg",
     2716998124: "https://cdn.discordapp.com/attachments/679191036849029167/1111828224956170290/2023_Ghost_of_the_Deep_Press_Kit_Dungeon_LARGE_002.jpg",
-    700101128: "https://cdn.discordapp.com/attachments/679191036849029167/1089134183386984569/season_20_battleground_exeter.png",
-    2572988947: "https://cdn.discordapp.com/attachments/679191036849029167/1089134184016130088/season_20_battleground_turnabout.png",
-    1368255375: "https://cdn.discordapp.com/attachments/679191036849029167/1089134183747690516/season_20_battleground_bulkhead.png",
 };
 const checkedPGCRIds = new Set();
 const ACTIVITY_LEAVE_TIME = 300;
@@ -35,10 +32,6 @@ async function restoreFetchedPGCRs() {
 }
 function findCorrectedName(hash) {
     switch (hash) {
-        case 313828469:
-            return "Призраки Глубин: Нормальный";
-        case 2716998124:
-            return "Призраки Глубин: Мастер";
         default:
             return "Засекречено";
     }
@@ -59,7 +52,7 @@ async function getActivityTitle(hash, manifestTitle) {
         const activityManifest = await GetManifest("DestinyActivityDefinition");
         const activityData = activityManifest[hash];
         if (activityData.displayProperties.name.includes("Грандмастер")) {
-            return `${activityData.selectionScreenDisplayProperties.name}: ${activityData.displayProperties.description}`;
+            return `Грандмастер: ${activityData.displayProperties.description}`;
         }
     }
     return manifestTitle;
