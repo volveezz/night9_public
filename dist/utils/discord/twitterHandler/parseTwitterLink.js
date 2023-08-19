@@ -1,17 +1,14 @@
 import { pause } from "../../general/utilities.js";
 import { generateTwitterEmbed } from "./twitterMessageParser.js";
 async function parseTwitterLinkMessage(message) {
-    console.debug("Received a message that looks like a Twitter link. Parsing it...");
     let embed = message.embeds[0];
     let attempts = 0;
     while (!embed?.author?.name && attempts < 3) {
-        console.debug(`Message doesn't contain embed or author field. Attempting to fetch embed from message...`);
         await pause(attempts * 500 + 500);
         embed = (await message.fetch()).embeds[0];
         attempts++;
     }
     if (!embed?.author?.name) {
-        console.debug("Failed to get embed from the message, exiting...");
         return;
     }
     const author = getBungieTwitterAuthor(embed.author.name);
@@ -39,7 +36,7 @@ function getBungieTwitterAuthor(author) {
         case "Destiny 2 Team":
             return 4;
         default:
-            return null;
+            return 0;
     }
 }
 export default parseTwitterLinkMessage;

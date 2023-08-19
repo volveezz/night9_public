@@ -75,12 +75,14 @@ const ButtonCommand = new Button({
                 activeAwaiters.delete(interaction.user.id);
         }, 1000 * 60 * 5);
         try {
-            const userInteraction = await interaction.message.channel.awaitMessageComponent({
+            const userInteraction = await interaction.message.channel
+                .awaitMessageComponent({
                 time: 1000 * 60 * 5,
                 filter: (btnI) => btnI.user.id === interaction.user.id,
                 componentType: ComponentType.Button,
-            });
-            if (activeAwaiters.get(interaction.user.id)?.uniqueId !== uniqueId || !userInteraction) {
+            })
+                .catch();
+            if (!userInteraction || activeAwaiters.get(interaction.user.id)?.uniqueId !== uniqueId) {
                 console.info("Received an incorrect interaction component");
                 return;
             }

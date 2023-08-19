@@ -62,7 +62,7 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
     catch (error) {
         console.error("[Error code: 1967]", error);
     }
-    const embed = resolveAuthor({ author, icon, url });
+    const embed = resolveAuthor({ author, icon, url, originalAuthor: originalEmbed?.author?.name?.replace(/\s\(@\w+\)/, "") });
     if (!embed) {
         console.error("[Error code: 1998]", embed, author, icon, url);
         return;

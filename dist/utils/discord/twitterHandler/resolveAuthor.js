@@ -1,5 +1,5 @@
 import { EmbedBuilder } from "discord.js";
-function resolveAuthor({ author, icon, url }) {
+function resolveAuthor({ author, icon, url, originalAuthor }) {
     const embed = new EmbedBuilder();
     switch (author) {
         case 2:
@@ -27,9 +27,12 @@ function resolveAuthor({ author, icon, url }) {
                 url,
             });
         default:
-            break;
+            return embed.setColor("#006CFF").setAuthor({
+                name: originalAuthor || "Автор",
+                iconURL: icon,
+                url,
+            });
     }
-    return embed;
 }
 export default resolveAuthor;
 //# sourceMappingURL=resolveAuthor.js.map
