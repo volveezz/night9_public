@@ -51,7 +51,7 @@ const ButtonCommand = new Button({
             const clanInviteRequest = await sendApiPostRequest({
                 apiEndpoint: `/Platform/GroupV2/${process.env.GROUP_ID}/Members/IndividualInvite/${invitee_platform}/${invitee_bungieId}/`,
                 requestData: { description: "Автоматическое приглашение в клан Night 9" },
-                authToken: inviter_accessToken,
+                accessToken: inviter_accessToken,
                 shouldReturnResponse: false,
             });
             const embed = getEmbedResponse(clanInviteRequest.ErrorCode);

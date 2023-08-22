@@ -31,8 +31,8 @@ async function handleMessage(message) {
         !workingCollectors.has(message.author.id)) {
         return manageAdminDMChannel(message);
     }
-    if (message.channelId === process.env.ENGLISH_NEWS_CHANNEL_ID &&
-        message.content.match(/^https:\/\/twitter\.com\/[a-zA-Z0-9_]{1,15}\/status\/\d+$/)) {
+    if (message.channelId === process.env.TWITTER_MESSAGES_CHANNEL_ID &&
+        message.content.match(/(?:\[Tweeted]\(\))?https:\/\/twitter\.com\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/)) {
         return parseTwitterLinkMessage(message);
     }
     if (message.member?.roles.cache.has(process.env.VERIFIED)) {

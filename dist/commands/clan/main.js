@@ -321,7 +321,7 @@ const handleManagement = async (interaction, clanMembers, defferedReply) => {
     const setUserRank = async (rank) => {
         return await sendApiPostRequest({
             apiEndpoint: `/Platform/GroupV2/${process.env.GROUP_ID}/Members/${userData.platform}/${userData.bungieId}/SetMembershipType/${rank}/`,
-            authToken: await getAdminAccessToken(interaction),
+            accessToken: await getAdminAccessToken(interaction),
             shouldReturnResponse: false,
         });
     };
@@ -455,7 +455,7 @@ const sendInviteToClan = async (interaction, defferedReply, args) => {
     const accessToken = await getAdminAccessToken(interaction);
     const invitePost = await sendApiPostRequest({
         apiEndpoint: `/Platform/GroupV2/${process.env.GROUP_ID}/Members/IndividualInvite/${platform}/${bungieId}/`,
-        authToken: accessToken,
+        accessToken: accessToken,
         requestData: {
             message: "Приглашение в клан Night 9",
         },

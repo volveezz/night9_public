@@ -111,7 +111,7 @@ async function clanMembersManagement(databaseData) {
                         }
                         else if (typeof isUserMeetsRequirements === "string") {
                             const { platform, accessToken, bungieId } = memberAuthData;
-                            kickClanMember(platform, bungieId, accessToken);
+                            await kickClanMember(platform, bungieId, accessToken);
                             if (!recentlyNotifiedKickedMembers.has(bungieId)) {
                                 await notifyUserNotMeetRequirements(memberAuthData, isUserMeetsRequirements);
                             }

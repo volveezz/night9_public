@@ -1,4 +1,4 @@
-const seasonalRoles = { curSeasonRole: process.env.CUR_SEASON_ROLE, nonCurSeasonRole: process.env.NON_CUR_SEASON_ROLE };
+const seasonalRoles = { currentSeasonRole: process.env.CUR_SEASON_ROLE, nonCurrentSeasonRole: process.env.NON_CUR_SEASON_ROLE };
 const dlcRoles = {
     vanilla: process.env.VANILLA,
     frs: process.env.FRS,

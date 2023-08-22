@@ -30,18 +30,30 @@ export async function checkEndpointStatus(endpoint) {
 }
 async function handleApiCall(endpointURL, accessToken) {
     if (endpointURL === "oauth") {
-        const status = await requestTokenRefresh({ userId: process.env.OWNER_ID }).catch((e) => {
-            console.error("[Error code: 1969]", e);
-            return null;
-        });
-        return status != null && status.refresh_token != null ? 1 : 5;
+        try {
+            console.debug("Making a Token Refresh request");
+            const status = await requestTokenRefresh({ userId: process.env.OWNER_ID });
+            console.debug(`Token refresh completed, status: ${status != null && status.refresh_token != null ? 1 : 5}`);
+            return status != null && status.refresh_token != null ? 1 : 5;
+        }
+        catch (error) {
+            console.error("[Error code: 1969]", error);
+            return 5;
+        }
     }
-    const request = await sendApiRequest(endpointURL, accessToken, false).catch((e) => {
-        console.error("[Error code: 1970]", e);
-        return null;
-    });
-    if (request && request.ErrorCode != null)
-        return request.ErrorCode;
+    try {
+        console.debug("Making a request to", endpointURL);
+        const request = await sendApiRequest(endpointURL, accessToken, true);
+        console.debug("Made a request to", endpointURL, "and got", request.ErrorCode);
+        if (request && request.ErrorCode != null) {
+            console.debug(`[Error code: 2000] Error code for ${endpointURL} is ${request.ErrorCode}`);
+            return request.ErrorCode;
+        }
+    }
+    catch (error) {
+        console.error("[Error code: 1970]", error);
+        return 5;
+    }
     return 5;
 }
 //# sourceMappingURL=endpointStatusChecker.js.map

@@ -47,7 +47,7 @@ const SlashCommand = new Command({
         }
         const profileUrl = `/Platform/Destiny2/${authData.platform}/Profile/${authData.bungieId}/?components=200`;
         const userProfile = await sendApiRequest(profileUrl, authData.accessToken);
-        if (!userProfile || !userProfile?.characters?.data)
+        if (!userProfile || !userProfile.characters?.data)
             throw { name: "Произошла ошибка на стороне Bungie" };
         const activityDefinition = await GetManifest("DestinyActivityDefinition");
         const activityManifest = args.getBoolean("все-активности") === true

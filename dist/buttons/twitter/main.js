@@ -55,7 +55,7 @@ const ButtonCommand = new Button({
     run: async ({ interaction }) => {
         const interactionReply = await handleMessageInteraction(interaction);
         if (!interactionReply) {
-            console.error("[Error code: 1987]", interactionReply);
+            console.error(`[Error code: 1999] Error, not found a translation data for message ${interaction.message.id}`);
             return;
         }
         const uniqueId = Symbol();

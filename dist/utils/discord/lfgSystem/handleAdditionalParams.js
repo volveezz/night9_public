@@ -20,10 +20,10 @@ const dlcRoleMappings = {
     "--witchqueen": dlcRoles.twq,
     "--lf": dlcRoles.lf,
     "--lightfall": dlcRoles.lf,
-    "--season": seasonalRoles.curSeasonRole,
-    "--curseason": seasonalRoles.curSeasonRole,
-    "--currentseason": seasonalRoles.curSeasonRole,
-    "--seasonal": seasonalRoles.curSeasonRole,
+    "--season": seasonalRoles.currentSeasonRole,
+    "--curseason": seasonalRoles.currentSeasonRole,
+    "--currentseason": seasonalRoles.currentSeasonRole,
+    "--seasonal": seasonalRoles.currentSeasonRole,
 };
 const inviteMap = {
     "--noinvite": false,

@@ -1,6 +1,6 @@
-export async function sendApiPostRequest({ apiEndpoint, authToken, requestData, shouldReturnResponse }) {
+export async function sendApiPostRequest({ apiEndpoint, accessToken, requestData, shouldReturnResponse }) {
     const apiUrl = `https://www.bungie.net${apiEndpoint}`;
-    const headers = createHeaders(authToken);
+    const headers = createHeaders(accessToken);
     const options = createRequestOptions(headers, requestData);
     try {
         const response = await fetch(apiUrl, options);

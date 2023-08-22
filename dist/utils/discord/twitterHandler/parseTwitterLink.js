@@ -3,7 +3,7 @@ import { generateTwitterEmbed } from "./twitterMessageParser.js";
 async function parseTwitterLinkMessage(message) {
     let embed = message.embeds[0];
     let attempts = 0;
-    while (!embed?.author?.name && attempts < 3) {
+    while (!embed?.author?.name && attempts < 5) {
         await pause(attempts * 500 + 500);
         embed = (await message.fetch()).embeds[0];
         attempts++;
@@ -13,8 +13,9 @@ async function parseTwitterLinkMessage(message) {
     }
     const author = getBungieTwitterAuthor(embed.author.name);
     const content = embed.description;
-    if (!author || !content)
+    if (!author || !content) {
         return;
+    }
     await generateTwitterEmbed({
         twitterData: { content },
         author,
@@ -36,7 +37,7 @@ function getBungieTwitterAuthor(author) {
         case "Destiny 2 Team":
             return 4;
         default:
-            return 0;
+            return 5;
     }
 }
 export default parseTwitterLinkMessage;

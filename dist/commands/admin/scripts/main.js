@@ -1,5 +1,6 @@
 import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
 import Parser from "rss-parser";
+import { Op } from "sequelize";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
 import { dungeonsTriumphHashes, roleRequirements } from "../../../configs/roleRequirements.js";
@@ -9,6 +10,7 @@ import { Command } from "../../../structures/command.js";
 import { GetManifest } from "../../../utils/api/ManifestManager.js";
 import { generateTwitterEmbed } from "../../../utils/discord/twitterHandler/twitterMessageParser.js";
 import calculateVoteResults from "../../../utils/discord/twitterHandler/twitterTranslationVotes.js";
+import { addButtonsToMessage } from "../../../utils/general/addButtonsToMessage.js";
 import { convertSeconds } from "../../../utils/general/convertSeconds.js";
 import { pause } from "../../../utils/general/utilities.js";
 import { AuthData, AutoRoleData, UserActivityData } from "../../../utils/persistence/sequelize.js";
@@ -29,6 +31,32 @@ const SlashCommand = new Command({
         const defferedReply = interaction.deferReply({ ephemeral: true });
         const scriptId = args.getString("script", true).toLowerCase();
         switch (scriptId) {
+            case "notiunreg": {
+                const embed = new EmbedBuilder()
+                    .setColor(colors.serious)
+                    .setAuthor({ name: "Приветствуем! Важное оповещение", iconURL: icons.notify })
+                    .setDescription(`Вы всё ещё не обновили данные своей регистрации после [сброса данных](https://discord.com/channels/604967226243809302/690969928353710148/1141125205406777354). Для обновления нажмите кнопку «Обновить регистрацию» ниже или введите команду \`/init\`.
+Если вы не обновите данные до 10 сентября, вы будете исключены из клана.
+
+Не забудьте о скорой презентации следующего дополнения и сезона; обсудить её можно будет в [голосовых каналах](https://discord.gg/xHAzB6qU) во время презентации в <t:1692720000>, <t:1692720000:R> (пре-шоу начнётся в <t:1692716400:R>).`);
+                const components = [
+                    new ButtonBuilder().setCustomId("initEvent_register").setLabel("Обновить регистрацию").setStyle(ButtonStyle.Primary),
+                ];
+                const membersToSend = await AuthData.findAll({
+                    where: { [Op.and]: { accessToken: null, clan: true, refreshToken: null } },
+                    attributes: ["discordId"],
+                });
+                for (const { discordId } of membersToSend) {
+                    const member = client.getCachedMembers().get(discordId) || (await client.getAsyncMember(discordId));
+                    if (!member) {
+                        console.debug(`Failed to fetch user ${discordId}`);
+                        continue;
+                    }
+                    await member.send({ embeds: [embed], components: addButtonsToMessage(components) });
+                    console.debug(`Sent message to ${member.displayName}`);
+                }
+                return;
+            }
             case "exportraidguide": {
                 exportCodeToFile(interaction, defferedReply);
                 return;
@@ -143,7 +171,7 @@ const SlashCommand = new Command({
                         .join("\n")}`,
                 }, {
                     name: "⁣",
-                    value: `\`\`\`fix\nРоли за дополнения\`\`\`\n　╭✧<@&${seasonalRoles.curSeasonRole}>\n　︰За наличие сезонного пропуска\n　╰✧<@&${seasonalRoles.nonCurSeasonRole}>\n\n- <@&${dlcRoles.frs}> — за покупку Отвергнутых\n- <@&${dlcRoles.sk}> — за покупку Обители Теней\n- <@&${dlcRoles.bl}> — за покупку За гранью Света\n- <@&${dlcRoles.anni}> — за покупку набора к 30-летию\n- <@&${dlcRoles.twq}> — за покупку Королевы-ведьмы\n- <@&${dlcRoles.lf}> — за покупку Конца Света`,
+                    value: `\`\`\`fix\nРоли за дополнения\`\`\`\n　╭✧<@&${seasonalRoles.currentSeasonRole}>\n　︰За наличие сезонного пропуска\n　╰✧<@&${seasonalRoles.nonCurrentSeasonRole}>\n\n- <@&${dlcRoles.frs}> — за покупку Отвергнутых\n- <@&${dlcRoles.sk}> — за покупку Обители Теней\n- <@&${dlcRoles.bl}> — за покупку За гранью Света\n- <@&${dlcRoles.anni}> — за покупку набора к 30-летию\n- <@&${dlcRoles.twq}> — за покупку Королевы-ведьмы\n- <@&${dlcRoles.lf}> — за покупку Конца Света`,
                 });
                 const classRolesRaw = new EmbedBuilder()
                     .setTitle("Классовые роли")
