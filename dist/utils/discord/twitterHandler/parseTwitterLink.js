@@ -26,7 +26,10 @@ async function parseTwitterLinkMessage(message) {
     message.delete();
 }
 function getBungieTwitterAuthor(author) {
-    const cleanedAuthor = author.replace(/\s\(@\w+\)/, "");
+    const cleanedAuthor = author
+        .replace(/\s\(@\w+\)/, "")
+        .replace("✧", "")
+        .trim();
     switch (cleanedAuthor) {
         case "Destiny 2":
             return 1;

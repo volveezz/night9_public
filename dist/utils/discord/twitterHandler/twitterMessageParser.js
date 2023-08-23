@@ -7,34 +7,18 @@ import convertMp4ToGif from "./mp4IntoGif.js";
 import resolveAuthor from "./resolveAuthor.js";
 import { processTwitterGifFile } from "./saveGifInChannel.js";
 let publicNewsChannel = null;
-function extractMediaUrl(content, preferable = "image") {
+function extractMediaUrl(content) {
     if (!content)
         return null;
-    const imgRegex = /(https?:\/\/[^"]*?(?:png|jpg|jpeg|gif)(?:&amp;[^"]*)?)/g;
-    const videoRegex = /(https?:\/\/[^"]*?\.mp4[^"]*)/g;
-    const imgMatch = content.match(imgRegex);
+    const videoRegex = /⏵\s*\[1\]\((https?:\/\/[^\)]+)\)/;
     const videoMatch = content.match(videoRegex);
-    if (preferable === "image") {
-        return imgMatch ? imgMatch[1] || imgMatch[0] : null;
-    }
-    else if (preferable === "video") {
-        return videoMatch ? videoMatch[1] || videoMatch[0] : null;
-    }
-    return null;
+    return videoMatch ? videoMatch[1] : null;
 }
 function clearText(content) {
-    return (content
-        .replace(/&nbsp;/g, " ")
-        .replace(/<br\s*\/?>/gi, "\n")
-        .replace(/&gt;/gi, ">")
-        .replace(/&lt;/gi, "<")
-        .replace(/&amp;/gi, "&")
-        .replace(/&quot;/gi, '"')
-        .replace(/&apos;/gi, "'")
-        .replace(/<div class="rsshub-quote">[\s\S]*?<\/div>|<[^>]*>/g, "")
-        .replace(/^Re /, "")
+    return content
+        .replace(/⏵\s*\[\d+\]\((https?:\/\/[^\)]+)\)/g, "")
         .replace(/^ +/gm, (match) => "\u00A0".repeat(match.length))
-        .trim());
+        .trim();
 }
 async function generateTwitterEmbed({ twitterData, author, icon, url, originalEmbed }) {
     if (!twitterData.content)
@@ -46,7 +30,7 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
     }
     let components = [];
     const embedMedia = originalEmbed?.data && (originalEmbed.data.thumbnail?.url || originalEmbed.data.image?.url || originalEmbed.data.video?.url);
-    const extractedMedia = embedMedia || extractMediaUrl(twitterData.content)?.replaceAll("&amp;", "&");
+    const extractedMedia = extractMediaUrl(twitterData.content) || embedMedia;
     const replacedDescription = replaceTimeWithEpoch(cleanContent);
     let tranlsatedContent = null;
     try {
@@ -79,7 +63,7 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
             twitterOriginalVoters.set(m.id, voteRecord);
             originalTweetData.set(m.id, cleanContent);
         }
-        const videoUrl = extractMediaUrl(twitterData.content, "video")?.replaceAll("&amp;", "&");
+        const videoUrl = extractMediaUrl(twitterData.content);
         if (videoUrl) {
             convertVideoToGif(videoUrl, m, embed);
         }
