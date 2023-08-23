@@ -237,7 +237,6 @@ export class ExtendedClient extends Client {
     }
     loadDelayedComponents() {
         this.importFile("../core/guildNicknameManagement.js");
-        this.importFile("../utils/api/rssHandler.js");
         cacheRaidMilestones();
         raidFireteamChecker();
         loadNotifications();
