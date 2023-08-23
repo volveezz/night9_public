@@ -13,38 +13,39 @@ import { clanOnline, joinDateCheckedClanMembers, recentlyExpiredAuthUsersBungieI
 let lastLoggedErrorCode = 1;
 async function clanMembersManagement(databaseData) {
     try {
-        const clanList = await sendApiRequest(`/Platform/GroupV2/${process.env.GROUP_ID}/Members/?memberType=None`);
-        if (!clanList) {
+        const request = await sendApiRequest(`/Platform/GroupV2/${process.env.GROUP_ID}/Members/?memberType=None`, null, true);
+        if (!request) {
             console.error("[Error code: 1013]", databaseData.map((d) => d.bungieId).join(", "));
             return;
         }
-        const errorCode = clanList.ErrorCode;
+        const { ErrorCode: errorCode, Response: clanList } = request;
         if (lastLoggedErrorCode !== 1) {
             lastLoggedErrorCode = errorCode ?? 1;
         }
-        if (getEndpointStatus("api") != 1 && clanList.results && clanList.results.length > 1) {
+        if (errorCode === 1 &&
+            getEndpointStatus("api") != errorCode &&
+            clanList.results &&
+            clanList.results.length > 1) {
             updateEndpointStatus("api", 1);
             client.user.setPresence({
                 status: "online",
             });
             console.info("\x1b[32mBungie API is back online\x1b[0m");
         }
-        if (errorCode != null && errorCode != getEndpointStatus("api")) {
-            updateEndpointStatus("api", 1);
+        else if (errorCode != null && errorCode != getEndpointStatus("api") && errorCode != 1) {
+            updateEndpointStatus("api", errorCode);
+            client.user.setPresence({
+                activities: [
+                    { name: "Bungie API отключено", type: ActivityType.Listening },
+                    { name: "Destiny API не отвечает", type: ActivityType.Watching },
+                ],
+                status: "idle",
+            });
         }
         if (client.user.presence.activities[0].name.startsWith("🔁")) {
             client.stopUpdatingPresence();
         }
         if (!clanList.results || !clanList.results?.length) {
-            if (errorCode === 5) {
-                client.user.setPresence({
-                    activities: [
-                        { name: "Bungie API отключено", type: ActivityType.Listening },
-                        { name: "Destiny API не отвечает", type: ActivityType.Watching },
-                    ],
-                    status: "idle",
-                });
-            }
             if (errorCode != null && lastLoggedErrorCode !== errorCode) {
                 console.error("[Error code: 1118]", clanList.ErrorStatus, clanList.Message);
                 lastLoggedErrorCode = errorCode;

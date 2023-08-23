@@ -43,11 +43,11 @@ export function getRaidDetails(raid, difficulty = 1) {
         case "ce": {
             return {
                 raid,
-                raidName: difficulty != 1 ? "Конец Кроты: Режим состязания" : "Конец Кроты",
+                raidName: difficulty != 1 ? "Трах Кроты: Режим состязания" : "Трах Кроты",
                 maxDifficulty: 3,
                 raidBanner: "https://cdn.discordapp.com/attachments/679191036849029167/1134306618213937263/ce.jpg",
                 raidColor: (difficulty >= 2 ? MASTER_DIFFICULTY_COLOR : "#5da75c"),
-                channelName: "-конец-кроты",
+                channelName: "-трах-кроты",
                 requiredRole: null,
                 milestoneHash: 999999999,
             };
@@ -537,6 +537,8 @@ export function getRaidNameFromHash(activityHash) {
         case 2497200493:
         case 2659723068:
         case 3845997235:
+        case 1042180643:
+        case 3823237780:
             return "gos";
         case 3881495763:
         case 1485585878:

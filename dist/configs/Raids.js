@@ -1,5 +1,5 @@
 export const raidSelectionOptions = [
-    { name: "Конец Кроты", nameLocalizations: { "en-US": "Crota's End", "en-GB": "Crota's End" }, value: "ce" },
+    { name: "Трах Кроты", nameLocalizations: { "en-US": "Crota's End", "en-GB": "Crota's End" }, value: "ce" },
     {
         name: "Источник кошмаров",
         nameLocalizations: { "en-US": "Root of Nightmares", "en-GB": "Root of Nightmares" },

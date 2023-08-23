@@ -15,6 +15,10 @@ async function handleMessage(message) {
     if (message.channelId === process.env.MANIFEST_CHANNEL_ID) {
         return RefreshManifest();
     }
+    if (message.channelId === process.env.TWITTER_MESSAGES_CHANNEL_ID &&
+        message.content.match(/(?:\[Tweeted]\(\))?https:\/\/twitter\.com\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/)) {
+        return parseTwitterLinkMessage(message);
+    }
     if (!message.author || message.author.bot || message.system || !(message instanceof Message))
         return;
     if (message.channelId === process.env.PATCHNOTE_GENERATOR_CHANNEL_ID) {
@@ -30,10 +34,6 @@ async function handleMessage(message) {
         message.member?.permissions.has("Administrator") &&
         !workingCollectors.has(message.author.id)) {
         return manageAdminDMChannel(message);
-    }
-    if (message.channelId === process.env.TWITTER_MESSAGES_CHANNEL_ID &&
-        message.content.match(/(?:\[Tweeted]\(\))?https:\/\/twitter\.com\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/)) {
-        return parseTwitterLinkMessage(message);
     }
     if (message.member?.roles.cache.has(process.env.VERIFIED)) {
         cacheUserActivity({ userId: message.author.id, messageId: message.id });
