@@ -2,12 +2,21 @@ import { AttachmentBuilder, EmbedBuilder } from "discord.js";
 import fs from "fs";
 import colors from "../../../configs/colors.js";
 import raidGuide from "../../../configs/raidGuideData.js";
-async function exportCodeToFile(interaction, defferedReply) {
-    fs.writeFileSync("exportedCode.js", JSON.stringify(raidGuide));
-    const attachment = new AttachmentBuilder("./exportedCode.js");
+import { client } from "../../../index.js";
+let storageChannel = null;
+async function exportRaidGuide(interaction, defferedReply) {
+    fs.writeFileSync("exported-raids-guides.js", JSON.stringify(raidGuide));
+    const attachment = new AttachmentBuilder("./exported-raids-guides.js");
     const embed = new EmbedBuilder().setColor(colors.invisible).setTitle("Raid guide was exported!");
-    await defferedReply;
-    interaction.editReply({ embeds: [embed], files: [attachment] });
+    if (interaction) {
+        await defferedReply;
+        interaction.editReply({ embeds: [embed], files: [attachment] });
+    }
+    else {
+        if (!storageChannel)
+            storageChannel = await client.getAsyncTextChannel(process.env.STORAGE_CHANNEL_ID);
+        await storageChannel.send({ embeds: [embed], files: [attachment] });
+    }
 }
-export default exportCodeToFile;
+export default exportRaidGuide;
 //# sourceMappingURL=exportRaidData.js.map

@@ -74,7 +74,7 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
             await fetchAndProcessActivities();
         }
         catch (error) {
-            console.error(`[Error code: 1996] Error happened during checking ${mode} mode of ${authData.displayName || discordId || bungieId}`, error);
+            console.error(`[Error code: 1996] Error happened during checking ${mode} mode of ${authData.displayName || discordId || bungieId}`);
             return;
         }
         async function fetchAndProcessActivities() {

@@ -1,4 +1,5 @@
 import { EmbedBuilder } from "discord.js";
+import exportRaidGuide from "../commands/admin/scripts/exportRaidData.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import raidsGuide from "../configs/raidGuideData.js";
@@ -28,6 +29,7 @@ const ButtonCommand = new Button({
         }
         const embed = new EmbedBuilder().setColor(colors.success).setAuthor({ name: "Гайд был успешно обновлен", iconURL: icons.success });
         modalSubmit.reply({ embeds: [embed], ephemeral: true });
+        exportRaidGuide();
     },
 });
 export default ButtonCommand;

@@ -14,7 +14,7 @@ import { addButtonsToMessage } from "../../../utils/general/addButtonsToMessage.
 import { convertSeconds } from "../../../utils/general/convertSeconds.js";
 import { pause } from "../../../utils/general/utilities.js";
 import { AuthData, AutoRoleData, UserActivityData } from "../../../utils/persistence/sequelize.js";
-import exportCodeToFile from "./exportRaidData.js";
+import exportRaidGuide from "./exportRaidData.js";
 const SlashCommand = new Command({
     name: "scripts",
     description: "Script system",
@@ -33,12 +33,10 @@ const SlashCommand = new Command({
         switch (scriptId) {
             case "notiunreg": {
                 const embed = new EmbedBuilder()
-                    .setColor(colors.serious)
-                    .setAuthor({ name: "Приветствуем! Важное оповещение", iconURL: icons.notify })
+                    .setColor(colors.error)
+                    .setTitle("Важное оповещение")
                     .setDescription(`Вы всё ещё не обновили данные своей регистрации после [сброса данных](https://discord.com/channels/604967226243809302/690969928353710148/1141125205406777354). Для обновления нажмите кнопку «Обновить регистрацию» ниже или введите команду \`/init\`.
-Если вы не обновите данные до 10 сентября, вы будете исключены из клана.
-
-Не забудьте о скорой презентации следующего дополнения и сезона; обсудить её можно будет в [голосовых каналах](https://discord.gg/xHAzB6qU) во время презентации в <t:1692720000>, <t:1692720000:R> (пре-шоу начнётся в <t:1692716400:R>).`);
+Если вы не обновите данные до 10 сентября, вы будете исключены из клана.`);
                 const components = [
                     new ButtonBuilder().setCustomId("initEvent_register").setLabel("Обновить регистрацию").setStyle(ButtonStyle.Primary),
                 ];
@@ -58,7 +56,7 @@ const SlashCommand = new Command({
                 return;
             }
             case "exportraidguide": {
-                exportCodeToFile(interaction, defferedReply);
+                exportRaidGuide(interaction, defferedReply);
                 return;
             }
             case "resolvevotes": {
