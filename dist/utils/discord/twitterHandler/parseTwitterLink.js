@@ -16,11 +16,12 @@ async function parseTwitterLinkMessage(message) {
     if (!author || !content) {
         return;
     }
+    const tweetUrl = message.content.match(/https:\/\/twitter\.com\/\w+\/status\/\d+/)?.[0];
     await generateTwitterEmbed({
         twitterData: { content },
         author,
         icon: embed.author.iconURL,
-        url: embed.author.url,
+        url: tweetUrl || embed.author.url,
         originalEmbed: embed,
     });
     message.delete();

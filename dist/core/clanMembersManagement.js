@@ -21,6 +21,9 @@ async function clanMembersManagement(databaseData) {
         if (lastLoggedErrorCode !== 1) {
             lastLoggedErrorCode = errorCode ?? 1;
         }
+        if (client.user.presence.activities[0].name.startsWith("🔁")) {
+            client.stopUpdatingPresence();
+        }
         if (errorCode === 1 &&
             getEndpointStatus("api") != errorCode &&
             clanList.results &&
@@ -40,9 +43,7 @@ async function clanMembersManagement(databaseData) {
                 ],
                 status: "idle",
             });
-        }
-        if (client.user.presence.activities[0].name.startsWith("🔁")) {
-            client.stopUpdatingPresence();
+            return;
         }
         if (!clanList.results || !clanList.results?.length) {
             if (errorCode != null && lastLoggedErrorCode !== errorCode) {
@@ -113,6 +114,7 @@ async function clanMembersManagement(databaseData) {
                             const { platform, bungieId } = memberAuthData;
                             await kickClanMember(platform, bungieId);
                             if (!recentlyNotifiedKickedMembers.has(bungieId)) {
+                                console.debug(`Notifing ${memberAuthData.displayName} about not meeting requirements`);
                                 await notifyUserNotMeetRequirements(memberAuthData, isUserMeetsRequirements);
                             }
                         }
