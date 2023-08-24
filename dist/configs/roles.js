@@ -1,12 +1,13 @@
 const seasonalRoles = { currentSeasonRole: process.env.CUR_SEASON_ROLE, nonCurrentSeasonRole: process.env.NON_CUR_SEASON_ROLE };
 const dlcRoles = {
-    vanilla: process.env.VANILLA,
-    frs: process.env.FRS,
-    sk: process.env.SK,
-    bl: process.env.BL,
-    anni: process.env.ANNI,
-    twq: process.env.TWQ,
-    lf: process.env.LF,
+    vanilla: process.env.VANILLA_ROLE_ID,
+    forsaken: process.env.FORSAKEN_ROLE_ID,
+    shadowkeep: process.env.SHADOWKEEP_ROLE_ID,
+    beyondLight: process.env.BEYONDLIGHT_ROLE_ID,
+    anniversary: process.env.ANNIVERSARY_ROLE_ID,
+    theWitchQueen: process.env.THE_WITCH_QUEEN_ROLE_ID,
+    lightfall: process.env.LIGHTFALL_ROLE_ID,
+    theFinalShape: process.env.THE_FINAL_SHAPE_ROLE_ID,
 };
 const classRoles = [
     { className: "hunter", id: process.env.HUNTER },

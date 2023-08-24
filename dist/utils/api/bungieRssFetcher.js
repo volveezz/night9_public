@@ -20,7 +20,9 @@ async function fetchNewsArticles() {
             setTimeout(fetchNewsArticles, 60 * 1000);
             return;
         }
-        if (currentArticles.length > 0 && currentArticles[0].UniqueIdentifier !== lastFetchedArticles[0].UniqueIdentifier) {
+        if (currentArticles.length > 0 &&
+            currentArticles[0].UniqueIdentifier !== lastFetchedArticles[0].UniqueIdentifier &&
+            !checkedUrls.has(currentArticles[0].Link)) {
             const newArticles = getNewArticles(currentArticles, lastFetchedArticles);
             postArticlesToDiscord(newArticles);
         }

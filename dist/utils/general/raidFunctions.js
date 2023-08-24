@@ -60,7 +60,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/raid_root_of_nightmares.jpg",
                 raidColor: (difficulty === 2 ? MASTER_DIFFICULTY_COLOR : "#ffa8ae"),
                 channelName: "-источник-кошмаров",
-                requiredRole: dlcRoles.lf,
+                requiredRole: dlcRoles.lightfall,
                 milestoneHash: 3699252268,
             };
         case "kf":
@@ -82,7 +82,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/raid_nemesis.jpg",
                 raidColor: (difficulty === 2 ? MASTER_DIFFICULTY_COLOR : "#52E787"),
                 channelName: "-клятва-послушника",
-                requiredRole: dlcRoles.twq,
+                requiredRole: dlcRoles.theWitchQueen,
                 milestoneHash: 2136320298,
             };
         case "vog":
@@ -104,7 +104,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/europa-raid-deep-stone-crypt.jpg",
                 raidColor: "#29ACFF",
                 channelName: "-склеп-глубокого-камня",
-                requiredRole: dlcRoles.bl,
+                requiredRole: dlcRoles.beyondLight,
                 milestoneHash: 541780856,
             };
         case "gos":
@@ -115,7 +115,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/raid_garden_of_salvation.jpg",
                 raidColor: "#45FFA2",
                 channelName: "-сад-спасения",
-                requiredRole: dlcRoles.sk,
+                requiredRole: dlcRoles.shadowkeep,
                 milestoneHash: 2712317338,
             };
         case "lw":
@@ -126,7 +126,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/raid_beanstalk.jpg",
                 raidColor: "#79A1FF",
                 channelName: "-последнее-желание",
-                requiredRole: dlcRoles.frs,
+                requiredRole: dlcRoles.forsaken,
                 milestoneHash: 3181387331,
             };
     }

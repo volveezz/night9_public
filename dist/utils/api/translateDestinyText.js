@@ -89,6 +89,8 @@ Translated dataset:
 "TIMELINE": "Время",
 "Glaive": "Глефа",
 "roll": "набор перков",
+"Savathûn’s Spire": "Шпиль Саватун",
+"H.E.L.M.": "ШЛЕМ",
 }`;
     const output = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",

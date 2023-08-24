@@ -15,6 +15,10 @@ import { AuthData, RaidEvent, UserActivityData } from "../persistence/sequelize.
 const hashToImageMap = {
     313828469: "https://cdn.discordapp.com/attachments/679191036849029167/1111828224956170290/2023_Ghost_of_the_Deep_Press_Kit_Dungeon_LARGE_002.jpg",
     2716998124: "https://cdn.discordapp.com/attachments/679191036849029167/1111828224956170290/2023_Ghost_of_the_Deep_Press_Kit_Dungeon_LARGE_002.jpg",
+    4179289725: "https://cdn.discordapp.com/attachments/1134620378615001178/1144335620819402893/crotas-end.jpg",
+    4103176774: "https://cdn.discordapp.com/attachments/1134620378615001178/1144335620819402893/crotas-end.jpg",
+    156253568: "https://cdn.discordapp.com/attachments/1134620378615001178/1144335620819402893/crotas-end.jpg",
+    1507509200: "https://cdn.discordapp.com/attachments/1134620378615001178/1144335620819402893/crotas-end.jpg",
 };
 const checkedPGCRIds = new Set();
 const ACTIVITY_LEAVE_TIME = 300;
@@ -32,6 +36,16 @@ async function restoreFetchedPGCRs() {
 }
 function findCorrectedName(hash) {
     switch (hash) {
+        case 4201846671:
+            return "Предвестие: Легенда";
+        case 4179289725:
+            return "Конец Кроты";
+        case 4103176774:
+            return "Конец Кроты: режим с подбором игроков";
+        case 156253568:
+            return "Конец Кроты: режим испытаний";
+        case 1507509200:
+            return "Конец Кроты: Мастер";
         default:
             return "Засекречено";
     }

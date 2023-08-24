@@ -1,5 +1,4 @@
 import { ActivityType } from "discord.js";
-import { getAdminAccessToken } from "../commands/clan/main.js";
 import { clanJoinDateRoles } from "../configs/roles.js";
 import { client } from "../index.js";
 import getClanMemberData from "../utils/api/getClanMemberData.js";
@@ -111,8 +110,8 @@ async function clanMembersManagement(databaseData) {
                             updateClanRolesWithLogging(memberAuthData, true);
                         }
                         else if (typeof isUserMeetsRequirements === "string") {
-                            const { platform, accessToken, bungieId } = memberAuthData;
-                            await kickClanMember(platform, bungieId, accessToken);
+                            const { platform, bungieId } = memberAuthData;
+                            await kickClanMember(platform, bungieId);
                             if (!recentlyNotifiedKickedMembers.has(bungieId)) {
                                 await notifyUserNotMeetRequirements(memberAuthData, isUserMeetsRequirements);
                             }
@@ -165,11 +164,10 @@ async function clanMembersManagement(databaseData) {
             }
         }
         async function handleNonRegisteredMembers(clanMember) {
-            const bungieId = clanMember.destinyUserInfo.membershipId;
-            if (recentlyExpiredAuthUsersBungieIds.has(bungieId))
+            const { membershipType, membershipId } = clanMember.destinyUserInfo;
+            if (recentlyExpiredAuthUsersBungieIds.has(membershipId))
                 return;
-            const adminAccessToken = (await getAdminAccessToken(process.env.OWNER_ID));
-            await kickClanMember(clanMember.destinyUserInfo.membershipType, bungieId, adminAccessToken);
+            await kickClanMember(membershipType, membershipId);
         }
     }
     catch (e) {

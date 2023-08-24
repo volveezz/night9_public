@@ -169,7 +169,7 @@ const SlashCommand = new Command({
                         .join("\n")}`,
                 }, {
                     name: "⁣",
-                    value: `\`\`\`fix\nРоли за дополнения\`\`\`\n　╭✧<@&${seasonalRoles.currentSeasonRole}>\n　︰За наличие сезонного пропуска\n　╰✧<@&${seasonalRoles.nonCurrentSeasonRole}>\n\n- <@&${dlcRoles.frs}> — за покупку Отвергнутых\n- <@&${dlcRoles.sk}> — за покупку Обители Теней\n- <@&${dlcRoles.bl}> — за покупку За гранью Света\n- <@&${dlcRoles.anni}> — за покупку набора к 30-летию\n- <@&${dlcRoles.twq}> — за покупку Королевы-ведьмы\n- <@&${dlcRoles.lf}> — за покупку Конца Света`,
+                    value: `\`\`\`fix\nРоли за дополнения\`\`\`\n　╭✧<@&${seasonalRoles.currentSeasonRole}>\n　︰За наличие сезонного пропуска\n　╰✧<@&${seasonalRoles.nonCurrentSeasonRole}>\n\n- <@&${dlcRoles.forsaken}> — за покупку Отвергнутых\n- <@&${dlcRoles.shadowkeep}> — за покупку Обители Теней\n- <@&${dlcRoles.beyondLight}> — за покупку За гранью Света\n- <@&${dlcRoles.anniversary}> — за покупку набора к 30-летию\n- <@&${dlcRoles.theWitchQueen}> — за покупку Королевы-ведьмы\n- <@&${dlcRoles.lightfall}> — за покупку Конца Света\n- <@&${dlcRoles.theFinalShape}> — за покупку Финальной Формы`,
                 });
                 const classRolesRaw = new EmbedBuilder()
                     .setTitle("Классовые роли")
