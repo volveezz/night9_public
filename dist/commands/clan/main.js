@@ -252,7 +252,7 @@ export const getAdminAccessToken = async (interaction) => {
         return undefined;
     }
 };
-const handleManagement = async (interaction, clanMembers, defferedReply) => {
+const handleManagement = async (interaction, clanMembers, deferredReply) => {
     let index = clanMembers.length - 1;
     let userData = clanMembers[index];
     const makeNewEmbed = async () => {
@@ -385,7 +385,7 @@ const handleManagement = async (interaction, clanMembers, defferedReply) => {
             return messageData;
         }
     };
-    await defferedReply;
+    await deferredReply;
     const messageOptions = (await updateMessage());
     const message = await interaction.editReply(messageOptions);
     const collector = interaction.channel.createMessageComponentCollector({
@@ -429,7 +429,7 @@ const handleManagement = async (interaction, clanMembers, defferedReply) => {
     });
     collector.on("end", () => interaction.deleteReply());
 };
-const sendInviteToClan = async (interaction, defferedReply, args) => {
+const sendInviteToClan = async (interaction, deferredReply, args) => {
     const clanErrorsHandler = (errorCode) => {
         const embed = new EmbedBuilder();
         switch (errorCode) {
@@ -448,7 +448,7 @@ const sendInviteToClan = async (interaction, defferedReply, args) => {
     };
     const userData = parseIdentifierString(args.identifier);
     if (!userData.bungieId || !userData.platform) {
-        await defferedReply;
+        await deferredReply;
         throw { name: "Ошибка. Пользователь не обработан" };
     }
     const { bungieId, platform } = userData;
@@ -465,7 +465,7 @@ const sendInviteToClan = async (interaction, defferedReply, args) => {
         console.error("[Error code: 1909]", invitePost);
     }
     const embed = clanErrorsHandler(invitePost.ErrorCode);
-    await defferedReply;
+    await deferredReply;
     await interaction.editReply({ embeds: [embed] });
     if (invitePost?.ErrorCode === 1 && args.time && args.time > 0) {
         cancelClanInvitation(args.identifier, args.time, interaction.user.id);

@@ -7,7 +7,7 @@ import { AuthData } from "../utils/persistence/sequelize.js";
 const ButtonCommand = new Button({
     name: "roleChannel",
     run: async ({ client, interaction }) => {
-        const defferedReply = interaction.deferReply({ ephemeral: true });
+        const deferredReply = interaction.deferReply({ ephemeral: true });
         const commandFull = interaction.customId.split("_").slice(1);
         const commandId = commandFull.shift();
         const member = await client.getAsyncMember(interaction.user.id);
@@ -32,7 +32,7 @@ const ButtonCommand = new Button({
                             ? "<:warlock:995496471526920232>Варлока"
                             : "<:titan:995496472722284596>Титана"} как основной класс`;
                 const embed = new EmbedBuilder().setColor(colors.success).setTitle(embedTitle);
-                await defferedReply;
+                await deferredReply;
                 await interaction.editReply({ embeds: [embed] });
                 return;
             }
@@ -49,12 +49,12 @@ const ButtonCommand = new Button({
                         const updated = await AuthData.update({ roleCategoriesBits: roleStatus ? roleCategoriesBits | categoryId : roleCategoriesBits & ~categoryId }, { where: { discordId: interaction.user.id }, returning: ["roleCategoriesBits"] });
                         roleCategoriesBits = updated[1][0].roleCategoriesBits;
                         const messageEmbed = embedPrep().setTitle(`Вы ${roleStatus ? "включили" : "отключили"} категорию`);
-                        await defferedReply;
+                        await deferredReply;
                         await interaction.editReply({ embeds: [messageEmbed] });
                     }
                     else {
                         const messageEmbed = embedPrep().setTitle(`Категория уже ${roleStatus ? "включена" : "отключена"}`);
-                        await defferedReply;
+                        await deferredReply;
                         await interaction.editReply({ embeds: [messageEmbed] });
                     }
                     function embedPrep() {

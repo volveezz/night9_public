@@ -129,7 +129,21 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
                 counts[raidName] += 1;
             }
             return counts;
-        }, { ce: 0, ron: 0, ronMaster: 0, kf: 0, kfMaster: 0, votd: 0, votdMaster: 0, dsc: 0, gos: 0, vog: 0, vogMaster: 0, lw: 0 });
+        }, {
+            ce: 0,
+            ceMaster: 0,
+            ron: 0,
+            ronMaster: 0,
+            kf: 0,
+            kfMaster: 0,
+            votd: 0,
+            votdMaster: 0,
+            dsc: 0,
+            gos: 0,
+            vog: 0,
+            vogMaster: 0,
+            lw: 0,
+        });
         completedRaidsData.set(discordId, {
             ...raidCounts,
             totalRaidClears: completedRaidCount,
@@ -137,13 +151,15 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
         if (member.roles.cache.has(CLANMEMBER) ||
             (member.roles.cache.has(MEMBER) && member.roles.cache.hasAny(...activityRoles.allMessages, ...activityRoles.allVoice)) ||
             authData.UserActivityData !== undefined) {
-            const { ron, ronMaster, kf, kfMaster, votd, votdMaster, dsc, gos, vog, vogMaster, lw, totalRaidClears } = completedRaidsData.get(discordId);
+            const { ce, ceMaster, ron, ronMaster, kf, kfMaster, votd, votdMaster, dsc, gos, vog, vogMaster, lw, totalRaidClears } = completedRaidsData.get(discordId);
+            const ceClears = ce + ceMaster;
             const ronClears = ron + ronMaster;
             const kfClears = kf + kfMaster;
             const votdClears = votd + votdMaster;
             const vogClears = vog + vogMaster;
             for (const step of raidRoles.roles) {
-                if ((ronClears >= step.individualClears &&
+                if ((ceClears >= step.individualClears / 2 &&
+                    ronClears >= step.individualClears &&
                     kfClears >= step.individualClears &&
                     votdClears >= step.individualClears &&
                     vogClears >= step.individualClears &&

@@ -6,7 +6,7 @@ import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { getEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 const SlashCommand = new Command({
-    name: "закрытия_рейдов",
+    name: "закрытия-рейдов",
     nameLocalizations: {
         "en-US": "raid-checker",
         "en-GB": "raid-checker",

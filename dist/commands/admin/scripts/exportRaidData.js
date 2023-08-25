@@ -4,12 +4,12 @@ import colors from "../../../configs/colors.js";
 import raidGuide from "../../../configs/raidGuideData.js";
 import { client } from "../../../index.js";
 let storageChannel = null;
-async function exportRaidGuide(interaction, defferedReply) {
+async function exportRaidGuide(interaction, deferredReply) {
     fs.writeFileSync("exported-raids-guides.js", JSON.stringify(raidGuide));
     const attachment = new AttachmentBuilder("./exported-raids-guides.js");
     const embed = new EmbedBuilder().setColor(colors.invisible).setTitle("Raid guide was exported!");
     if (interaction) {
-        await defferedReply;
+        await deferredReply;
         interaction.editReply({ embeds: [embed], files: [attachment] });
     }
     else {

@@ -1,3 +1,14 @@
+export var RaidNames;
+(function (RaidNames) {
+    RaidNames["ce"] = "ce";
+    RaidNames["ron"] = "ron";
+    RaidNames["kf"] = "kf";
+    RaidNames["votd"] = "votd";
+    RaidNames["vog"] = "vog";
+    RaidNames["dsc"] = "dsc";
+    RaidNames["gos"] = "gos";
+    RaidNames["lw"] = "lw";
+})(RaidNames || (RaidNames = {}));
 export const raidSelectionOptions = [
     { name: "Трах Кроты", nameLocalizations: { "en-US": "Crota's End", "en-GB": "Crota's End" }, value: "ce" },
     {

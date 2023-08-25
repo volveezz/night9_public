@@ -28,7 +28,7 @@ const SlashCommand = new Command({
         },
     ],
     run: async ({ client, interaction, args }) => {
-        const defferedReply = interaction.deferReply({ ephemeral: true });
+        const deferredReply = interaction.deferReply({ ephemeral: true });
         const scriptId = args.getString("script", true).toLowerCase();
         switch (scriptId) {
             case "notiunreg": {
@@ -56,7 +56,7 @@ const SlashCommand = new Command({
                 return;
             }
             case "exportraidguide": {
-                exportRaidGuide(interaction, defferedReply);
+                exportRaidGuide(interaction, deferredReply);
                 return;
             }
             case "resolvevotes": {
@@ -64,7 +64,7 @@ const SlashCommand = new Command({
                 const embed = new EmbedBuilder()
                     .setColor(colors.success)
                     .setAuthor({ name: "Голоса успешно обработаны", iconURL: icons.success });
-                await defferedReply;
+                await deferredReply;
                 interaction.editReply({ embeds: [embed] });
                 return;
             }
@@ -146,7 +146,7 @@ const SlashCommand = new Command({
                 })
                     .join("\n")
                     .slice(0, 2048)}`);
-                await defferedReply;
+                await deferredReply;
                 await interaction.channel?.send({ embeds: [msgEmbed, voiceEmbed] });
                 return;
             }
@@ -377,7 +377,7 @@ const SlashCommand = new Command({
                 channel.send({ embeds: [endEmbed] });
             }
             default:
-                await defferedReply;
+                await deferredReply;
                 await interaction.editReply("Base response");
                 break;
         }

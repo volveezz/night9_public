@@ -1,5 +1,6 @@
 import { ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, RESTJSONErrorCodes, } from "discord.js";
 import { Op } from "sequelize";
+import { RaidNames } from "../../configs/Raids.js";
 import colors from "../../configs/colors.js";
 import destinyRaidsChallenges from "../../configs/destinyRaidsChallenges.js";
 import icons from "../../configs/icons.js";
@@ -40,7 +41,7 @@ export function generateRaidCompletionText(clears = 0) {
 const MASTER_DIFFICULTY_COLOR = "#FF063A";
 export function getRaidDetails(raid, difficulty = 1) {
     switch (raid) {
-        case "ce": {
+        case RaidNames.ce: {
             return {
                 raid,
                 raidName: difficulty != 1 ? "Трах Кроты: Режим состязания" : "Трах Кроты",
@@ -52,7 +53,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 milestoneHash: 999999999,
             };
         }
-        case "ron":
+        case RaidNames.ron:
             return {
                 raid,
                 raidName: difficulty === 2 ? "Источник кошмаров: Мастер" : "Источник кошмаров",
@@ -63,7 +64,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 requiredRole: dlcRoles.lightfall,
                 milestoneHash: 3699252268,
             };
-        case "kf":
+        case RaidNames.kf:
             return {
                 raid: raid,
                 raidName: difficulty === 2 ? "Гибель короля: Мастер" : "Гибель короля",
@@ -74,7 +75,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 requiredRole: null,
                 milestoneHash: 292102995,
             };
-        case "votd":
+        case RaidNames.votd:
             return {
                 raid: raid,
                 raidName: difficulty === 2 ? "Клятва послушника: Мастер" : "Клятва послушника",
@@ -85,7 +86,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 requiredRole: dlcRoles.theWitchQueen,
                 milestoneHash: 2136320298,
             };
-        case "vog":
+        case RaidNames.vog:
             return {
                 raid: raid,
                 raidName: difficulty === 2 ? "Хрустальный чертог: Мастер" : "Хрустальный чертог",
@@ -96,7 +97,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 requiredRole: null,
                 milestoneHash: 1888320892,
             };
-        case "dsc":
+        case RaidNames.dsc:
             return {
                 raid: raid,
                 raidName: "Склеп Глубокого камня",
@@ -107,7 +108,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 requiredRole: dlcRoles.beyondLight,
                 milestoneHash: 541780856,
             };
-        case "gos":
+        case RaidNames.gos:
             return {
                 raid: raid,
                 raidName: "Сад спасения",
@@ -118,7 +119,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 requiredRole: dlcRoles.shadowkeep,
                 milestoneHash: 2712317338,
             };
-        case "lw":
+        case RaidNames.lw:
             return {
                 raid: raid,
                 raidName: "Последнее желание",
@@ -211,7 +212,7 @@ async function generateJoinedAdvancedRoster(users, raidName, cleanMemberName, id
         const userName = await cleanMemberName(userId);
         const raidClears = completedRaidsData.get(userId);
         if (raidClears) {
-            if (raidName === "ce") {
+            if (raidName === RaidNames.ce) {
                 return `⁣　${index + 1}. **${userName}** — ${raidClears["totalRaidClears"]} закрытий всех рейдов`;
             }
             else {
@@ -308,7 +309,7 @@ function updateField(embed, fieldName, users, usersText, findFieldIndex) {
 }
 export async function raidChallenges({ raidData, raidEvent, privateChannelMessage }) {
     const { difficulty, time: startTime } = raidEvent;
-    if (difficulty === 3 || (raidData.raid === "ce" && startTime >= 1693591200 && startTime <= 1693764000)) {
+    if (difficulty === 3 || (raidData.raid === RaidNames.ce && startTime >= 1693591200 && startTime <= 1693764000)) {
         const embed = EmbedBuilder.from(privateChannelMessage.embeds[0]);
         embed.data.fields[0].name = "**Модификатор рейда**";
         embed.data.fields[0].value = "⁣　⁣**Режим состязания**: задание фиксированной сложности. Испытайте свои силы";
@@ -514,42 +515,48 @@ export async function removeRaid(raid, interaction, requireMessageReply = true, 
 }
 export function getRaidNameFromHash(activityHash) {
     switch (activityHash) {
+        case 4179289725:
+        case 4103176774:
+        case 156253568:
+            return RaidNames.ce;
+        case 1507509200:
+            return "ceMaster";
         case 2381413764:
         case 1191701339:
-            return "ron";
+            return RaidNames.ron;
         case 2918919505:
             return "ronMaster";
         case 1374392663:
         case 1063970578:
-            return "kf";
+            return RaidNames.kf;
         case 2964135793:
         case 3257594522:
             return "kfMaster";
         case 1441982566:
-            return "votd";
+            return RaidNames.votd;
         case 4217492330:
         case 3889634515:
             return "votdMaster";
         case 910380154:
         case 3976949817:
-            return "dsc";
+            return RaidNames.dsc;
         case 3458480158:
         case 2497200493:
         case 2659723068:
         case 3845997235:
         case 1042180643:
         case 3823237780:
-            return "gos";
+            return RaidNames.gos;
         case 3881495763:
         case 1485585878:
         case 3711931140:
-            return "vog";
+            return RaidNames.vog;
         case 1681562271:
         case 3022541210:
             return "vogMaster";
         case 2122313384:
         case 1661734046:
-            return "lw";
+            return RaidNames.lw;
         default:
             console.error(`[Error code: 1669] Found unknown raidId ${activityHash}`);
             return "unknown";

@@ -81,7 +81,7 @@ const ButtonCommand = new Button({
                 filter: (btnI) => btnI.user.id === interaction.user.id,
                 componentType: ComponentType.Button,
             })
-                .catch();
+                .catch((e) => console.error("[Error code: 2001] No interaction was received"));
             if (!userInteraction || activeAwaiters.get(interaction.user.id)?.uniqueId !== uniqueId) {
                 console.info("Received an incorrect interaction component");
                 return;

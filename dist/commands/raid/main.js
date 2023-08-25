@@ -1,6 +1,6 @@
 import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { Op, Sequelize } from "sequelize";
-import { raidDifficultiesChoices, raidSelectionOptions } from "../../configs/Raids.js";
+import { RaidNames, raidDifficultiesChoices, raidSelectionOptions } from "../../configs/Raids.js";
 import colors from "../../configs/colors.js";
 import icons, { activityIcons } from "../../configs/icons.js";
 import raidsGuide from "../../configs/raidGuideData.js";
@@ -313,7 +313,7 @@ const SlashCommand = new Command({
             else if (isNaN(parsedTime) || parsedTime < 1000) {
                 throw { errorType: "RAID_TIME_ERROR" };
             }
-            const isContestRaid = raid === "ce" && parsedTime >= 1693591200 && parsedTime <= 1693764000;
+            const isContestRaid = raid === RaidNames.ce && parsedTime >= 1693591200 && parsedTime <= 1693764000;
             const raidData = getRaidDetails(raid, isContestRaid ? 3 : difficulty);
             const requiredClears = args.getInteger("требуемых-закрытий") ?? 0;
             const raidEvent = await RaidEvent.create({
@@ -431,10 +431,10 @@ const SlashCommand = new Command({
                 await deferredReply;
                 throw { errorType: "RAID_NOT_FOUND" };
             }
-            const isContestRaid = (newRaid || raidData.raid) === "ce" && (raidData.time >= 1693591200 || raidData.time <= 1693764000);
+            const isContestRaid = (newRaid || raidData.raid) === RaidNames.ce && (raidData.time >= 1693591200 || raidData.time <= 1693764000);
             if (isContestRaid &&
                 ((newDifficulty && newDifficulty !== 3) ||
-                    (!newDifficulty && newRaid === "ce" && raidData.difficulty !== 3))) {
+                    (!newDifficulty && newRaid === RaidNames.ce && raidData.difficulty !== 3))) {
                 newDifficulty = 3;
             }
             const raidInfo = getRaidDetails((newRaid || raidData.raid), newDifficulty ?? raidData.difficulty);

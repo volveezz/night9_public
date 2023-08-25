@@ -22,7 +22,7 @@ async function sendRaidGuide(interaction, raidName, deferredReply) {
                     .setLabel(button.label || "Кнопка"));
             });
         }
-        if (raidName === "test") {
+        if (raidName === "test" || interaction.channelId === process.env.RAID_GUIDES_CHANNEL_ID) {
             components.push(new ButtonBuilder()
                 .setCustomId(`showEditMenu_${raidName}_${encounterIndex}`)
                 .setStyle(ButtonStyle.Secondary)

@@ -36,18 +36,24 @@ async function restoreFetchedPGCRs() {
 }
 function findCorrectedName(hash) {
     switch (hash) {
-        case 4201846671:
-            return "Предвестие: Легенда";
         case 4179289725:
-            return "Конец Кроты";
+            return "Крах Кроты";
         case 4103176774:
-            return "Конец Кроты: режим с подбором игроков";
+            return "Крах Кроты: режим с подбором игроков";
         case 156253568:
-            return "Конец Кроты: режим испытаний";
+            return "Крах Кроты: режим испытаний";
         case 1507509200:
-            return "Конец Кроты: Мастер";
+            return "Крах Кроты: Мастер";
         default:
             return "Засекречено";
+    }
+}
+function findPredefinedName(hash) {
+    switch (hash) {
+        case 4201846671:
+            return "Предвестие: Легенда";
+        default:
+            return null;
     }
 }
 function getActivityImage(hash, manifestImage) {
@@ -69,7 +75,8 @@ async function getActivityTitle(hash, manifestTitle) {
             return `Грандмастер: ${activityData.displayProperties.description}`;
         }
     }
-    return manifestTitle;
+    const predefinedName = findPredefinedName(hash);
+    return predefinedName || manifestTitle;
 }
 function getActivityCompletionText(mode, fromBeginning) {
     return ((mode === 4

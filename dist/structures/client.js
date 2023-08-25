@@ -191,6 +191,7 @@ export class ExtendedClient extends Client {
                     console.error("[Error code: 1141] Autocomplete file not valid", { filePath });
                     return;
                 }
+                console.debug("Autocomplete loaded", autocomplete.name);
                 this.autocomplete.set(autocomplete.name, autocomplete);
                 if (autocomplete.aliases) {
                     autocomplete.aliases.forEach((alias) => {
