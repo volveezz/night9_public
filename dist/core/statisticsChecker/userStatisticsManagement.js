@@ -369,9 +369,9 @@ async function checkUserKDRatio({ platform, bungieId, accessToken }, member) {
     }
 }
 async function handleMemberStatistics() {
+    console.debug(`Initial start of the function`);
     (async () => {
         try {
-            await pause(3000);
             const userDatabaseData = await AuthData.findAll({
                 attributes: ["discordId", "platform", "bungieId", "clan", "timezone", "accessToken", "roleCategoriesBits"],
             });
@@ -403,7 +403,9 @@ async function handleMemberStatistics() {
             console.error("[Error code: 1918]", error);
         }
     })();
+    console.debug("Initial checks were completed");
     async function startStatisticsChecking() {
+        console.debug("Started the function");
         try {
             const autoRoleData = await AutoRoleData.findAll({
                 where: {
@@ -445,7 +447,7 @@ async function handleMemberStatistics() {
                     const member = client.getCachedMembers().get(userDatabaseData.discordId);
                     if (member == null) {
                         await client.getCachedGuild().members.fetch();
-                        console.error("[Error code: 1023] destinyUsestatisticsRolesChecker, member not found", userDatabaseData.displayName);
+                        console.error(`[Error code: 1023] Member ${userDatabaseData.displayName} not found`);
                         continue;
                     }
                     if (member.roles.cache.has(process.env.CLANMEMBER) ||
@@ -495,15 +497,18 @@ async function handleMemberStatistics() {
                     }
                 }
             }
+            console.debug("Processing to checking clan members");
             await clanMembersManagement(databaseData);
         }
         catch (error) {
             console.error("[Error code: 1921]", error.stack || error);
         }
         finally {
+            console.debug("Setting a new finally timeout for the function");
             setTimeout(startStatisticsChecking, 1000 * 60 * 2);
         }
     }
+    console.debug("Setting a new timeout for the function");
     setTimeout(startStatisticsChecking, 1000 * 60 * 2);
 }
 async function checkIndiviualUserStatistics(user) {

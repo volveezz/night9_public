@@ -21,8 +21,7 @@ async function clanMembersManagement(databaseData) {
         if (lastLoggedErrorCode !== 1) {
             lastLoggedErrorCode = errorCode ?? 1;
         }
-        console.debug(client.user.presence.activities[0].name.startsWith("🔁"), client.user.presence.activities[0].name, client.user.presence.activities[1]?.name, client.user.presence.activities[2]?.name, client.user.presence.activities[0].state);
-        if (client.user.presence.activities[0].name.startsWith("🔁")) {
+        if ((client.user.presence.activities[0].state || client.user.presence.activities[0].name).startsWith("🔁")) {
             await client.stopUpdatingPresence();
             console.debug("Stopped updating presence");
         }
