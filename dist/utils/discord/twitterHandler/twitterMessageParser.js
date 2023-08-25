@@ -15,10 +15,9 @@ function extractMediaUrl(content) {
     return videoMatch ? videoMatch[1] : null;
 }
 function clearText(content) {
-    return content
-        .replace(/⏵\s*\[\d+\]\((https?:\/\/[^\)]+)\)/g, "")
-        .replace(/^ +/gm, (match) => "\u00A0".repeat(match.length))
-        .trim();
+    return (content
+        .replace(/ ?⏵\s*\[\d+\]\((https?:\/\/[^\)]+)\)/g, "")
+        .trim());
 }
 async function generateTwitterEmbed({ twitterData, author, icon, url, originalEmbed }) {
     if (!twitterData.content)
@@ -63,9 +62,8 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
             twitterOriginalVoters.set(m.id, voteRecord);
             originalTweetData.set(m.id, cleanContent);
         }
-        const videoUrl = extractMediaUrl(twitterData.content);
-        if (videoUrl) {
-            convertVideoToGif(videoUrl, m, embed);
+        if (extractedMedia) {
+            convertVideoToGif(extractedMedia, m, embed);
         }
     });
     return;

@@ -1,5 +1,5 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
-import { Op } from "sequelize";
+import { getAdminAccessToken } from "../commands/clan/main.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { client } from "../index.js";
@@ -16,64 +16,54 @@ const ButtonCommand = new Button({
             await interaction.editReply({ content: "Вам нельзя вступать в клан" });
             return;
         }
-        const authData = await AuthData.findAll({
+        const authData = await AuthData.findByPk(interaction.user.id, {
             attributes: ["clan", "bungieId", "platform", "accessToken"],
-            where: {
-                [Op.or]: [{ discordId: interaction.user.id }, { discordId: process.env.OWNER_ID }],
-            },
         });
-        if (authData.length !== 2) {
+        if (!authData) {
             await deferredReply;
             throw { errorType: "DB_USER_NOT_FOUND" };
         }
-        if (authData[0].discordId === process.env.OWNER_ID) {
-            var { clan: invitee_clan, bungieId: invitee_bungieId, platform: invitee_platform } = authData[1];
-            var { accessToken: inviter_accessToken } = authData[0];
-        }
-        else {
-            var { clan: invitee_clan, bungieId: invitee_bungieId, platform: invitee_platform } = authData[0];
-            var { accessToken: inviter_accessToken } = authData[1];
-        }
+        const { clan: invitee_clan, bungieId: invitee_bungieId, platform: invitee_platform } = authData;
+        const inviter_accessToken = await getAdminAccessToken(process.env.OWNER_ID);
         const timezoneComponent = new ButtonBuilder()
             .setCustomId("timezoneButton")
             .setLabel("Установить часовой пояс")
             .setStyle(ButtonStyle.Secondary);
-        if (authData.length === 2) {
-            if (invitee_clan === true) {
-                interaction.channel?.isDMBased()
-                    ? interaction.channel.messages.fetch(interaction.message.id).then(async (msg) => {
-                        msg.edit({ components: addButtonsToMessage([timezoneComponent]) });
-                    })
-                    : "";
-                (await deferredReply) && interaction.editReply("Вы уже являетесь участником нашего клана :)");
-                return;
-            }
-            const clanInviteRequest = await sendApiPostRequest({
-                apiEndpoint: `/Platform/GroupV2/${process.env.GROUP_ID}/Members/IndividualInvite/${invitee_platform}/${invitee_bungieId}/`,
-                requestData: { description: "Автоматическое приглашение в клан Night 9" },
-                accessToken: inviter_accessToken,
-                shouldReturnResponse: false,
-            });
-            const embed = getEmbedResponse(clanInviteRequest.ErrorCode);
-            await deferredReply;
-            await interaction.editReply({ embeds: [embed] });
-            if (!interaction.channel?.isDMBased() || clanInviteRequest.ErrorCode === 1626)
-                return;
-            const message = await interaction.channel.messages.fetch(interaction.message.id);
-            if (message.embeds[0].data.author?.name === "Уведомление об исключении из клана") {
-                await message.edit({
-                    components: addButtonsToMessage([
-                        new ButtonBuilder().setCustomId("clanJoinEvent_modalBtn").setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
-                    ]),
+        if (invitee_clan === true) {
+            if (interaction.channel?.isDMBased()) {
+                await interaction.channel.messages.fetch(interaction.message.id).then(async (msg) => {
+                    await msg.edit({ components: addButtonsToMessage([timezoneComponent]) });
                 });
-                return;
             }
-            const updatedEmbed = EmbedBuilder.from(message.embeds[0]).setDescription(null);
-            await message.edit({ embeds: [updatedEmbed], components: addButtonsToMessage([timezoneComponent]) });
+            await deferredReply;
+            interaction.editReply("Вы уже являетесь участником нашего клана :)");
+            return;
         }
-        else {
-            throw { name: "Произошла неизвестная ошибка", description: "Возможно, вы уже участник нашего клана" };
+        const clanInviteRequest = await sendApiPostRequest({
+            apiEndpoint: `/Platform/GroupV2/${process.env.GROUP_ID}/Members/IndividualInvite/${invitee_platform}/${invitee_bungieId}/`,
+            requestData: { description: "Автоматическое приглашение в клан Night 9" },
+            accessToken: inviter_accessToken,
+            shouldReturnResponse: false,
+        });
+        if (!clanInviteRequest) {
+            throw { name: "Произошла неизвестная ошибка", description: "Попробуйте повторить попытку позже" };
         }
+        const embed = getEmbedResponse(clanInviteRequest.ErrorCode);
+        await deferredReply;
+        await interaction.editReply({ embeds: [embed] });
+        if (!interaction.channel?.isDMBased() || clanInviteRequest.ErrorCode === 1626)
+            return;
+        const message = await interaction.channel.messages.fetch(interaction.message.id);
+        if (message.embeds[0].data.author?.name === "Уведомление об исключении из клана") {
+            await message.edit({
+                components: addButtonsToMessage([
+                    new ButtonBuilder().setCustomId("clanJoinEvent_modalBtn").setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
+                ]),
+            });
+            return;
+        }
+        const updatedEmbed = EmbedBuilder.from(message.embeds[0]).setDescription(null);
+        await message.edit({ embeds: [updatedEmbed], components: addButtonsToMessage([timezoneComponent]) });
         function getEmbedResponse(code) {
             const embed = new EmbedBuilder().setColor(colors.error);
             const bungieNetUrl = `[Bungie.net](https://www.bungie.net/ru/ClanV2?groupid=${process.env.GROUP_ID})`;
