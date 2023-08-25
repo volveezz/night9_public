@@ -23,6 +23,7 @@ async function clanMembersManagement(databaseData) {
         }
         if (client.user.presence.activities[0].name.startsWith("🔁")) {
             client.stopUpdatingPresence();
+            console.debug("Stopped updating presence");
         }
         if (errorCode === 1 &&
             getEndpointStatus("api") != errorCode &&

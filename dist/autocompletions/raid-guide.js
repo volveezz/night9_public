@@ -16,9 +16,7 @@ const AutocompleteFile = new Autocomplete({
         else {
             const raidNames = Object.keys(RaidNames);
             avaliableRaidGuides = Object.keys(raidGuide)
-                .filter((raidName) => {
-                raidNames.includes(raidName);
-            })
+                .filter((raidName) => raidNames.includes(raidName))
                 .map((raid) => {
                 return { name: raid, value: raid };
             });
