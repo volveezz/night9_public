@@ -75,7 +75,7 @@ export class ExtendedClient extends Client {
     }
     stopUpdatingPresence() {
         this.user.setPresence({ status: "online" });
-        global.clearInterval(this.intervalId);
+        clearInterval(this.intervalId);
     }
     getCachedGuild() {
         return (this.guild || this.guilds.cache.get(process.env.GUILD_ID));

@@ -21,8 +21,9 @@ async function clanMembersManagement(databaseData) {
         if (lastLoggedErrorCode !== 1) {
             lastLoggedErrorCode = errorCode ?? 1;
         }
+        console.debug(client.user.presence.activities[0].name.startsWith("🔁"), client.user.presence.activities[0].name, client.user.presence.activities[1]?.name, client.user.presence.activities[2]?.name, client.user.presence.activities[0].state);
         if (client.user.presence.activities[0].name.startsWith("🔁")) {
-            client.stopUpdatingPresence();
+            await client.stopUpdatingPresence();
             console.debug("Stopped updating presence");
         }
         if (errorCode === 1 &&
@@ -60,6 +61,10 @@ async function clanMembersManagement(databaseData) {
         clanOnline.clear();
         const onlineCounter = clanList.results.reduce((acc, f) => (f.isOnline === true ? acc + 1 : acc), 0);
         if (onlineCounter === 0) {
+            client.user.setPresence({
+                activities: [{ name: `${clanList.results.length} участников в клане`, type: ActivityType.Custom }],
+                status: "online",
+            });
             client.user.setActivity({ name: `${clanList.results.length} участников в клане`, type: ActivityType.Custom });
         }
         else {
