@@ -22,8 +22,7 @@ async function clanMembersManagement(databaseData) {
             lastLoggedErrorCode = errorCode ?? 1;
         }
         if ((client.user.presence.activities[0].state || client.user.presence.activities[0].name).startsWith("🔁")) {
-            await client.stopUpdatingPresence();
-            console.debug("Stopped updating presence");
+            client.stopUpdatingPresence();
         }
         if (errorCode === 1 &&
             getEndpointStatus("api") != errorCode &&
@@ -119,8 +118,9 @@ async function clanMembersManagement(databaseData) {
                             const { platform, bungieId } = memberAuthData;
                             await kickClanMember(platform, bungieId);
                             if (!recentlyNotifiedKickedMembers.has(bungieId)) {
-                                console.debug(`Notifing ${memberAuthData.displayName} about not meeting requirements`);
+                                console.debug(`Notifing ${memberAuthData.displayName} about not meeting the requirements`);
                                 await notifyUserNotMeetRequirements(memberAuthData, isUserMeetsRequirements);
+                                console.debug("User was notified");
                             }
                         }
                         else {

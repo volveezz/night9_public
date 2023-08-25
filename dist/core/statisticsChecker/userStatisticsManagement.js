@@ -369,7 +369,6 @@ async function checkUserKDRatio({ platform, bungieId, accessToken }, member) {
     }
 }
 async function handleMemberStatistics() {
-    console.debug(`Initial start of the function`);
     (async () => {
         try {
             const userDatabaseData = await AuthData.findAll({
@@ -403,9 +402,7 @@ async function handleMemberStatistics() {
             console.error("[Error code: 1918]", error);
         }
     })();
-    console.debug("Initial checks were completed");
     async function startStatisticsChecking() {
-        console.debug("Started the function");
         try {
             const autoRoleData = await AutoRoleData.findAll({
                 where: {
@@ -497,18 +494,15 @@ async function handleMemberStatistics() {
                     }
                 }
             }
-            console.debug("Processing to checking clan members");
             await clanMembersManagement(databaseData);
         }
         catch (error) {
             console.error("[Error code: 1921]", error.stack || error);
         }
         finally {
-            console.debug("Setting a new finally timeout for the function");
             setTimeout(startStatisticsChecking, 1000 * 60 * 2);
         }
     }
-    console.debug("Setting a new timeout for the function");
     setTimeout(startStatisticsChecking, 1000 * 60 * 2);
 }
 async function checkIndiviualUserStatistics(user) {
