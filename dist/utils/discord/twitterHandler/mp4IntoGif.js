@@ -1,6 +1,7 @@
 import CloudConvert from "cloudconvert";
 const cloudConvert = new CloudConvert(process.env.CLOUDCONVERT_KEY);
 async function convertMp4ToGif(inputUrl) {
+    console.debug(`Starting to convert ${inputUrl} to gif`);
     const job = await cloudConvert.jobs.create({
         tasks: {
             "import-my-file": {
@@ -14,7 +15,7 @@ async function convertMp4ToGif(inputUrl) {
                 input_format: "mp4",
                 video_codec: "gif",
                 fps: 24,
-                width: 600,
+                width: 560,
             },
             "export-my-file": {
                 operation: "export/url",
@@ -24,6 +25,8 @@ async function convertMp4ToGif(inputUrl) {
     });
     const jobResult = await cloudConvert.jobs.wait(job.id);
     const exportTask = jobResult.tasks.filter((task) => task.operation === "export/url" && task.status === "finished")[0];
+    console.debug(`Finished converting ${inputUrl} to gif`);
+    console.debug("Results:", exportTask.result?.files?.map((file) => file.url).join(", ") ?? "No results");
     return exportTask.result?.files?.[0]?.url;
 }
 export default convertMp4ToGif;

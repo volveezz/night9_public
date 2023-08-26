@@ -119,7 +119,7 @@ const ButtonCommand = new Button({
             let modalDescription = `Рейдер, тебя оповестил ${raidEvent.creator === interaction.user.id ? "создатель рейда" : "администратор"} об скором старте.\n\nЗаходи в голосовой канал как можно скорее!`;
             let modalImage = GIFImage;
             let interactionResponded = false;
-            async function sendNotificationToMembers(allVoiceChannels, raidEvent, linkComponent, guild, interaction, message) {
+            async function sendNotificationToMembers(raidEvent, linkComponent, guild, interaction, message) {
                 const channel = client.getCachedTextChannel(interaction.channel.id);
                 const notificationEmbed = new EmbedBuilder().setColor(colors.serious);
                 if (modalTitle?.length > 0) {
@@ -272,7 +272,6 @@ const ButtonCommand = new Button({
                 await message.edit({ components: [], embeds: [cancelEmbed] });
                 collector.stop("canceled");
             }
-            const allVoiceChannels = guild.channels.cache.filter((chn) => chn.type === ChannelType.GuildVoice);
             let invite = member.voice.channel?.members.has(raidEvent.creator)
                 ? await member.voice.channel?.createInvite({ reason: "Raid invite to raid leader", maxAge: 60 * 120 })
                 : null;
@@ -336,7 +335,7 @@ const ButtonCommand = new Button({
                     return;
                 switch (collectorInteraction.customId) {
                     case "raidAddFunc_notify_confirm":
-                        await sendNotificationToMembers(allVoiceChannels, raidEvent, linkComponent, guild, interaction, message);
+                        await sendNotificationToMembers(raidEvent, linkComponent, guild, interaction, message);
                         break;
                     case "raidAddFunc_notify_edit":
                         await handleEditAction(collectorInteraction);

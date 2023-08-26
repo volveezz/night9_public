@@ -22,7 +22,9 @@ function clearText(content) {
 async function generateTwitterEmbed({ twitterData, author, icon, url, originalEmbed }) {
     if (!twitterData.content)
         return;
+    console.debug(`Starting to clear text:`, twitterData.content);
     const cleanContent = clearText(twitterData.content);
+    console.debug(`Finished clearing text:`, cleanContent);
     if (!cleanContent || cleanContent.length === 0) {
         console.error("[Error code: 1754]", twitterData);
         return;
