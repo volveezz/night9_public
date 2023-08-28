@@ -64,7 +64,7 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
             twitterOriginalVoters.set(m.id, voteRecord);
             originalTweetData.set(m.id, cleanContent);
         }
-        if (extractedMedia) {
+        if (extractedMedia && extractedMedia.includes(".mp4")) {
             convertVideoToGif(extractedMedia, m, embed);
         }
     });
