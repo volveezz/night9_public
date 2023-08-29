@@ -321,9 +321,16 @@ export async function raidChallenges({ raidData, raidEvent, privateChannelMessag
     const barrierEmoji = "<:barrier:1090473007471935519>";
     const overloadEmoji = "<:overload:1090473013398491236>";
     const unstoppableEmoji = "<:unstoppable:1090473011175489687>";
-    const milestoneRequest = (await sendApiRequest("/Platform/Destiny2/3/Profile/4611686018488674684/Character/2305843009489394188/?components=202")).progressions.data.milestones;
+    let milestoneRequest, manifest;
+    try {
+        milestoneRequest = (await sendApiRequest("/Platform/Destiny2/3/Profile/4611686018488674684/Character/2305843009489394188/?components=202")).progressions.data.milestones;
+        manifest = await GetManifest("DestinyActivityModifierDefinition");
+    }
+    catch (error) {
+        console.error("[Error code: 2002]", error);
+        return;
+    }
     const raidMilestone = milestoneRequest[raidData.milestoneHash];
-    const manifest = await GetManifest("DestinyActivityModifierDefinition");
     const raidChallengesArray = [];
     const raidModifiersArray = [];
     const raidDataChallanges = destinyRaidsChallenges[raidData.raid];
