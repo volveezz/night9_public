@@ -309,7 +309,7 @@ function updateField(embed, fieldName, users, usersText, findFieldIndex) {
 }
 export async function raidChallenges({ raidData, raidEvent, privateChannelMessage }) {
     const { difficulty, time: startTime } = raidEvent;
-    if (difficulty === 3 || (raidData.raid === RaidNames.ce && startTime >= 1693591200 && startTime <= 1693764000)) {
+    if (difficulty === 3 || (raidData.raid === RaidNames.ce && startTime >= 1693587600 && startTime <= 1693764000)) {
         const embed = EmbedBuilder.from(privateChannelMessage.embeds[0]);
         embed.data.fields[0].name = "**Модификатор рейда**";
         embed.data.fields[0].value = "⁣　⁣**Режим состязания**: задание фиксированной сложности. Испытайте свои силы";

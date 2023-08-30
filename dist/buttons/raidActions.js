@@ -234,7 +234,7 @@ const ButtonCommand = new Button({
                 await deferredUpdate;
                 throw { errorType: "RAID_ALREADY_JOINED" };
             }
-            const isContestRaid = raidEvent.raid === RaidNames.ce && raidEvent.time >= 1693591200 && raidEvent.time <= 1693764000;
+            const isContestRaid = raidEvent.raid === RaidNames.ce && raidEvent.time < 1693764000;
             const raidsCompletedByUser = completedRaidsData.get(interaction.user.id);
             const raidClears = isContestRaid
                 ? raidsCompletedByUser

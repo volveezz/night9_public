@@ -313,7 +313,7 @@ const SlashCommand = new Command({
             else if (isNaN(parsedTime) || parsedTime < 1000) {
                 throw { errorType: "RAID_TIME_ERROR" };
             }
-            const isContestRaid = raid === RaidNames.ce && parsedTime >= 1693591200 && parsedTime <= 1693764000;
+            const isContestRaid = raid === RaidNames.ce && parsedTime < 1693764000;
             const raidData = getRaidDetails(raid, isContestRaid ? 3 : difficulty);
             const requiredClears = args.getInteger("требуемых-закрытий") ?? 0;
             const raidEvent = await RaidEvent.create({
@@ -431,7 +431,7 @@ const SlashCommand = new Command({
                 await deferredReply;
                 throw { errorType: "RAID_NOT_FOUND" };
             }
-            const isContestRaid = (newRaid || raidData.raid) === RaidNames.ce && (raidData.time >= 1693591200 || raidData.time <= 1693764000);
+            const isContestRaid = (newRaid || raidData.raid) === RaidNames.ce && raidData.time < 1693764000;
             if (isContestRaid &&
                 ((newDifficulty && newDifficulty !== 3) ||
                     (!newDifficulty && newRaid === RaidNames.ce && raidData.difficulty !== 3))) {
