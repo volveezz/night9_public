@@ -27,31 +27,6 @@ async function processPveActivities(activity, completedActivities, activityAvail
             completedActivities.push(activity.activityDetails.referenceId);
     }
 }
-async function processTrialsOfOsirisActivities(activity, { isPreviousMatchWintraded, isWintrader, wintradedMatches, kills, deaths }) {
-    if (activity.values.completionReason.basic.value === 3) {
-        console.debug(`Found wintraded match ${activity.activityDetails.instanceId}`);
-        if (isPreviousMatchWintraded === true) {
-            console.debug(`Found a consecutive wintraded match ${activity.activityDetails.instanceId}`);
-            wintradedMatches = wintradedMatches + 1;
-            isWintrader = true;
-        }
-        else {
-            console.debug(`Found a non-consecutive wintraded match ${activity.activityDetails.instanceId}`);
-            isPreviousMatchWintraded = true;
-        }
-    }
-    else if (isPreviousMatchWintraded === true) {
-        isPreviousMatchWintraded = false;
-        if (isWintrader === true) {
-            console.debug(`Found a valid match, but the player is a wintrader ${activity.activityDetails.instanceId}`);
-            wintradedMatches = wintradedMatches + 1;
-            isWintrader = false;
-        }
-    }
-    kills += activity.values.kills.basic.value;
-    deaths += activity.values.deaths.basic.value;
-    return { kills, deaths, wintradedMatches, isWintrader, isPreviousMatchWintraded };
-}
 export async function destinyActivityChecker({ authData, mode, member, count = 250 }) {
     if (getEndpointStatus("activity") !== 1)
         return;
@@ -98,18 +73,27 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
                     await processPveActivities(activity, completedActivities, activityAvailableTime);
                 }
                 else {
-                    const result = await processTrialsOfOsirisActivities(activity, {
-                        isPreviousMatchWintraded,
-                        isWintrader,
-                        wintradedMatches,
-                        kills,
-                        deaths,
-                    });
-                    kills += result.kills;
-                    deaths += result.deaths;
-                    wintradedMatches = result.wintradedMatches;
-                    isWintrader = result.isWintrader;
-                    isPreviousMatchWintraded = result.isPreviousMatchWintraded;
+                    if (activity.values.completionReason.basic.value === 3) {
+                        if (isPreviousMatchWintraded === true) {
+                            console.debug(`Found a consecutive wintraded match ${activity.activityDetails.instanceId}`);
+                            wintradedMatches = wintradedMatches + 1;
+                            isWintrader = true;
+                        }
+                        else {
+                            console.debug(`Found a non-consecutive wintraded match ${activity.activityDetails.instanceId}`);
+                            isPreviousMatchWintraded = true;
+                        }
+                    }
+                    else if (isPreviousMatchWintraded === true) {
+                        isPreviousMatchWintraded = false;
+                        if (isWintrader === true) {
+                            console.debug(`Found a valid match, but the player is a wintrader ${activity.activityDetails.instanceId}`);
+                            wintradedMatches = wintradedMatches + 1;
+                            isWintrader = false;
+                        }
+                    }
+                    kills += activity.values.kills.basic.value;
+                    deaths += activity.values.deaths.basic.value;
                 }
             });
             await Promise.all([activityRequests]);
