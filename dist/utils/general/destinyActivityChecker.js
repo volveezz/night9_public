@@ -29,17 +29,21 @@ async function processPveActivities(activity, completedActivities, activityAvail
 }
 async function processTrialsOfOsirisActivities(activity, { isPreviousMatchWintraded, isWintrader, wintradedMatches, kills, deaths }) {
     if (activity.values.completionReason.basic.value === 3) {
+        console.debug(`Found wintraded match ${activity.activityDetails.instanceId}`);
         if (isPreviousMatchWintraded === true) {
+            console.debug(`Found a consecutive wintraded match ${activity.activityDetails.instanceId}`);
             wintradedMatches++;
             isWintrader = true;
         }
         else {
+            console.debug(`Found a non-consecutive wintraded match ${activity.activityDetails.instanceId}`);
             isPreviousMatchWintraded = true;
         }
     }
     else if (isPreviousMatchWintraded === true) {
         isPreviousMatchWintraded = false;
         if (isWintrader === true) {
+            console.debug(`Found a valid match, but the player is a wintrader ${activity.activityDetails.instanceId}`);
             wintradedMatches++;
             isWintrader = false;
         }
@@ -179,6 +183,7 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
         }
     }
     else if (mode === 84) {
+        console.debug(`Found ${wintradedMatches}/${isWintrader} wintraded matches for ${member.displayName}`);
         if (wintradedMatches >= 10 && discordId !== OWNER_ID) {
             if (member.roles.cache.hasAny(...trialsRoles.allKd)) {
                 await member.roles.remove(trialsRoles.allKd);

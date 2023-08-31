@@ -39,7 +39,7 @@ function findCorrectedName(hash) {
         case 4179289725:
             return "Крах Кроты";
         case 4103176774:
-            return "Крах Кроты: режим с подбором игроков";
+            return "Крах Кроты: режим с проводником";
         case 156253568:
             return "Крах Кроты: режим испытаний";
         case 1507509200:
@@ -52,6 +52,8 @@ function findPredefinedName(hash) {
     switch (hash) {
         case 4201846671:
             return "Предвестие: Легенда";
+        case 666172264:
+            return "Тайный глас: Легенда";
         default:
             return null;
     }
