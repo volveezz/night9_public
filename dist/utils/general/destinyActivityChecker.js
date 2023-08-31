@@ -32,7 +32,7 @@ async function processTrialsOfOsirisActivities(activity, { isPreviousMatchWintra
         console.debug(`Found wintraded match ${activity.activityDetails.instanceId}`);
         if (isPreviousMatchWintraded === true) {
             console.debug(`Found a consecutive wintraded match ${activity.activityDetails.instanceId}`);
-            wintradedMatches++;
+            wintradedMatches = wintradedMatches + 1;
             isWintrader = true;
         }
         else {
@@ -44,7 +44,7 @@ async function processTrialsOfOsirisActivities(activity, { isPreviousMatchWintra
         isPreviousMatchWintraded = false;
         if (isWintrader === true) {
             console.debug(`Found a valid match, but the player is a wintrader ${activity.activityDetails.instanceId}`);
-            wintradedMatches++;
+            wintradedMatches = wintradedMatches + 1;
             isWintrader = false;
         }
     }
@@ -107,7 +107,7 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
                     });
                     kills += result.kills;
                     deaths += result.deaths;
-                    wintradedMatches += result.wintradedMatches;
+                    wintradedMatches = result.wintradedMatches;
                     isWintrader = result.isWintrader;
                     isPreviousMatchWintraded = result.isPreviousMatchWintraded;
                 }
