@@ -11,6 +11,7 @@ import { generatePatchNotes } from "../utils/discord/patchnoteGenerator.js";
 import sendRegistrationLink from "../utils/discord/registration.js";
 import parseTwitterLinkMessage from "../utils/discord/twitterHandler/parseTwitterLink.js";
 import { cacheUserActivity } from "../utils/discord/userActivityHandler.js";
+import blockRaidChannelMessages from "../utils/general/raidFunctions/blockRaidChannelMessages.js";
 async function handleMessage(message) {
     if (message.channelId === process.env.MANIFEST_CHANNEL_ID) {
         return RefreshManifest();
@@ -21,6 +22,9 @@ async function handleMessage(message) {
     }
     if (!message.author || message.author.bot || message.system || !(message instanceof Message))
         return;
+    if (message.channelId === process.env.RAID_CHANNEL_ID && !message.member?.permissions.has("Administrator")) {
+        return blockRaidChannelMessages(message);
+    }
     if (message.channelId === process.env.PATCHNOTE_GENERATOR_CHANNEL_ID) {
         return generatePatchNotes(message);
     }

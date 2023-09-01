@@ -19,7 +19,7 @@ const errorResolver = async ({ error, interaction, retryOperation }) => {
             }
             console.error("[Error code: 1685] Unknown error on command reply", error);
         });
-        console.error(`[Error code: 1694] Error during execution of ${interaction.customId || interaction.commandName || interaction.name} for ${username}`, error);
+        console.error(`[Error code: 1694] Error during execution of ${interaction.customId || interaction.commandName || interaction.name} for ${username}\n`, error);
     }
     catch (e) {
         if (!retryOperation)

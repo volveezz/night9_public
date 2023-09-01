@@ -29,6 +29,7 @@ Translated dataset:
 "Deep Stone Crypt": "Склеп Глубокого камня",
 "Vault of Glass": "Хрустальный чертог",
 "Root of Nightmares": "Источник Кошмаров",
+"Crota's End": "Крах Кроты",
 "Vow of the Disciple": "Клятва Послушника",
 "King’s Fall": "Гибель Короля",
 "Duality": "Дуальность",

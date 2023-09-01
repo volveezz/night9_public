@@ -10,14 +10,14 @@ let publicNewsChannel = null;
 function extractMediaUrl(content) {
     if (!content)
         return null;
-    const videoRegex = /⏵\s*\[1\]\((https?:\/\/[^\)]+)\)/;
-    const videoMatch = content.match(videoRegex);
-    return videoMatch ? videoMatch[1] : null;
+    const pattern = /https:\/\/video\.twimg\.com\/amplify_video\/\d+\/vid\/.*?\.(mp4|gif)/;
+    const videoMatch = content.match(pattern);
+    return videoMatch ? videoMatch[0] : null;
 }
 function clearText(content) {
-    return (content
-        .replace(/ ?⏵\s*\[\d+\]\((https?:\/\/[^\)]+)\)/g, "")
-        .trim());
+    return content
+        .replace(/ ?⏵\s*\[\[\d+\]\]\((https?:\/\/[^\)]+)\)/g, "")
+        .trim();
 }
 async function generateTwitterEmbed({ twitterData, author, icon, url, originalEmbed }) {
     if (!twitterData.content)
@@ -64,7 +64,7 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
             twitterOriginalVoters.set(m.id, voteRecord);
             originalTweetData.set(m.id, cleanContent);
         }
-        if (extractedMedia && extractedMedia.includes(".mp4")) {
+        if (extractedMedia && extractedMedia.endsWith(".mp4")) {
             convertVideoToGif(extractedMedia, m, embed);
         }
     });

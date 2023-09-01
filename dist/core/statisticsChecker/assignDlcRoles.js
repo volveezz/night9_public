@@ -19,6 +19,8 @@ async function assignDlcRoles({ addRoles, member, removeRoles, version }) {
     else if (version <= 7 && !member.roles.cache.has(dlcRoles.vanilla)) {
         addRoles.push(dlcRoles.vanilla);
         removeRoles.push(...rolesExceptVanilla);
+        console.debug(`Removed all DLC roles from ${member.displayName}`);
+        console.debug(...rolesExceptVanilla);
     }
     for (const { bit, role } of dlcBitFlags) {
         if (version & bit && !member.roles.cache.has(role)) {
