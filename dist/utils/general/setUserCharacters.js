@@ -1,6 +1,9 @@
 import { sendApiRequest } from "../api/sendApiRequest.js";
 import { userCharactersId } from "../persistence/dataStore.js";
 async function fetchCharacterStatsAndCache({ discordId, platform, bungieId, accessToken }) {
+    if (!bungieId || !discordId || !platform) {
+        console.trace(`[Error code: 2003] Found missing data for ${discordId} during caching characters`);
+    }
     try {
         const statsRequestUrl = `/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`;
         const characterStats = await sendApiRequest(statsRequestUrl, accessToken);
