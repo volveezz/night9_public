@@ -188,15 +188,11 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
         for (const step of trialsRoles.kd) {
             if (userKD < step.kd)
                 continue;
-            const addedRoles = [];
-            if (!member.roles.cache.has(trialsRoles.category)) {
-                addedRoles.push(trialsRoles.category);
-            }
             if (member.roles.cache.hasAny(...trialsRoles.allKd.filter((r) => r !== step.roleId))) {
                 await member.roles.remove(trialsRoles.allKd.filter((r) => r !== step.roleId));
             }
             if (!member.roles.cache.has(step.roleId)) {
-                await member.roles.add([step.roleId, ...addedRoles]);
+                await member.roles.add(!member.roles.cache.has(trialsRoles.category) ? [step.roleId, trialsRoles.category] : [step.roleId]);
             }
             return;
         }

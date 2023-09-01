@@ -123,6 +123,7 @@ const trialsRoles = {
         { roleId: process.env.TRIALS_TOTAL_FLAWLESS_ROLE_1, totalFlawless: 1 },
     ],
     allKd: [
+        process.env.TRIALS_KD_ROLE_15,
         process.env.TRIALS_KD_ROLE_14,
         process.env.TRIALS_KD_ROLE_13,
         process.env.TRIALS_KD_ROLE_12,
