@@ -438,8 +438,15 @@ const SlashCommand = new Command({
             const transaction = await database.transaction();
             const changesForChannel = [];
             const raidPrivateChannel = await client.getAsyncTextChannel(raidData.channelId);
-            const inChannelMessage = (await client.getAsyncMessage(raidPrivateChannel, raidData.inChannelMessageId)) ||
-                (await sendRaidPrivateMessage({ raidEvent: raidData, channel: raidPrivateChannel }));
+            let inChannelMessage;
+            try {
+                inChannelMessage =
+                    (await client.getAsyncMessage(raidPrivateChannel, raidData.inChannelMessageId)) ||
+                        (await sendRaidPrivateMessage({ raidEvent: raidData, channel: raidPrivateChannel }));
+            }
+            catch (error) {
+                inChannelMessage = await sendRaidPrivateMessage({ raidEvent: raidData, channel: raidPrivateChannel });
+            }
             if (!raidMessage) {
                 console.error("[Error code: 1750]", raidData);
                 throw { name: "Ошибка", description: "Не удалось найти сообщение рейда" };
@@ -457,11 +464,7 @@ const SlashCommand = new Command({
             }
             const updateDifficulty = async (newDifficulty, raidInfo, raidData, transaction) => {
                 if (newDifficulty != null && raidInfo.maxDifficulty >= newDifficulty && newDifficulty != raidData.difficulty) {
-                    const difficultyText = newDifficulty === 3
-                        ? "Режим состязания"
-                        : newDifficulty === 2
-                            ? "Мастер"
-                            : "Нормальный";
+                    const difficultyText = newDifficulty === 2 ? "Мастер" : "Нормальный";
                     changesForChannel.push({
                         name: "Сложность рейда",
                         value: `Сложность рейда была изменена - \`${difficultyText}\``,
@@ -641,8 +644,10 @@ const SlashCommand = new Command({
                     embeds: [raidEmbed],
                     ...(!newRaid ? { content: "" } : {}),
                 };
+                console.debug(inChannelMessage.components);
+                console.debug(inChannelMessage.components.map((v) => v.components));
                 inChannelMessage.edit({
-                    components: addButtonsToMessage([...getDefaultRaidComponents(), ...components]),
+                    components: addButtonsToMessage([...getDefaultRaidComponents(inChannelMessage.components[0]), ...components]),
                 });
                 raidMessage.edit(messageOptions);
                 const replyEmbed = new EmbedBuilder()
@@ -673,9 +678,8 @@ const SlashCommand = new Command({
             await RaidEvent.destroy({ where: { id }, limit: 1 })
                 .then(async () => {
                 clearNotifications(id);
-                const raidsChannel = client.getCachedTextChannel(process.env.RAID_CHANNEL_ID);
-                const privateRaidChannel = await client.getAsyncTextChannel(channelId);
                 try {
+                    const privateRaidChannel = await client.getAsyncTextChannel(channelId);
                     await privateRaidChannel.delete(`${interaction.member.displayName} deleted the raid ${id}-${raid}`);
                 }
                 catch (e) {
@@ -683,6 +687,7 @@ const SlashCommand = new Command({
                     e.code !== 10008 ? console.error("[Error code: 1913]", e) : "";
                 }
                 try {
+                    const raidsChannel = client.getCachedTextChannel(process.env.RAID_CHANNEL_ID);
                     const message = await client.getAsyncMessage(raidsChannel, messageId);
                     if (message)
                         await message.delete();

@@ -58,10 +58,5 @@ export const raidDifficultiesChoices = [
         nameLocalizations: { "en-US": "Master", "en-GB": "Master" },
         value: 2,
     },
-    {
-        name: "Режим испытания",
-        nameLocalizations: { "en-US": "Contest", "en-GB": "Contest" },
-        value: 3,
-    },
 ];
 //# sourceMappingURL=Raids.js.map

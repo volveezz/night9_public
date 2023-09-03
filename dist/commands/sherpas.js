@@ -54,7 +54,7 @@ const SlashCommand = new Command({
             const member = client.getCachedMembers().get(discordId);
             const raidClears = [];
             if (raidUserData.ce > 0)
-                raidClears.push(`${raidUserData.ce} КК`);
+                raidClears.push(`${raidUserData.ce}${raidUserData.ceMaster > 0 ? `(${raidUserData.ceMaster})` : ""} КК`);
             if (raidUserData.ron > 0)
                 raidClears.push(`${raidUserData.ron}${raidUserData.ronMaster > 0 ? `(${raidUserData.ronMaster})` : ""} ИК`);
             if (raidUserData.kf > 0)
