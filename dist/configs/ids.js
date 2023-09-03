@@ -6,11 +6,9 @@ const forbiddenRaidIds = [
 const checkedStoryActivities = [
     3755529435,
     3083261666,
-    3883295757,
     4201846671,
-    2668737148, 901429423,
     666172264,
-    613120446,
+    995051012, 2919809209,
 ];
 export { checkedStoryActivities, forbiddenRaidIds };
 //# sourceMappingURL=ids.js.map

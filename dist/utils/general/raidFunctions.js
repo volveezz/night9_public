@@ -44,13 +44,13 @@ export function getRaidDetails(raid, difficulty = 1) {
         case RaidNames.ce: {
             return {
                 raid,
-                raidName: difficulty != 1 ? "Трах Кроты: Режим состязания" : "Трах Кроты",
-                maxDifficulty: 3,
+                raidName: difficulty != 1 ? "Крах Кроты: Мастер" : "Крах Кроты",
+                maxDifficulty: 2,
                 raidBanner: "https://cdn.discordapp.com/attachments/679191036849029167/1134306618213937263/ce.jpg",
                 raidColor: (difficulty >= 2 ? MASTER_DIFFICULTY_COLOR : "#5da75c"),
-                channelName: "-трах-кроты",
+                channelName: "-крах-кроты",
                 requiredRole: null,
-                milestoneHash: 999999999,
+                milestoneHash: 540415767,
             };
         }
         case RaidNames.ron:
@@ -212,14 +212,9 @@ async function generateJoinedAdvancedRoster(users, raidName, cleanMemberName, id
         const userName = await cleanMemberName(userId);
         const raidClears = completedRaidsData.get(userId);
         if (raidClears) {
-            if (raidName === RaidNames.ce) {
-                return `⁣　${index + 1}. **${userName}** — ${raidClears["totalRaidClears"]} закрытий всех рейдов`;
-            }
-            else {
-                const clearsText = generateRaidCompletionText(raidClears[raidName]);
-                const masterClearsText = raidClears[raidName + "Master"] ? ` (+**${raidClears[raidName + "Master"]}** на мастере)` : "";
-                return `⁣　${index + 1}. **${userName}** — ${clearsText}${masterClearsText}`;
-            }
+            const clearsText = generateRaidCompletionText(raidClears[raidName]);
+            const masterClearsText = raidClears[raidName + "Master"] ? ` (+**${raidClears[raidName + "Master"]}** на мастере)` : "";
+            return `⁣　${index + 1}. **${userName}** — ${clearsText}${masterClearsText}`;
         }
         else if (!raidsWithoutData.has(id)) {
             raidsWithoutData.add(id);
@@ -309,13 +304,6 @@ function updateField(embed, fieldName, users, usersText, findFieldIndex) {
 }
 export async function raidChallenges({ raidData, raidEvent, privateChannelMessage }) {
     const { difficulty, time: startTime } = raidEvent;
-    if (difficulty === 3 || (raidData.raid === RaidNames.ce && startTime >= 1693587600 && startTime <= 1693764000)) {
-        const embed = EmbedBuilder.from(privateChannelMessage.embeds[0]);
-        embed.data.fields[0].name = "**Модификатор рейда**";
-        embed.data.fields[0].value = "⁣　⁣**Режим состязания**: задание фиксированной сложности. Испытайте свои силы";
-        await privateChannelMessage.edit({ embeds: [embed] });
-        return;
-    }
     if (difficulty > 2 || getEndpointStatus("account") !== 1)
         return null;
     const barrierEmoji = "<:barrier:1090473007471935519>";
@@ -331,6 +319,8 @@ export async function raidChallenges({ raidData, raidEvent, privateChannelMessag
         return;
     }
     const raidMilestone = milestoneRequest[raidData.milestoneHash];
+    if (!raidMilestone?.activities)
+        return null;
     const raidChallengesArray = [];
     const raidModifiersArray = [];
     const raidDataChallanges = destinyRaidsChallenges[raidData.raid];

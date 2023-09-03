@@ -13,14 +13,21 @@ async function downloadFile(url, fileName) {
 async function sendFileToDiscord(filePath) {
     if (!textChannel)
         textChannel = await client.getAsyncTextChannel(process.env.STORAGE_CHANNEL_ID);
-    return await textChannel.send({
-        files: [
-            {
-                attachment: filePath,
-                name: "boosty.to_night9.gif",
-            },
-        ],
-    });
+    try {
+        const message = await textChannel.send({
+            files: [
+                {
+                    attachment: filePath,
+                    name: "boosty.to_night9.gif",
+                },
+            ],
+        });
+        return message;
+    }
+    catch (error) {
+        console.error("[Error code: 2005] Got error while sending file to discord", error);
+        return;
+    }
 }
 async function deleteFile(filePath) {
     fs.unlink(filePath, (err) => {
@@ -32,13 +39,15 @@ export async function processTwitterGifFile(url, message, embed) {
     try {
         const filePath = await downloadFile(url, message.id);
         const fileMessage = await sendFileToDiscord(filePath);
-        const gifUrl = fileMessage.attachments.first().url;
-        embed.setImage(gifUrl);
-        message.edit({ embeds: [embed] });
+        if (fileMessage) {
+            const gifUrl = fileMessage.attachments.first().url;
+            embed.setImage(gifUrl);
+            message.edit({ embeds: [embed] });
+        }
         await deleteFile(filePath);
     }
     catch (err) {
-        console.error(err);
+        console.error("[Error code: 2006]", err);
     }
 }
 //# sourceMappingURL=saveGifInChannel.js.map

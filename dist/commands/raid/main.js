@@ -1,6 +1,6 @@
 import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { Op, Sequelize } from "sequelize";
-import { RaidNames, raidDifficultiesChoices, raidSelectionOptions } from "../../configs/Raids.js";
+import { raidDifficultiesChoices, raidSelectionOptions } from "../../configs/Raids.js";
 import colors from "../../configs/colors.js";
 import icons, { activityIcons } from "../../configs/icons.js";
 import raidsGuide from "../../configs/raidGuideData.js";
@@ -313,8 +313,7 @@ const SlashCommand = new Command({
             else if (isNaN(parsedTime) || parsedTime < 1000) {
                 throw { errorType: "RAID_TIME_ERROR" };
             }
-            const isContestRaid = raid === RaidNames.ce && parsedTime < 1693764000;
-            const raidData = getRaidDetails(raid, isContestRaid ? 3 : difficulty);
+            const raidData = getRaidDetails(raid, difficulty);
             const requiredClears = args.getInteger("требуемых-закрытий") ?? 0;
             const raidEvent = await RaidEvent.create({
                 channelId: member.id,
@@ -324,7 +323,7 @@ const SlashCommand = new Command({
                 joined: [member.id],
                 time: parsedTime,
                 raid: raidData.raid,
-                difficulty: isContestRaid ? 3 : difficulty,
+                difficulty,
                 requiredClears,
             });
             const raidClears = completedRaidsData.get(interaction.user.id);
@@ -360,10 +359,8 @@ const SlashCommand = new Command({
             });
             raidEvent.channelId = privateRaidChannel.id;
             const inChannelMessagePromise = sendRaidPrivateMessage({ channel: privateRaidChannel, raidEvent });
-            const raidClearsText = (isContestRaid && raidClears) || raidClears
-                ? isContestRaid
-                    ? ` — ${raidClears["totalRaidClears"]} закрытий всех рейдов`
-                    : ` — ${generateRaidCompletionText(raidClears[raidData.raid])}${raidClears[raidData.raid + "Master"] ? ` (+**${raidClears[raidData.raid + "Master"]}** на мастере)` : ""}`
+            const raidClearsText = raidClears
+                ? ` — ${generateRaidCompletionText(raidClears[raidData.raid])}${raidClears[raidData.raid + "Master"] ? ` (+**${raidClears[raidData.raid + "Master"]}** на мастере)` : ""}`
                 : "";
             const embed = new EmbedBuilder()
                 .setTitle(`Рейд: ${raidData.raidName}${requiredClears >= 1 ? ` от ${requiredClears} закрыт${requiredClears === 1 ? "ия" : "ий"}` : ""}`)
@@ -430,12 +427,6 @@ const SlashCommand = new Command({
             if (!raidData || (Array.isArray(raidData) && raidData.length === 0)) {
                 await deferredReply;
                 throw { errorType: "RAID_NOT_FOUND" };
-            }
-            const isContestRaid = (newRaid || raidData.raid) === RaidNames.ce && raidData.time < 1693764000;
-            if (isContestRaid &&
-                ((newDifficulty && newDifficulty !== 3) ||
-                    (!newDifficulty && newRaid === RaidNames.ce && raidData.difficulty !== 3))) {
-                newDifficulty = 3;
             }
             const raidInfo = getRaidDetails((newRaid || raidData.raid), newDifficulty ?? raidData.difficulty);
             if ((newDifficulty || raidData.difficulty) > raidInfo.maxDifficulty) {

@@ -99,7 +99,7 @@ export class ExtendedClient extends Client {
             return resolvedChannel.messages.cache.get(messageId) || (await resolvedChannel.messages.fetch(messageId));
         }
         catch (error) {
-            console.error(`Error fetching message: ${messageId} in channel: ${resolvedChannel?.name || inputChannel}${resolvedChannel && resolvedChannel.id ? ` with ID: ${resolvedChannel.id}` : ""}`, error);
+            console.error(`[Error code: 2004] Error fetching message: ${messageId} in channel: ${resolvedChannel?.name || inputChannel}${resolvedChannel && resolvedChannel.id ? ` with ID: ${resolvedChannel.id}` : ""}`, error);
             return null;
         }
     }

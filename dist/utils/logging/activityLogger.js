@@ -54,6 +54,9 @@ function findPredefinedName(hash) {
             return "Предвестие: Легенда";
         case 666172264:
             return "Тайный глас: Легенда";
+        case 995051012:
+        case 2919809209:
+            return "Операция «Щит Серафима»: Легенда";
         default:
             return null;
     }

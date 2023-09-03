@@ -10,7 +10,7 @@ export var RaidNames;
     RaidNames["lw"] = "lw";
 })(RaidNames || (RaidNames = {}));
 export const raidSelectionOptions = [
-    { name: "Трах Кроты", nameLocalizations: { "en-US": "Crota's End", "en-GB": "Crota's End" }, value: "ce" },
+    { name: "Крах Кроты", nameLocalizations: { "en-US": "Crota's End", "en-GB": "Crota's End" }, value: "ce" },
     {
         name: "Источник кошмаров",
         nameLocalizations: { "en-US": "Root of Nightmares", "en-GB": "Root of Nightmares" },

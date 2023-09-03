@@ -1,6 +1,5 @@
 import { EmbedBuilder, RESTJSONErrorCodes } from "discord.js";
 import { Op, Sequelize } from "sequelize";
-import { RaidNames } from "../configs/Raids.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { client } from "../index.js";
@@ -234,15 +233,10 @@ const ButtonCommand = new Button({
                 await deferredUpdate;
                 throw { errorType: "RAID_ALREADY_JOINED" };
             }
-            const isContestRaid = raidEvent.raid === RaidNames.ce && raidEvent.time < 1693764000;
             const raidsCompletedByUser = completedRaidsData.get(interaction.user.id);
-            const raidClears = isContestRaid
-                ? raidsCompletedByUser
-                    ? raidsCompletedByUser["totalRaidClears"]
-                    : 0
-                : raidsCompletedByUser
-                    ? raidsCompletedByUser[raidEvent.raid] + (raidsCompletedByUser[raidEvent.raid + "Master"] || 0)
-                    : 0;
+            const raidClears = raidsCompletedByUser
+                ? raidsCompletedByUser[raidEvent.raid] + (raidsCompletedByUser[raidEvent.raid + "Master"] || 0)
+                : 0;
             if (raidEvent.requiredClears) {
                 if (!raidsCompletedByUser) {
                     await deferredUpdate;

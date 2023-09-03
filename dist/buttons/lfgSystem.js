@@ -19,6 +19,7 @@ const ButtonCommand = new Button({
             console.error("[Error code: 1815]", interaction.message.id, channelDataMap.entries(), keyValueBasedOnMessageId);
             const embed = new EmbedBuilder().setColor(colors.error).setAuthor({ name: "Ошибка. Сбор не найден", iconURL: icons.error });
             interaction.reply({ embeds: [embed], ephemeral: true });
+            interaction.message.delete();
             return;
         }
         if (keyValueBasedOnMessageId.value.creator !== interaction.user.id) {

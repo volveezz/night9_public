@@ -135,7 +135,7 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
                 }
             }, 60 * 1000 * 20);
         };
-        if (!response || !response.activities) {
+        if (!response || !response.activities || !response.progressions.data.milestones[milestoneHash].activities) {
             stopActivityHashChecker();
             return null;
         }
