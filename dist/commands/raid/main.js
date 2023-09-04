@@ -644,8 +644,6 @@ const SlashCommand = new Command({
                     embeds: [raidEmbed],
                     ...(!newRaid ? { content: "" } : {}),
                 };
-                console.debug(inChannelMessage.components);
-                console.debug(inChannelMessage.components.map((v) => v.components));
                 inChannelMessage.edit({
                     components: addButtonsToMessage([...getDefaultRaidComponents(inChannelMessage.components[0]), ...components]),
                 });

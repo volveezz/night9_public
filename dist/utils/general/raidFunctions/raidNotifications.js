@@ -120,31 +120,27 @@ export async function loadNotifications() {
         },
     });
     console.debug("Found", raidsInNextDay.length, "raids in the next 24 hours");
-    const raidUserNotifications = [];
+    const scheduledNotifications = new Set();
     for (const raid of raidsInNextDay) {
-        const users = [...new Set(raid.joined)];
-        for (const discordId of users) {
+        console.debug(`Starting to check raid ${raid.id}`);
+        const uniqueUsers = [...new Set(raid.joined)];
+        for (const discordId of uniqueUsers) {
             const userNotification = await RaidUserNotification.findOne({ where: { discordId } });
             const notificationTimes = userNotification ? userNotification.notificationTimes : DEFAULT_NOTIFICATIONS_TIMES;
-            raidUserNotifications.push({ discordId, notificationTimes });
-        }
-    }
-    console.debug("Found", raidUserNotifications.length, "raid user notifications");
-    const promise = raidUserNotifications.map(async ({ discordId, notificationTimes }) => {
-        const promise = raidsInNextDay.map((raid) => {
-            if (!raid.joined.includes(discordId))
-                return Promise.resolve();
-            console.debug(`Checking raid ${raid.id} for ${discordId}`);
             notificationTimes.forEach((minutesBefore) => {
+                console.debug(`Checking a user ${discordId} with ${minutesBefore} minutes before raid ${raid.id}`);
                 const notifyTime = (raid.time - minutesBefore * 60) * 1000;
-                if (notifyTime > Date.now()) {
+                const taskKey = `${discordId}_${raid.id}_${notifyTime}`;
+                if (notifyTime > Date.now() && !scheduledNotifications.has(taskKey)) {
                     tasks.push({ notifyTime, discordId, raidId: raid.id, isReadinessSystemTime: minutesBefore === 60 ? true : false });
+                    scheduledNotifications.add(taskKey);
+                }
+                else if (scheduledNotifications.has(taskKey)) {
+                    console.error("[Error code: 2007] Task already scheduled", taskKey);
                 }
             });
-        });
-        await Promise.all(promise);
-    });
-    await Promise.all(promise);
+        }
+    }
     console.debug("Scheduled", tasks.length, "notification tasks");
     scheduleNextNotification();
 }
