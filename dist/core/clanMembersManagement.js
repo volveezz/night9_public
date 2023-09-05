@@ -118,7 +118,7 @@ async function clanMembersManagement(databaseData) {
                             const { platform, bungieId } = memberAuthData;
                             await kickClanMember(platform, bungieId);
                             if (!recentlyNotifiedKickedMembers.has(bungieId)) {
-                                console.debug(`Notifing ${memberAuthData.displayName} about not meeting the requirements`);
+                                console.debug(`Notifing ${memberAuthData.displayName} about not meeting the clan joining requirements`);
                                 await notifyUserNotMeetRequirements(memberAuthData, isUserMeetsRequirements);
                                 console.debug("User was notified");
                             }

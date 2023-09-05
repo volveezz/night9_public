@@ -88,9 +88,9 @@ function processShortFormat(parts, date, timezoneOffset) {
             date.setHours(parseInt(part.slice(0, 2)), 0, 0, 0);
         }
     }
-    date.setTime(date.getTime() - timezoneOffset * 60 * 60 * 1000);
     if (date.getTime() <= Date.now())
         date.setDate(date.getDate() + 1);
+    date.setTime(date.getTime() - timezoneOffset * 60 * 60 * 1000);
     if (!hasValidTimePart)
         return 0;
     return Math.floor(date.getTime() / 1000);
