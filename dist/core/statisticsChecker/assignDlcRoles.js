@@ -9,7 +9,8 @@ const dlcBitFlags = [
     { bit: 1024, role: dlcRoles.theFinalShape },
 ];
 const allDlcRoles = Object.values(dlcRoles);
-const rolesExceptVanilla = allDlcRoles.splice(allDlcRoles.indexOf(dlcRoles.vanilla), 1);
+const rolesExceptVanilla = [...allDlcRoles];
+rolesExceptVanilla.splice(rolesExceptVanilla.indexOf(dlcRoles.vanilla), 1);
 async function assignDlcRoles({ addRoles, member, removeRoles, version }) {
     if (!version)
         return;

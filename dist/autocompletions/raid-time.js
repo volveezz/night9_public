@@ -6,7 +6,7 @@ const AutocompleteFile = new Autocomplete({
     aliases: ["новое-время"],
     run: async ({ interaction, option }) => {
         const convertedTime = convertTimeStringToNumber(option.value, userTimezones.get(interaction.user.id));
-        const name = isNaN(convertedTime) || convertedTime < 2
+        const name = !convertedTime || isNaN(convertedTime) || convertedTime < 2
             ? "Проверьте корректность времени. Формат даты: ЧЧ:ММ ДД/мм"
             : new Date(convertedTime * 1000 + (userTimezones.get(interaction.user.id) ?? 3) * 60 * 60 * 1000).toLocaleString("ru-RU", {
                 weekday: "long",
