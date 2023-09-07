@@ -120,7 +120,16 @@ const ButtonCommand = new Button({
         }
         async function sortRaids() {
             const deferredReply = interaction.deferReply({ ephemeral: true });
-            const currentRaids = (await RaidEvent.findAll({ where: { time: { [Op.gt]: Math.floor(Date.now() / 1000) } } })).sort((a, b) => b.time - a.time);
+            const currentRaids = (await RaidEvent.findAll({ where: { time: { [Op.gt]: Math.floor(Date.now() / 1000) } } })).sort((a, b) => {
+                if (b.time !== a.time) {
+                    return b.time - a.time;
+                }
+                if (a.joined.length === 6)
+                    return 1;
+                if (b.joined.length === 6)
+                    return -1;
+                return b.joined.length - a.joined.length;
+            });
             if (currentRaids.length === 0) {
                 await deferredReply;
                 throw { name: "Сейчас нет созданных рейдов" };

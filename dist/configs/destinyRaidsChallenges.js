@@ -1,24 +1,24 @@
 const destinyRaidChallanges = {
     ce: [
         {
-            hash: 9999999999,
+            hash: 3636591526,
             encounter: 1,
-            description: "[PH] Not a real challenge",
+            description: "Просветить фонарь можно только после сохранения Чаши Света. Один раз сохранили - один раз просветили",
         },
         {
-            hash: 9999999998,
+            hash: 2768385440,
             encounter: 2,
-            description: "[PH] Not a real challenge",
+            description: "Игрок с мечом может пересекать мост лишь тогда, когда он разрушается",
         },
         {
-            hash: 9999999997,
+            hash: 732074628,
             encounter: 3,
-            description: "[PH] Not a real challenge",
+            description: "Необходимо передавать Чашу Света в одной и той же последовательности",
         },
         {
-            hash: 9999999996,
+            hash: 3523029182,
             encounter: 4,
-            description: "[PH] Not a real challenge",
+            description: "Весь щит Кроты должен быть снят за короткое время",
         },
     ],
     ron: [

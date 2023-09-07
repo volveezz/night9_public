@@ -22,7 +22,7 @@ async function handleMessage(message) {
     }
     if (!message.author || message.author.bot || message.system || !(message instanceof Message))
         return;
-    if (message.channelId === process.env.RAID_CHANNEL_ID && !message.member?.permissions.has("Administrator")) {
+    if (message.channelId === process.env.RAID_CHANNEL_ID && !message.member?.permissions.has("MentionEveryone")) {
         return blockRaidChannelMessages(message);
     }
     if (message.channelId === process.env.PATCHNOTE_GENERATOR_CHANNEL_ID) {
