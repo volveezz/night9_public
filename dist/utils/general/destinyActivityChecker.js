@@ -123,10 +123,10 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
             kfMaster: 0,
             votd: 0,
             votdMaster: 0,
-            dsc: 0,
-            gos: 0,
             vog: 0,
             vogMaster: 0,
+            dsc: 0,
+            gos: 0,
             lw: 0,
         });
         completedRaidsData.set(discordId, {
