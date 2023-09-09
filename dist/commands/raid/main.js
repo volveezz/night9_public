@@ -14,7 +14,7 @@ import getDefaultRaidComponents from "../../utils/general/raidFunctions/getDefau
 import sendRaidPrivateMessage from "../../utils/general/raidFunctions/privateMessage/sendPrivateMessage.js";
 import updatePrivateRaidMessage from "../../utils/general/raidFunctions/privateMessage/updatePrivateMessage.js";
 import { raidEmitter } from "../../utils/general/raidFunctions/raidEmitter.js";
-import raidFireteamChecker from "../../utils/general/raidFunctions/raidFireteamChecker.js";
+import raidFireteamCheckerSystem, { stopFireteamCheckingSystem, } from "../../utils/general/raidFunctions/raidFireteamChecker/raidFireteamChecker.js";
 import { clearNotifications, sendNotificationInfo, updateNotifications, updateNotificationsForEntireRaid, } from "../../utils/general/raidFunctions/raidNotifications.js";
 import { descriptionFormatter, escapeString } from "../../utils/general/utilities.js";
 import { completedRaidsData, userTimezones } from "../../utils/persistence/dataStore.js";
@@ -412,7 +412,7 @@ const SlashCommand = new Command({
             if (parsedTime <= Math.floor(Date.now() / 1000 + 24 * 60 * 60 * 2)) {
                 updateNotifications(interaction.user.id);
             }
-            raidFireteamChecker(raidEvent.id);
+            raidFireteamCheckerSystem(raidEvent.id);
         }
         else if (subCommand === "изменить") {
             const raidId = args.getInteger("id-рейда");
@@ -599,7 +599,7 @@ const SlashCommand = new Command({
                         time: changedTime,
                     }, { where: { id: raidData.id }, transaction: transaction, returning: ["id", "time"], limit: 1 });
                     updateNotificationsForEntireRaid(updatedRaiddata[0].id);
-                    raidFireteamChecker(raidData.id);
+                    raidFireteamCheckerSystem(raidData.id);
                 }
                 else {
                     changes.push(`Время старта осталось без изменений\nУказаное время <t:${changedTime}>, <t:${changedTime}:R> находится в прошлом`);
@@ -673,36 +673,34 @@ const SlashCommand = new Command({
             const raidId = args.getInteger("id-рейда");
             const raidData = await getRaidDatabaseInfo(raidId, interaction);
             const { channelId, id, messageId, raid } = raidData;
-            await RaidEvent.destroy({ where: { id }, limit: 1 })
-                .then(async () => {
-                clearNotifications(id);
-                try {
-                    const privateRaidChannel = await client.getAsyncTextChannel(channelId);
-                    await privateRaidChannel.delete(`${interaction.member.displayName} deleted the raid ${id}-${raid}`);
-                }
-                catch (e) {
-                    console.error(`[Error code: 1069] Channel during raid manual delete for raidId ${id} wasn't found`);
-                    e.code !== 10008 ? console.error("[Error code: 1913]", e) : "";
-                }
-                try {
-                    const raidsChannel = client.getCachedTextChannel(process.env.RAID_CHANNEL_ID);
-                    const message = await client.getAsyncMessage(raidsChannel, messageId);
-                    if (message)
-                        await message.delete();
-                }
-                catch (e) {
-                    console.error(`[Error code: 1070] Message during raid manual delete for raidId ${id} wasn't found`);
-                    e.code !== 10008 ? console.error("[Error code: 1240]", e) : "";
-                }
-                raidEmitter.emit("deleted", raidData);
-                if (interaction.channelId === channelId) {
-                    return await deferredReply;
-                }
-                await deferredReply;
-                const embed = new EmbedBuilder().setColor(colors.success).setTitle(`Рейд ${id}-${raid} был удален`);
-                await interaction.editReply({ embeds: [embed] });
-            })
-                .catch((e) => console.error("[Error code: 1206]", e));
+            await RaidEvent.destroy({ where: { id }, limit: 1 });
+            clearNotifications(id);
+            stopFireteamCheckingSystem(id);
+            try {
+                const privateRaidChannel = await client.getAsyncTextChannel(channelId);
+                await privateRaidChannel.delete(`${interaction.member.displayName} deleted the raid ${id}-${raid}`);
+            }
+            catch (e) {
+                console.error(`[Error code: 1069] Channel during raid manual delete for raidId ${id} wasn't found`);
+                e.code !== 10008 ? console.error("[Error code: 1913]", e) : "";
+            }
+            try {
+                const raidsChannel = client.getCachedTextChannel(process.env.RAID_CHANNEL_ID);
+                const message = await client.getAsyncMessage(raidsChannel, messageId);
+                if (message)
+                    await message.delete();
+            }
+            catch (e) {
+                console.error(`[Error code: 1070] Message during raid manual delete for raidId ${id} wasn't found`);
+                e.code !== 10008 ? console.error("[Error code: 1240]", e) : "";
+            }
+            raidEmitter.emit("deleted", raidData);
+            if (interaction.channelId === channelId) {
+                return await deferredReply;
+            }
+            await deferredReply;
+            const embed = new EmbedBuilder().setColor(colors.success).setTitle(`Рейд ${id}-${raid} был удален`);
+            await interaction.editReply({ embeds: [embed] });
         }
         else if (subCommand === "добавить") {
             const raidId = args.getInteger("id-рейда");

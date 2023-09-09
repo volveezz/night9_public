@@ -10,10 +10,10 @@ import { addButtonsToMessage } from "../addButtonsToMessage.js";
 import nameCleaner from "../nameClearer.js";
 import { generateRaidCompletionText, getRaidDetails } from "../raidFunctions.js";
 import { getRandomGIF, getRandomRaidGIF, pause } from "../utilities.js";
-import raidFireteamChecker from "./raidFireteamChecker.js";
+import raidFireteamCheckerSystem from "./raidFireteamChecker/raidFireteamChecker.js";
 import { askRaidReadinessNotification } from "./raidReadiness/askUserRaidReadiness.js";
 schedule("0 23 * * *", () => {
-    raidFireteamChecker();
+    raidFireteamCheckerSystem();
     tasks = [];
     while (runningTimeouts.length > 0) {
         const timeout = runningTimeouts.shift();

@@ -8,12 +8,13 @@ import { fetchGlobalAlerts } from "../utils/api/globalAlertsFetcher.js";
 import { voiceChannelJoinTimestamps } from "../utils/discord/userActivityHandler.js";
 import { clanOnlineMemberActivityChecker } from "../utils/general/activityCompletionChecker.js";
 import getFiles from "../utils/general/fileReader.js";
-import raidFireteamChecker from "../utils/general/raidFunctions/raidFireteamChecker.js";
+import raidFireteamCheckerSystem from "../utils/general/raidFunctions/raidFireteamChecker/raidFireteamChecker.js";
 import { loadNotifications } from "../utils/general/raidFunctions/raidNotifications.js";
 import cacheRaidMilestones from "../utils/general/raidMilestones.js";
+import restoreDataFromRedis from "../utils/general/redisData/restoreDataFromRedis.js";
 import { pause } from "../utils/general/utilities.js";
 import { restoreFetchedPGCRs } from "../utils/logging/activityLogger.js";
-import { lastAlertKeys, processedRssLinks } from "../utils/persistence/dataStore.js";
+import { lastAlertKeys } from "../utils/persistence/dataStore.js";
 import VoteSystem from "./VoteSystem.js";
 const __dirname = resolve();
 const directory = process.env.NODE_ENV === "development" && process.env.LOCAL_ENV === "true" ? "src" : "dist";
@@ -211,8 +212,7 @@ export class ExtendedClient extends Client {
                 console.info(`\x1b[32m${this.user.username} online since ${new Date().toLocaleString()}\x1b[0m`);
                 setTimeout(() => {
                     this.loadDelayedComponents();
-                    fetchNewsArticles();
-                }, 1000 * 30);
+                }, 1000 * (Math.random() * 100));
                 VoteSystem.getInstance().init();
                 this.fetchMembersAndMessages();
             });
@@ -229,18 +229,31 @@ export class ExtendedClient extends Client {
     async loadProdComponents() {
         await pause(5000);
         this.startUpdatingPresence();
+        await pause(1000);
         tokenManagment();
+        await pause(1000);
         clanOnlineMemberActivityChecker();
+        await pause(1000);
         checkClanActivitiesPeriodically();
+        await pause(1000);
         handleMemberStatistics();
+        await pause(1000);
         restoreFetchedPGCRs();
+        await pause(1000);
+        loadNotifications();
+        await pause(1000);
+        fetchGlobalAlerts();
+        await pause(1000);
+        raidFireteamCheckerSystem();
+        await pause(1000);
+        cacheRaidMilestones();
+        await pause(1000);
+        fetchNewsArticles();
+        await pause(1000);
+        this.importFile("../core/guildNicknameManagement.js");
     }
     loadDelayedComponents() {
-        this.importFile("../core/guildNicknameManagement.js");
-        cacheRaidMilestones();
-        raidFireteamChecker();
-        loadNotifications();
-        fetchGlobalAlerts();
+        restoreDataFromRedis();
     }
     async fetchMembersAndMessages() {
         await pause(1000 * 2);
@@ -256,9 +269,7 @@ export class ExtendedClient extends Client {
                 setTimeout(async () => {
                     if (channel.id === process.env.ENGLISH_NEWS_CHANNEL_ID) {
                         channel.messages.fetch({ limit: 100 }).then((channelMessages) => {
-                            const twitterMessages = channelMessages.filter((m) => m.author.id === this.user.id && m.embeds?.[0]?.author?.url != null);
                             const alertMessages = channelMessages.filter((m) => m.author.id === this.user.id && m.embeds?.[0]?.title?.startsWith("D2-"));
-                            twitterMessages.forEach((message) => processedRssLinks.add(message.embeds[0].author.url));
                             alertMessages.forEach((message) => lastAlertKeys.add(message.embeds[0].title));
                         });
                     }

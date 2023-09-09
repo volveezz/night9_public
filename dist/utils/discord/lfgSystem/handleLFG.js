@@ -80,6 +80,10 @@ async function createLfgPost({ userLimit, roomActivityName, description, additio
         await resolveLfgError(errorMsg[0], errorMsg[1], message);
         return;
     }
+    if (roomActivityName.length > 100) {
+        await resolveLfgError("Ошибка названия", `Название сбора должно быть меньше 100 символов\n\n> Ваше название:\n${roomActivityName}`, message);
+        return;
+    }
     const userSettings = {
         invite: true,
         ping: null,
@@ -199,7 +203,7 @@ async function createLfgPost({ userLimit, roomActivityName, description, additio
     channelDataMap.set(voiceChannel.id, {
         members: member.voice.channel?.members.map((member) => member.id) ?? [],
         channelMessage: partyMessage,
-        voiceChannel: voiceChannel,
+        voiceChannel,
         isDeletable: deletable,
         creator: member.id,
     });
@@ -210,7 +214,7 @@ async function resolveLfgError(name, description, input) {
     if (!input || !input.channelId)
         return;
     const errorEmbed = new EmbedBuilder().setColor(colors.error).setAuthor({ name, iconURL: icons.error }).setDescription(description);
-    const errorMessage = await (await client.getCachedTextChannel(input.channelId)).send({ embeds: [errorEmbed] });
+    const errorMessage = await client.getCachedTextChannel(input.channelId).send({ embeds: [errorEmbed] });
     setTimeout(async () => await errorMessage.delete(), 5000);
     return;
 }

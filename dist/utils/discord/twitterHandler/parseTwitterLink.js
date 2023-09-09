@@ -18,7 +18,7 @@ async function parseTwitterLinkMessage(message) {
     }
     const tweetUrl = message.content.match(/https:\/\/twitter\.com\/\w+\/status\/\d+/)?.[0];
     await generateTwitterEmbed({
-        twitterData: { content },
+        twitterData: { content, link: tweetUrl || "" },
         author,
         icon: embed.author.iconURL,
         url: tweetUrl || embed.author.url,

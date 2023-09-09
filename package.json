@@ -1,6 +1,6 @@
 {
 	"name": "nightfuture",
-	"version": "2.19.43",
+	"version": "2.20.0",
 	"engines": {
 		"node": "18.x"
 	},
@@ -14,7 +14,7 @@
 	"author": "Volve",
 	"license": "ISC",
 	"dependencies": {
-		"cloudconvert": "^2.3.4",
+		"cloudconvert": "^2.3.5",
 		"cookie-parser": "^1.4.6",
 		"discord.js": "^14.13.0",
 		"dotenv": "^16.3.1",
@@ -23,11 +23,11 @@
 		"lodash": "^4.17.21",
 		"node-cron": "^3.0.2",
 		"node-fetch": "^3.3.2",
-		"openai": "^4.5.0",
+		"openai": "^4.6.0",
 		"pg": "^8.11.3",
 		"pg-hstore": "^2.3.4",
-		"rss-parser": "^3.13.0",
-		"sequelize": "^6.32.1",
+		"redis": "^4.6.8",
+		"sequelize": "^6.33.0",
 		"tiny-typed-emitter": "^2.1.0"
 	},
 	"devDependencies": {

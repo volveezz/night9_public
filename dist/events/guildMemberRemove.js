@@ -4,6 +4,7 @@ import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import deleteLeavedUserData from "../utils/discord/deleteLeavedUserData.js";
 import kickLeavedUserFromRaids from "../utils/general/raidFunctions/kickLeavedMemberFromRaids.js";
+import { completedRaidsData } from "../utils/persistence/dataStore.js";
 let guildMemberChannel = null;
 export default new Event("guildMemberRemove", async (member) => {
     if (member.guild.bans.cache.has(member.id))
@@ -41,6 +42,7 @@ export default new Event("guildMemberRemove", async (member) => {
         guildMemberChannel =
             client.getCachedTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID) ||
                 (await client.getAsyncTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID));
+    completedRaidsData.delete(member.id);
     const message = await guildMemberChannel.send({ embeds: [embed] });
     await deleteLeavedUserData({ discordMember: member, discordMessage: message });
     kickLeavedUserFromRaids(member);

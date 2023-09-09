@@ -47,7 +47,7 @@ const SlashCommand = new Command({
                 noviceRaidList[selectedRaid].push(key);
             }
         }
-        async function formatRaidUserData(discordId) {
+        function formatRaidUserData(discordId) {
             const raidUserData = completedRaidsData.get(discordId);
             if (!raidUserData)
                 return "нет данных по закрытиям";
@@ -69,8 +69,8 @@ const SlashCommand = new Command({
                 raidClears.push(`${raidUserData.gos} СС`);
             if (raidUserData.lw > 0)
                 raidClears.push(`${raidUserData.lw} ПЖ`);
-            const memberDisplayName = member && member.id
-                ? nameCleaner((client.getCachedMembers().get(member.id) || (await client.getAsyncMember(member.id))).displayName)
+            const memberDisplayName = member && member.id && client.getCachedMembers().has(member.id)
+                ? nameCleaner(client.getCachedMembers().get(member.id).displayName)
                 : "Неизвстный пользователь";
             return ` **${memberDisplayName}** ${raidClears.length > 0
                 ? `завершил: ${raidClears.join(", ")}`
@@ -95,10 +95,10 @@ const SlashCommand = new Command({
             }
         }
         const maxLength = 2048;
-        const raidClearsList = await noviceRaidList[selectedRaid].map(async (userId, index) => {
+        const raidClearsList = await Promise.all(await noviceRaidList[selectedRaid].map(async (userId, index) => {
             const raidDataClears = await formatRaidUserData(userId);
             return `${index + 1}.${raidDataClears}`;
-        });
+        }));
         if (raidClearsList.length > 0) {
             let currentDescription = "";
             let embedIndex = 0;

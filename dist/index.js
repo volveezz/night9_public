@@ -9,6 +9,8 @@ import calculateVoteResults from "./utils/discord/twitterHandler/twitterTranslat
 import { forceUpdateUserActivity } from "./utils/discord/userActivityHandler.js";
 import { getOAuthTokens, getOAuthUrl, getUserData, updateMetadata } from "./utils/general/linkedRoles.js";
 import { stopAllRaidReadinessCollectors } from "./utils/general/raidFunctions/raidReadiness/askUserRaidReadiness.js";
+import saveDataToRedis from "./utils/general/redisData/saveDataToRedis.js";
+import { redisClient } from "./utils/persistence/redis.js";
 import * as storage from "./utils/persistence/webStorage.js";
 export const client = new ExtendedClient();
 client.rest.on("rateLimited", (rateLimit) => {
@@ -26,8 +28,12 @@ async function handleExit(signal) {
         forceUpdateUserActivity(),
         calculateVoteResults(),
         stopAllRaidReadinessCollectors(),
+        saveDataToRedis(),
     ]);
-    console.log("Data saved. Exiting...");
+    await redisClient.quit();
+    console.log("Data saved. Exiting from discord client...");
+    await client.destroy();
+    console.log("Discord client exited. Exiting from process...");
     process.exit(0);
 }
 process.on("uncaughtException", (error) => {

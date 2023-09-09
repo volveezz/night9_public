@@ -1,5 +1,4 @@
 import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
-import Parser from "rss-parser";
 import { Op } from "sequelize";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
@@ -8,7 +7,6 @@ import { activityRoles, clanJoinDateRoles, dlcRoles, raidRoles, seasonalRoles, s
 import openai from "../../../structures/OpenAI.js";
 import { Command } from "../../../structures/command.js";
 import { GetManifest } from "../../../utils/api/ManifestManager.js";
-import { generateTwitterEmbed } from "../../../utils/discord/twitterHandler/twitterMessageParser.js";
 import calculateVoteResults from "../../../utils/discord/twitterHandler/twitterTranslationVotes.js";
 import { addButtonsToMessage } from "../../../utils/general/addButtonsToMessage.js";
 import { convertSeconds } from "../../../utils/general/convertSeconds.js";
@@ -71,28 +69,6 @@ const SlashCommand = new Command({
             case "getmodels": {
                 const request = await openai.models.list();
                 console.debug(request.data);
-                return;
-            }
-            case "rsstry": {
-                const parser = new Parser();
-                const feed = await parser.parseURL(`https://n9-rss.up.railway.app/twitter/user/destiny2team?readable=0&limit=1`);
-                const entry = feed.items[0];
-                const author = getBungieTwitterAuthor(entry.creator);
-                await generateTwitterEmbed({ twitterData: entry, author, icon: feed.image?.url, url: entry.link });
-                function getBungieTwitterAuthor(creator) {
-                    switch (creator) {
-                        case "Destiny 2":
-                            return 1;
-                        case "Bungie":
-                            return 2;
-                        case "Bungie Help":
-                            return 3;
-                        case "Destiny 2 Team":
-                            return 4;
-                        default:
-                            return null;
-                    }
-                }
                 return;
             }
             case "checkrole": {
