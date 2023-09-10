@@ -229,8 +229,6 @@ export class ExtendedClient extends Client {
         await pause(1000);
         tokenManagment();
         await pause(1000);
-        restoreDataFromRedis();
-        await pause(1000);
         clanOnlineMemberActivityChecker();
         await pause(1000);
         checkClanActivitiesPeriodically();
@@ -250,6 +248,8 @@ export class ExtendedClient extends Client {
         fetchNewsArticles();
         await pause(1000);
         this.importFile("../core/guildNicknameManagement.js");
+        await pause(1000 * 15);
+        restoreDataFromRedis();
     }
     async fetchMembersAndMessages() {
         await pause(1000 * 2);

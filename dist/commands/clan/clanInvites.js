@@ -12,14 +12,10 @@ function generateButtons(currentIndex = 0, maxIndex = 0) {
             .setDisabled(currentIndex === 0 ? true : false)
             .setEmoji("⬅️")
             .setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder()
-            .setCustomId("clanAdminManagement_cancelInvite")
-            .setLabel("Отклонить приглашение")
-            .setStyle(ButtonStyle.Danger)
-            .setEmoji(":x:"),
+        new ButtonBuilder().setCustomId("clanAdminManagement_cancelInvite").setLabel("Отклонить приглашение").setStyle(ButtonStyle.Danger),
         new ButtonBuilder()
             .setCustomId("clanAdminManagement_next")
-            .setDisabled(currentIndex + 1 > maxIndex ? true : false)
+            .setDisabled(currentIndex + 1 >= maxIndex ? true : false)
             .setEmoji("➡️")
             .setStyle(ButtonStyle.Secondary),
     ]);
@@ -28,7 +24,7 @@ function generateMemberEmbed(memberData) {
     const { bungieNetUserInfo, destinyUserInfo } = memberData;
     const { membershipId, membershipType, iconPath } = bungieNetUserInfo;
     const { bungieGlobalDisplayName, bungieGlobalDisplayNameCode } = destinyUserInfo;
-    const bungieName = bungieGlobalDisplayName + bungieGlobalDisplayNameCode ? "#" + bungieGlobalDisplayNameCode : "";
+    const bungieName = `${bungieGlobalDisplayName}${bungieGlobalDisplayNameCode ? "#" + bungieGlobalDisplayNameCode : ""}`;
     const creationTime = Math.floor(new Date(memberData.creationDate).getTime() / 1000);
     const bungieNetUrl = `https://www.bungie.net/7/en/User/Profile/${membershipType}/${membershipId}`;
     const additionalInfo = [];
@@ -42,10 +38,15 @@ function generateMemberEmbed(memberData) {
         additionalInfo.push(`Resolve message: ${memberData.resolveMessage}`);
     }
     additionalInfo.join("\n");
+    console.debug({
+        name: bungieName,
+        iconURL: "https://www.bungie.net" + (iconPath || memberData.destinyUserInfo.iconPath),
+        url: bungieNetUrl,
+    });
     const embed = new EmbedBuilder()
         .setAuthor({
         name: bungieName,
-        iconURL: iconPath,
+        iconURL: "https://www.bungie.net" + (iconPath || memberData.destinyUserInfo.iconPath),
         url: bungieNetUrl,
     })
         .setColor(colors.default)
@@ -78,7 +79,7 @@ async function clanInvites({ deferredReply, interaction }) {
     const { results } = await sendApiRequest(API_URL, authToken);
     let currentInviteIndex = 0;
     let maxInviteIndex = results.length;
-    const messageData = generateMessageData(results[0], currentInviteIndex, maxInviteIndex);
+    const messageData = generateMessageData(results[currentInviteIndex], currentInviteIndex, maxInviteIndex);
     await deferredReply;
     const reply = await interaction.editReply(messageData);
     if (!results || results.length === 0)
@@ -90,6 +91,7 @@ async function clanInvites({ deferredReply, interaction }) {
         idle: 60 * 1000 * 5,
     });
     collector.on("collect", async (collected) => {
+        collected.deferUpdate();
         const { customId } = collected;
         switch (customId) {
             case "clanAdminManagement_previous":
@@ -108,8 +110,10 @@ async function clanInvites({ deferredReply, interaction }) {
                         collector.stop("allInvitesManaged");
                         return;
                     }
+                    if (currentInviteIndex >= 1)
+                        currentInviteIndex = currentInviteIndex - 1;
                     maxInviteIndex = results.length;
-                    const messageParam = generateMessageData(results[0], currentInviteIndex, maxInviteIndex);
+                    const messageParam = generateMessageData(results[currentInviteIndex], currentInviteIndex, maxInviteIndex);
                     await interaction.editReply(messageParam);
                 }
                 break;
@@ -119,8 +123,10 @@ async function clanInvites({ deferredReply, interaction }) {
                 break;
         }
     });
-    collector.on("end", (_, r) => {
-        const embed = new EmbedBuilder().setColor(colors.invisible).setAuthor({ name: "Истек срок действия команды" });
+    collector.on("end", (_, reason) => {
+        const embed = new EmbedBuilder()
+            .setColor(colors.invisible)
+            .setAuthor({ name: reason === "allInvitesManaged" ? "Все приглашения обработаны" : "Истек срок действия команды" });
         interaction.editReply({ embeds: [embed], components: [] });
         return;
     });
