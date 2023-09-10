@@ -6,7 +6,7 @@ const kickClanMember = async (platform, bungieId, receivedAccessToken) => {
     const request = await sendApiPostRequest({
         apiEndpoint: `/Platform/GroupV2/${process.env.GROUP_ID}/Members/${platform}/${bungieId}/Kick/`,
         accessToken,
-        shouldReturnResponse: false,
+        returnResponse: false,
     });
     if (!request || request.ErrorCode == null) {
         console.error("[Error code: 1945]", request);

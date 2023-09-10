@@ -6,6 +6,53 @@ import { Command } from "../structures/command.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { getRaidDetails } from "../utils/general/raidFunctions.js";
 import { completedRaidsData } from "../utils/persistence/dataStore.js";
+const CLAN_MEMBER_ROLE = process.env.CLANMEMBER;
+function generateRaidClears(raidUserData) {
+    const raids = [
+        { id: "ce", label: "КК" },
+        { id: "ron", label: "ИК" },
+        { id: "kf", label: "ГК" },
+        { id: "votd", label: "КП" },
+        { id: "vog", label: "ХЧ" },
+        { id: "dsc", label: "СГК" },
+        { id: "gos", label: "СС" },
+        { id: "lw", label: "ПЖ" },
+    ];
+    return raids
+        .filter((raid) => raidUserData[raid.id] > 0)
+        .map((raid) => `${raidUserData[raid.id]}${raidUserData[raid.id + "Master"] > 0 ? `(${raidUserData[raid.id + "Master"]})` : ""} ${raid.label}`);
+}
+function formatRaidUserData(discordId) {
+    const raidUserData = completedRaidsData.get(discordId);
+    if (!raidUserData)
+        return "нет данных по закрытиям";
+    const member = client.getCachedMembers().get(discordId);
+    if (!member)
+        return "Неизвестный пользователь";
+    const raidClears = generateRaidClears(raidUserData);
+    const cleanedName = nameCleaner(member.displayName);
+    return `**${cleanedName}** ${raidClears.length > 0
+        ? `завершил: ${raidClears.join(", ")}`
+        : raidUserData?.totalRaidClears === 0
+            ? "не проходил ранее рейды"
+            : "не проходил доступные на данный момент рейды"}`;
+}
+async function sendEmbed({ deferredReply, embedIndex, interaction, raidDescription, selectedRaid }) {
+    const embed = new EmbedBuilder()
+        .setColor(colors.success)
+        .setTitle(`Новички в ${getRaidDetails(selectedRaid).raidName}`)
+        .setDescription(raidDescription);
+    await deferredReply;
+    if (embedIndex === 0) {
+        await interaction.editReply({ embeds: [embed] }).catch(async (e) => {
+            console.error("[Error code: 1702]", e);
+            await interaction.followUp({ embeds: [embed], ephemeral: true });
+        });
+    }
+    else {
+        await interaction.followUp({ embeds: [embed], ephemeral: true });
+    }
+}
 const SlashCommand = new Command({
     name: "новички",
     nameLocalizations: { "en-GB": "sherpas", "en-US": "sherpas" },
@@ -31,92 +78,51 @@ const SlashCommand = new Command({
     run: async ({ interaction, args }) => {
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const selectedRaid = args.getString("рейд", true);
-        const noviceRaidList = {};
-        noviceRaidList[selectedRaid] = [];
-        for (const [key, value] of completedRaidsData) {
+        const clanMembers = [];
+        const otherMembers = [];
+        for (const [key, value] of completedRaidsData.entries()) {
             if (value[selectedRaid] + (value[selectedRaid + "Master"] || 0) === 0) {
                 const member = client.getCachedMembers().get(key);
-                if (!member) {
-                    console.error(`[Error code: 1692] No member ${key}`);
+                if (!member)
                     continue;
-                }
                 const raidRole = getRaidDetails(selectedRaid).requiredRole || client.getCachedGuild().roles.everyone.id;
-                const hasRaidRole = member.roles.cache.has(raidRole);
-                if (hasRaidRole === false)
+                if (!member.roles.cache.has(raidRole))
                     continue;
-                noviceRaidList[selectedRaid].push(key);
+                if (member.roles.cache.has(CLAN_MEMBER_ROLE)) {
+                    clanMembers.push(key);
+                }
+                else {
+                    otherMembers.push(key);
+                }
             }
         }
-        function formatRaidUserData(discordId) {
-            const raidUserData = completedRaidsData.get(discordId);
-            if (!raidUserData)
-                return "нет данных по закрытиям";
-            const member = client.getCachedMembers().get(discordId);
-            const raidClears = [];
-            if (raidUserData.ce > 0)
-                raidClears.push(`${raidUserData.ce}${raidUserData.ceMaster > 0 ? `(${raidUserData.ceMaster})` : ""} КК`);
-            if (raidUserData.ron > 0)
-                raidClears.push(`${raidUserData.ron}${raidUserData.ronMaster > 0 ? `(${raidUserData.ronMaster})` : ""} ИК`);
-            if (raidUserData.kf > 0)
-                raidClears.push(`${raidUserData.kf}${raidUserData.kfMaster > 0 ? `(${raidUserData.kfMaster})` : ""} ГК`);
-            if (raidUserData.votd > 0)
-                raidClears.push(`${raidUserData.votd}${raidUserData.votdMaster > 0 ? `(${raidUserData.votdMaster})` : ""} КП`);
-            if (raidUserData.vog > 0)
-                raidClears.push(`${raidUserData.vog}${raidUserData.vogMaster > 0 ? `(${raidUserData.vogMaster})` : ""} ХЧ`);
-            if (raidUserData.dsc > 0)
-                raidClears.push(`${raidUserData.dsc} СГК`);
-            if (raidUserData.gos > 0)
-                raidClears.push(`${raidUserData.gos} СС`);
-            if (raidUserData.lw > 0)
-                raidClears.push(`${raidUserData.lw} ПЖ`);
-            const memberDisplayName = member && member.id && client.getCachedMembers().has(member.id)
-                ? nameCleaner(client.getCachedMembers().get(member.id).displayName)
-                : "Неизвстный пользователь";
-            return ` **${memberDisplayName}** ${raidClears.length > 0
-                ? `завершил: ${raidClears.join(", ")}`
-                : raidUserData?.totalRaidClears === 0
-                    ? "не проходил ранее рейды"
-                    : "не проходил доступные на данный момент рейды"}`;
-        }
-        async function sendEmbed(raidEmbedData, embedCountIndex = 0) {
-            const embed = new EmbedBuilder()
-                .setColor(colors.success)
-                .setTitle(`Новички в ${getRaidDetails(selectedRaid).raidName}`)
-                .setDescription(raidEmbedData);
-            await deferredReply;
-            if (embedCountIndex === 0) {
-                await interaction.editReply({ embeds: [embed] }).catch(async (e) => {
-                    console.error("[Error code: 1702]", e);
-                    await interaction.followUp({ embeds: [embed], ephemeral: true });
-                });
-            }
-            else {
-                await interaction.followUp({ embeds: [embed], ephemeral: true });
-            }
-        }
+        const allNoviceMembers = [...clanMembers, ...otherMembers];
         const maxLength = 2048;
-        const raidClearsList = await Promise.all(await noviceRaidList[selectedRaid].map(async (userId, index) => {
-            const raidDataClears = await formatRaidUserData(userId);
-            return `${index + 1}.${raidDataClears}`;
-        }));
+        const raidClearsList = allNoviceMembers.map((userId, index) => `${index + 1}.${formatRaidUserData(userId)}`);
         if (raidClearsList.length > 0) {
             let currentDescription = "";
             let embedIndex = 0;
             raidClearsList.forEach(async (raidClear) => {
                 if (currentDescription.length + raidClear.length + 1 > maxLength) {
-                    await sendEmbed(currentDescription, embedIndex);
+                    await sendEmbed({
+                        deferredReply,
+                        embedIndex,
+                        interaction,
+                        raidDescription: currentDescription,
+                        selectedRaid,
+                    });
                     currentDescription = "";
                     embedIndex++;
                 }
                 currentDescription += raidClear + "\n";
             });
             if (currentDescription.length > 0) {
-                await sendEmbed(currentDescription, embedIndex);
+                await sendEmbed({ deferredReply, embedIndex, interaction, raidDescription: currentDescription, selectedRaid });
             }
         }
         else {
             const noNovicesText = "Похоже, в этот рейд нет новичков без закрытий";
-            await sendEmbed(noNovicesText);
+            await sendEmbed({ deferredReply, embedIndex: 0, interaction, raidDescription: noNovicesText, selectedRaid });
         }
     },
 });

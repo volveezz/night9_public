@@ -3,17 +3,18 @@ import { client } from "../index.js";
 import { Autocomplete } from "../structures/autocomplete.js";
 import { sendApiPostRequest } from "../utils/api/sendApiPostRequest.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
-import { isBungieId } from "../utils/general/utilities.js";
+import { isBungieId, isMembershipId } from "../utils/general/utilities.js";
 import { AuthData } from "../utils/persistence/sequelize.js";
 const AutocompleteFile = new Autocomplete({
     name: "identifier",
     run: async ({ interaction, option }) => {
-        if (option.value.length === 0) {
+        const { value: target } = option;
+        if (target.length === 0) {
             interaction.respond([{ name: "Введите Bungie Id, Discord Id или ник пользователя", value: "null" }]);
             return;
         }
         const param = option.name.split("_")[1];
-        const userData = await fetchUserProfile(option.value);
+        const userData = await fetchUserProfile(target);
         if (!userData) {
             interaction.respond([{ name: "Пользователь не найден", value: "null" }]);
             return;
@@ -34,7 +35,26 @@ const AutocompleteFile = new Autocomplete({
             }
         };
         if (Array.isArray(userData)) {
-            const responses = userData.map((user) => {
+            const responses = userData
+                .slice(0, 25)
+                .sort((a, b) => {
+                const nameA = a.displayName;
+                const nameB = b.displayName;
+                if (nameA === target && nameB !== target) {
+                    return -1;
+                }
+                if (nameA !== target && nameB === target) {
+                    return 1;
+                }
+                if (nameA === target.toUpperCase() && nameB !== target.toUpperCase()) {
+                    return -1;
+                }
+                if (nameA !== target.toUpperCase() && nameB === target.toUpperCase()) {
+                    return 1;
+                }
+                return 0;
+            })
+                .map((user) => {
                 const value = createValue(user, param);
                 if (value === null) {
                     return { name: "Discord Id не найден", value: "null" };
@@ -64,7 +84,7 @@ const AutocompleteFile = new Autocomplete({
             await interaction
                 .respond([
                 {
-                    name: `${userData.displayName}${memberName ? ` ${clanStatus ? `[Участник клана]` : ""} (На сервере: ${memberName})` : ""}`,
+                    name: `${userData.displayName}${memberName ? ` ${clanStatus ? "[Участник клана]" : ""} (На сервере: ${memberName})` : ""}`,
                     value: value,
                 },
             ])
@@ -88,17 +108,11 @@ async function fetchUserProfile(searchTerm) {
         attributes: ["discordId", "platform", "bungieId", "clan", "displayName"],
     });
     if (authData) {
-        return {
-            bungieId: authData.bungieId,
-            platform: authData.platform,
-            displayName: authData.displayName,
-            discordId: authData.discordId,
-            clan: authData.clan,
-        };
+        return authData;
     }
     let response;
-    const isInputBungieId = isBungieId(searchTerm);
-    if (isInputBungieId) {
+    const isInputId = isBungieId(searchTerm) || isMembershipId(searchTerm);
+    if (isInputId) {
         response = await sendApiRequest(`/Platform/User/GetMembershipsById/${searchTerm}/-1`);
     }
     else {
@@ -107,62 +121,39 @@ async function fetchUserProfile(searchTerm) {
             requestData: {
                 displayNamePrefix: searchTerm,
             },
+            returnResponse: true,
         });
     }
     if (!response)
         return null;
-    return parseResponse(response, isInputBungieId);
+    return parseResponse(response);
 }
-function parseResponse(response, isBungieId) {
+function parseResponse(response) {
     const users = [];
-    if (isBungieId && response && "destinyMemberships" in response) {
-        for (const membership of response.destinyMemberships) {
-            if (membership.crossSaveOverride === membership.membershipType) {
-                users.push({
-                    bungieId: membership.membershipId,
-                    displayName: membership.bungieGlobalDisplayName
-                        ? membership.bungieGlobalDisplayName + "#" + membership.bungieGlobalDisplayNameCode
-                        : membership.displayName,
-                    platform: membership.membershipType,
-                });
-                continue;
-            }
-            else if (membership.crossSaveOverride === 0) {
-                users.push({
-                    bungieId: membership.membershipId,
-                    displayName: membership.bungieGlobalDisplayName
-                        ? membership.bungieGlobalDisplayName + "#" + membership.bungieGlobalDisplayNameCode
-                        : membership.displayName,
-                    platform: membership.membershipType,
-                });
-            }
-        }
+    if ("destinyMemberships" in response) {
+        parseDestinyMemberships(response, users);
     }
-    else if (!isBungieId && !("destinyMemberships" in response)) {
+    else {
         for (const userGroup of response.searchResults) {
-            for (const user of userGroup.destinyMemberships) {
-                if (user.crossSaveOverride === user.membershipType) {
-                    users.push({
-                        bungieId: user.membershipId,
-                        displayName: user.bungieGlobalDisplayName
-                            ? user.bungieGlobalDisplayName + "#" + user.bungieGlobalDisplayNameCode
-                            : user.displayName,
-                        platform: user.membershipType,
-                    });
-                    continue;
-                }
-                else if (user.crossSaveOverride === 0) {
-                    users.push({
-                        bungieId: user.membershipId,
-                        displayName: user.bungieGlobalDisplayName
-                            ? user.bungieGlobalDisplayName + "#" + user.bungieGlobalDisplayNameCode
-                            : user.displayName,
-                        platform: user.membershipType,
-                    });
-                }
-            }
+            parseDestinyMemberships(userGroup, users);
         }
     }
     return users.length === 1 ? users[0] : users.length > 1 ? users : null;
+}
+function parseDestinyMemberships(userInfo, users) {
+    for (const membership of userInfo.destinyMemberships) {
+        const { membershipId, bungieGlobalDisplayName, bungieGlobalDisplayNameCode, membershipType, displayName } = membership;
+        const bungieName = bungieGlobalDisplayName && bungieGlobalDisplayNameCode
+            ? `${bungieGlobalDisplayName}#${bungieGlobalDisplayNameCode.toString().length === 3 ? `0${bungieGlobalDisplayNameCode}` : bungieGlobalDisplayNameCode}`
+            : displayName;
+        if (membership.crossSaveOverride === 0 || membership.crossSaveOverride === membership.membershipType) {
+            users.push({
+                bungieId: membershipId,
+                displayName: bungieName,
+                platform: membershipType,
+            });
+            break;
+        }
+    }
 }
 //# sourceMappingURL=identifier.js.map

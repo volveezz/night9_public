@@ -3,15 +3,16 @@ import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { client } from "../../index.js";
 import { Command } from "../../structures/command.js";
-import { cancelClanInvitation } from "../../utils/api/cancelClanInvitation.js";
 import kickMemberFromClan from "../../utils/api/clanMembersManagement.js";
 import { sendApiPostRequest } from "../../utils/api/sendApiPostRequest.js";
 import { sendApiRequest } from "../../utils/api/sendApiRequest.js";
+import { setupClanInviteCancellation } from "../../utils/api/setupClanInviteCancellation.js";
 import createErrorEmbed from "../../utils/errorHandling/createErrorEmbed.js";
 import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
 import { convertSeconds } from "../../utils/general/convertSeconds.js";
 import { parseIdentifierString } from "../../utils/general/utilities.js";
 import { AuthData, UserActivityData } from "../../utils/persistence/sequelize.js";
+import clanInvites from "./clanInvites.js";
 const CustomRuntimeGroupMemberType = {
     0: "Не в клане",
     1: "Новичок",
@@ -151,6 +152,9 @@ const SlashCommand = new Command({
                 case "invite":
                     const options = { identifier: args.getString("identifier", true), time: args.getInteger("time") };
                     await sendInviteToClan(interaction, deferredReply, options);
+                    break;
+                case "invites":
+                    clanInvites({ deferredReply, interaction });
                     break;
             }
         }
@@ -322,7 +326,7 @@ const handleManagement = async (interaction, clanMembers, deferredReply) => {
         return await sendApiPostRequest({
             apiEndpoint: `/Platform/GroupV2/${process.env.GROUP_ID}/Members/${userData.platform}/${userData.bungieId}/SetMembershipType/${rank}/`,
             accessToken: await getAdminAccessToken(interaction),
-            shouldReturnResponse: false,
+            returnResponse: false,
         });
     };
     const demoteUser = async () => {
@@ -459,7 +463,7 @@ const sendInviteToClan = async (interaction, deferredReply, args) => {
         requestData: {
             message: "Приглашение в клан Night 9",
         },
-        shouldReturnResponse: false,
+        returnResponse: false,
     });
     if (!invitePost || !invitePost.ErrorCode) {
         console.error("[Error code: 1909]", invitePost);
@@ -468,7 +472,7 @@ const sendInviteToClan = async (interaction, deferredReply, args) => {
     await deferredReply;
     await interaction.editReply({ embeds: [embed] });
     if (invitePost?.ErrorCode === 1 && args.time && args.time > 0) {
-        cancelClanInvitation(args.identifier, args.time, interaction.user.id);
+        setupClanInviteCancellation(args.identifier, args.time, interaction.user.id);
     }
 };
 export default SlashCommand;

@@ -1,4 +1,4 @@
-export async function sendApiPostRequest({ apiEndpoint, accessToken, requestData, shouldReturnResponse }) {
+export async function sendApiPostRequest({ apiEndpoint, accessToken, requestData, returnResponse }) {
     const apiUrl = `https://www.bungie.net${apiEndpoint}`;
     const headers = createHeaders(accessToken);
     const options = createRequestOptions(headers, requestData);
@@ -9,7 +9,7 @@ export async function sendApiPostRequest({ apiEndpoint, accessToken, requestData
             return undefined;
         }
         const jsonResponse = await parseJsonResponse(response);
-        return jsonResponse.Response && shouldReturnResponse ? jsonResponse.Response : jsonResponse;
+        return jsonResponse.Response && returnResponse ? jsonResponse.Response : jsonResponse;
     }
     catch (error) {
         console.error("[Error code: 1833] Unexpected error:", error);

@@ -43,7 +43,7 @@ const ButtonCommand = new Button({
             apiEndpoint: `/Platform/GroupV2/${process.env.GROUP_ID}/Members/IndividualInvite/${invitee_platform}/${invitee_bungieId}/`,
             requestData: { description: "Автоматическое приглашение в клан Night 9" },
             accessToken: inviter_accessToken,
-            shouldReturnResponse: false,
+            returnResponse: false,
         });
         if (!clanInviteRequest) {
             throw { name: "Произошла неизвестная ошибка", description: "Попробуйте повторить попытку позже" };

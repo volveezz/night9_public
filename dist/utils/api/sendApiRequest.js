@@ -1,5 +1,4 @@
 import fetch from "node-fetch";
-import tokenRefresher from "../../structures/tokenRefresher.js";
 const bungieNetUrl = "https://www.bungie.net";
 export async function sendApiRequest(apiEndpoint, authToken, serverResponse) {
     const headers = createHeaders(authToken);
@@ -8,7 +7,12 @@ export async function sendApiRequest(apiEndpoint, authToken, serverResponse) {
         throw new Error("[Error code: 1951] Error happened during fetching data");
     });
     if (!response.ok) {
-        handleFetchError(response.status, response);
+        try {
+            console.debug(await response.json());
+        }
+        catch (error) {
+            handleFetchError(response.status, response);
+        }
         throw new Error("[Error code: 1952] Error happened during fetching data");
     }
     const jsonResponse = await parseJsonResponse(response).catch((error) => {
@@ -21,7 +25,9 @@ function createHeaders(authToken) {
     return {
         "X-API-KEY": process.env.XAPI,
         "Content-Type": "application/json",
-        ...(authToken && tokenRefresher.wasRefreshedRecently() ? { Authorization: `Bearer ${authToken.accessToken || authToken}` } : {}),
+        ...(authToken
+            ? { Authorization: `Bearer ${authToken?.accessToken || authToken}` }
+            : {}),
     };
 }
 async function parseJsonResponse(response) {

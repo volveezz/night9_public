@@ -8,7 +8,6 @@ import translateDestinyText from "./translateDestinyText.js";
 let lastArticlePubDate = null;
 const API_URL = "/Platform/Content/Rss/NewsArticles/0/?includebody=false";
 async function fetchNewsArticles() {
-    console.debug("[News] Fetching news articles");
     try {
         const { NewsArticles: currentArticles } = await sendApiRequest(API_URL);
         if (!currentArticles || currentArticles.length <= 0) {
@@ -29,7 +28,6 @@ async function fetchNewsArticles() {
     }
     finally {
         const delay = timeLeftToNext01Second();
-        console.debug(`[News] Next fetch in ${delay / 1000} seconds`);
         setTimeout(fetchNewsArticles, delay);
     }
 }

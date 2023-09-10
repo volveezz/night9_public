@@ -6,6 +6,9 @@ export function isSnowflake(value) {
 export function isBungieId(value) {
     return /^4611686018\d{9,11}$/.test(value);
 }
+export function isMembershipId(value) {
+    return /^\d{7,8}$/.test(value);
+}
 export function descriptionFormatter(text) {
     return text
         .replace(/(\\n)|(\\\*)|(\\!)/g, (_match, firstGroup, secondGroup, thirdGroup) => {

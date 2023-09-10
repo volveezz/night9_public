@@ -210,9 +210,6 @@ export class ExtendedClient extends Client {
                     this.loadProdComponents();
                 }
                 console.info(`\x1b[32m${this.user.username} online since ${new Date().toLocaleString()}\x1b[0m`);
-                setTimeout(() => {
-                    this.loadDelayedComponents();
-                }, 1000 * (Math.random() * 100));
                 VoteSystem.getInstance().init();
                 this.fetchMembersAndMessages();
             });
@@ -231,6 +228,8 @@ export class ExtendedClient extends Client {
         this.startUpdatingPresence();
         await pause(1000);
         tokenManagment();
+        await pause(1000);
+        restoreDataFromRedis();
         await pause(1000);
         clanOnlineMemberActivityChecker();
         await pause(1000);
@@ -251,9 +250,6 @@ export class ExtendedClient extends Client {
         fetchNewsArticles();
         await pause(1000);
         this.importFile("../core/guildNicknameManagement.js");
-    }
-    loadDelayedComponents() {
-        restoreDataFromRedis();
     }
     async fetchMembersAndMessages() {
         await pause(1000 * 2);
