@@ -9,7 +9,7 @@ async function saveRaidEncountersTimes() {
     if (completedPhases.size === 0)
         return;
     const serializedRaidData = JSON.stringify(Array.from(completedPhases.entries()));
-    await redisClient.set("completedPhasesKey", serializedRaidData);
+    await redisClient.set("completedPhasesKey", serializedRaidData, { EX: 60 * 30 });
 }
 async function saveLfgData() {
     if (channelDataMap.size === 0)
@@ -24,7 +24,7 @@ async function saveLfgData() {
         });
     });
     const serializedLfgData = JSON.stringify(lfgData);
-    await redisClient.set("lfgData", serializedLfgData);
+    await redisClient.set("lfgData", serializedLfgData, { EX: 60 * 30 });
 }
 async function saveRaidClearsData() {
     if (completedRaidsData.size === 0)
