@@ -98,12 +98,13 @@ const SlashCommand = new Command({
         }
         const allNoviceMembers = [...clanMembers, ...otherMembers];
         const maxLength = 2048;
-        const raidClearsList = allNoviceMembers.map((userId, index) => `${index + 1}.${formatRaidUserData(userId)}`);
+        const raidClearsList = allNoviceMembers.map((userId, index) => `${index + 1}. ${formatRaidUserData(userId)}`);
         if (raidClearsList.length > 0) {
             let currentDescription = "";
             let embedIndex = 0;
-            raidClearsList.forEach(async (raidClear) => {
-                if (currentDescription.length + raidClear.length + 1 > maxLength) {
+            for (let i = 0; i < raidClearsList.length; i++) {
+                const raidClear = raidClearsList[i];
+                if (currentDescription.length + raidClear.length + 5 > maxLength) {
                     await sendEmbed({
                         deferredReply,
                         embedIndex,
@@ -112,17 +113,17 @@ const SlashCommand = new Command({
                         selectedRaid,
                     });
                     currentDescription = "";
-                    embedIndex++;
+                    embedIndex = embedIndex + 1;
                 }
                 currentDescription += raidClear + "\n";
-            });
+            }
             if (currentDescription.length > 0) {
-                await sendEmbed({ deferredReply, embedIndex, interaction, raidDescription: currentDescription, selectedRaid });
+                sendEmbed({ deferredReply, embedIndex, interaction, raidDescription: currentDescription, selectedRaid });
             }
         }
         else {
             const noNovicesText = "Похоже, в этот рейд нет новичков без закрытий";
-            await sendEmbed({ deferredReply, embedIndex: 0, interaction, raidDescription: noNovicesText, selectedRaid });
+            sendEmbed({ deferredReply, embedIndex: 0, interaction, raidDescription: noNovicesText, selectedRaid });
         }
     },
 });

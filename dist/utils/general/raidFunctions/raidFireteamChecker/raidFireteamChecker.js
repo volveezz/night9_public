@@ -15,6 +15,7 @@ async function raidFireteamCheckerSystem(id) {
     if (process.env.NODE_ENV === "development")
         return;
     if (id) {
+        clearInterval(notifyIntervalMap.get(id));
         fireteamCheckingSystem.delete(id);
     }
     else {

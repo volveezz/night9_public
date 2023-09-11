@@ -1,5 +1,4 @@
 import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
-import { Op } from "sequelize";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
 import { dungeonsTriumphHashes, roleRequirements } from "../../../configs/roleRequirements.js";
@@ -8,7 +7,6 @@ import openai from "../../../structures/OpenAI.js";
 import { Command } from "../../../structures/command.js";
 import { GetManifest } from "../../../utils/api/ManifestManager.js";
 import calculateVoteResults from "../../../utils/discord/twitterHandler/twitterTranslationVotes.js";
-import { addButtonsToMessage } from "../../../utils/general/addButtonsToMessage.js";
 import { convertSeconds } from "../../../utils/general/convertSeconds.js";
 import { pause } from "../../../utils/general/utilities.js";
 import { AuthData, AutoRoleData, UserActivityData } from "../../../utils/persistence/sequelize.js";
@@ -29,30 +27,6 @@ const SlashCommand = new Command({
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const scriptId = args.getString("script", true).toLowerCase();
         switch (scriptId) {
-            case "notiunreg": {
-                const embed = new EmbedBuilder()
-                    .setColor(colors.error)
-                    .setTitle("Важное оповещение")
-                    .setDescription(`Вы всё ещё не обновили данные своей регистрации после [сброса данных](https://discord.com/channels/604967226243809302/690969928353710148/1141125205406777354). Для обновления нажмите кнопку «Обновить регистрацию» ниже или введите команду \`/init\`.
-Если вы не обновите данные до 10 сентября, вы будете исключены из клана.`);
-                const components = [
-                    new ButtonBuilder().setCustomId("initEvent_register").setLabel("Обновить регистрацию").setStyle(ButtonStyle.Primary),
-                ];
-                const membersToSend = await AuthData.findAll({
-                    where: { [Op.and]: { accessToken: null, clan: true, refreshToken: null } },
-                    attributes: ["discordId"],
-                });
-                for (const { discordId } of membersToSend) {
-                    const member = client.getCachedMembers().get(discordId) || (await client.getAsyncMember(discordId));
-                    if (!member) {
-                        console.debug(`Failed to fetch user ${discordId}`);
-                        continue;
-                    }
-                    await member.send({ embeds: [embed], components: addButtonsToMessage(components) });
-                    console.debug(`Sent message to ${member.displayName}`);
-                }
-                return;
-            }
             case "exportraidguide": {
                 exportRaidGuide(interaction, deferredReply);
                 return;
