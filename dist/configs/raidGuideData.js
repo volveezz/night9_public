@@ -30,14 +30,21 @@ const raidGuide = {
                     label: "Карта этапа",
                     style: ButtonStyle.Primary,
                     name: "Карта 1 этапа",
-                    image: "https://cdn.discordapp.com/attachments/1134620378615001178/1149748866284015767/CE-Abyss-Map.jpg",
+                    image: "https://cdn.discordapp.com/attachments/1134620378615001178/1150930206341742682/CE-Abyss.jpg",
                 },
             ],
         },
         {
             name: "2 этап рейда - Трон Сверхдуши",
             description: "Игрокам предстоит пересечь пропасть и уничтожить особых врагов – Хранителей Врат. Цель этой этапа - переправить всех игроков через мост, убить пять Хранителей, сохранить реликвии мечей, а затем уничтожить еще пять Хранителей Врат",
-            buttons: [],
+            buttons: [
+                {
+                    label: "Карта этапа",
+                    style: ButtonStyle.Primary,
+                    name: "Карта 2 этапа",
+                    image: "https://cdn.discordapp.com/attachments/1134620378615001178/1150930206668890132/CE-Bridge.jpg",
+                },
+            ],
         },
         {
             name: "3 этап рейда - Ир Ют",
@@ -59,7 +66,7 @@ const raidGuide = {
                     label: "Карта этапа",
                     style: ButtonStyle.Primary,
                     name: "Карта 4 этапа",
-                    image: "https://cdn.discordapp.com/attachments/1134620378615001178/1149878210427879464/CE-Crota-Map.jpg",
+                    image: "https://cdn.discordapp.com/attachments/1134620378615001178/1150930206010380308/CE-Crota.jpg",
                 },
             ],
         },
@@ -1079,6 +1086,113 @@ const raidGuide = {
                     style: ButtonStyle.Secondary,
                     name: "Рекомендуемое снаряжение для рейда Последнее Желание",
                     description: "> **2, 4, 6 этапы**\n- Любое оружие на зачистку толп противников\n\n> **5 этап**\n- [Плач](https://www.light.gg/db/ru/items/3487253372/%D0%BF%D0%BB%D0%B0%D1%87/) или любой другой хороший легендарный меч\n- До 1 на команду [Буксировочная пушка](https://www.light.gg/db/ru/items/3580904581/%D0%B1%D1%83%D0%BA%D1%81%D0%B8%D1%80%D0%BE%D0%B2%D0%BE%D1%87%D0%BD%D0%B0%D1%8F-%D0%BF%D1%83%D1%88%D0%BA%D0%B0)",
+                },
+            ],
+        },
+    ],
+    test: [
+        {
+            name: "1 этап рейда - Бездна",
+            description: 'Игроки будут прокладывать путь через лабиринт, окутанный темнотой. В темноте на вас постепенно накладывается дебафф "Тяжесть Тьмы", который увеличивается до десяти уровней, замедляя движение и лишая возможности бегать и прыгать. Чтобы сбросить дебафф, нужно подойти к лампам, указывающим путь из лабиринта',
+            buttons: [
+                {
+                    label: "Подробное объяснение этапа",
+                    style: ButtonStyle.Primary,
+                    embeds: [
+                        {
+                            name: "placeholder",
+                            description: "placeholder",
+                        },
+                    ],
+                },
+                {
+                    label: "Карта этапа",
+                    style: ButtonStyle.Primary,
+                    name: "Карта 1 этапа",
+                    image: "https://cdn.discordapp.com/attachments/1134620378615001178/1150930206341742682/CE-Abyss.jpg",
+                },
+            ],
+        },
+        {
+            name: "2 этап рейда - Трон Сверхдуши",
+            description: "Игрокам предстоит пересечь пропасть и уничтожить особых врагов – Хранителей Врат. Цель этой этапа - переправить всех игроков через мост, убить пять Хранителей, сохранить реликвии мечей, а затем уничтожить еще пять Хранителей Врат",
+            buttons: [
+                {
+                    label: "Подробное объяснение этапа",
+                    style: ButtonStyle.Primary,
+                    embeds: [
+                        {
+                            name: "placeholder",
+                            description: "placeholder",
+                        },
+                    ],
+                },
+                {
+                    label: "Карта этапа",
+                    style: ButtonStyle.Primary,
+                    name: "Карта 2 этапа",
+                    image: "https://cdn.discordapp.com/attachments/1134620378615001178/1150930206668890132/CE-Bridge.jpg",
+                },
+            ],
+        },
+        {
+            name: "3 этап рейда - Ир Ют",
+            description: "На третьем этапе рейда игроки сражаются с Ир Ют, могущественной ведьмой, песня которой способна убить того, кто услышит её до конца",
+            buttons: [
+                {
+                    label: "Подробное объяснение этапа",
+                    style: ButtonStyle.Primary,
+                    embeds: [
+                        {
+                            name: "placeholder",
+                            description: "placeholder",
+                        },
+                    ],
+                },
+                {
+                    label: "Карта этапа",
+                    style: ButtonStyle.Primary,
+                    name: "Карта 3 этапа",
+                    image: "https://cdn.discordapp.com/attachments/1134620378615001178/1149878210176225330/CE-IrYut-Map.jpg",
+                },
+            ],
+        },
+        {
+            name: "4 этап рейда - Крота",
+            description: "Главный босс - Кроты, Сына Орикса. Вам необходимо использовать мечи, чтобы снять его щиты, нанести как можно больше урона, а затем разрушить его Сверхдушу, чтобы предотвратить вайп всей команды",
+            buttons: [
+                {
+                    label: "Подробное объяснение этапа",
+                    style: ButtonStyle.Primary,
+                    embeds: [
+                        {
+                            name: "placeholder",
+                            description: "placeholder",
+                        },
+                    ],
+                },
+                {
+                    label: "Карта этапа",
+                    style: ButtonStyle.Primary,
+                    name: "Карта 4 этапа",
+                    image: "https://cdn.discordapp.com/attachments/1134620378615001178/1150930206010380308/CE-Crota.jpg",
+                },
+            ],
+        },
+        {
+            name: "Полезная информация по рейду",
+            buttons: [
+                {
+                    label: "Награды за этапы рейда",
+                    style: ButtonStyle.Secondary,
+                    name: "Награды за этапы рейда",
+                    image: "https://cdn.discordapp.com/attachments/1134620378615001178/1149372741707890789/CE-LootTable.jpg",
+                },
+                {
+                    label: "Рекомендуемое снаряжение",
+                    style: ButtonStyle.Secondary,
+                    name: "Рекомендуемое снаряжение для рейда Крах Кроты",
+                    description: `> **1 и 2 этапы**\n- Любое оружие на зачистку толп противников\n\n> **3 этап**\n- 1 [Божественность](${weaponLightGGLinks.divinity}) на команду\n- Остальные берут [Дыхание Левиафана](${weaponLightGGLinks.leviBreath}) или [Владыка грома](${weaponLightGGLinks.thunderlord})\n- Также рекомендуются любые легендарные плазменные винтовки\n\n> **4 этап**\n- 1 [Буксировочная пушка](${weaponLightGGLinks.tractor}) на команду\n- Остальные берут [Плач](${weaponLightGGLinks.lament}) или [Лезвие гильотины](${weaponLightGGLinks.guillotine}) или любой хороший меч на урон`,
                 },
             ],
         },
