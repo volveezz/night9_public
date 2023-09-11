@@ -3,6 +3,7 @@ import colors from "../../../../configs/colors.js";
 import icons from "../../../../configs/icons.js";
 import { client } from "../../../../index.js";
 import { default as readinessInstance, default as readinessSystemInstance } from "../../../../structures/RaidReadinessSystem.js";
+import kickMemberFromRaid from "../../../discord/raid/kickMemberFromRaid.js";
 import { RaidEvent } from "../../../persistence/sequelize.js";
 import { addButtonsToMessage } from "../../addButtonsToMessage.js";
 import nameCleaner from "../../nameClearer.js";
@@ -89,10 +90,14 @@ export async function askRaidReadinessNotification(discordId, raidId) {
     }
     collector.on("collect", (i) => {
         readinessSystemInstance.setUserReadinessStatus({ button: i.customId, discordId, raidId });
+        const authorFieldName = `Вы подтвердили свою ${i.customId === "raidReadiness_wontBeReady" ? "неготовность к рейду и были исключены с него" : "готовность к рейду"}`;
         const readinessReplyEmbed = new EmbedBuilder().setColor(colors.success).setAuthor({
-            name: `Вы подтвердили свою ${i.customId === "raidReadiness_wontBeReady" ? "неготовность" : "готовность"} к рейду`,
+            name: authorFieldName,
             iconURL: icons.success,
         });
+        if (i.customId === "raidReadiness_wontBeReady") {
+            kickMemberFromRaid({ kickedMember: i.user, cachedRaidEvent: raidEventData });
+        }
         if (i.customId === "raidReadiness_willBeReady") {
             const components = [
                 new ButtonBuilder()

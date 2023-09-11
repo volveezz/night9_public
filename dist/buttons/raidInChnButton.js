@@ -119,7 +119,7 @@ const ButtonCommand = new Button({
             let modalDescription = `Рейдер, тебя оповестил ${raidEvent.creator === interaction.user.id ? "создатель рейда" : "администратор"} об скором старте.\n\nЗаходи в голосовой канал как можно скорее!`;
             let modalImage = GIFImage;
             let interactionResponded = false;
-            async function sendNotificationToMembers(raidEvent, linkComponent, guild, interaction, message) {
+            async function sendNotificationToMembers(raidEvent, linkComponent, interaction, message) {
                 const channel = client.getCachedTextChannel(interaction.channel.id);
                 const notificationEmbed = new EmbedBuilder().setColor(colors.serious);
                 if (modalTitle?.length > 0) {
@@ -149,11 +149,13 @@ const ButtonCommand = new Button({
                         components: linkComponent,
                     },
                 ];
+                const cachedMembers = client.getCachedMembers();
+                const creatorVoiceChannel = guild.channels.cache.filter((ch) => ch.type === ChannelType.GuildVoice).find((m) => m.id === raidEvent.creator);
                 await Promise.all(raidEvent.joined.map(async (id) => {
-                    const member = guild.members.cache.get(id);
+                    const member = cachedMembers.get(id);
                     if (!member)
                         return console.error("[Error code: 1211]", id, member);
-                    if (member.id === raidEvent.creator)
+                    if (member.id === raidEvent.creator || (creatorVoiceChannel && creatorVoiceChannel.members.has(member.id)))
                         return;
                     await member
                         .send({
@@ -335,7 +337,7 @@ const ButtonCommand = new Button({
                     return;
                 switch (collectorInteraction.customId) {
                     case "raidAddFunc_notify_confirm":
-                        await sendNotificationToMembers(raidEvent, linkComponent, guild, interaction, message);
+                        await sendNotificationToMembers(raidEvent, linkComponent, interaction, message);
                         break;
                     case "raidAddFunc_notify_edit":
                         await handleEditAction(collectorInteraction);

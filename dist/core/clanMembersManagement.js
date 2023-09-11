@@ -5,10 +5,11 @@ import getClanMemberData from "../utils/api/getClanMemberData.js";
 import kickClanMember from "../utils/api/kickClanMember.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { getEndpointStatus, updateEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
+import { completedPhases } from "../utils/general/activityCompletionChecker.js";
 import checkUserRequirements from "../utils/general/newbieRequirementsChecker/checkUserRequirements.js";
 import notifyUserNotMeetRequirements from "../utils/general/newbieRequirementsChecker/notifyUserNotMeetRequirements.js";
 import { updateClanRolesWithLogging } from "../utils/logging/clanEventLogger.js";
-import { clanOnline, joinDateCheckedClanMembers, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, } from "../utils/persistence/dataStore.js";
+import { clanOnline, joinDateCheckedClanMembers, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, userCharactersId, } from "../utils/persistence/dataStore.js";
 let lastLoggedErrorCode = 1;
 async function clanMembersManagement(databaseData) {
     try {
@@ -168,6 +169,28 @@ async function clanMembersManagement(databaseData) {
                     }
                 }
                 joinDateCheckedClanMembers.add(membershipId);
+                const userCharacterIds = userCharactersId.get(memberAuthData.discordId);
+                userCharacterIds?.forEach((characterId) => {
+                    if (!completedPhases.has(characterId))
+                        return;
+                    const phasesData = completedPhases.get(characterId);
+                    if (!clanMember.isOnline) {
+                        setTimeout(() => {
+                            completedPhases.delete(characterId);
+                        }, 60 * 1000 * 5);
+                    }
+                    else {
+                        const interval = setInterval(() => {
+                            if (completedPhases.get(characterId) !== phasesData) {
+                                clearInterval(interval);
+                            }
+                            else if (!clanOnline.has(memberAuthData.discordId)) {
+                                clearInterval(interval);
+                                completedPhases.delete(characterId);
+                            }
+                        }, 60 * 1000 * 30);
+                    }
+                });
             }
         }
         async function handleNonRegisteredMembers(clanMember) {

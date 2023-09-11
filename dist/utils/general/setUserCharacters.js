@@ -12,7 +12,7 @@ async function fetchCharacterStatsAndCache({ discordId, platform, bungieId, acce
             return;
         }
         const validCharacters = characterStats.characters
-            .sort((a, b) => (a.deleted === false ? 1 : 0))
+            .sort((a, _) => (a.deleted === false ? 1 : 0))
             .map((ch) => ch.characterId);
         userCharactersId.set(discordId, validCharacters);
     }

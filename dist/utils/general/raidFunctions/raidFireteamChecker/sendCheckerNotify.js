@@ -1,10 +1,9 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
-import raidId from "../../../../autocompletions/raid-id.js";
 import colors from "../../../../configs/colors.js";
 import { client } from "../../../../index.js";
 import { addButtonsToMessage } from "../../addButtonsToMessage.js";
 async function sendPrivateChannelNotify(raidData) {
-    const { channelId } = raidData;
+    const { channelId, id: raidId } = raidData;
     const fireteamCheckingNotification = new EmbedBuilder().setColor(colors.default).setTitle("Система слежка за составом запущена");
     const fireTeamCheckingNotificationComponents = new ButtonBuilder()
         .setCustomId("raidInChnButton_fireteamChecker_cancel")

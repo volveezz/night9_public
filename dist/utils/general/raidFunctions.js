@@ -325,14 +325,17 @@ export async function raidChallenges({ raidData, raidEvent, privateChannelMessag
     const raidModifiersArray = [];
     const raidDataChallanges = destinyRaidsChallenges[raidData.raid];
     const embed = EmbedBuilder.from(privateChannelMessage.embeds[0]);
+    const activityIndex = raidMilestone?.activities.length > 1 ? (difficulty === 1 ? 0 : 1) : 0;
+    const activityModifiers = raidMilestone.activities[activityIndex]?.modifierHashes;
     if (!raidMilestone ||
-        raidMilestone.activities[raidMilestone?.activities.length > 1 ? (difficulty === 1 ? 0 : 1) : 0]?.modifierHashes === undefined) {
+        activityModifiers === undefined ||
+        activityModifiers.filter((modifier) => !blockedModifierHashesArray.includes(modifier)).length === 0) {
         embed.data.fields[0].name = "**Испытания рейда**";
         embed.data.fields[0].value = "⁣　⁣*отсутствуют*";
         await privateChannelMessage.edit({ embeds: [embed] });
         return;
     }
-    raidMilestone.activities[raidMilestone?.activities.length > 1 ? (difficulty === 1 ? 0 : 1) : 0].modifierHashes.forEach((modifier) => {
+    activityModifiers.forEach((modifier) => {
         if (blockedModifierHashesArray.includes(modifier) || (difficulty !== 1 && modifier === 97112028))
             return;
         if (manifest[modifier].displayProperties.description.toLowerCase().startsWith("вас ждет испытание")) {

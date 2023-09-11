@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import tokenRefresher from "../../structures/tokenRefresher.js";
 const bungieNetUrl = "https://www.bungie.net";
 export async function sendApiRequest(apiEndpoint, authToken, serverResponse) {
     const headers = createHeaders(authToken);
@@ -8,7 +9,8 @@ export async function sendApiRequest(apiEndpoint, authToken, serverResponse) {
     });
     if (!response.ok) {
         try {
-            console.debug(await response.json());
+            const json = (await response.json());
+            console.debug("[Error code: 2012]", json?.ErrorStatus || json);
         }
         catch (error) {
             handleFetchError(response.status, response);
@@ -25,9 +27,7 @@ function createHeaders(authToken) {
     return {
         "X-API-KEY": process.env.XAPI,
         "Content-Type": "application/json",
-        ...(authToken
-            ? { Authorization: `Bearer ${authToken?.accessToken || authToken}` }
-            : {}),
+        ...(authToken && tokenRefresher.wasRefreshedRecently() ? { Authorization: `Bearer ${authToken?.accessToken || authToken}` } : {}),
     };
 }
 async function parseJsonResponse(response) {

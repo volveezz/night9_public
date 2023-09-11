@@ -1,8 +1,8 @@
-import { channelDataMap } from "../../persistence/dataStore.js";
+import { channelDataMap, completedRaidsData } from "../../persistence/dataStore.js";
 import { redisClient } from "../../persistence/redis.js";
 import { completedPhases } from "../activityCompletionChecker.js";
 async function saveDataToRedis() {
-    await Promise.all([saveRaidEncountersTimes(), saveLfgData()]);
+    await Promise.all([saveRaidEncountersTimes(), saveLfgData(), saveRaidClearsData()]);
     return true;
 }
 async function saveRaidEncountersTimes() {
@@ -25,6 +25,13 @@ async function saveLfgData() {
     });
     const serializedLfgData = JSON.stringify(lfgData);
     await redisClient.set("lfgData", serializedLfgData);
+}
+async function saveRaidClearsData() {
+    if (completedRaidsData.size === 0)
+        return;
+    const completedRaidsDataArray = [...completedRaidsData];
+    const raidsDataString = JSON.stringify(completedRaidsDataArray);
+    await redisClient.set("completedRaidsData", raidsDataString);
 }
 export default saveDataToRedis;
 //# sourceMappingURL=saveDataToRedis.js.map

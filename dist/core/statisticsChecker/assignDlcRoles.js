@@ -11,18 +11,18 @@ const dlcBitFlags = [
 const allDlcRoles = Object.values(dlcRoles);
 const rolesExceptVanilla = [...allDlcRoles];
 rolesExceptVanilla.splice(rolesExceptVanilla.indexOf(dlcRoles.vanilla), 1);
-async function assignDlcRoles({ addRoles, member, removeRoles, version }) {
-    if (!version)
+async function assignDlcRoles({ addRoles, member, removeRoles, versionsOwned }) {
+    if (!versionsOwned)
         return;
-    if (version > 7 && member.roles.cache.has(dlcRoles.vanilla)) {
+    if (versionsOwned > 7 && member.roles.cache.has(dlcRoles.vanilla)) {
         removeRoles.push(dlcRoles.vanilla);
     }
-    else if (version <= 7 && !member.roles.cache.has(dlcRoles.vanilla)) {
+    else if (versionsOwned <= 7 && !member.roles.cache.has(dlcRoles.vanilla)) {
         addRoles.push(dlcRoles.vanilla);
         removeRoles.push(...rolesExceptVanilla);
     }
     for (const { bit, role } of dlcBitFlags) {
-        if (version & bit && !member.roles.cache.has(role)) {
+        if (versionsOwned & bit && !member.roles.cache.has(role)) {
             addRoles.push(role);
         }
     }

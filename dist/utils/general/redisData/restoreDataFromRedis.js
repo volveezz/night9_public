@@ -1,11 +1,10 @@
 import { client } from "../../../index.js";
-import { channelDataMap } from "../../persistence/dataStore.js";
+import { channelDataMap, completedRaidsData } from "../../persistence/dataStore.js";
 import { redisClient } from "../../persistence/redis.js";
 import { completedPhases } from "../activityCompletionChecker.js";
 async function restoreDataFromRedis() {
-    await Promise.all([restoreLfgData(), restoreRaidEncountersTimesData()]);
-    console.debug(`Data from the redis was restored`);
-    return true;
+    await Promise.all([restoreLfgData(), restoreRaidEncountersTimesData(), restoreCompletedRaidsData()]);
+    console.info("Data from the redis was restored!");
 }
 async function restoreRaidEncountersTimesData() {
     const completedPhasesData = await redisClient.get("completedPhasesKey");
@@ -16,8 +15,6 @@ async function restoreRaidEncountersTimesData() {
     completedPhasesMap.forEach((value, key) => {
         completedPhases.set(key, value);
     });
-    await redisClient.del("completedPhasesKey");
-    console.debug("Completed phases map", completedPhasesMap);
 }
 async function restoreLfgData() {
     const lfgChannelData = await redisClient.get("lfgData");
@@ -32,7 +29,15 @@ async function restoreLfgData() {
             return;
         channelDataMap.set(channel.id, { voiceChannel: channel, channelMessage, creator, isDeletable, members: [] });
     });
-    await redisClient.del("lfgData");
+}
+async function restoreCompletedRaidsData() {
+    const completedRaidsDatabaseData = await redisClient.get("completedRaidsData");
+    if (!completedRaidsDatabaseData)
+        return;
+    const parsedRaidsData = JSON.parse(completedRaidsDatabaseData);
+    for (const [key, value] of parsedRaidsData) {
+        completedRaidsData.set(key, value);
+    }
 }
 export default restoreDataFromRedis;
 //# sourceMappingURL=restoreDataFromRedis.js.map

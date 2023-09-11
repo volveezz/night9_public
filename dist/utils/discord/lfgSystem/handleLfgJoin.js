@@ -38,7 +38,7 @@ async function handleTextChannel(channelId, member, action) {
         channelData.members.splice(channelData.members.indexOf(member.id), 1);
     }
     else if (action === "join") {
-        channelData.members.push(member.id);
+        channelData.members = channelData.voiceChannel.members.filter((u) => !u.user.bot).map((user) => user.id);
     }
     if (channelData.members.length === 0) {
         await removeChannelData(channelData);
