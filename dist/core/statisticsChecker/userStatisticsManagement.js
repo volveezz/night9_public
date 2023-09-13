@@ -243,7 +243,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                     console.error(`[Error code: 1227] ${metrics} ${member.displayName}`, response.metrics.data.metrics["1765255052"]?.objectiveProgress);
                     return;
                 }
-                if (metrics >= 1) {
+                if (metrics > 0) {
                     for (const step of trialsRoles.roles) {
                         if (step.totalFlawless <= metrics) {
                             if (!hasRole(trialsRoles.category))
@@ -424,6 +424,7 @@ async function handleMemberStatistics() {
                     const userDatabaseData = validatedDatabaseData[i];
                     const { discordId, displayName, roleCategoriesBits } = userDatabaseData;
                     const randomValue = Math.floor(Math.random() * 100);
+                    console.debug("Processing with checking", displayName, randomValue);
                     if (throttleSet.has(discordId))
                         return throttleSet.delete(discordId);
                     if (longOffline.has(discordId)) {
@@ -463,6 +464,7 @@ async function handleMemberStatistics() {
                         await pause(1000);
                     }
                     function checkUserStats() {
+                        console.debug("Starting to check user stats of", member.displayName);
                         checkUserStatisticsRoles(userDatabaseData, member, autoRoleData);
                     }
                     function checkUserKDRatioStats() {

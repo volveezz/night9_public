@@ -8,7 +8,7 @@ import { GetManifest } from "../../utils/api/ManifestManager.js";
 import setMemberRoles from "../../utils/discord/setRoles.js";
 import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
 import { convertSeconds } from "../../utils/general/convertSeconds.js";
-import { completedRaidsData, longOffline, userTimezones } from "../../utils/persistence/dataStore.js";
+import { bungieNames, completedRaidsData, longOffline, userTimezones } from "../../utils/persistence/dataStore.js";
 import { AuthData, AutoRoleData, UserActivityData, database } from "../../utils/persistence/sequelize.js";
 const SlashCommand = new Command({
     name: "db",
@@ -193,7 +193,7 @@ const SlashCommand = new Command({
                 .setFooter({
                 text: `Запрос занял: ${benchmarkEnd - benchmarkStart}мс`,
             })
-                .setDescription(`> ${(userTimezones.get(request.discordId) ?? "Timezone not cached").toString()} | ${request.timezone} <@${request.discordId}>${raidClears ? ` - ${Object.values(raidClears)}` : ""}`)
+                .setDescription(`- ${(userTimezones.get(request.discordId) ?? "Timezone not cached").toString()} | ${request.timezone} <@${request.discordId}>${raidClears ? `\n- ${Object.values(raidClears)}` : ""}\n- ${bungieNames.get(request.discordId)}`)
                 .addFields([
                 {
                     name: "BungieId",

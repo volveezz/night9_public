@@ -26,6 +26,11 @@ const SlashCommand = new Command({
                     value: process.env.LORE_CHANNEL_ID,
                     nameLocalizations: { ru: "Канал с обсуждением игрового лора" },
                 },
+                {
+                    name: "Vex Incursions",
+                    value: process.env.VEX_INCURSION_CHANNEL_ID,
+                    nameLocalizations: { ru: "Вторжения вексов" },
+                },
             ],
         },
     ],
