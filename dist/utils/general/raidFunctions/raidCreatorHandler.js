@@ -156,7 +156,7 @@ async function raidCreatorTransition(member, raid) {
     const [updateQuery] = await RaidEvent.update({ creator: member.id }, { where: { id: raid.id } });
     if (updateQuery !== 1)
         return console.error(`[Error code: 1675] ${updateQuery}\n`, member, raid);
-    const sendPrivateChannelNotify = async () => {
+    const sendNewCreatorPrivateChannelNotify = async () => {
         const privateRaidChannel = client.getCachedTextChannel(raid.channelId) || (await client.getCachedGuild().channels.fetch(raid.channelId));
         const notifyEmbed = new EmbedBuilder()
             .setColor(colors.default)
@@ -196,7 +196,7 @@ async function raidCreatorTransition(member, raid) {
             }
         }
     };
-    await Promise.all([sendPrivateChannelNotify(), notifyNewCreator()]);
+    await Promise.all([sendNewCreatorPrivateChannelNotify(), notifyNewCreator()]);
     return;
 }
 function isClanMember(member) {

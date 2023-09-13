@@ -43,7 +43,8 @@ async function checkFireteamStatus(raidData) {
     const voiceChannelMembersAuthData = await getVoiceChannelMembersAuthData(raidId, userIds);
     const partyMembers = await checkFireteamRoster(voiceChannelMembersAuthData, raidEvent.raid, raidId);
     if (!partyMembers) {
-        if (badCheckAttempt < 3) {
+        console.error("[Error code: 2021] Didn't managed to get the fireteam activity data", partyMembers, raidEvent.raid, raidId);
+        if (badCheckAttempt < 9) {
             countOfChecksMap.set(raidId, badCheckAttempt + 1);
             return true;
         }
@@ -100,7 +101,7 @@ async function checkFireteamStatus(raidData) {
                 .setFooter({
                 text: `Пользователь ${footerText} системой слежки за составом`,
             });
-            const raidChannel = await client.getAsyncTextChannel(raidEvent.channelId);
+            const raidChannel = client.getCachedTextChannel(raidEvent.channelId);
             await raidChannel.send({ embeds: [embed] });
             if (userInFireteam && !raidEvent.joined.includes(discordId)) {
                 await raidChannel.permissionOverwrites.create(discordId, { ViewChannel: true });
@@ -150,11 +151,12 @@ async function checkFireteamRoster(voiceChannelMembersAuthData, raidName, raidId
                     if (activityName !== raidName) {
                         continue;
                     }
-                    return destinyProfile.profileTransitoryData.data.partyMembers;
+                    return partyMembers;
                 }
             }
         }
         catch (error) {
+            console.error("[Error code: 2020]", error);
             previouslyCheckedFireteamMembers.delete(raidId);
         }
     }
