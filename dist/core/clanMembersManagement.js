@@ -14,8 +14,9 @@ let lastLoggedErrorCode = 1;
 async function clanMembersManagement(databaseData) {
     try {
         const request = await sendApiRequest(`/Platform/GroupV2/${process.env.GROUP_ID}/Members/?memberType=None`, null, true);
+        const dataForProcessing = new Array(...databaseData);
         if (!request) {
-            console.error("[Error code: 1013]", databaseData.map((d) => d.bungieId).join(", "));
+            console.error("[Error code: 1013]", dataForProcessing.map((d) => d.bungieId).join(", "));
             return;
         }
         const { ErrorCode: errorCode, Response: clanList } = request;
@@ -71,7 +72,7 @@ async function clanMembersManagement(databaseData) {
         }
         processClanMembers();
         async function handleClanLeftMembers() {
-            await Promise.all(databaseData.map(async (member) => {
+            await Promise.all(dataForProcessing.map(async (member) => {
                 if (member.clan === true) {
                     const memberData = await getClanMemberData(member);
                     if (memberData.member?.groupId !== process.env.GROUP_ID) {
@@ -93,12 +94,12 @@ async function clanMembersManagement(databaseData) {
         }
         async function processClanMember(clanMember) {
             const { membershipId } = clanMember.destinyUserInfo;
-            const index = databaseData.findIndex((e) => e.bungieId === membershipId);
+            const index = dataForProcessing.findIndex((e) => e.bungieId === membershipId);
             if (index === -1) {
                 handleNonRegisteredMembers(clanMember);
                 return;
             }
-            const [memberAuthData] = databaseData.splice(index, 1);
+            const [memberAuthData] = dataForProcessing.splice(index, 1);
             if (clanMember.isOnline) {
                 clanOnline.set(memberAuthData.discordId, {
                     platform: clanMember.destinyUserInfo.membershipType,

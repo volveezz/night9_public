@@ -417,75 +417,77 @@ async function handleMemberStatistics() {
                 return console.error(`[Error code: 1022] DB is ${validatedDatabaseData ? `${validatedDatabaseData.length} size` : "not available"}`);
             }
             console.debug("Testing 1", validatedDatabaseData.find((v) => v.discordId === process.env.OWNER_ID)?.displayName);
-            clanMembersManagement(validatedDatabaseData);
-            if (getEndpointStatus("account") === 1) {
-                console.debug("Testing 1", validatedDatabaseData.find((v) => v.discordId === process.env.OWNER_ID)?.displayName);
-                for (let i = 0; i < validatedDatabaseData.length; i++) {
-                    const userDatabaseData = validatedDatabaseData[i];
-                    const { discordId, displayName, roleCategoriesBits } = userDatabaseData;
-                    const randomValue = Math.floor(Math.random() * 100);
-                    console.debug("Processing with checking", displayName, randomValue);
-                    if (throttleSet.has(discordId))
-                        return throttleSet.delete(discordId);
-                    if (longOffline.has(discordId)) {
-                        if (randomValue >= 90 || clanOnline.has(discordId))
-                            longOffline.delete(discordId);
-                        continue;
-                    }
-                    const member = cachedMembers.get(discordId);
-                    if (!member) {
-                        await client.getCachedGuild().members.fetch();
-                        console.error(`[Error code: 1023] Member ${displayName} not found`);
-                        continue;
-                    }
-                    if (member.roles.cache.has(process.env.CLANMEMBER) ||
-                        (userDatabaseData.UserActivityData &&
-                            (userDatabaseData.UserActivityData.voice > 120 || userDatabaseData.UserActivityData.messages > 5))) {
+            async function processUsers() {
+                if (getEndpointStatus("account") === 1) {
+                    console.debug("Testing 1", validatedDatabaseData.find((v) => v.discordId === process.env.OWNER_ID)?.displayName);
+                    for (let i = 0; i < validatedDatabaseData.length; i++) {
+                        const userDatabaseData = validatedDatabaseData[i];
+                        const { discordId, displayName, roleCategoriesBits } = userDatabaseData;
                         const randomValue = Math.floor(Math.random() * 100);
-                        switch (true) {
-                            case randomValue <= 30:
-                                checkUserStats();
-                                checkCompletedRaidStats();
-                                break;
-                            case randomValue <= 45:
-                                checkUserStats();
-                                break;
-                            case randomValue < 60:
-                                checkUserStats();
-                                checkTrialsKDStats();
-                                break;
-                            case randomValue <= 80:
-                                checkUserStats();
-                                break;
-                            default:
-                                checkUserKDRatioStats();
-                                break;
+                        console.debug("Processing with checking", displayName, randomValue);
+                        if (throttleSet.has(discordId))
+                            return throttleSet.delete(discordId);
+                        if (longOffline.has(discordId)) {
+                            if (randomValue >= 90 || clanOnline.has(discordId))
+                                longOffline.delete(discordId);
+                            continue;
                         }
-                        await pause(1000);
-                    }
-                    function checkUserStats() {
-                        console.debug("Starting to check user stats of", member.displayName);
-                        checkUserStatisticsRoles(userDatabaseData, member, autoRoleData);
-                    }
-                    function checkUserKDRatioStats() {
-                        if (roleCategoriesBits & 1) {
-                            checkUserKDRatio(userDatabaseData, member);
+                        const member = cachedMembers.get(discordId);
+                        if (!member) {
+                            await client.getCachedGuild().members.fetch();
+                            console.error(`[Error code: 1023] Member ${displayName} not found`);
+                            continue;
                         }
-                    }
-                    function checkCompletedRaidStats() {
-                        if (member.roles.cache.hasAny(process.env.CLANMEMBER, process.env.MEMBER)) {
-                            destinyActivityChecker({ authData: userDatabaseData, member, mode: 4 });
+                        if (member.roles.cache.has(process.env.CLANMEMBER) ||
+                            (userDatabaseData.UserActivityData &&
+                                (userDatabaseData.UserActivityData.voice > 120 || userDatabaseData.UserActivityData.messages > 5))) {
+                            const randomValue = Math.floor(Math.random() * 100);
+                            switch (true) {
+                                case randomValue <= 30:
+                                    checkUserStats();
+                                    checkCompletedRaidStats();
+                                    break;
+                                case randomValue <= 45:
+                                    checkUserStats();
+                                    break;
+                                case randomValue < 60:
+                                    checkUserStats();
+                                    checkTrialsKDStats();
+                                    break;
+                                case randomValue <= 80:
+                                    checkUserStats();
+                                    break;
+                                default:
+                                    checkUserKDRatioStats();
+                                    break;
+                            }
+                            await pause(1000);
                         }
-                    }
-                    function checkTrialsKDStats() {
-                        if (roleCategoriesBits & 2 &&
-                            !member.roles.cache.has(trialsRoles.wintrader) &&
-                            member.roles.cache.has(trialsRoles.category)) {
-                            destinyActivityChecker({ authData: userDatabaseData, member, mode: 84 });
+                        function checkUserStats() {
+                            console.debug("Starting to check user stats of", member.displayName);
+                            checkUserStatisticsRoles(userDatabaseData, member, autoRoleData);
+                        }
+                        function checkUserKDRatioStats() {
+                            if (roleCategoriesBits & 1) {
+                                checkUserKDRatio(userDatabaseData, member);
+                            }
+                        }
+                        function checkCompletedRaidStats() {
+                            if (member.roles.cache.hasAny(process.env.CLANMEMBER, process.env.MEMBER)) {
+                                destinyActivityChecker({ authData: userDatabaseData, member, mode: 4 });
+                            }
+                        }
+                        function checkTrialsKDStats() {
+                            if (roleCategoriesBits & 2 &&
+                                !member.roles.cache.has(trialsRoles.wintrader) &&
+                                member.roles.cache.has(trialsRoles.category)) {
+                                destinyActivityChecker({ authData: userDatabaseData, member, mode: 84 });
+                            }
                         }
                     }
                 }
             }
+            await Promise.all([processUsers(), clanMembersManagement(validatedDatabaseData)]);
         }
         catch (error) {
             console.error("[Error code: 1921]", error.stack || error);
