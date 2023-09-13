@@ -406,19 +406,20 @@ async function handleMemberStatistics() {
                 include: UserActivityData,
             });
             console.debug(rawDatabaseData.find((v) => v.discordId === process.env.OWNER_ID)?.displayName);
-            console.debug(rawDatabaseData.find((v) => v.discordId === "906171774469812235")?.displayName);
             const cachedMembers = client.getCachedMembers();
             rawDatabaseData
                 .filter((data) => !cachedMembers.has(data.discordId))
-                .map((val, ind) => {
-                return ind < 5 ? console.debug(`[Error code: 1021] ${val.displayName}/${val.discordId} not found on server`) : null;
+                .forEach((val) => {
+                console.debug(`[Error code: 1021] ${val.displayName}/${val.discordId} not found on server`);
             });
             const validatedDatabaseData = rawDatabaseData.filter((data) => cachedMembers.has(data.discordId));
             if (!validatedDatabaseData || validatedDatabaseData.length === 0) {
                 return console.error(`[Error code: 1022] DB is ${validatedDatabaseData ? `${validatedDatabaseData.length} size` : "not available"}`);
             }
+            console.debug(validatedDatabaseData.find((v) => v.discordId === process.env.OWNER_ID)?.displayName);
             clanMembersManagement(validatedDatabaseData);
             if (getEndpointStatus("account") === 1) {
+                console.debug(validatedDatabaseData.find((v) => v.discordId === process.env.OWNER_ID)?.displayName);
                 for (let i = 0; i < validatedDatabaseData.length; i++) {
                     const userDatabaseData = validatedDatabaseData[i];
                     const { discordId, displayName, roleCategoriesBits } = userDatabaseData;
