@@ -71,7 +71,7 @@ const SlashCommand = new Command({
                     description: "Specify a message ID if you want to edit an existing message",
                     required: true,
                 },
-                { type: ApplicationCommandOptionType.String, name: "image-url", description: "Link to the image" },
+                { type: ApplicationCommandOptionType.String, name: "image-link", description: "Link to the image" },
                 { type: ApplicationCommandOptionType.String, name: "thumbnail-url", description: "Link to the image" },
             ],
         },
