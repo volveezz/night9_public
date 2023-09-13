@@ -15,7 +15,6 @@ const dungeonRoles = await AutoRoleData.findAll({ where: { category: 8 } }).then
     return rolesData.filter((roleData) => dungeonsTriumphHashes.includes(roleData.triumphRequirement)).map((r) => r.roleId);
 });
 async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessToken, displayName, roleCategoriesBits, UserActivityData: userActivity }, member, roleDataFromDatabase, isEasyCheck = false) {
-    console.debug("Checking", member.displayName);
     const roleIdsForAdding = [];
     const roleIdForRemoval = [];
     const hasRole = (roleId) => member.roles.cache.has(roleId);
@@ -29,9 +28,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
         const profileData = response.profile.data;
         if (profileData != null) {
             const { dateLastPlayed, userInfo, currentGuardianRank, seasonHashes, versionsOwned } = profileData;
-            console.debug("Continuing to checking", bungieNames.get(discordId));
             if (!bungieNames.get(discordId)) {
-                console.debug("Found that", discordId, "doesn't have a saved bungie name");
                 const { displayName, bungieGlobalDisplayName: bungieName, bungieGlobalDisplayNameCode: bungieNameCode } = userInfo;
                 const bungieCode = (bungieNameCode ?? "0000").toString().padStart(4, "0");
                 bungieNames.set(discordId, `${bungieName ?? displayName}#${bungieCode}`);
@@ -354,7 +351,6 @@ async function checkUserKDRatio({ platform, bungieId, accessToken }, member) {
     }
 }
 async function handleMemberStatistics() {
-    console.debug("Started to check users");
     (async () => {
         try {
             const userDatabaseData = await AuthData.findAll({
@@ -405,7 +401,6 @@ async function handleMemberStatistics() {
                 attributes: ["discordId", "bungieId", "platform", "clan", "displayName", "accessToken", "roleCategoriesBits"],
                 include: UserActivityData,
             });
-            console.debug("Testing 2", rawDatabaseData.find((v) => v.discordId === process.env.OWNER_ID)?.displayName);
             const cachedMembers = client.getCachedMembers();
             rawDatabaseData
                 .filter((data) => !cachedMembers.has(data.discordId))
@@ -416,15 +411,12 @@ async function handleMemberStatistics() {
             if (!validatedDatabaseData || validatedDatabaseData.length === 0) {
                 return console.error(`[Error code: 1022] DB is ${validatedDatabaseData ? `${validatedDatabaseData.length} size` : "not available"}`);
             }
-            console.debug("Testing 1", validatedDatabaseData.find((v) => v.discordId === process.env.OWNER_ID)?.displayName);
             async function processUsers() {
                 if (getEndpointStatus("account") === 1) {
-                    console.debug("Testing 1", validatedDatabaseData.find((v) => v.discordId === process.env.OWNER_ID)?.displayName);
                     for (let i = 0; i < validatedDatabaseData.length; i++) {
                         const userDatabaseData = validatedDatabaseData[i];
                         const { discordId, displayName, roleCategoriesBits } = userDatabaseData;
                         const randomValue = Math.floor(Math.random() * 100);
-                        console.debug("Processing with checking", displayName, randomValue);
                         if (throttleSet.has(discordId))
                             return throttleSet.delete(discordId);
                         if (longOffline.has(discordId)) {
@@ -464,7 +456,6 @@ async function handleMemberStatistics() {
                             await pause(1000);
                         }
                         function checkUserStats() {
-                            console.debug("Starting to check user stats of", member.displayName);
                             checkUserStatisticsRoles(userDatabaseData, member, autoRoleData);
                         }
                         function checkUserKDRatioStats() {
