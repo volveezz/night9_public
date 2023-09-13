@@ -21,7 +21,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
     const hasAnyRole = (roleIds) => member.roles.cache.hasAny(...roleIds);
     const response = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${bungieId}/?components=100,900,1100`, accessToken);
     if (!response) {
-        console.error(`[Error code: 1751] Received error for ${platform}/${bungieId} [${displayName}]`);
+        console.error(`[Error code: 1751] Received error for ${platform}/${bungieId} ${displayName}`);
         return;
     }
     try {
@@ -70,6 +70,9 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                 removeRoles: roleIdForRemoval,
                 versionsOwned,
             });
+        }
+        else {
+            console.error("[Error code: 2022] Profile data is null", response);
         }
         async function triumphsChecker() {
             if (roleCategoriesBits & 1 && response.profileRecords.data) {
@@ -348,6 +351,7 @@ async function checkUserKDRatio({ platform, bungieId, accessToken }, member) {
     }
 }
 async function handleMemberStatistics() {
+    console.debug("Started to check users");
     (async () => {
         try {
             const userDatabaseData = await AuthData.findAll({
