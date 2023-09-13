@@ -21,7 +21,7 @@ const SlashCommand = new Command({
                         { type: ApplicationCommandOptionType.String, name: "embed_code", description: "Embed code", required: true },
                         {
                             type: ApplicationCommandOptionType.String,
-                            name: "message_id",
+                            name: "message-id",
                             description: "Specify a message ID if you want to edit an existing message",
                         },
                     ],
@@ -60,8 +60,23 @@ const SlashCommand = new Command({
                 { type: ApplicationCommandOptionType.Boolean, name: "ephemeral", description: "Send this button as ephemeral or not" },
             ],
         },
+        {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: "image",
+            description: "Sets a image or/and a thumbnail for the message embed",
+            options: [
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "message-id",
+                    description: "Specify a message ID if you want to edit an existing message",
+                    required: true,
+                },
+                { type: ApplicationCommandOptionType.String, name: "image-url", description: "Link to the image" },
+                { type: ApplicationCommandOptionType.String, name: "thumbnail-url", description: "Link to the image" },
+            ],
+        },
     ],
-    run: async ({ interaction, args }) => {
+    run: async ({ client, interaction, args }) => {
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const subcommandGroup = args.getSubcommandGroup() || args.getSubcommand();
         const channel = interaction.channel;
@@ -69,7 +84,7 @@ const SlashCommand = new Command({
             const subcommand = args.getSubcommand();
             if (subcommand === "code") {
                 const embedCode = args.getString("embed_code", true);
-                const messageId = args.getString("message_id");
+                const messageId = args.getString("message-id");
                 try {
                     let parsedJSON = JSON.parse(embedCode);
                     let embedJSON;
@@ -155,6 +170,25 @@ const SlashCommand = new Command({
                 interaction.editReply({ embeds: [responseEmbed] });
             }
             return;
+        }
+        else if (subcommandGroup === "image") {
+            const messageId = args.getString("message-id", true);
+            const imageLink = args.getString("image-link");
+            const thumbnailLink = args.getString("thumbnail-url");
+            const message = await client.getAsyncMessage(channel, messageId);
+            if (!message) {
+                throw { name: "Сообщение не найдено" };
+            }
+            const embed = EmbedBuilder.from(message.embeds[0]);
+            if (imageLink) {
+                embed.setImage(imageLink);
+            }
+            if (thumbnailLink) {
+                embed.setThumbnail(thumbnailLink);
+            }
+            await message.edit({ embeds: [embed] });
+            await deferredReply;
+            interaction.editReply({ content: "Сообщение отредактировано" });
         }
     },
 });
