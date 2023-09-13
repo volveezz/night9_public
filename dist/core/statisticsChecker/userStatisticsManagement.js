@@ -15,6 +15,7 @@ const dungeonRoles = await AutoRoleData.findAll({ where: { category: 8 } }).then
     return rolesData.filter((roleData) => dungeonsTriumphHashes.includes(roleData.triumphRequirement)).map((r) => r.roleId);
 });
 async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessToken, displayName, roleCategoriesBits, UserActivityData: userActivity }, member, roleDataFromDatabase, isEasyCheck = false) {
+    console.debug("Checking", member.displayName);
     const roleIdsForAdding = [];
     const roleIdForRemoval = [];
     const hasRole = (roleId) => member.roles.cache.has(roleId);
@@ -28,7 +29,9 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
         const profileData = response.profile.data;
         if (profileData != null) {
             const { dateLastPlayed, userInfo, currentGuardianRank, seasonHashes, versionsOwned } = profileData;
+            console.debug("Continuing to checking", bungieNames.get(discordId));
             if (!bungieNames.get(discordId)) {
+                console.debug("Found that", discordId, "doesn't have a saved bungie name");
                 const { displayName, bungieGlobalDisplayName: bungieName, bungieGlobalDisplayNameCode: bungieNameCode } = userInfo;
                 const bungieCode = (bungieNameCode ?? "0000").toString().padStart(4, "0");
                 bungieNames.set(discordId, `${bungieName ?? displayName}#${bungieCode}`);
