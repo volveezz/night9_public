@@ -405,15 +405,14 @@ async function handleMemberStatistics() {
                 attributes: ["discordId", "bungieId", "platform", "clan", "displayName", "accessToken", "roleCategoriesBits"],
                 include: UserActivityData,
             });
+            console.debug(rawDatabaseData.find((v) => v.discordId === process.env.OWNER_ID)?.displayName);
+            console.debug(rawDatabaseData.find((v) => v.discordId === "906171774469812235")?.displayName);
             const cachedMembers = client.getCachedMembers();
-            const notFoundUsersOnServer = rawDatabaseData
+            rawDatabaseData
                 .filter((data) => !cachedMembers.has(data.discordId))
                 .map((val, ind) => {
-                return ind < 5 ? `[Error code: 1021] ${val.displayName}/${val.discordId} not found on server` : null;
+                return ind < 5 ? console.debug(`[Error code: 1021] ${val.displayName}/${val.discordId} not found on server`) : null;
             });
-            if (notFoundUsersOnServer.length > 0 && process.env.NODE_ENV !== "development") {
-                console.error("[Error code: 1755]", notFoundUsersOnServer.filter((_, ind) => ind < 5));
-            }
             const validatedDatabaseData = rawDatabaseData.filter((data) => cachedMembers.has(data.discordId));
             if (!validatedDatabaseData || validatedDatabaseData.length === 0) {
                 return console.error(`[Error code: 1022] DB is ${validatedDatabaseData ? `${validatedDatabaseData.length} size` : "not available"}`);
