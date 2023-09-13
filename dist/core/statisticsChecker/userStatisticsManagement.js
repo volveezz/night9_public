@@ -80,7 +80,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                             roleIdsForAdding.push(process.env.STATISTICS_CATEGORY);
                         if (!hasRole(step.roleId)) {
                             roleIdsForAdding.push(step.roleId);
-                            roleIdForRemoval.push(statisticsRoles.allActive.filter((r) => r !== step.roleId).toString());
+                            roleIdForRemoval.push(...statisticsRoles.allActive.filter((r) => r !== step.roleId));
                         }
                         break;
                     }
@@ -105,9 +105,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                                     roleIdsForAdding.push(process.env.TITLE_CATEGORY);
                                 if (!hasRole(role.gildedRoles.at(index - 1))) {
                                     roleIdsForAdding.push(role.gildedRoles.at(index - 1));
-                                    roleIdForRemoval.push(role.roleId, role.gildedRoles
-                                        .filter((r) => r && r !== null && r.toLowerCase() !== "null" && r !== role.gildedRoles.at(index - 1))
-                                        .toString());
+                                    roleIdForRemoval.push(role.roleId, ...role.gildedRoles.filter((r) => r !== role.gildedRoles.at(index - 1)));
                                     if (role.available && role.available > 0) {
                                         if (role.available === 1) {
                                             await AutoRoleData.update({ available: 0 }, { where: { roleId: role.roleId } });
@@ -128,12 +126,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                                             member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`) !== undefined) {
                                             if (!hasRole(member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`).id)) {
                                                 roleIdsForAdding.push(member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`).id);
-                                                roleIdForRemoval.push(role.roleId, role
-                                                    .gildedRoles.filter((r) => r &&
-                                                    r.toLowerCase() !== "null" &&
-                                                    r !==
-                                                        member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`).id)
-                                                    .toString());
+                                                roleIdForRemoval.push(role.roleId, ...role.gildedRoles.filter((r) => r !== member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`).id));
                                                 return;
                                             }
                                             else {
@@ -164,9 +157,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                                         if (!hasRole(process.env.TITLE_CATEGORY))
                                             roleIdsForAdding.push(process.env.TITLE_CATEGORY);
                                         roleIdsForAdding.push(createdRole.id);
-                                        roleIdForRemoval.push(role.roleId, dbRoleUpdated
-                                            .gildedRoles.filter((r) => r && r.toLowerCase() !== "null" && r !== createdRole.id)
-                                            .toString());
+                                        roleIdForRemoval.push(role.roleId, ...dbRoleUpdated.gildedRoles.filter((r) => r !== createdRole.id));
                                         await AutoRoleData.update({ gildedRoles: dbRoleUpdated.gildedRoles }, { where: { gildedTriumphRequirement: dbRoleUpdated.gildedTriumphRequirement } });
                                         break;
                                     }
@@ -287,7 +278,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                                 if (!hasRole(activityRoles.category))
                                     roleIdsForAdding.push(activityRoles.category);
                                 roleIdsForAdding.push(step.roleId);
-                                roleIdForRemoval.push(activityRoles.allMessages.filter((r) => r != step.roleId).toString());
+                                roleIdForRemoval.push(...activityRoles.allMessages.filter((r) => r != step.roleId));
                             }
                             break;
                         }
@@ -418,7 +409,7 @@ async function handleMemberStatistics() {
             }
             const validatedDatabaseData = rawDatabaseData.filter((data) => cachedMembers.has(data.discordId));
             if (!validatedDatabaseData || validatedDatabaseData.length === 0) {
-                return console.error(`[Error code: 1022] DB is ${validatedDatabaseData ? `${validatedDatabaseData.length} size` : "not avaliable"}`);
+                return console.error(`[Error code: 1022] DB is ${validatedDatabaseData ? `${validatedDatabaseData.length} size` : "not available"}`);
             }
             clanMembersManagement(validatedDatabaseData);
             if (getEndpointStatus("account") === 1) {

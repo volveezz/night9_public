@@ -222,7 +222,7 @@ const SlashCommand = new Command({
                     obj.inActivity = "В налете";
                     obj.fastest = "Самый быстрый";
                     obj.fastestCompleted = "Самый быстрый закрытый";
-                    obj.link = "https://strike.report/pgcr/";
+                    obj.link = "https://gm.report/pgcr/";
                     obj.slowest = "Самый долгий";
                     obj.slowestCompleted = "Самый долгий закрытый";
                     break;

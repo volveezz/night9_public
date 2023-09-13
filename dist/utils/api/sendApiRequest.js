@@ -43,7 +43,7 @@ async function parseJsonResponse(response) {
 function handleFetchError(status, error) {
     const errorMessages = {
         "524": "A timeout occurred",
-        "503": "Server is not avaliable",
+        "503": "Server is not available",
         "502": "Web error",
         "409": "Confilt error",
         "522": "Timed out error",

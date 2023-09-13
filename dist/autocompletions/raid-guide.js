@@ -7,21 +7,21 @@ const AutocompleteFile = new Autocomplete({
         const isPrivilegedCommand = interaction.channelId === process.env.RAID_GUIDES_CHANNEL_ID || interaction.memberPermissions?.has("Administrator")
             ? true
             : false;
-        let avaliableRaidGuides;
+        let availableRaidGuides;
         if (isPrivilegedCommand) {
-            avaliableRaidGuides = Object.keys(raidGuide).map((raid) => {
+            availableRaidGuides = Object.keys(raidGuide).map((raid) => {
                 return { name: raid, value: raid };
             });
         }
         else {
             const raidNames = Object.keys(RaidNames);
-            avaliableRaidGuides = Object.keys(raidGuide)
+            availableRaidGuides = Object.keys(raidGuide)
                 .filter((raidName) => raidNames.includes(raidName))
                 .map((raid) => {
                 return { name: raid, value: raid };
             });
         }
-        await interaction.respond(avaliableRaidGuides);
+        await interaction.respond(availableRaidGuides);
     },
 });
 export default AutocompleteFile;

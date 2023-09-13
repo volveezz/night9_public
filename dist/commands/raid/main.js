@@ -677,8 +677,9 @@ const SlashCommand = new Command({
             clearNotifications(id);
             stopFireteamCheckingSystem(id);
             try {
-                const privateRaidChannel = await client.getAsyncTextChannel(channelId);
-                await privateRaidChannel.delete(`${interaction.member.displayName} deleted the raid ${id}-${raid}`);
+                const privateRaidChannel = client.getCachedTextChannel(channelId);
+                privateRaidChannel &&
+                    (await privateRaidChannel.delete(`${interaction.member.displayName} deleted the raid ${id}-${raid}`));
             }
             catch (e) {
                 console.error(`[Error code: 1069] Channel during raid manual delete for raidId ${id} wasn't found`);
@@ -695,10 +696,10 @@ const SlashCommand = new Command({
                 e.code !== 10008 ? console.error("[Error code: 1240]", e) : "";
             }
             raidEmitter.emit("deleted", raidData);
-            if (interaction.channelId === channelId) {
-                return await deferredReply;
-            }
             await deferredReply;
+            if (interaction.channelId === channelId) {
+                return;
+            }
             const embed = new EmbedBuilder().setColor(colors.success).setTitle(`Рейд ${id}-${raid} был удален`);
             await interaction.editReply({ embeds: [embed] });
         }

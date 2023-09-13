@@ -5,9 +5,9 @@ import { Event } from "../structures/event.js";
 let messageChannel = null;
 export default new Event("messageDelete", async (message) => {
     if (message.system ||
-        message.author?.id === client.user.id ||
-        (message.content?.length === 0 && message.attachments.size === 0 && message.stickers.size === 0) ||
         !message.author ||
+        message.author.id === client.user.id ||
+        (message.content?.length === 0 && message.attachments.size === 0 && message.stickers.size === 0) ||
         message.channelId === process.env.MESSAGES_CHANNEL_ID)
         return;
     const embed = new EmbedBuilder()
@@ -16,11 +16,11 @@ export default new Event("messageDelete", async (message) => {
         name: "Сообщение удалено",
         iconURL: "https://cdn.discordapp.com/attachments/679191036849029167/1086264381832179742/1984-icon-delete.png",
     })
-        .setFooter({ text: `MsgId: ${message.id}` })
+        .setFooter({ text: `UId: ${message.author.id} | MsgId: ${message.id}` })
         .addFields([
         {
             name: "Автор",
-            value: `<@${message.author.id}> (${message.author.id})`,
+            value: `<@${message.author.id}>`,
             inline: true,
         },
         {
@@ -29,16 +29,23 @@ export default new Event("messageDelete", async (message) => {
             inline: true,
         },
     ]);
-    if (message.content?.length > 0)
+    if (message.content && message.content.length > 0) {
         embed.addFields({
             name: "Текст",
-            value: `${message.content?.length > 1000 ? "слишком длинное сообщение" : message.content}`,
+            value: `${message.content.length > 1024 ? "слишком длинное сообщение" : message.content}`,
         });
+    }
     if (message.embeds.length > 0)
         embed.addFields([{ name: "Embed-вложения", value: `${message.embeds.length}` }]);
     if (message.attachments.size !== 0) {
         const arrayAttachment = [];
         message.attachments.forEach((msgAttachment) => arrayAttachment.push(msgAttachment.url));
+        try {
+            embed.setImage(arrayAttachment[0]);
+        }
+        catch (error) {
+            console.error("[Error code: 2019] Failed to set a image for the embed", error, arrayAttachment[0]);
+        }
         embed.addFields([
             {
                 name: message.attachments.size === 1 ? "Вложение" : "Вложения",
@@ -60,6 +67,6 @@ export default new Event("messageDelete", async (message) => {
         messageChannel =
             client.getCachedTextChannel(process.env.MESSAGES_CHANNEL_ID) ||
                 (await client.getAsyncTextChannel(process.env.MESSAGES_CHANNEL_ID));
-    await messageChannel.send({ embeds: [embed] });
+    messageChannel.send({ embeds: [embed] });
 });
 //# sourceMappingURL=messageDelete.js.map

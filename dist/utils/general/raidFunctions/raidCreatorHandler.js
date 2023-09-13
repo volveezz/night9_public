@@ -1,5 +1,5 @@
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, RESTJSONErrorCodes, } from "discord.js";
-import { handleDeleteRaid } from "../../../buttons/raidInChnButton.js";
+import { handleDeleteRaid } from "../../../buttons/raidInChnButton/raidInChnButton.js";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
 import { client } from "../../../index.js";

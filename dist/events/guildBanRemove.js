@@ -15,7 +15,7 @@ export default new Event("guildBanRemove", async (member) => {
         embed.addFields([
             {
                 name: "Причина бана",
-                value: member.reason.length > 1020 ? "*слишком длинная причина бана*" : member.reason,
+                value: member.reason.length > 1024 ? "*слишком длинная причина бана*" : member.reason,
             },
         ]);
     }

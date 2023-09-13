@@ -32,7 +32,7 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
             lfgTextChannelHandler(newState.channelId, newState.member, "join");
         embed
             .setAuthor({
-            name: `${oldState.member?.displayName || newState.member?.displayName || "пользователь не найден"} присоединился к голосовому каналу`,
+            name: `${oldState.member?.displayName || newState.member?.displayName || "пользователь не найден"} присоединился к ${newState.channel?.name}`,
             iconURL: oldState.member?.displayAvatarURL() || newState.member?.displayAvatarURL(),
         })
             .setFooter({
@@ -48,11 +48,11 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
             oldState.channel.delete();
         embed
             .setAuthor({
-            name: `${oldState.member?.displayName || newState.member?.displayName || "пользователь не найден"} вышел из голосового канала`,
+            name: `${oldState.member?.displayName || newState.member?.displayName || "пользователь не найден"} вышел из ${oldState.channel?.name}`,
             iconURL: oldState.member?.displayAvatarURL() || newState.member?.displayAvatarURL(),
         })
             .setFooter({
-            text: `Chn: ${oldState.channel?.name}`,
+            text: `UId: ${oldState.member?.id} | ChnId: ${oldState.channelId}`,
         })
             .setColor(colors.error)
             .addFields({
@@ -74,7 +74,7 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
             iconURL: oldState.member?.displayAvatarURL() || newState.member?.displayAvatarURL(),
         })
             .setFooter({
-            text: `UId: ${userId} | ChnId: ${newState.channelId}`,
+            text: `UId: ${userId} | Channel: ${newState.channel?.name}`,
         })
             .addFields([
             { name: "До", value: `<#${oldState.channelId}>`, inline: true },

@@ -9,14 +9,7 @@ async function sendPrivateChannelNotify(raidData) {
         .setCustomId("raidInChnButton_fireteamChecker_cancel")
         .setLabel("Отключить")
         .setStyle(ButtonStyle.Danger);
-    const privateRaidChannel = await client.getAsyncTextChannel(channelId).catch((e) => {
-        if (e.code === 50001) {
-            console.error("[Error code: 1739] Missing access to fetch channel", {
-                id: raidId,
-                channelId,
-            });
-        }
-    });
+    const privateRaidChannel = client.getCachedTextChannel(channelId);
     if (!privateRaidChannel) {
         console.error("[Error code: 1926] Channel not found", raidId, channelId);
         return;

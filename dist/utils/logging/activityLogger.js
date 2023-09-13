@@ -99,14 +99,14 @@ function getActivityAuthorObject(mode, pgcrId) {
             : mode === 82
                 ? "Dungeon Report"
                 : mode === 46
-                    ? "Strike Report"
+                    ? "Gm Report"
                     : "Braytech PGCR",
         url: mode === 4
             ? `https://raid.report/pgcr/${pgcrId}`
             : mode === 82
                 ? `https://dungeon.report/pgcr/${pgcrId}`
                 : mode === 46
-                    ? `https://strike.report/pgcr/${pgcrId}`
+                    ? `https://gm.report/pgcr/${pgcrId}`
                     : `https://bray.tech/report/${pgcrId}`,
     };
 }

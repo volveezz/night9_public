@@ -5,11 +5,11 @@ import { addButtonsToMessage } from "../../addButtonsToMessage.js";
 import { getRaidDetails, raidChallenges } from "../../raidFunctions.js";
 import getDefaultRaidComponents from "../getDefaultRaidComponents.js";
 import updatePrivateRaidMessage from "./updatePrivateMessage.js";
-async function sendRaidPrivateMessage({ channel, raidEvent: raidData }) {
+async function sendRaidPrivateMessage({ channel, raidEvent: raidData, oldMessage }) {
     const participantEmbed = new EmbedBuilder()
         .setColor("#F3AD0C")
         .addFields([{ name: "Испытания этой недели", value: "⁣　⁣*на одном из этапов*\n\n**Модификаторы рейда**\n　*если есть...*" }]);
-    const components = getDefaultRaidComponents();
+    const components = getDefaultRaidComponents(oldMessage?.components[0]);
     if (raidData.raid in raidsGuide) {
         components.push(new ButtonBuilder().setCustomId(`raidGuide_${raidData.raid}`).setLabel("Руководство по рейду").setStyle(ButtonStyle.Primary));
     }
@@ -20,7 +20,7 @@ async function sendRaidPrivateMessage({ channel, raidEvent: raidData }) {
     });
     raidData.inChannelMessageId = message.id;
     await raidData.save();
-    updatePrivateRaidMessage(raidData);
+    await updatePrivateRaidMessage(raidData);
     await raidChallenges({
         privateChannelMessage: message,
         raidData: getRaidDetails(raidData.raid, raidData.difficulty),

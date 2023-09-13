@@ -11,7 +11,7 @@ export default new Event("channelCreate", async (channel) => {
         name: `Канал ${channel.name} создан`,
         iconURL: icons.moderation,
     })
-        .setFooter({ text: `ChannelId: ${channel.id}` })
+        .setFooter({ text: `ChnId: ${channel.id}` })
         .addFields({ name: "Канал", value: `<#${channel.id}>`, inline: true });
     if (!guildChannel)
         guildChannel =
