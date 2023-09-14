@@ -30,6 +30,7 @@ const SlashCommand = new Command({
                 "en-US": "Specify the raid id of the modified raid",
                 "en-GB": "Specify the raid id of the modified raid",
             },
+            required: true,
         },
     ],
     run: async ({ client, interaction, args }) => {
