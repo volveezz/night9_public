@@ -39,7 +39,7 @@ const SlashCommand = new Command({
         const member = (interaction.member instanceof GuildMember ? interaction.member : client.getCachedMembers().get(interaction.user.id)) ||
             (await client.getAsyncMember(interaction.user.id));
         const raidEvent = await raidEventPromise;
-        if (!raidEvent || (raidEvent.creator !== interaction.user.id && member?.permissions.has("Administrator"))) {
+        if (!raidEvent || (raidEvent.creator !== interaction.user.id && !member?.permissions.has("Administrator"))) {
             interaction.reply({ ephemeral: true, embeds: [ERROR_EMBED] });
             return;
         }
