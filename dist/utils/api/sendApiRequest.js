@@ -21,6 +21,10 @@ export async function sendApiRequest(apiEndpoint, authToken, serverResponse) {
         handleFetchError(error.code || error.message, error);
         throw new Error("[Error code: 1953] Error happened during fetching data");
     });
+    if (!jsonResponse) {
+        console.error("[Error code: 2025]", response.status, response.statusText, response.url);
+        throw { name: "Ошибка", message: "Ошибка при получении данных с сервера" };
+    }
     return jsonResponse.Response && !serverResponse ? jsonResponse.Response : jsonResponse;
 }
 function createHeaders(authToken) {
@@ -60,7 +64,7 @@ function handleFetchError(status, error) {
     }
     else {
         if (typeof status === "number" && status >= 400 && status <= 599) {
-            console.error(`[Error code: 1228] ${status} web error code\n`, error, error?.body);
+            console.error(`[Error code: 1228] ${status} web error code\n`, error);
         }
         else if (error.stack) {
             console.error(`[Error code: 1826] ${error.code} ${error.messageCode} ${error.errorCode} ${error.status} ${error.statusCode}\nStack trace:`, error.stack);

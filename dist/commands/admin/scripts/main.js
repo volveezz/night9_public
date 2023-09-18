@@ -9,7 +9,6 @@ import { GetManifest } from "../../../utils/api/ManifestManager.js";
 import calculateVoteResults from "../../../utils/discord/twitterHandler/twitterTranslationVotes.js";
 import { convertSeconds } from "../../../utils/general/convertSeconds.js";
 import { pause } from "../../../utils/general/utilities.js";
-import { abuseSet } from "../../../utils/persistence/dataStore.js";
 import { AuthData, AutoRoleData, UserActivityData } from "../../../utils/persistence/sequelize.js";
 import exportRaidGuide from "./exportRaidData.js";
 const SlashCommand = new Command({
@@ -28,16 +27,6 @@ const SlashCommand = new Command({
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const scriptId = args.getString("script", true).toLowerCase();
         switch (scriptId) {
-            case "processroles": {
-                const members = client.getCachedMembers();
-                const roleId = "1153167491225370624";
-                abuseSet.forEach(async (discordId) => {
-                    const member = members.get(discordId);
-                    if (member && member.roles.cache.has(process.env.VERIFIED))
-                        await member.roles.add(roleId, "Соучастник в закупке контрабанды");
-                });
-                return;
-            }
             case "exportraidguide": {
                 exportRaidGuide(interaction, deferredReply);
                 return;
