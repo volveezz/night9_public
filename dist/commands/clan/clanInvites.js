@@ -38,11 +38,6 @@ function generateMemberEmbed(memberData) {
         additionalInfo.push(`Resolve message: ${memberData.resolveMessage}`);
     }
     additionalInfo.join("\n");
-    console.debug({
-        name: bungieName,
-        iconURL: "https://www.bungie.net" + (iconPath || memberData.destinyUserInfo.iconPath),
-        url: bungieNetUrl,
-    });
     const embed = new EmbedBuilder()
         .setAuthor({
         name: bungieName,

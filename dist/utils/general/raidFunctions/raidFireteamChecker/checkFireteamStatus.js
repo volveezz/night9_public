@@ -142,7 +142,7 @@ async function checkFireteamRoster(voiceChannelMembersAuthData, raidName, raidId
                 const { currentActivityHash, currentActivityModeType, currentActivityModeTypes } = characterActivities[characterId];
                 if ((currentActivityModeType && currentActivityModeType === 4) ||
                     (currentActivityModeTypes && currentActivityModeTypes.includes(4)) ||
-                    getRaidNameFromHash(currentActivityHash) !== "unknown") {
+                    (!currentActivityModeType && getRaidNameFromHash(currentActivityHash) !== "unknown")) {
                     if (currentActivityHash === 82913930) {
                         console.debug("Found user in orbit");
                         continue;

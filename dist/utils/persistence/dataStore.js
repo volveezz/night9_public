@@ -16,5 +16,6 @@ const raidMilestoneHashes = new Map();
 const bungieNames = new Map();
 const userTimezones = new Map();
 const clanOnline = new Map();
-export { activeRaidEventFunctions, bungieNames, channelDataMap, channelsForDeletion, clanOnline, completedRaidsData, grandmasterHashes, joinDateCheckedClanMembers, lastAlertKeys, longOffline, originalTweetData, raidMilestoneHashes, recentActivityCreators, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, twitterOriginalVoters, userCharactersId, userTimezones, };
+const abuseSet = new Set();
+export { abuseSet, activeRaidEventFunctions, bungieNames, channelDataMap, channelsForDeletion, clanOnline, completedRaidsData, grandmasterHashes, joinDateCheckedClanMembers, lastAlertKeys, longOffline, originalTweetData, raidMilestoneHashes, recentActivityCreators, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, twitterOriginalVoters, userCharactersId, userTimezones, };
 //# sourceMappingURL=dataStore.js.map

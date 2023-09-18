@@ -4,7 +4,7 @@ import { sendApiRequest } from "../api/sendApiRequest.js";
 import { getEndpointStatus } from "../api/statusCheckers/statusTracker.js";
 import { logActivityCompletion } from "../logging/activityLogger.js";
 import getGrandmasterHashes from "../logging/getGrandmasterHashes.js";
-import { completedRaidsData, userCharactersId } from "../persistence/dataStore.js";
+import { abuseSet, completedRaidsData, userCharactersId } from "../persistence/dataStore.js";
 import { getRaidNameFromHash } from "./raidFunctions.js";
 import fetchCharacterStatsAndCache from "./setUserCharacters.js";
 const envs = process.env;
@@ -69,6 +69,13 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
                 return;
             }
             const activityRequests = response.activities.map(async (activity) => {
+                if (!abuseSet.has(member?.id || authData.discordId)) {
+                    const activityTime = new Date(activity.period).getTime();
+                    if (activityTime > 1694799600000 && activityTime < 1695006000000) {
+                        console.debug(`${member?.displayName || authData.displayName} played during the abuse time`);
+                        abuseSet.add(member?.id || authData.discordId);
+                    }
+                }
                 if (mode !== 84) {
                     await processPveActivities(activity, completedActivities, activityAvailableTime);
                 }
