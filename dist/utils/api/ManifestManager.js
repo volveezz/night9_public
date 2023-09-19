@@ -15,13 +15,13 @@ class ManifestManager {
         }
     }
     async getDefinition(definitionType) {
-        if (!this.manifestPaths) {
-            await this.fetchManifest();
-        }
-        if (this.manifestCache[definitionType]) {
-            return this.manifestCache[definitionType];
-        }
         try {
+            if (!this.manifestPaths) {
+                await this.fetchManifest();
+            }
+            if (this.manifestCache[definitionType]) {
+                return this.manifestCache[definitionType];
+            }
             const definition = await sendApiRequest(this.manifestPaths[definitionType]);
             this.manifestCache[definitionType] = definition;
             return definition;
@@ -29,6 +29,7 @@ class ManifestManager {
         catch (error) {
             console.error(`[Error code: 1663] Error fetching ${definitionType} definition from Bungie API`, error);
             try {
+                console.info(`Trying to fetch backup ${definitionType} definition from GitHub`);
                 const url = `https://raw.githubusercontent.com/${process.env.GITHUB_USER}/${process.env.GITHUB_REPO}/master/${definitionType}.json`;
                 const response = await fetch(url, {
                     headers: {
@@ -40,7 +41,7 @@ class ManifestManager {
                 return backupDefinition;
             }
             catch (error) {
-                console.error(`Error fetching backup ${definitionType} definition from GitHub: ${error}`);
+                console.error(`[Error code: 2026] Error fetching backup ${definitionType} definition from GitHub: ${error}`);
                 throw error;
             }
         }
