@@ -44,7 +44,7 @@ const ButtonCommand = new Button({
                     if (!dbRow)
                         throw { errorType: "DB_USER_NOT_FOUND" };
                     let { roleCategoriesBits } = dbRow;
-                    const embed = new EmbedBuilder().setColor(colors.default);
+                    const embed = new EmbedBuilder().setColor(colors.serious);
                     if ((!(roleCategoriesBits & categoryId) && roleStatus) || (roleCategoriesBits & categoryId && !roleStatus)) {
                         const updated = await AuthData.update({ roleCategoriesBits: roleStatus ? roleCategoriesBits | categoryId : roleCategoriesBits & ~categoryId }, { where: { discordId: interaction.user.id }, returning: ["roleCategoriesBits"] });
                         roleCategoriesBits = updated[1][0].roleCategoriesBits;

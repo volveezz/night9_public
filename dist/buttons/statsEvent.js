@@ -48,10 +48,7 @@ const ButtonCommand = new Button({
                     const value = `${currentProgress} очков, ${level} ранг${levelCap !== -1 ? `/${levelCap}` : []}`;
                     return { name: isTrialsOfTheNine ? "Испытания девяти" : embedName, value, inline: true };
                 });
-                const embed = new EmbedBuilder()
-                    .setColor(colors.success)
-                    .setFooter({ text: `Id: ${interaction.user.id}` })
-                    .addFields(embedFields);
+                const embed = new EmbedBuilder().setColor(colors.success).addFields(embedFields);
                 await deferredReply;
                 await interaction.editReply({ embeds: [embed] });
                 return;

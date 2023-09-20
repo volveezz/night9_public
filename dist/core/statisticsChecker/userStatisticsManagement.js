@@ -353,10 +353,10 @@ async function checkUserKDRatio({ platform, bungieId, accessToken }, member) {
 async function handleMemberStatistics() {
     (async () => {
         try {
-            const userDatabaseData = await AuthData.findAll({
+            const userDatabaseDataPromise = AuthData.findAll({
                 attributes: ["discordId", "platform", "bungieId", "clan", "timezone", "accessToken", "roleCategoriesBits"],
             });
-            const autoRoleData = await AutoRoleData.findAll({
+            const autoRoleDataPromise = AutoRoleData.findAll({
                 where: {
                     available: {
                         [Op.or]: {
@@ -366,6 +366,7 @@ async function handleMemberStatistics() {
                     },
                 },
             });
+            const [userDatabaseData, autoRoleData] = await Promise.all([userDatabaseDataPromise, autoRoleDataPromise]);
             const cachedMembers = client.getCachedMembers();
             for (const userData of userDatabaseData) {
                 const cachedMember = cachedMembers.get(userData.discordId);
@@ -387,7 +388,7 @@ async function handleMemberStatistics() {
     })();
     async function startStatisticsChecking() {
         try {
-            const autoRoleData = await AutoRoleData.findAll({
+            const autoRoleDataPromise = AutoRoleData.findAll({
                 where: {
                     available: {
                         [Op.or]: {
@@ -397,11 +398,12 @@ async function handleMemberStatistics() {
                     },
                 },
             });
-            const rawDatabaseData = await AuthData.findAll({
+            const rawDatabaseDataPromise = AuthData.findAll({
                 attributes: ["discordId", "bungieId", "platform", "clan", "displayName", "accessToken", "roleCategoriesBits"],
                 include: UserActivityData,
             });
             const cachedMembers = client.getCachedMembers();
+            const [autoRoleData, rawDatabaseData] = await Promise.all([autoRoleDataPromise, rawDatabaseDataPromise]);
             rawDatabaseData
                 .filter((data) => !cachedMembers.has(data.discordId))
                 .forEach((val) => {
@@ -490,13 +492,14 @@ async function handleMemberStatistics() {
     setTimeout(startStatisticsChecking, 1000 * 60 * 2);
 }
 async function checkIndiviualUserStatistics(user) {
-    const member = await client.getAsyncMember(typeof user === "string" ? user : user.id);
-    const memberAuthData = await AuthData.findOne({
-        where: { discordId: member.id },
+    const userId = typeof user === "string" ? user : user.id;
+    const memberPromise = client.getAsyncMember(userId);
+    const databasePromise = AuthData.findOne({
+        where: { discordId: userId },
         attributes: ["discordId", "bungieId", "platform", "accessToken", "displayName", "roleCategoriesBits"],
         include: UserActivityData,
     });
-    const autoRoleData = await AutoRoleData.findAll({
+    const autoRoleDataPromise = AutoRoleData.findAll({
         where: {
             available: {
                 [Op.or]: {
@@ -506,12 +509,13 @@ async function checkIndiviualUserStatistics(user) {
             },
         },
     });
-    if (!member || !memberAuthData) {
+    const [databaseData, member, autoRoleData] = await Promise.all([databasePromise, memberPromise, autoRoleDataPromise]);
+    if (!member || !databaseData) {
         console.error(`[Error code: 1737]`, member.id);
         return;
     }
-    await checkUserStatisticsRoles(memberAuthData, member, autoRoleData, true);
-    await destinyActivityChecker({ authData: memberAuthData, member, mode: 4, count: 250 });
+    await checkUserStatisticsRoles(databaseData, member, autoRoleData, true);
+    await destinyActivityChecker({ authData: databaseData, member, mode: 4, count: 250 });
 }
 export { checkIndiviualUserStatistics };
 export default handleMemberStatistics;

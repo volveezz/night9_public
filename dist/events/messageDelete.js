@@ -25,7 +25,7 @@ export default new Event("messageDelete", async (message) => {
         },
         {
             name: "Удалено в",
-            value: `<#${message.channelId}>`,
+            value: message.channel.isDMBased() ? `В личных сообщениях` : `<#${message.channelId}>`,
             inline: true,
         },
     ]);

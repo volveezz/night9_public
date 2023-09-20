@@ -1,30 +1,35 @@
 import { pause } from "../../general/utilities.js";
 import { generateTwitterEmbed } from "./twitterMessageParser.js";
 async function parseTwitterLinkMessage(message) {
-    let embed = message.embeds[0];
-    let attempts = 0;
-    while (!embed?.author?.name && attempts < 5) {
-        await pause(attempts * 500 + 500);
-        embed = (await message.fetch()).embeds[0];
-        attempts++;
+    for (let i = 0; i < message.embeds.length; i++) {
+        await processTwitterMessage(i);
     }
-    if (!embed?.author?.name) {
-        return;
+    async function processTwitterMessage(index) {
+        let attempts = 0;
+        let embed = message.embeds[index];
+        while ((!embed || !embed?.author?.name) && attempts < 5) {
+            await pause(attempts * 500 + 500);
+            embed = (await message.fetch()).embeds[index];
+            attempts++;
+        }
+        if (!embed?.author?.name) {
+            return;
+        }
+        const author = getBungieTwitterAuthor(embed.author.name);
+        const content = embed.description;
+        if (!author || !content) {
+            return;
+        }
+        const tweetUrl = message.content.match(/https:\/\/twitter\.com\/\w+\/status\/\d+/)?.[0];
+        await generateTwitterEmbed({
+            twitterData: { content, link: tweetUrl || "" },
+            author,
+            icon: embed.author.iconURL,
+            url: tweetUrl || embed.author.url,
+            originalEmbed: embed,
+        });
+        message.delete();
     }
-    const author = getBungieTwitterAuthor(embed.author.name);
-    const content = embed.description;
-    if (!author || !content) {
-        return;
-    }
-    const tweetUrl = message.content.match(/https:\/\/twitter\.com\/\w+\/status\/\d+/)?.[0];
-    await generateTwitterEmbed({
-        twitterData: { content, link: tweetUrl || "" },
-        author,
-        icon: embed.author.iconURL,
-        url: tweetUrl || embed.author.url,
-        originalEmbed: embed,
-    });
-    message.delete();
 }
 function getBungieTwitterAuthor(author) {
     const cleanedAuthor = author

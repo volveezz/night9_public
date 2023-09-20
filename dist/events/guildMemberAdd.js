@@ -10,7 +10,12 @@ import { escapeString } from "../utils/general/utilities.js";
 import { AuthData, InitData, LeavedUsersData, UserActivityData, database } from "../utils/persistence/sequelize.js";
 let guildMemberChannel = null;
 export default new Event("guildMemberAdd", async (member) => {
-    welcomeMessage(member);
+    try {
+        welcomeMessage(member);
+    }
+    catch (error) {
+        console.error("[Error code: 2029] Failed to send welcome message", error);
+    }
     const embed = new EmbedBuilder()
         .setColor(colors.success)
         .setAuthor({
@@ -24,12 +29,10 @@ export default new Event("guildMemberAdd", async (member) => {
         value: `<t:${Math.round(member.user.createdTimestamp / 1000)}>`,
     })
         .setThumbnail(member.displayAvatarURL());
-    if (member.communicationDisabledUntil != null) {
+    if (member.communicationDisabledUntilTimestamp) {
         embed.addFields({
             name: "Тайм-аут до",
-            value: member.communicationDisabledUntilTimestamp
-                ? `<t:${Math.floor(member.communicationDisabledUntilTimestamp / 1000)}>`
-                : "*не найден*",
+            value: `<t:${Math.floor(member.communicationDisabledUntilTimestamp / 1000)}>`,
         });
     }
     if (!guildMemberChannel)
@@ -44,7 +47,7 @@ export default new Event("guildMemberAdd", async (member) => {
         return;
     const transaction = await database.transaction();
     const loggedEmbed = EmbedBuilder.from(message.embeds[0]);
-    var authorizationData = {
+    let authorizationData = {
         refreshToken: "",
         accessToken: "",
     };
@@ -59,7 +62,7 @@ export default new Event("guildMemberAdd", async (member) => {
         console.error("[Error code: 1701]", error);
     }
     try {
-        await AuthData.create({
+        const creationPromise = AuthData.create({
             discordId: data.discordId,
             bungieId: data.bungieId,
             displayName: data.displayName,
@@ -72,12 +75,13 @@ export default new Event("guildMemberAdd", async (member) => {
             transaction,
         });
         UserActivityData.findOrCreate({ where: { discordId: data.discordId }, defaults: { discordId: data.discordId }, transaction });
-        await LeavedUsersData.destroy({
+        const deletionPromise = LeavedUsersData.destroy({
             where: { discordId: data.discordId },
             transaction,
             limit: 1,
         });
         InitData.destroy({ where: { discordId: data.discordId }, limit: 1 });
+        await Promise.all([creationPromise, deletionPromise]);
         loggedEmbed.addFields({
             name: "Данные аккаунта восстановлены",
             value: `${escapeString(data.displayName)} ([${data.platform}/${data.bungieId}](https://www.bungie.net/7/ru/User/Profile/${data.platform}/${data.bungieId}))`,
@@ -93,8 +97,9 @@ export default new Event("guildMemberAdd", async (member) => {
             await transaction.rollback();
             console.error("[Error code: 1901]", error);
         }
-        await message.edit({ embeds: [loggedEmbed] });
-        await member.roles.set([process.env.MEMBER, process.env.VERIFIED]);
+        const messagePromise = message.edit({ embeds: [loggedEmbed] });
+        const rolesPromise = member.roles.set([process.env.MEMBER, process.env.VERIFIED]);
+        await Promise.all([messagePromise, rolesPromise]);
         try {
             guildNicknameManagement();
             checkIndiviualUserStatistics(member.id);

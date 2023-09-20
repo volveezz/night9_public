@@ -2,7 +2,7 @@ import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
 import { client } from "../../index.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
-import { lastAlertKeys, originalTweetData, twitterOriginalVoters } from "../persistence/dataStore.js";
+import { lastAlertsTimestamps, originalTweetData, twitterOriginalVoters } from "../persistence/dataStore.js";
 import { sendApiRequest } from "./sendApiRequest.js";
 import translateDestinyText from "./translateDestinyText.js";
 let newsChannel = null;
@@ -21,11 +21,13 @@ async function fetchAndPostAlerts() {
             const alerts = await sendApiRequest(url);
             if (alerts.length > 0) {
                 alerts.forEach(async (latestAlert) => {
-                    if (lastAlertKeys.has(latestAlert.AlertKey))
+                    if (lastAlertsTimestamps.has(latestAlert.AlertTimestamp))
                         return;
-                    lastAlertKeys.add(latestAlert.AlertKey);
+                    lastAlertsTimestamps.add(latestAlert.AlertTimestamp);
                     if (!newsChannel) {
-                        newsChannel = await client.getAsyncTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
+                        newsChannel =
+                            client.getCachedTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID) ||
+                                (await client.getAsyncTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID));
                     }
                     const embed = new EmbedBuilder()
                         .setTitle(latestAlert.AlertKey || "New Global Alert")

@@ -1,39 +1,37 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder, RESTJSONErrorCodes } from "discord.js";
 import colors from "../../configs/colors.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
-import { escapeString } from "../general/utilities.js";
+import { escapeString, pause } from "../general/utilities.js";
 import { AuthData } from "../persistence/sequelize.js";
+const welcomeEmbed = new EmbedBuilder()
+    .setColor(colors.invisible)
+    .setTitle(" Приветствуем Вас на сервере ")
+    .setDescription(`Вы зашли на сервер [клана Night 9](https://www.bungie.net/ru/ClanV2?groupid=${process.env
+    .GROUP_ID})\nСервер доступен для всех желающих вне зависимости от их клана`);
+const clanJoinEmbed = new EmbedBuilder()
+    .setColor(colors.invisible)
+    .setTitle(" Я хочу вступить в клан ")
+    .setDescription(`Для этого перейдите в канал <#${process.env.JOIN_REQUEST_CHANNEL_ID}> и следуйте [инструкции](https://discord.com/channels/${process
+    .env.GUILD_ID}/${process.env.JOIN_REQUEST_CHANNEL_ID}/${process.env.JOIN_REQUEST_GUIDE_MESSAGE_ID})`);
+const nonClanMemberEmbed = new EmbedBuilder()
+    .setColor(colors.invisible)
+    .setTitle(" Я хочу ознакомиться с сервером ")
+    .setDescription(`Не проблема! Сервер доступен для всех - каждый может заходить во все [голосовые каналы](https://discord.com/channels/${process.env
+    .GUILD_ID}/604967226755383300), [записываться и создавать наборы](https://discord.com/channels/${process.env
+    .GUILD_ID}/677551388514844682), а также [писать в любом чате](https://discord.com/channels/${process.env
+    .GUILD_ID}/959129358314922044)`);
+const questionsEmbed = new EmbedBuilder()
+    .setColor(colors.invisible)
+    .setTitle(" У меня есть вопросы по клану/серверу ")
+    .setDescription(`Вы можете задать их [в канале по вопросам](https://discord.com/channels/${process.env
+    .GUILD_ID}/694119710677008425) или написав лично лидеру клана <@${process.env.OWNER_ID}> ||(пишите даже если не в сети)||`);
+const components = [
+    new ButtonBuilder().setCustomId("initEvent_register").setLabel("Регистрация").setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId("clanJoinEvent_modalBtn").setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
+];
+const clanJoinButton = [new ButtonBuilder().setCustomId("clanJoinEvent_modalBtn").setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary)];
 export default async function welcomeMessage(member) {
-    await member.roles
-        .add(process.env.NEWBIE)
-        .catch((err) => console.error(err.code === 50013 ? `[Error code: 1128] Failed to assign role to ${member.displayName}` : err));
-    const welcomeEmbed = new EmbedBuilder()
-        .setColor(colors.invisible)
-        .setTitle(" Приветствуем Вас на сервере ")
-        .setDescription(`Вы зашли на сервер [клана Night 9](https://www.bungie.net/ru/ClanV2?groupid=${process.env
-        .GROUP_ID})\nСервер доступен для всех желающих вне зависимости от их клана`);
-    const clanJoinEmbed = new EmbedBuilder()
-        .setColor(colors.invisible)
-        .setTitle(" Я хочу вступить в клан ")
-        .setDescription(`Для этого перейдите в канал <#${process.env
-        .JOIN_REQUEST_CHANNEL_ID}> и следуйте [инструкции](https://discord.com/channels/${process.env.GUILD_ID}/${process.env
-        .JOIN_REQUEST_CHANNEL_ID}/${process.env.JOIN_REQUEST_GUIDE_MESSAGE_ID})`);
-    const nonClanMemberEmbed = new EmbedBuilder()
-        .setColor(colors.invisible)
-        .setTitle(" Я хочу ознакомиться с сервером ")
-        .setDescription(`Не проблема! Сервер доступен для всех - каждый может заходить во все [голосовые каналы](https://discord.com/channels/${process.env
-        .GUILD_ID}/604967226755383300), [записываться и создавать наборы](https://discord.com/channels/${process.env
-        .GUILD_ID}/677551388514844682), а также [писать в любом чате](https://discord.com/channels/${process.env
-        .GUILD_ID}/959129358314922044)`);
-    const questionsEmbed = new EmbedBuilder()
-        .setColor(colors.invisible)
-        .setTitle(" У меня есть вопросы по клану/серверу ")
-        .setDescription(`Вы можете задать их [в канале по вопросам](https://discord.com/channels/${process.env
-        .GUILD_ID}/694119710677008425) или написав лично лидеру клана <@${process.env.OWNER_ID}> ||(пишите даже если не в сети)||`);
-    const components = [
-        new ButtonBuilder().setCustomId("initEvent_register").setLabel("Регистрация").setStyle(ButtonStyle.Success),
-        new ButtonBuilder().setCustomId("clanJoinEvent_modalBtn").setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
-    ];
+    member.roles.add(process.env.NEWBIE).catch((err) => console.error("[Error code: 2031] Failed to add newbie role to member", err));
     const message = await member
         .send({
         embeds: [welcomeEmbed, clanJoinEmbed, nonClanMemberEmbed, questionsEmbed],
@@ -47,29 +45,26 @@ export default async function welcomeMessage(member) {
             console.error("[Error code: 1130]", error);
         }
     });
-    if (message == null)
+    if (!message)
         return;
-    setTimeout(async () => {
-        const data = await AuthData.findOne({
-            where: { discordId: member.id },
-            attributes: ["displayName", "membershipId"],
-        });
-        if (data) {
-            const bungieUrl = `[Bungie.net профиль](https://www.bungie.net/7/ru/User/Profile/254/${data.membershipId})`;
-            const registrationRestoredEmbed = new EmbedBuilder()
-                .setColor(colors.invisible)
-                .setTitle(" Регистрация восстановлена ")
-                .setDescription(`Ранее Вы уже были на нашем сервере - все данные сохранены!\n\n\`${escapeString(data.displayName)}\` - ${bungieUrl}`);
-            await message.channel.send({
-                embeds: [registrationRestoredEmbed],
-            });
-            const clanJoinButton = [
-                new ButtonBuilder().setCustomId("clanJoinEvent_modalBtn").setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),
-            ];
-            await message.edit({
-                components: addButtonsToMessage(clanJoinButton),
-            });
-        }
-    }, 2500);
+    await pause(2500);
+    const databaseData = await AuthData.findOne({
+        where: { discordId: member.id },
+        attributes: ["displayName", "membershipId"],
+    });
+    if (!databaseData)
+        return;
+    const bungieUrl = `[Bungie.net профиль](https://www.bungie.net/7/ru/User/Profile/254/${databaseData.membershipId})`;
+    const registrationRestoredEmbed = new EmbedBuilder()
+        .setColor(colors.invisible)
+        .setTitle(" Регистрация восстановлена ")
+        .setDescription(`Ранее Вы уже были на нашем сервере - все данные сохранены!\n\n\`${escapeString(databaseData.displayName)}\` - ${bungieUrl}`);
+    const messagePromise = message.channel.send({
+        embeds: [registrationRestoredEmbed],
+    });
+    const messageEditPromise = message.edit({
+        components: addButtonsToMessage(clanJoinButton),
+    });
+    await Promise.all([messagePromise, messageEditPromise]);
 }
 //# sourceMappingURL=welcomeMessage.js.map

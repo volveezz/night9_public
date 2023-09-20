@@ -147,6 +147,14 @@ async function logActivityCompletion(pgcrId) {
     })
         .setThumbnail(thumbnailUrl);
     const completedUsers = new Map();
+    try {
+        if (response.activityWasStartedFromBeginning && response.entries.every((player) => player.values.deaths.basic.value === 0)) {
+            embed.setColor("#e5d163");
+        }
+    }
+    catch (error) {
+        console.error("[Error code: 2028]", error);
+    }
     response.entries.forEach((entry) => {
         const destinyUserInfo = entry.player.destinyUserInfo;
         const userData = completedUsers.get(destinyUserInfo.membershipId);

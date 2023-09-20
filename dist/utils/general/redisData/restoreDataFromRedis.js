@@ -1,42 +1,51 @@
 import { client } from "../../../index.js";
-import { channelDataMap, completedRaidsData } from "../../persistence/dataStore.js";
+import { channelDataMap, completedRaidsData, lastAlertsTimestamps } from "../../persistence/dataStore.js";
 import { redisClient } from "../../persistence/redis.js";
 import { completedPhases } from "../activityCompletionChecker.js";
 async function restoreDataFromRedis() {
-    await Promise.all([restoreLfgData(), restoreRaidEncountersTimesData(), restoreCompletedRaidsData()]);
-    console.info("Data from the redis was restored!");
+    await Promise.all([restoreCompletedPhases(), restoreLfgChannelData(), restoreCompletedRaids()]);
+    console.info("Data from Redis was restored!");
 }
-async function restoreRaidEncountersTimesData() {
-    const completedPhasesData = await redisClient.get("completedPhasesKey");
-    if (!completedPhasesData)
-        return;
-    const completedPhasesArray = JSON.parse(completedPhasesData);
-    const completedPhasesMap = new Map(completedPhasesArray);
-    completedPhasesMap.forEach((value, key) => {
-        completedPhases.set(key, value);
-    });
+async function restoreCompletedPhases() {
+    const data = await fetchDataFromRedis("completedPhasesKey");
+    if (data)
+        populateMapFromEntries(completedPhases, data);
 }
-async function restoreLfgData() {
-    const lfgChannelData = await redisClient.get("lfgData");
-    if (!lfgChannelData)
+async function restoreLfgChannelData() {
+    const data = await fetchDataFromRedis("lfgData");
+    if (!data)
         return;
-    const lfgActivityDataArray = JSON.parse(lfgChannelData);
-    lfgActivityDataArray.forEach(async (value) => {
+    const guild = client.getCachedGuild() || (await client.guilds.fetch(process.env.GUILD_ID));
+    if (!guild)
+        return;
+    for (const value of data) {
         const { creator, isDeletable, lfgMessageId, voiceChannelId } = value;
-        const channel = (await client.getCachedGuild().channels.fetch(voiceChannelId));
-        const channelMessage = await client.getAsyncMessage(process.env.PVE_PARTY_CHANNEL_ID, lfgMessageId);
-        if (!channel || !channelMessage)
-            return;
-        channelDataMap.set(channel.id, { voiceChannel: channel, channelMessage, creator, isDeletable, members: [] });
-    });
+        const channel = (guild.channels.cache.get(voiceChannelId) || (await guild.channels.fetch(voiceChannelId)));
+        const channelMessage = channel && (await client.getAsyncMessage(process.env.PVE_PARTY_CHANNEL_ID, lfgMessageId));
+        if (channel && channelMessage) {
+            channelDataMap.set(channel.id, { voiceChannel: channel, channelMessage, creator, isDeletable, members: [] });
+        }
+    }
 }
-async function restoreCompletedRaidsData() {
-    const completedRaidsDatabaseData = await redisClient.get("completedRaidsData");
-    if (!completedRaidsDatabaseData)
+async function restoreCompletedRaids() {
+    const data = await fetchDataFromRedis("completedRaidsData");
+    if (data)
+        populateMapFromEntries(completedRaidsData, data);
+}
+async function restoreLastAlertsTimestamps() {
+    const rawData = await redisClient.get("lastAlertsTimestamps");
+    if (!rawData)
         return;
-    const parsedRaidsData = JSON.parse(completedRaidsDatabaseData);
-    for (const [key, value] of parsedRaidsData) {
-        completedRaidsData.set(key, value);
+    const restoredData = JSON.parse(rawData);
+    restoredData.forEach((item) => lastAlertsTimestamps.add(item));
+}
+async function fetchDataFromRedis(key) {
+    const rawData = await redisClient.get(key);
+    return rawData ? JSON.parse(rawData) : null;
+}
+function populateMapFromEntries(targetMap, entries) {
+    for (const [key, value] of entries) {
+        targetMap.set(key, value);
     }
 }
 export default restoreDataFromRedis;

@@ -23,6 +23,8 @@ export function stopFireteamCheckingSystem(raidId) {
     }
 }
 async function raidFireteamCheckerSystem(raidId) {
+    if (process.env.NODE_ENV === "development")
+        return;
     console.debug("Initializing fireteam checker");
     stopFireteamCheckingSystem(raidId);
     const ongoingRaids = await getOngoingRaids(raidId);
@@ -40,12 +42,13 @@ async function raidFireteamChecker(raidParam) {
     fireteamCheckingSystem.add(raidId);
     const startTime = initialRaidTime * 1000;
     const raidStartTimePlus5 = new Date(startTime + MINUTES_AFTER_RAID * 60 * 1000).getTime();
-    console.debug("Next step will be in", (raidStartTimePlus5 - Date.now()) / 1000, "s");
+    console.debug(`Next step for raid ID: ${raidId} will be in ${(raidStartTimePlus5 - Date.now()) / 1000}s`);
     const timeout = setTimeout(async () => {
+        clearTimeout(notifyInitializerTimeoutMap.get(raidId));
         notifyInitializerTimeoutMap.set(raidId, timeout);
-        console.debug("Processing with the next step");
+        console.debug(`Processing with the next step for raid ID: ${raidId}`);
         try {
-            console.debug("Trying to send a private channel notification");
+            console.debug(`Trying to send a private channel notification for raid ID: ${raidId}`);
             sendPrivateChannelNotify(initialRaidEvent);
         }
         catch (error) {
@@ -55,10 +58,11 @@ async function raidFireteamChecker(raidParam) {
             const interval = setInterval(async () => {
                 const checkFireteam = await checkFireteamStatus(initialRaidEvent);
                 if (checkFireteam === false || !fireteamCheckingSystem.has(raidId)) {
-                    console.debug(`Interval cleared for raid ID: ${raidId}`);
                     stopFireteamCheckingSystem(raidId);
+                    console.debug(`Interval cleared for raid ID: ${raidId}`);
                 }
             }, 1000 * 60 * 5);
+            clearInterval(notifyIntervalMap.get(raidId));
             notifyIntervalMap.set(raidId, interval);
         }
     }, raidStartTimePlus5 - Date.now());

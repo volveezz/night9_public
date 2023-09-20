@@ -14,7 +14,6 @@ import cacheRaidMilestones from "../utils/general/raidMilestones.js";
 import restoreDataFromRedis from "../utils/general/redisData/restoreDataFromRedis.js";
 import { pause } from "../utils/general/utilities.js";
 import { restoreFetchedPGCRs } from "../utils/logging/activityLogger.js";
-import { lastAlertKeys } from "../utils/persistence/dataStore.js";
 import VoteSystem from "./VoteSystem.js";
 const __dirname = resolve();
 const directory = process.env.NODE_ENV === "development" && process.env.LOCAL_ENV === "true" ? "src" : "dist";
@@ -263,19 +262,11 @@ export class ExtendedClient extends Client {
             }
             if (channel.isTextBased()) {
                 setTimeout(async () => {
-                    if (channel.id === process.env.ENGLISH_NEWS_CHANNEL_ID) {
-                        channel.messages.fetch({ limit: 100 }).then((channelMessages) => {
-                            const alertMessages = channelMessages.filter((m) => m.author.id === this.user.id && m.embeds?.[0]?.title?.startsWith("D2-"));
-                            alertMessages.forEach((message) => lastAlertKeys.add(message.embeds[0].title));
-                        });
+                    try {
+                        await channel.messages.fetch({ limit: 15 });
                     }
-                    else {
-                        try {
-                            await channel.messages.fetch({ limit: 15 });
-                        }
-                        catch (error) {
-                            console.error(`[Error code: 1991] Looks like channel ${channel.name} was deleted during caching messages. Error: ${error.code}`);
-                        }
+                    catch (error) {
+                        console.error(`[Error code: 1991] Looks like channel ${channel.name} was deleted during caching messages. Error: ${error.code}`);
                     }
                 }, 10000 * Math.random());
             }

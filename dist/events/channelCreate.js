@@ -16,6 +16,6 @@ export default new Event("channelCreate", async (channel) => {
     if (!guildChannel)
         guildChannel =
             client.getCachedTextChannel(process.env.GUILD_CHANNEL_ID) || (await client.getAsyncTextChannel(process.env.GUILD_CHANNEL_ID));
-    await guildChannel.send({ embeds: [embed] });
+    guildChannel.send({ embeds: [embed] });
 });
 //# sourceMappingURL=channelCreate.js.map

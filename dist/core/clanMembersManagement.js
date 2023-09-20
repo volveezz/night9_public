@@ -9,7 +9,7 @@ import { completedPhases } from "../utils/general/activityCompletionChecker.js";
 import checkUserRequirements from "../utils/general/newbieRequirementsChecker/checkUserRequirements.js";
 import notifyUserNotMeetRequirements from "../utils/general/newbieRequirementsChecker/notifyUserNotMeetRequirements.js";
 import { updateClanRolesWithLogging } from "../utils/logging/clanEventLogger.js";
-import { clanOnline, joinDateCheckedClanMembers, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, userCharactersId, } from "../utils/persistence/dataStore.js";
+import { bungieNames, clanOnline, joinDateCheckedClanMembers, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, userCharactersId, } from "../utils/persistence/dataStore.js";
 let lastLoggedErrorCode = 1;
 async function clanMembersManagement(databaseData) {
     try {
@@ -138,6 +138,7 @@ async function clanMembersManagement(databaseData) {
                 clanMember.destinyUserInfo.LastSeenDisplayName ||
                 clanMember.destinyUserInfo.displayName;
             if (memberAuthData.displayName.replace("⁣", "") !== destinyUserName) {
+                bungieNames.delete(memberAuthData.discordId);
                 memberAuthData.displayName = destinyUserName;
                 await memberAuthData.save();
             }

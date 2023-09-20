@@ -7,7 +7,7 @@ import nameCleaner from "../utils/general/nameClearer.js";
 import kickLeavedUserFromRaids from "../utils/general/raidFunctions/kickLeavedMemberFromRaids.js";
 const guildMemberChannel = client.getCachedTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID);
 export default new Event("guildBanAdd", async (bannedMember) => {
-    const member = bannedMember.guild.members.cache.get(bannedMember.user.id);
+    const member = client.getCachedMembers().get(bannedMember.user.id);
     const embed = new EmbedBuilder().setFooter({ text: `Id: ${bannedMember.user.id}` }).setColor(colors.error);
     if (member) {
         embed.setAuthor({
@@ -28,7 +28,7 @@ export default new Event("guildBanAdd", async (bannedMember) => {
         });
     }
     const message = await guildMemberChannel.send({ embeds: [embed] });
-    await deleteLeavedUserData({ discordMember: bannedMember, discordMessage: message });
+    deleteLeavedUserData({ discordMember: bannedMember, discordMessage: message });
     kickLeavedUserFromRaids(bannedMember);
 });
 //# sourceMappingURL=guildBanAdd.js.map

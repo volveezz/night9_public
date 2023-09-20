@@ -26,8 +26,14 @@ async function manageVoiceChannels(oldState, newState) {
         }
         else if (managedVoiceChannelIds.has(oldChannel.id) && oldChannel.members.size === 0) {
             const emptyChannels = parentChannels.filter((channel) => channel.members.size === 0);
+            const sortedEmptyChannels = emptyChannels.sort((a, b) => {
+                const numeralA = a.name.match(/[𝐈𝐕𝐗]+$/)?.[0] || "𝐈";
+                const numeralB = b.name.match(/[𝐈𝐕𝐗]+$/)?.[0] || "𝐈";
+                return romanNumbers.indexOf(numeralA) - romanNumbers.indexOf(numeralB);
+            });
+            const highestEmptyChannel = sortedEmptyChannels.at(sortedEmptyChannels.size - 1);
             if (emptyChannels.size > 1) {
-                await removeChannel(oldChannel);
+                await removeChannel(highestEmptyChannel || oldChannel);
             }
         }
     }

@@ -22,7 +22,7 @@ async function handleMessage(message) {
     }
     if (message.channelId === process.env.TWITTER_MESSAGES_CHANNEL_ID &&
         !message.cleanContent.includes("Retweeted") &&
-        message.content.match(/(?:\[Tweeted]\(\))?https:\/\/twitter\.com\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/)) {
+        message.content.match(/(?:\[(Tweeted|Quoted)\]\()?https:\/\/twitter\.com\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/)) {
         return parseTwitterLinkMessage(message);
     }
     if (!message.author || message.author.bot || message.system || !(message instanceof Message))

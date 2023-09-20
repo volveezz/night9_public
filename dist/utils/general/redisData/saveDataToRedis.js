@@ -1,37 +1,32 @@
-import { channelDataMap, completedRaidsData } from "../../persistence/dataStore.js";
+import { channelDataMap, completedRaidsData, lastAlertsTimestamps } from "../../persistence/dataStore.js";
 import { redisClient } from "../../persistence/redis.js";
 import { completedPhases } from "../activityCompletionChecker.js";
+const EXPIRATION_TIMES = {
+    ONE_HOUR: 60 * 60,
+    HALF_HOUR: 60 * 30,
+};
 async function saveDataToRedis() {
-    await Promise.all([saveRaidEncountersTimes(), saveLfgData(), saveRaidClearsData()]);
+    await Promise.all([
+        saveIterableToRedis(completedPhases.entries(), "completedPhasesKey", EXPIRATION_TIMES.HALF_HOUR),
+        saveIterableToRedis(channelDataMap, "lfgData", EXPIRATION_TIMES.HALF_HOUR, mapLfgData),
+        saveIterableToRedis(completedRaidsData, "completedRaidsData", EXPIRATION_TIMES.ONE_HOUR),
+        saveIterableToRedis(lastAlertsTimestamps, "lastAlertsTimestamps", EXPIRATION_TIMES.ONE_HOUR),
+    ]);
     return true;
 }
-async function saveRaidEncountersTimes() {
-    if (completedPhases.size === 0)
+async function saveIterableToRedis(data, key, expiration, transformFunc) {
+    if ((data instanceof Map && !data.size) || (data[Symbol.iterator] && ![...data].length))
         return;
-    const serializedRaidData = JSON.stringify(Array.from(completedPhases.entries()));
-    await redisClient.set("completedPhasesKey", serializedRaidData, { EX: 60 * 30 });
+    const serializedData = JSON.stringify(transformFunc ? transformFunc(data) : [...data]);
+    await redisClient.set(key, serializedData, { EX: expiration });
 }
-async function saveLfgData() {
-    if (channelDataMap.size === 0)
-        return;
-    const lfgData = [];
-    channelDataMap.forEach((value) => {
-        lfgData.push({
-            lfgMessageId: value.channelMessage.id,
-            voiceChannelId: value.voiceChannel.id,
-            isDeletable: value.isDeletable,
-            creator: value.creator,
-        });
-    });
-    const serializedLfgData = JSON.stringify(lfgData);
-    await redisClient.set("lfgData", serializedLfgData, { EX: 60 * 30 });
-}
-async function saveRaidClearsData() {
-    if (completedRaidsData.size === 0)
-        return;
-    const completedRaidsDataArray = [...completedRaidsData];
-    const raidsDataString = JSON.stringify(completedRaidsDataArray);
-    await redisClient.set("completedRaidsData", raidsDataString);
+function mapLfgData(dataMap) {
+    return Array.from(dataMap.values()).map((value) => ({
+        lfgMessageId: value.channelMessage.id,
+        voiceChannelId: value.voiceChannel.id,
+        isDeletable: value.isDeletable,
+        creator: value.creator,
+    }));
 }
 export default saveDataToRedis;
 //# sourceMappingURL=saveDataToRedis.js.map
