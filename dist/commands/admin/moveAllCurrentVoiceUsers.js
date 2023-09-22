@@ -2,6 +2,7 @@ import { ApplicationCommandOptionType, ChannelType, EmbedBuilder, GuildMember } 
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { Command } from "../../structures/command.js";
+import { pause } from "../../utils/general/utilities.js";
 const SlashCommand = new Command({
     name: "move-members",
     nameLocalizations: {
@@ -41,9 +42,13 @@ const SlashCommand = new Command({
         const members = interaction.member.voice.channel.members;
         if (members.size > 0) {
             const promiseArray = [];
-            for (const member of members.values()) {
+            for (let i = 0; i < members.size; i++) {
+                const member = members.at(i);
                 const promise = member.voice.setChannel(channel, `Перемещение пользователем ${interaction.member.displayName}`);
                 promiseArray.push(promise);
+                if (i === 0) {
+                    await pause(100);
+                }
             }
             await Promise.allSettled(promiseArray);
             const embed = new EmbedBuilder()

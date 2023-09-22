@@ -6,13 +6,15 @@ const ignoredCategories = new Set([process.env.ADMIN_CATEGORY, process.env.TECHN
 const romanNumbers = ["𝐈", "𝐈𝐈", "𝐈𝐈𝐈", "𝐈𝐕", "𝐕", "𝐕𝐈", "𝐕𝐈𝐈", "𝐕𝐈𝐈𝐈", "𝐈𝐗", "𝐗"];
 async function loadChannels() {
     const channels = await VoiceChannels.findAll();
-    channels.forEach((channel) => managedVoiceChannelIds.add(channel.channelId));
+    for (const channel of channels) {
+        managedVoiceChannelIds.add(channel.channelId);
+    }
 }
 loadChannels();
 async function manageVoiceChannels(oldState, newState) {
     const oldChannel = oldState.channel;
     const newChannel = newState.channel;
-    if (oldChannel && oldChannel.parentId && !ignoredCategories.has(oldChannel.parentId)) {
+    if (oldChannel?.parentId && !ignoredCategories.has(oldChannel.parentId)) {
         const parentChannels = oldChannel.parent.children.cache.filter((channel) => channel.type === ChannelType.GuildVoice);
         if (!parentChannels)
             return;
@@ -37,27 +39,18 @@ async function manageVoiceChannels(oldState, newState) {
             }
         }
     }
-    if (newChannel &&
-        newChannel.parent &&
-        newChannel.parentId &&
-        !ignoredCategories.has(newChannel.parentId) &&
-        !channelDataMap.has(newChannel.id)) {
+    if (newChannel?.parent && !ignoredCategories.has(newChannel.parentId) && !channelDataMap.has(newChannel.id)) {
         let categoryChannels = newChannel.parent.children.cache.filter((channel) => channel.type === ChannelType.GuildVoice);
         if (categoryChannels.size >= 10)
             return;
         const allChannelsFilled = categoryChannels.every((channel) => channel.members.size > 0);
         if (!allChannelsFilled)
             return;
-        const numeralsInUse = new Map();
-        categoryChannels.forEach((channel) => {
-            const numeral = channel.name.match(/[𝐈𝐕𝐗]+$/);
-            if (numeral) {
-                numeralsInUse.set(numeral[0], true);
-            }
-            else if (!managedVoiceChannelIds.has(channel.id)) {
-                numeralsInUse.set("𝐈", true);
-            }
-        });
+        const numeralsInUse = new Set();
+        for (const channel of categoryChannels.values()) {
+            const numeral = channel.name.match(/[𝐈𝐕𝐗]+$/)?.[0] || "𝐈";
+            numeralsInUse.add(numeral);
+        }
         let numeral = "𝐈";
         for (const roman of romanNumbers) {
             if (!numeralsInUse.has(roman)) {
@@ -74,12 +67,12 @@ async function manageVoiceChannels(oldState, newState) {
         const firstEmoji = Array.from(newChannel.name)[0];
         const emoji = getCategoryEmoji(newChannel.parentId, firstEmoji);
         const newChannelName = `${emoji}｜${baseName} ${numeral}`;
-        const channel = (await newChannel.guild.channels.create({
+        const channel = await newChannel.guild.channels.create({
             name: newChannelName,
             type: ChannelType.GuildVoice,
             parent: newChannel.parent,
             reason: "Users have filled all existing channels",
-        }));
+        });
         managedVoiceChannelIds.add(channel.id);
         await VoiceChannels.create({ channelId: channel.id });
     }
