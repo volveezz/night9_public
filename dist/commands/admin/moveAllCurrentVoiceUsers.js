@@ -47,7 +47,7 @@ const SlashCommand = new Command({
                 const promise = member.voice.setChannel(channel, `Перемещение пользователем ${interaction.member.displayName}`);
                 promiseArray.push(promise);
                 if (i === 0) {
-                    await pause(100);
+                    await pause(333);
                 }
             }
             await Promise.allSettled(promiseArray);

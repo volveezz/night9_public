@@ -3,30 +3,30 @@ import { client } from "../../../index.js";
 import { originalTweetData, twitterOriginalVoters } from "../../persistence/dataStore.js";
 async function calculateVoteResults() {
     const channel = client.getCachedTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
-    const promises = Array.from(twitterOriginalVoters).map(async ([messageId, { original, translation }]) => {
-        try {
-            const message = await channel.messages.fetch(messageId);
-            if ((original.size === 0 && translation.size === 0) || original.size <= translation.size) {
-                await removeComponents(message);
-            }
-            else {
-                const originalText = originalTweetData.get(messageId);
-                if (!originalText) {
-                    await removeComponents(message);
-                    return;
-                }
-                const embed = EmbedBuilder.from(message.embeds[0]).setDescription(originalText);
-                await message.edit({ components: [], embeds: [embed] });
-            }
-            async function removeComponents(message) {
-                await message.edit({ components: [] });
-            }
+    async function removeComponents(message) {
+        message.edit({ components: [] });
+    }
+    const promises = Array.from(twitterOriginalVoters).map(([messageId, { original, translation }]) => {
+        if ((original.size === 0 && translation.size === 0) || original.size <= translation.size) {
+            const message = channel.messages.cache.get(messageId);
+            return message ? removeComponents(message) : Promise.resolve();
         }
-        catch (error) {
-            console.error("[Error code: 1968]", error);
+        const originalText = originalTweetData.get(messageId);
+        if (!originalText) {
+            const message = channel.messages.cache.get(messageId);
+            return message ? removeComponents(message) : Promise.resolve();
         }
+        return channel.messages
+            .fetch(messageId)
+            .then((message) => {
+            const embed = EmbedBuilder.from(message.embeds[0]).setDescription(originalText);
+            return message.edit({ components: [], embeds: [embed] });
+        })
+            .catch((error) => {
+            console.error("[Error code: 1968] Failed to fetch message", messageId, error);
+        });
     });
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
     twitterOriginalVoters.clear();
 }
 export default calculateVoteResults;
