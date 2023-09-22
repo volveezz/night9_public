@@ -1,4 +1,4 @@
-import { ButtonBuilder, ButtonStyle, EmbedBuilder, Role, TextChannel, VoiceChannel, } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder, Role, TextChannel, VoiceChannel } from "discord.js";
 import { Op } from "sequelize";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
@@ -10,11 +10,11 @@ let raidChannel = null;
 const ButtonCommand = new Button({
     name: "godEvent",
     run: async ({ client, interaction }) => {
-        const param = interaction.customId.split("_")[1];
-        const member = (interaction.member ? interaction.member : client.getCachedMembers().get(interaction.user.id));
-        const channel = client.getCachedTextChannel(interaction.channelId) || interaction.channel;
-        const guild = interaction.guild || client.getCachedGuild();
-        switch (param) {
+        const categoryId = interaction.customId.split("_")[1];
+        const member = await client.getMember(interaction.member);
+        const channel = client.getCachedTextChannel(interaction.channel || interaction.channelId);
+        const guild = client.getCachedGuild(interaction.guild);
+        switch (categoryId) {
             case "sortraids": {
                 await sortRaids();
                 return;

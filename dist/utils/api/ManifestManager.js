@@ -1,3 +1,4 @@
+import { pause } from "../general/utilities.js";
 import { sendApiRequest } from "./sendApiRequest.js";
 class ManifestManager {
     manifestVersion;
@@ -59,7 +60,14 @@ const manifestManager = new ManifestManager();
 export async function GetManifest(page) {
     return manifestManager.getDefinition(page);
 }
+let isManifestUpdating = false;
 export async function RefreshManifest() {
-    return manifestManager.updateManifest();
+    if (isManifestUpdating)
+        return;
+    isManifestUpdating = true;
+    await manifestManager.updateManifest();
+    await pause(1000 * 15);
+    isManifestUpdating = false;
+    return;
 }
 //# sourceMappingURL=ManifestManager.js.map

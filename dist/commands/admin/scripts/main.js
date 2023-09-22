@@ -6,11 +6,13 @@ import { activityRoles, clanJoinDateRoles, dlcRoles, raidRoles, seasonalRoles, s
 import openai from "../../../structures/OpenAI.js";
 import { Command } from "../../../structures/command.js";
 import { GetManifest } from "../../../utils/api/ManifestManager.js";
+import setMemberRoles from "../../../utils/discord/setRoles.js";
 import calculateVoteResults from "../../../utils/discord/twitterHandler/twitterTranslationVotes.js";
 import { convertSeconds } from "../../../utils/general/convertSeconds.js";
 import { pause } from "../../../utils/general/utilities.js";
 import { AuthData, AutoRoleData, UserActivityData } from "../../../utils/persistence/sequelize.js";
 import exportRaidGuide from "./exportRaidData.js";
+let wasInitialCheck = false;
 const SlashCommand = new Command({
     name: "scripts",
     description: "Script system",
@@ -45,11 +47,33 @@ const SlashCommand = new Command({
                 console.debug(request.data);
                 return;
             }
+            case "test_member_roles": {
+                const members = client.getCachedMembers().filter((r) => r.roles.cache.has(process.env.MEMBER));
+                const usersInDatabase = await AuthData.findAll({
+                    where: { clan: false },
+                    attributes: ["discordId"],
+                    include: UserActivityData,
+                });
+                for (const [id, member] of members) {
+                    const userDatabaseData = usersInDatabase.find((user) => user.discordId === member.id);
+                    if (userDatabaseData) {
+                        const userHasActivity = userDatabaseData.UserActivityData &&
+                            (userDatabaseData.UserActivityData.voice > 120 || userDatabaseData.UserActivityData.messages > 5);
+                        if (!userHasActivity) {
+                            wasInitialCheck &&
+                                (await setMemberRoles({ member, roles: [process.env.MEMBER, process.env.VERIFIED], savePremiumRoles: true }));
+                            console.debug(`Removed roles from ${member.displayName || member.user.username}`);
+                        }
+                    }
+                }
+                wasInitialCheck = true;
+                return;
+            }
             case "checkrole": {
                 const members = client
                     .getCachedMembers()
                     .filter((r) => r.roles.cache.has(process.env.MEMBER) && !r.roles.cache.has(process.env.VERIFIED));
-                const usersInDatabase = await AuthData.findAll({ attributes: ["discordId"] });
+                const usersInDatabase = await AuthData.findAll({ attributes: ["discordId", "clan"] });
                 const discordIdsInDatabase = usersInDatabase.map((user) => user.discordId);
                 for (const [id, member] of members) {
                     const hasVerifiedRole = member.roles.cache.has(process.env.VERIFIED);

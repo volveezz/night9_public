@@ -32,7 +32,7 @@ async function moveRaidVoiceMembers({ guild, interaction, raidEvent }) {
         const joinedUserId = raidEvent.joined[i];
         const activeVoiceMember = membersCollection.find((m) => m.id === joinedUserId);
         if (!activeVoiceMember) {
-            const cachedMember = client.getCachedMembers().get(joinedUserId);
+            const cachedMember = await client.getMember(joinedUserId);
             if (!cachedMember) {
                 alreadyMovedUsers.push(`<@${joinedUserId}>, похоже, не на сервере`);
                 continue;

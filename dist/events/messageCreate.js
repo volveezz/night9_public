@@ -13,11 +13,7 @@ import sendRegistrationLink from "../utils/discord/registration.js";
 import parseTwitterLinkMessage from "../utils/discord/twitterHandler/parseTwitterLink.js";
 import { cacheUserActivity } from "../utils/discord/userActivityHandler.js";
 async function handleMessage(message) {
-    if (message.channelId === process.env.MANIFEST_CHANNEL_ID) {
-        console.debug("Got manifest update message");
-        console.debug("User Id: ", message.author.id);
-        console.debug("Author field: ", message.embeds[0]?.author?.name);
-        console.debug("Title field: ", message.embeds[0]?.title);
+    if (message.author.id === "879470138531921920") {
         return RefreshManifest();
     }
     if (message.channelId === process.env.TWITTER_MESSAGES_CHANNEL_ID &&

@@ -1,4 +1,4 @@
-import { ActivityType, ChannelType, Client, Collection, GatewayIntentBits, Partials, } from "discord.js";
+import { ActivityType, ChannelType, Client, Collection, GatewayIntentBits, GuildMember, Partials, TextChannel, } from "discord.js";
 import { join, resolve } from "path";
 import checkClanActivitiesPeriodically from "../core/periodicActivityChecker.js";
 import handleMemberStatistics from "../core/statisticsChecker/userStatisticsManagement.js";
@@ -22,7 +22,6 @@ export class ExtendedClient extends Client {
     buttons = new Collection();
     autocomplete = new Collection();
     guild;
-    intervalId;
     activities = [
         { name: "🔁 Подготовка рейдов", type: ActivityType.Custom },
         { name: "🔁 Обновление статистики", type: ActivityType.Custom },
@@ -62,9 +61,17 @@ export class ExtendedClient extends Client {
     }
     startUpdatingPresence() {
         this.updatePresence();
-        this.intervalId = setInterval(() => {
+        const updateInterval = setInterval(() => {
             this.updatePresence();
         }, 60000);
+        setTimeout(() => {
+            const checkInterval = setInterval(() => {
+                if (this.user.presence.activities[0].name.startsWith("🔁")) {
+                    clearInterval(updateInterval);
+                    clearInterval(checkInterval);
+                }
+            }, 3333);
+        }, 1000 * 90);
     }
     updatePresence() {
         const activity = this.activities[Math.floor(Math.random() * this.activities.length)];
@@ -73,12 +80,30 @@ export class ExtendedClient extends Client {
             activities: [activity],
         });
     }
-    stopUpdatingPresence() {
-        this.user.setPresence({ status: "online" });
-        clearInterval(this.intervalId);
+    async getGuild() {
+        return this.guild || this.guilds.cache.get(process.env.GUILD_ID) || this.guilds.fetch(process.env.GUILD_ID);
     }
-    getCachedGuild() {
+    getCachedGuild(guild) {
+        if (guild)
+            return guild;
         return (this.guild || this.guilds.cache.get(process.env.GUILD_ID));
+    }
+    async getMember(memberOrId) {
+        if (!memberOrId)
+            throw { errorType: "MEMBER_NOT_FOUND" };
+        if (memberOrId instanceof GuildMember)
+            return memberOrId;
+        const guild = await this.getGuild();
+        const memberId = typeof memberOrId === "string" ? memberOrId : memberOrId.user.id;
+        const cachedMember = guild.members.cache.get(memberId);
+        if (cachedMember)
+            return cachedMember;
+        console.debug(`[Error code: 2033] Member not found in cache: ${memberId}`);
+        const fetchedMember = await guild.members.fetch(memberId).catch(() => null);
+        if (fetchedMember)
+            return fetchedMember;
+        console.error(`[Error code: 2034] Member not found: ${memberId}`);
+        throw { errorType: "MEMBER_NOT_FOUND" };
     }
     getCachedMembers() {
         return (this.guild || this.guilds.cache.get(process.env.GUILD_ID)).members.cache;
@@ -86,11 +111,14 @@ export class ExtendedClient extends Client {
     async getAsyncMember(id) {
         return this.guild?.members.fetch(id);
     }
-    getCachedTextChannel(id) {
-        return (this.guild || this.guilds.cache.get(process.env.GUILD_ID)).channels.cache.get(id);
+    getCachedTextChannel(channelOrId) {
+        if (channelOrId instanceof TextChannel)
+            return channelOrId;
+        const channelId = typeof channelOrId === "string" ? channelOrId : channelOrId.id;
+        return this.getCachedGuild().channels.cache.get(channelId);
     }
     async getAsyncTextChannel(id) {
-        const guild = this.getCachedGuild() || this.guilds.cache.get(process.env.GUILD_ID) || (await this.guilds.fetch(process.env.GUILD_ID));
+        const guild = await this.getGuild();
         return (this.getCachedTextChannel(id) || guild.channels.cache.get(id) || guild.channels.fetch(id));
     }
     async getAsyncMessage(inputChannel, messageId) {

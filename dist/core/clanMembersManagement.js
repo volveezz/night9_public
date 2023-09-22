@@ -12,37 +12,33 @@ import { updateClanRolesWithLogging } from "../utils/logging/clanEventLogger.js"
 import { bungieNames, clanOnline, joinDateCheckedClanMembers, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, userCharactersId, } from "../utils/persistence/dataStore.js";
 let lastLoggedErrorCode = 1;
 async function clanMembersManagement(databaseData) {
+    const dataForProcessing = new Array(...databaseData);
     try {
         const request = await sendApiRequest(`/Platform/GroupV2/${process.env.GROUP_ID}/Members/?memberType=None`, null, true);
-        const dataForProcessing = new Array(...databaseData);
         if (!request) {
             console.error("[Error code: 1013]", dataForProcessing.map((d) => d.bungieId).join(", "));
             return;
         }
         const { ErrorCode: errorCode, Response: clanList } = request;
-        if (lastLoggedErrorCode !== 1) {
-            lastLoggedErrorCode = errorCode ?? 1;
-        }
-        if ((client.user.presence.activities[0].state || client.user.presence.activities[0].name).startsWith("🔁")) {
-            client.stopUpdatingPresence();
-        }
+        lastLoggedErrorCode = errorCode;
         if (errorCode === 1 &&
             getEndpointStatus("api") != errorCode &&
             clanList.results &&
             clanList.results.length > 1) {
             updateEndpointStatus("api", 1);
             client.user.setPresence({
+                activities: [{ name: "API игры восстановлено", type: ActivityType.Custom }],
                 status: "online",
             });
             console.info("\x1b[32mBungie API is back online\x1b[0m");
         }
         else if (errorCode != null && errorCode != getEndpointStatus("api") && errorCode != 1) {
             updateEndpointStatus("api", errorCode);
+            const activities = errorCode === 5
+                ? [{ name: "API игры отключено", type: ActivityType.Custom }]
+                : [{ name: "API не отвечает", type: ActivityType.Custom }];
             client.user.setPresence({
-                activities: [
-                    { name: "Bungie API отключено", type: ActivityType.Listening },
-                    { name: "Destiny API не отвечает", type: ActivityType.Watching },
-                ],
+                activities,
                 status: "idle",
             });
             return;
@@ -60,17 +56,11 @@ async function clanMembersManagement(databaseData) {
         }
         clanOnline.clear();
         const onlineCounter = clanList.results.reduce((acc, f) => (f.isOnline === true ? acc + 1 : acc), 0);
-        if (onlineCounter === 0) {
-            client.user.setPresence({
-                activities: [{ name: `${clanList.results.length} участников в клане`, type: ActivityType.Custom }],
-                status: "online",
-            });
-            client.user.setActivity({ name: `${clanList.results.length} участников в клане`, type: ActivityType.Custom });
-        }
-        else {
-            client.user.setActivity({ name: `${onlineCounter} онлайн в клане из ${clanList.results.length}`, type: ActivityType.Custom });
-        }
-        processClanMembers();
+        updateBotPresence(onlineCounter, clanList.results.length);
+        await Promise.all(clanList.results.map((clanMember) => {
+            return processClanMember(clanMember);
+        }));
+        await handleClanLeftMembers();
         async function handleClanLeftMembers() {
             await Promise.all(dataForProcessing.map(async (member) => {
                 if (member.clan === true) {
@@ -85,12 +75,6 @@ async function clanMembersManagement(databaseData) {
                     }
                 }
             }));
-        }
-        async function processClanMembers() {
-            await Promise.all(clanList.results.map((clanMember) => {
-                return processClanMember(clanMember);
-            }));
-            await handleClanLeftMembers();
         }
         async function processClanMember(clanMember) {
             const { membershipId } = clanMember.destinyUserInfo;
@@ -207,6 +191,15 @@ async function clanMembersManagement(databaseData) {
             console.error(`[Error code: 1221] ${e.statusCode} error during clan checking`);
         else
             console.error("[Error code: 1222]", e.error?.stack || e.error || e, e.statusCode);
+    }
+}
+function updateBotPresence(membersOnline, totalMembers) {
+    const activityName = membersOnline === 0 ? `${totalMembers} участников в клане` : `${membersOnline} онлайн в клане из ${totalMembers}`;
+    if (client.user.presence.activities[0].state !== activityName) {
+        client.user.setPresence({
+            activities: [{ name: activityName, type: ActivityType.Custom }],
+            status: "online",
+        });
     }
 }
 export default clanMembersManagement;

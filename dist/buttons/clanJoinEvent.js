@@ -6,7 +6,7 @@ const ButtonCommand = new Button({
     name: "clanJoinEvent",
     run: async ({ client, interaction: chatInteraction, modalSubmit }) => {
         const interaction = modalSubmit || chatInteraction;
-        const member = client.getCachedMembers().get(interaction.user.id) || (await client.getCachedGuild().members.fetch(interaction.user.id));
+        const member = await client.getMember(interaction.user.id);
         if (!member)
             throw { errorType: "MEMBER_NOT_FOUND" };
         if (chatInteraction) {

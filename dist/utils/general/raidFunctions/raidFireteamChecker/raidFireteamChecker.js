@@ -44,8 +44,6 @@ async function raidFireteamChecker(raidParam) {
     const raidStartTimePlus5 = new Date(startTime + MINUTES_AFTER_RAID * 60 * 1000).getTime();
     console.debug(`Next step for raid ID: ${raidId} will be in ${(raidStartTimePlus5 - Date.now()) / 1000}s`);
     const timeout = setTimeout(async () => {
-        clearTimeout(notifyInitializerTimeoutMap.get(raidId));
-        notifyInitializerTimeoutMap.set(raidId, timeout);
         console.debug(`Processing with the next step for raid ID: ${raidId}`);
         try {
             console.debug(`Trying to send a private channel notification for raid ID: ${raidId}`);
@@ -66,6 +64,8 @@ async function raidFireteamChecker(raidParam) {
             notifyIntervalMap.set(raidId, interval);
         }
     }, raidStartTimePlus5 - Date.now());
+    clearTimeout(notifyInitializerTimeoutMap.get(raidId));
+    notifyInitializerTimeoutMap.set(raidId, timeout);
 }
 export default raidFireteamCheckerSystem;
 //# sourceMappingURL=raidFireteamChecker.js.map

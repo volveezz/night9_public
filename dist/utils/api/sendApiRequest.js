@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import BungieAPIError from "../../structures/BungieAPIError.js";
 import tokenRefresher from "../../structures/tokenRefresher.js";
 const bungieNetUrl = "https://www.bungie.net";
 export async function sendApiRequest(apiEndpoint, authToken, serverResponse) {
@@ -8,14 +9,18 @@ export async function sendApiRequest(apiEndpoint, authToken, serverResponse) {
         throw new Error("[Error code: 1951] Error happened during fetching data");
     });
     if (!response.ok) {
+        let errorCode;
+        let errorStatus;
         try {
             const json = (await response.json());
+            errorCode = json?.ErrorCode;
+            errorStatus = json?.ErrorStatus;
             console.debug("[Error code: 2012]", json?.ErrorStatus || json);
         }
         catch (error) {
             handleFetchError(response.status, response);
         }
-        throw new Error("[Error code: 1952] Error happened during fetching data");
+        throw new BungieAPIError("[Error code: 2032] Error happened during fetching data", response.status, response.statusText, errorCode, errorStatus);
     }
     const jsonResponse = await parseJsonResponse(response).catch((error) => {
         handleFetchError(error.code || error.message, error);

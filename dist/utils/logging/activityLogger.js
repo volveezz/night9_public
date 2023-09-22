@@ -274,18 +274,17 @@ async function logActivityCompletion(pgcrId) {
                 if (preciseEncountersTime && preciseEncountersTime.length > 0) {
                     const encountersData = [];
                     const phasesArray = preciseEncountersTime.sort((a, b) => a.phaseIndex - b.phaseIndex);
-                    phasesArray.forEach((encounterData, i) => {
+                    for (let i = 0; i < phasesArray.length; i++) {
+                        const encounterData = phasesArray[i];
                         if (i === 0) {
                             const startTimeFromGame = new Date(response.period).getTime();
-                            const isTimeFromGameValid = startTimeFromGame < encounterData.start;
-                            const resolvedStartTime = isTimeFromGameValid ? startTimeFromGame : encounterData.start;
                             encountersData.push({
                                 end: encounterData.end,
                                 phase: encounterData.phase,
-                                phaseIndex: `${isTimeFromGameValid ? "" : "⚠️"}${encounterData.phaseIndex != 1 && response.activityWasStartedFromBeginning
+                                phaseIndex: `${encounterData.phaseIndex != 1 && response.activityWasStartedFromBeginning
                                     ? `1-${encounterData.phaseIndex}`
                                     : encounterData.phaseIndex}`,
-                                start: resolvedStartTime,
+                                start: startTimeFromGame,
                             });
                         }
                         else if (i === phasesArray.length - 1) {
@@ -300,7 +299,7 @@ async function logActivityCompletion(pgcrId) {
                         else {
                             encountersData.push(encounterData);
                         }
-                    });
+                    }
                     if (encountersData.length >= 1) {
                         try {
                             embed.addFields({
@@ -321,7 +320,14 @@ async function logActivityCompletion(pgcrId) {
                     }
                 }
                 function getCommonEncounterTimes() {
-                    const filteredCompletedPhases = new Map(Array.from(completedPhases).filter(([characterId]) => raidCharactersIds.includes(characterId)));
+                    const filteredCompletedPhases = new Map();
+                    for (const characterId of raidCharactersIds) {
+                        const value = completedPhases.get(characterId);
+                        if (value) {
+                            filteredCompletedPhases.set(characterId, value);
+                            completedPhases.delete(characterId);
+                        }
+                    }
                     const allPhases = new Map();
                     for (const phases of filteredCompletedPhases.values()) {
                         for (const phase of phases) {
@@ -338,6 +344,7 @@ async function logActivityCompletion(pgcrId) {
                         const phaseEndTimes = phaseData.map((p) => p.end);
                         let startTime = Math.min(...phaseStartTimes.filter((time) => time > 300));
                         const endTime = Math.min(...phaseEndTimes.filter((time) => time > 300));
+                        console.debug(`Checking phase ${phase} with start time ${startTime} and end time ${endTime}, latest end time ${latestEndTime}`);
                         if (startTime > latestEndTime && preciseStoredEncounterTime.length > 0) {
                             startTime = latestEndTime;
                         }
