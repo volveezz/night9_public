@@ -69,7 +69,7 @@ function handleFetchError(status, error) {
     }
     else {
         if (typeof status === "number" && status >= 400 && status <= 599) {
-            console.error(`[Error code: 1228] ${status} web error code\n`, error);
+            console.error(`[Error code: 1228] ${status} web error code\n`);
         }
         else if (error.stack) {
             console.error(`[Error code: 1826] ${error.code} ${error.messageCode} ${error.errorCode} ${error.status} ${error.statusCode}\nStack trace:`, error.stack);

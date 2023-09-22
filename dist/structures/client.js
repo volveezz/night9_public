@@ -265,21 +265,21 @@ export class ExtendedClient extends Client {
         restoreFetchedPGCRs();
         await pause(1000);
         loadNotifications();
-        await pause(1000);
-        fetchGlobalAlerts();
-        await pause(1000);
+        await pause(2000);
         raidFireteamCheckerSystem();
-        await pause(1000);
+        await pause(2000);
         cacheRaidMilestones();
-        await pause(1000);
-        fetchNewsArticles();
-        await pause(1000);
+        await pause(2000);
         this.importFile("../core/guildNicknameManagement.js");
         await pause(1000 * 15);
         restoreDataFromRedis();
+        setTimeout(() => {
+            fetchGlobalAlerts();
+            fetchNewsArticles();
+        }, 1000 * 60);
     }
     async fetchMembersAndMessages() {
-        await pause(1000 * 2);
+        await pause(1000);
         this.guild.channels.cache.forEach(async (channel) => {
             if (channel.type === ChannelType.GuildVoice && channel.id !== this.guild.afkChannelId) {
                 channel.members.forEach((member) => {

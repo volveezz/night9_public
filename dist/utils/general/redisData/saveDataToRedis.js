@@ -9,7 +9,7 @@ async function saveDataToRedis() {
     await Promise.all([
         saveIterableToRedis(completedPhases.entries(), "completedPhasesKey", EXPIRATION_TIMES.HALF_HOUR),
         saveIterableToRedis(channelDataMap, "lfgData", EXPIRATION_TIMES.HALF_HOUR, mapLfgData),
-        saveIterableToRedis(completedRaidsData, "completedRaidsData", EXPIRATION_TIMES.ONE_HOUR),
+        saveIterableToRedis(completedRaidsData, "completedRaidsData", null),
         saveIterableToRedis(lastAlertsTimestamps, "lastAlertsTimestamps", EXPIRATION_TIMES.ONE_HOUR),
     ]);
     return true;
@@ -18,7 +18,7 @@ async function saveIterableToRedis(data, key, expiration, transformFunc) {
     if ((data instanceof Map && !data.size) || (data[Symbol.iterator] && ![...data].length))
         return;
     const serializedData = JSON.stringify(transformFunc ? transformFunc(data) : [...data]);
-    await redisClient.set(key, serializedData, { EX: expiration });
+    await redisClient.set(key, serializedData, expiration ? { EX: expiration } : {});
 }
 function mapLfgData(dataMap) {
     return Array.from(dataMap.values()).map((value) => ({
