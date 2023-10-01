@@ -7,8 +7,7 @@ export const dungeonRoles = async () => {
     await AutoRoleData.findAll({ where: { category: 8 } }).then((rolesData) => {
         rolesData
             .filter((roleData) => dungeonsTriumphHashes.includes(roleData.triumphRequirement))
-            .map((r) => r.roleId)
-            .forEach((roleId) => dungeonRolesCache.push(roleId));
+            .forEach((role) => dungeonRolesCache.push(role.roleId));
     });
 };
 //# sourceMappingURL=getDungeonRoleIds.js.map

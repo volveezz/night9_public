@@ -56,7 +56,7 @@ export class ExtendedClient extends Client {
         this.start();
     }
     async start() {
-        const seqPromise = import(`../utils/persistence/sequelize.js`);
+        const seqPromise = this.importFile(`../utils/persistence/sequelize.js`);
         await Promise.all([this.login(process.env.TOKEN), seqPromise]);
         this.user.setPresence({
             activities: [this.activities[Math.floor(Math.random() * this.activities.length)]],
