@@ -5,10 +5,10 @@ const getFiles = async (dir, insideDir = "") => {
         const files = await readdir(dir, { withFileTypes: true });
         let mainFileExists = files.some((file) => file.name === `main${extension}`);
         const promises = files.map(async (file) => {
-            const filePath = dir.endsWith("\\") ? `${dir}${file.name}` : `${dir}\\${file.name}`;
-            const directoryPath = insideDir ? `${insideDir}${file.name}\\` : file.name;
+            const filePath = dir.endsWith("/") ? `${dir}${file.name}` : `${dir}/${file.name}`;
+            const directoryPath = insideDir ? `${insideDir}${file.name}/` : file.name;
             if (file.isDirectory()) {
-                return getFiles(`${filePath}\\`, directoryPath);
+                return getFiles(`${filePath}/`, directoryPath);
             }
             else if (file.name.endsWith(extension)) {
                 if (mainFileExists) {

@@ -93,7 +93,4 @@ LfgDatabase = __decorate([
     })
 ], LfgDatabase);
 export { LfgDatabase };
-setTimeout(() => {
-    LfgDatabase.sync({ force: true });
-}, 30000);
 //# sourceMappingURL=lfgDatabase.js.map
