@@ -291,21 +291,9 @@ export class ExtendedClient extends Client {
             await pause(2000);
             raidFireteamCheckerSystem();
             await pause(1000);
-            try {
-                this.importFile("../core/guildNicknameManagement.js");
-            }
-            catch (error) {
-                console.error("[Error code: 2073] Failed to load the file, trying import");
-                await import("../core/guildNicknameManagement.js");
-            }
+            import("../core/guildNicknameManagement.js");
             await pause(1000 * 15);
-            try {
-                this.importFile("../utils/api/rssHandler.js");
-            }
-            catch (error) {
-                console.error("[Error code: 2074] Failed to load the file, trying import");
-                await import("../utils/api/rssHandler.js");
-            }
+            import("../utils/api/rssHandler.js");
             await pause(2000);
             setTimeout(() => {
                 fetchGlobalAlerts();
