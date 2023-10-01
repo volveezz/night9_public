@@ -18,7 +18,6 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
     pool: {
         max: 20,
     },
-    logging: console.log,
     models: [join(__dirname, "/sequelizeModels")],
 });
 sequelize.addModels([

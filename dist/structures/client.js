@@ -56,7 +56,7 @@ export class ExtendedClient extends Client {
         this.start();
     }
     async start() {
-        const seqPromise = this.importFile(`../utils/persistence/sequelize.js`);
+        const seqPromise = this.importFile(resolve(__dirname, "../utils/persistence/sequelize.js"));
         await Promise.all([this.login(process.env.TOKEN), seqPromise]);
         this.user.setPresence({
             activities: [this.activities[Math.floor(Math.random() * this.activities.length)]],
@@ -291,9 +291,9 @@ export class ExtendedClient extends Client {
             await pause(2000);
             raidFireteamCheckerSystem();
             await pause(1000);
-            this.importFile("../utils/api/rssHandler.js");
+            this.importFile(resolve(__dirname, "../core/guildNicknameManagement.js"));
             await pause(1000 * 15);
-            this.importFile("../core/guildNicknameManagement.js");
+            this.importFile(resolve(__dirname, "../utils/api/rssHandler.ts"));
             await pause(2000);
             setTimeout(() => {
                 fetchGlobalAlerts();
