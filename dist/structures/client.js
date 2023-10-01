@@ -1,6 +1,5 @@
 import { ActivityType, ChannelType, Client, Collection, GatewayIntentBits, GuildMember, Partials, TextChannel, } from "discord.js";
 import { join, resolve } from "path";
-import { pathToFileURL } from "url";
 import checkClanActivitiesPeriodically from "../core/periodicActivityChecker.js";
 import handleMemberStatistics from "../core/statisticsChecker/userStatisticsManagement.js";
 import tokenManagment from "../core/tokenManagement.js";
@@ -150,8 +149,8 @@ export class ExtendedClient extends Client {
     }
     async importFile(filePath) {
         try {
-            const fileUrl = pathToFileURL(filePath);
-            const module = await import(fileUrl.toString());
+            const absolutePath = resolve(__dirname, filePath);
+            const module = await import(absolutePath);
             return module.default || module;
         }
         catch (error) {
@@ -291,9 +290,9 @@ export class ExtendedClient extends Client {
             await pause(2000);
             raidFireteamCheckerSystem();
             await pause(1000);
-            this.importFile(resolve(__dirname, "../core/guildNicknameManagement.js"));
+            this.importFile("../core/guildNicknameManagement.js");
             await pause(1000 * 15);
-            this.importFile(resolve(__dirname, "../utils/api/rssHandler.ts"));
+            this.importFile("../utils/api/rssHandler.js");
             await pause(2000);
             setTimeout(() => {
                 fetchGlobalAlerts();
