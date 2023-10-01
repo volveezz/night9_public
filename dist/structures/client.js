@@ -55,7 +55,7 @@ export class ExtendedClient extends Client {
         this.start();
     }
     async start() {
-        const seqPromise = this.importFile(resolve(__dirname, "../utils/persistence/sequelize.js"));
+        const seqPromise = import("../utils/persistence/sequelize.js");
         await Promise.all([this.login(process.env.TOKEN), seqPromise]);
         this.user.setPresence({
             activities: [this.activities[Math.floor(Math.random() * this.activities.length)]],
@@ -150,7 +150,8 @@ export class ExtendedClient extends Client {
     async importFile(filePath) {
         try {
             const absolutePath = resolve(__dirname, filePath);
-            const module = await import(absolutePath);
+            const moduleURL = new URL(`file://${absolutePath}`);
+            const module = await import(moduleURL.href);
             return module.default || module;
         }
         catch (error) {
@@ -290,9 +291,21 @@ export class ExtendedClient extends Client {
             await pause(2000);
             raidFireteamCheckerSystem();
             await pause(1000);
-            this.importFile("../core/guildNicknameManagement.js");
+            try {
+                this.importFile("../core/guildNicknameManagement.js");
+            }
+            catch (error) {
+                console.error("[Error code: 2073] Failed to load the file, trying import");
+                await import("../core/guildNicknameManagement.js");
+            }
             await pause(1000 * 15);
-            this.importFile("../utils/api/rssHandler.js");
+            try {
+                this.importFile("../utils/api/rssHandler.js");
+            }
+            catch (error) {
+                console.error("[Error code: 2074] Failed to load the file, trying import");
+                await import("../utils/api/rssHandler.js");
+            }
             await pause(2000);
             setTimeout(() => {
                 fetchGlobalAlerts();
