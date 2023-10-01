@@ -41,7 +41,7 @@ export default new Event("guildMemberRemove", async (member) => {
     if (!guildMemberChannel)
         guildMemberChannel =
             client.getCachedTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID) ||
-                (await client.getAsyncTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID));
+                (await client.getTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID));
     completedRaidsData.delete(member.id);
     const message = await guildMemberChannel.send({ embeds: [embed] });
     await deleteLeavedUserData({ discordMember: member, discordMessage: message });

@@ -3,7 +3,7 @@ import convertTimeStringToNumber from "../utils/general/raidFunctions/convertTim
 import { userTimezones } from "../utils/persistence/dataStore.js";
 const AutocompleteFile = new Autocomplete({
     name: "время",
-    aliases: ["новое-время"],
+    aliases: ["новое-время", "time", "new-time"],
     run: async ({ interaction, option }) => {
         const convertedTime = convertTimeStringToNumber(option.value, userTimezones.get(interaction.user.id));
         const name = !convertedTime || isNaN(convertedTime) || convertedTime < 2

@@ -9,7 +9,10 @@ import setMemberRoles from "../../utils/discord/setRoles.js";
 import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
 import { convertSeconds } from "../../utils/general/convertSeconds.js";
 import { bungieNames, completedRaidsData, longOffline, userTimezones } from "../../utils/persistence/dataStore.js";
-import { AuthData, AutoRoleData, UserActivityData, database } from "../../utils/persistence/sequelize.js";
+import { sequelizeInstance } from "../../utils/persistence/sequelize.js";
+import { AuthData } from "../../utils/persistence/sequelizeModels/authData.js";
+import { AutoRoleData } from "../../utils/persistence/sequelizeModels/autoRoleData.js";
+import { UserActivityData } from "../../utils/persistence/sequelizeModels/userActivityData.js";
 const SlashCommand = new Command({
     name: "db",
     description: "Database",
@@ -259,7 +262,7 @@ const SlashCommand = new Command({
                     .setDescription("Пользователь не найден в базе данных");
             }
             else if (!userData.UserActivityData || (userData.UserActivityData.messages < 5 && userData.UserActivityData.voice < 120)) {
-                const member = await client.getAsyncMember(user.id);
+                const member = await client.getMember(user.id);
                 await userData.destroy();
                 await member.setNickname(null, "Удаление данных пользователя");
                 await setMemberRoles({ member, roles: [process.env.NEWBIE], reason: "Удаление данных пользователя" });
@@ -521,7 +524,7 @@ const SlashCommand = new Command({
         }
         async function removeCase() {
             const removeroleid = args.getString("removeroleid", true);
-            const t = await database.transaction();
+            const t = await sequelizeInstance.transaction();
             const selectQuery = await AutoRoleData.findOne({
                 where: { [Op.or]: [{ roleId: removeroleid }, { triumphRequirement: removeroleid }] },
                 transaction: t,

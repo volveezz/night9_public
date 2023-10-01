@@ -1,4 +1,4 @@
-import { RaidEvent } from "../../../persistence/sequelize.js";
+import { RaidEvent } from "../../../persistence/sequelizeModels/raidEvent.js";
 import checkFireteamStatus from "./checkFireteamStatus.js";
 import getOngoingRaids from "./getOngoingRaids.js";
 import sendPrivateChannelNotify from "./sendCheckerNotify.js";

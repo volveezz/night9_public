@@ -27,7 +27,7 @@ export async function sendApiRequest(apiEndpoint, authToken, serverResponse) {
         throw new Error("[Error code: 1953] Error happened during fetching data");
     });
     if (!jsonResponse) {
-        console.trace("[Error code: 2025]", response.status, response.statusText, response.url);
+        console.error("[Error code: 2025]", response.type);
         throw new Error("[Error code: 2027] Error happened during fetching data");
     }
     return jsonResponse.Response && !serverResponse ? jsonResponse.Response : jsonResponse;

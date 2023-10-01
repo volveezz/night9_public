@@ -20,7 +20,7 @@ export default new Event("guildBanRemove", async (member) => {
     if (!guildMemberChannel)
         guildMemberChannel =
             client.getCachedTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID) ||
-                (await client.getAsyncTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID));
+                (await client.getTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID));
     guildMemberChannel.send({ embeds: [embed] });
 });
 //# sourceMappingURL=guildBanRemove.js.map

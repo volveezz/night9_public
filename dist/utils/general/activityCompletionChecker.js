@@ -1,8 +1,9 @@
+import BungieAPIError from "../../structures/BungieAPIError.js";
 import { GetManifest } from "../api/ManifestManager.js";
 import { sendApiRequest } from "../api/sendApiRequest.js";
-import { getEndpointStatus } from "../api/statusCheckers/statusTracker.js";
+import { getEndpointStatus, updateEndpointStatus } from "../api/statusCheckers/statusTracker.js";
 import { clanOnline, raidMilestoneHashes } from "../persistence/dataStore.js";
-import { AuthData } from "../persistence/sequelize.js";
+import { AuthData } from "../persistence/sequelizeModels/authData.js";
 import { getRaidDetails } from "./raidFunctions.js";
 import { getWeeklyRaidActivityHashes } from "./raidFunctions/gerWeeklyRaid.js";
 import { pause } from "./utilities.js";
@@ -24,7 +25,13 @@ export async function clanOnlineMemberActivityChecker() {
                 response = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${membershipId}/?components=204`);
             }
             catch (error) {
-                console.error("[Error code: 1997]", error);
+                if (error instanceof BungieAPIError && error.errorCode) {
+                    console.error(`[Error code: 2050] Received ${error.errorCode}/${error.errorStatus} error during checking ${platform}/${membershipId} of ${discordId}}`);
+                    updateEndpointStatus("account", error.errorCode);
+                }
+                else {
+                    console.error(`[Error code: 1997] Error during checking ${platform}/${membershipId} of ${discordId}`);
+                }
                 continue;
             }
             if (!response || !response.characterActivities) {

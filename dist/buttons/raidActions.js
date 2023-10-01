@@ -8,7 +8,7 @@ import { handleRaidCreatorLeaving } from "../utils/general/raidFunctions/raidCre
 import { raidEmitter } from "../utils/general/raidFunctions/raidEmitter.js";
 import { updateNotifications } from "../utils/general/raidFunctions/raidNotifications.js";
 import { completedRaidsData } from "../utils/persistence/dataStore.js";
-import { RaidEvent } from "../utils/persistence/sequelize.js";
+import { RaidEvent } from "../utils/persistence/sequelizeModels/raidEvent.js";
 const raidGuideSentUsers = new Map();
 const ButtonCommand = new Button({
     name: "raidButton",
@@ -116,7 +116,7 @@ const ButtonCommand = new Button({
         }
         if (raidData.requiredRole && member.roles.cache.has(process.env.VERIFIED) && !member.roles.cache.has(raidData.requiredRole)) {
             await deferredUpdate;
-            throw { errorType: "RAID_MISSING_DLC", errorData: [`<@&${raidData.requiredRole}>`] };
+            throw { errorType: "ACTIVITY_MISSING_DLC", errorData: [raidData.requiredRole] };
         }
         const userAlreadyInHotJoined = raidEvent.hotJoined.includes(interaction.user.id);
         const userAlreadyJoined = raidEvent.joined.includes(interaction.user.id);
@@ -176,13 +176,13 @@ const ButtonCommand = new Button({
             lastState: userAlreadyInHotJoined ? "hotJoined" : userAlreadyJoined ? "joined" : userAlreadyAlt ? "alt" : "",
             targetState: interaction.customId,
         });
-        await (await client.getAsyncTextChannel(raidEvent.channelId)).permissionOverwrites.create(interaction.user.id, {
+        await (await client.getTextChannel(raidEvent.channelId)).permissionOverwrites.create(interaction.user.id, {
             ViewChannel: true,
         });
         if (interaction.customId === "raidButton_action_join" && userTarget === "joined") {
             raidEmitter.emit("join", raidEvent, interaction.user.id);
             updateNotifications(interaction.user.id, true);
-            checkRaidTimeConflicts(interaction, raidEvent);
+            checkRaidTimeConflicts(interaction.user.id, raidEvent);
         }
         if (interaction.customId === "raidButton_action_alt") {
             updateNotifications(interaction.user.id);

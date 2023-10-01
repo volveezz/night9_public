@@ -3,7 +3,7 @@ import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { Button } from "../structures/button.js";
 import { updateNotifications } from "../utils/general/raidFunctions/raidNotifications.js";
-import { RaidUserNotification } from "../utils/persistence/sequelize.js";
+import { RaidUserNotifications } from "../utils/persistence/sequelizeModels/raidUserNotifications.js";
 const ButtonCommand = new Button({
     name: "changeCustomRaidNotifications",
     run: async ({ modalSubmit: interaction }) => {
@@ -23,7 +23,7 @@ const ButtonCommand = new Button({
         }
         timesArray.sort((a, b) => a - b).slice(0, 100);
         try {
-            const userNotification = await RaidUserNotification.findOne({ where: { discordId } });
+            const userNotification = await RaidUserNotifications.findOne({ where: { discordId } });
             if (userNotification) {
                 userNotification.notificationTimes = timesArray;
                 await userNotification.save();
@@ -36,7 +36,7 @@ const ButtonCommand = new Button({
                 await interaction.editReply({ embeds: [embed] });
             }
             else {
-                await RaidUserNotification.create({
+                await RaidUserNotifications.create({
                     discordId,
                     notificationTimes: timesArray,
                 });

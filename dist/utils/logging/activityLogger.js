@@ -11,21 +11,22 @@ import { convertSeconds } from "../general/convertSeconds.js";
 import { getRaidNameFromHash, removeRaid } from "../general/raidFunctions.js";
 import { escapeString } from "../general/utilities.js";
 import { completedRaidsData, grandmasterHashes } from "../persistence/dataStore.js";
-import { AuthData, RaidEvent, UserActivityData } from "../persistence/sequelize.js";
+import { AuthData } from "../persistence/sequelizeModels/authData.js";
+import { RaidEvent } from "../persistence/sequelizeModels/raidEvent.js";
+import { UserActivityData } from "../persistence/sequelizeModels/userActivityData.js";
 const hashToImageMap = {
-    313828469: "https://cdn.discordapp.com/attachments/679191036849029167/1111828224956170290/2023_Ghost_of_the_Deep_Press_Kit_Dungeon_LARGE_002.jpg",
-    2716998124: "https://cdn.discordapp.com/attachments/679191036849029167/1111828224956170290/2023_Ghost_of_the_Deep_Press_Kit_Dungeon_LARGE_002.jpg",
-    4179289725: "https://cdn.discordapp.com/attachments/1134620378615001178/1144335620819402893/crotas-end.jpg",
-    4103176774: "https://cdn.discordapp.com/attachments/1134620378615001178/1144335620819402893/crotas-end.jpg",
-    156253568: "https://cdn.discordapp.com/attachments/1134620378615001178/1144335620819402893/crotas-end.jpg",
-    1507509200: "https://cdn.discordapp.com/attachments/1134620378615001178/1144335620819402893/crotas-end.jpg",
+    313828469: "https://cdn.discordapp.com/attachments/1134620378615001178/1158036460348387368/Ghosts-of-the-Deep-PGCR.webp",
+    2716998124: "https://cdn.discordapp.com/attachments/1134620378615001178/1158036460348387368/Ghosts-of-the-Deep-PGCR.webp",
+    4179289725: "https://cdn.discordapp.com/attachments/1134620378615001178/1157167210951876619/CrotasEnd.webp",
+    4103176774: "https://cdn.discordapp.com/attachments/1134620378615001178/1157167210951876619/CrotasEnd.webp",
+    1507509200: "https://cdn.discordapp.com/attachments/1134620378615001178/1157167210951876619/CrotasEnd.webp",
 };
 const checkedPGCRIds = new Set();
 const ACTIVITY_LEAVE_TIME = 300;
 let activityChannel = null;
 const PLACEHOLDER_TEXTS = [": Нормальный", "Засекречено"];
 async function restoreFetchedPGCRs() {
-    const completedActivitiesChannels = await client.getAsyncTextChannel(process.env.ACTIVITY_CHANNEL_ID);
+    const completedActivitiesChannels = await client.getTextChannel(process.env.ACTIVITY_CHANNEL_ID);
     (await completedActivitiesChannels.messages.fetch({ limit: 15 })).forEach(async (message) => {
         const url = message.embeds?.[0]?.data?.author?.url;
         const pgcrId = url?.split("/")[4];
@@ -36,14 +37,6 @@ async function restoreFetchedPGCRs() {
 }
 function findCorrectedName(hash) {
     switch (hash) {
-        case 4179289725:
-            return "Крах Кроты";
-        case 4103176774:
-            return "Крах Кроты: режим с проводником";
-        case 156253568:
-            return "Крах Кроты: режим испытаний";
-        case 1507509200:
-            return "Крах Кроты: Мастер";
         default:
             return "Засекречено";
     }
@@ -54,7 +47,6 @@ function findPredefinedName(hash) {
             return "Предвестие: Легенда";
         case 666172264:
             return "Тайный глас: Легенда";
-        case 995051012:
         case 2919809209:
             return "Операция «Щит Серафима»: Легенда";
         default:
@@ -340,22 +332,28 @@ async function logActivityCompletion(pgcrId) {
                     const preciseStoredEncounterTime = [];
                     let latestEndTime = 0;
                     for (const [phase, phaseData] of allPhases) {
-                        const phaseStartTimes = phaseData.map((p) => p.start);
-                        const phaseEndTimes = phaseData.map((p) => p.end);
-                        let startTime = Math.min(...phaseStartTimes.filter((time) => time > 300));
-                        const endTime = Math.min(...phaseEndTimes.filter((time) => time > 300));
+                        const phaseStartTimes = phaseData.map((p) => p.start).filter((time) => time > 300);
+                        const phaseEndTimes = phaseData.map((p) => p.end).filter((time) => time > 300);
+                        if (phaseStartTimes.length === 0 || phaseEndTimes.length === 0) {
+                            continue;
+                        }
+                        let startTime = Math.min(...phaseStartTimes);
+                        const endTime = Math.min(...phaseEndTimes);
                         console.debug(`Checking phase ${phase} with start time ${startTime} and end time ${endTime}, latest end time ${latestEndTime}`);
-                        if (startTime > latestEndTime && preciseStoredEncounterTime.length > 0) {
+                        if (startTime < latestEndTime && preciseStoredEncounterTime.length > 0) {
                             startTime = latestEndTime;
                         }
-                        preciseStoredEncounterTime.push({
-                            phaseIndex: phaseData[0].phaseIndex,
-                            phase: phase,
-                            start: startTime,
-                            end: endTime,
-                        });
-                        latestEndTime = preciseStoredEncounterTime[preciseStoredEncounterTime.length - 1].end;
+                        if (startTime < endTime) {
+                            preciseStoredEncounterTime.push({
+                                phaseIndex: phaseData[0].phaseIndex,
+                                phase: phase,
+                                start: startTime,
+                                end: endTime,
+                            });
+                            latestEndTime = endTime;
+                        }
                     }
+                    console.debug("[Debug code: DDERGQX]", preciseStoredEncounterTime);
                     return preciseStoredEncounterTime;
                 }
             }
@@ -364,7 +362,7 @@ async function logActivityCompletion(pgcrId) {
             }
         }
         if (!activityChannel)
-            activityChannel = await client.getAsyncTextChannel(process.env.ACTIVITY_CHANNEL_ID);
+            activityChannel = await client.getTextChannel(process.env.ACTIVITY_CHANNEL_ID);
         const activityMessage = activityChannel.send({ embeds: [embed] });
         const currentTime = Math.floor(Date.now() / 1000);
         databaseData.forEach(async (dbMemberData) => {
@@ -395,7 +393,7 @@ async function logActivityCompletion(pgcrId) {
                     .setCustomId("raidInChnButton_delete")
                     .setLabel("Удалить набор")
                     .setStyle(ButtonStyle.Danger);
-                const member = await client.getAsyncMember(pastCreatedRaid.creator);
+                const member = await client.getMember(pastCreatedRaid.creator);
                 const raidCompletionNotification = await member
                     .send({
                     embeds: [raidCompletionEmbed],

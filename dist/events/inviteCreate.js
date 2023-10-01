@@ -38,7 +38,7 @@ export default new Event("inviteCreate", async (invite) => {
         });
     }
     if (invite.inviterId) {
-        const member = await client.getAsyncMember(invite.inviterId);
+        const member = await client.getMember(invite.inviterId);
         embed
             .setAuthor({
             name: `${nameCleaner(member.displayName)} создал приглашение`,
@@ -51,7 +51,7 @@ export default new Event("inviteCreate", async (invite) => {
     }
     if (!guildChannel)
         guildChannel =
-            client.getCachedTextChannel(process.env.GUILD_CHANNEL_ID) || (await client.getAsyncTextChannel(process.env.GUILD_CHANNEL_ID));
+            client.getCachedTextChannel(process.env.GUILD_CHANNEL_ID) || (await client.getTextChannel(process.env.GUILD_CHANNEL_ID));
     await guildChannel.send({ embeds: [embed] });
 });
 //# sourceMappingURL=inviteCreate.js.map

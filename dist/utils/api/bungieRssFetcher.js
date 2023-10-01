@@ -27,7 +27,7 @@ async function fetchNewsArticles() {
         }
     }
     catch (error) {
-        console.error("[Error code: 1935] An error occurred while fetching news articles:", error);
+        console.error(`[Error code: 1935] Received ${error.statusCode} error during news fetch`);
     }
     finally {
         const delay = timeLeftToNext01Second();
@@ -84,7 +84,7 @@ async function postArticlesToDiscord(articles) {
         };
         try {
             if (!newsChannel)
-                newsChannel = await client.getAsyncTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
+                newsChannel = await client.getTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
             lastArticlePubDate = new Date(article.PubDate).getTime();
             try {
                 redisClient.set("lastArticlePubDate", lastArticlePubDate).then(() => {

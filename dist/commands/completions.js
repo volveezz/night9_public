@@ -8,7 +8,7 @@ import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { getEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
 import nameCleaner from "../utils/general/nameClearer.js";
-import { AuthData } from "../utils/persistence/sequelize.js";
+import { AuthData } from "../utils/persistence/sequelizeModels/authData.js";
 const SlashCommand = new Command({
     name: "закрытия",
     nameLocalizations: { "en-US": "completions", "en-GB": "completions" },
@@ -56,7 +56,7 @@ const SlashCommand = new Command({
         const interaction = userMenuInteraction || slashInteraction;
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const category = parseInt(args?.getString("категория") || "") || 4;
-        const targerMember = await client.getAsyncMember(interaction.targetId ? interaction.targetId : interaction.user.id);
+        const targerMember = await client.getMember(interaction.targetId ? interaction.targetId : interaction.user.id);
         if (!targerMember) {
             await deferredReply;
             throw { errorType: "MEMBER_NOT_FOUND" };

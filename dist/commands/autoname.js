@@ -2,7 +2,7 @@ import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { Command } from "../structures/command.js";
-import { AuthData } from "../utils/persistence/sequelize.js";
+import { AuthData } from "../utils/persistence/sequelizeModels/authData.js";
 const SlashCommand = new Command({
     name: "autoname",
     description: "Управление автоматической сменой установкой своего ника",

@@ -5,22 +5,24 @@ import icons from "../configs/icons.js";
 import { Button } from "../structures/button.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { updateRaidMessage } from "../utils/general/raidFunctions.js";
-import { RaidEvent } from "../utils/persistence/sequelize.js";
+import { RaidEvent } from "../utils/persistence/sequelizeModels/raidEvent.js";
 let raidChannel = null;
 const ButtonCommand = new Button({
     name: "godEvent",
     run: async ({ client, interaction }) => {
         const categoryId = interaction.customId.split("_")[1];
-        const member = await client.getMember(interaction.member);
-        const channel = client.getCachedTextChannel(interaction.channel || interaction.channelId);
-        const guild = client.getCachedGuild(interaction.guild);
+        const [member, channel, guild] = await Promise.all([
+            client.getMember(interaction.member),
+            client.getTextChannel(interaction.channel || interaction.channelId),
+            client.getGuild(interaction.guild),
+        ]);
         switch (categoryId) {
             case "sortraids": {
-                await sortRaids();
+                sortRaids();
                 return;
             }
             case "customRoleColor": {
-                await customRoleColor();
+                customRoleColor();
                 return;
             }
             case "customRoleName": {
@@ -121,13 +123,12 @@ const ButtonCommand = new Button({
         async function sortRaids() {
             const deferredReply = interaction.deferReply({ ephemeral: true });
             const currentRaids = (await RaidEvent.findAll({ where: { time: { [Op.gt]: Math.floor(Date.now() / 1000) } } })).sort((a, b) => {
-                if (b.time !== a.time) {
-                    return b.time - a.time;
-                }
-                if (a.joined.length === 6)
-                    return 1;
-                if (b.joined.length === 6)
+                if (a.joined.length >= 6 && b.joined.length < 6)
                     return -1;
+                if (b.joined.length >= 6 && a.joined.length < 6)
+                    return 1;
+                if (a.time !== b.time)
+                    return b.time - a.time;
                 return b.joined.length - a.joined.length;
             });
             if (currentRaids.length === 0) {
@@ -139,7 +140,7 @@ const ButtonCommand = new Button({
                 throw { name: "Сейчас создан лишь один рейд" };
             }
             if (!raidChannel)
-                raidChannel = await client.getAsyncTextChannel(process.env.RAID_CHANNEL_ID);
+                raidChannel = await client.getTextChannel(process.env.RAID_CHANNEL_ID);
             const baseComponents = [
                 new ButtonBuilder().setCustomId("raidButton_action_join").setLabel("Записаться").setStyle(ButtonStyle.Success),
                 new ButtonBuilder().setCustomId("raidButton_action_leave").setLabel("Выйти").setStyle(ButtonStyle.Danger),

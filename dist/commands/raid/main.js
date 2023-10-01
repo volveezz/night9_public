@@ -18,7 +18,8 @@ import raidFireteamCheckerSystem, { stopFireteamCheckingSystem, } from "../../ut
 import { clearNotifications, sendNotificationInfo, updateNotifications, updateNotificationsForEntireRaid, } from "../../utils/general/raidFunctions/raidNotifications.js";
 import { descriptionFormatter, escapeString } from "../../utils/general/utilities.js";
 import { completedRaidsData, userTimezones } from "../../utils/persistence/dataStore.js";
-import { RaidEvent, database } from "../../utils/persistence/sequelize.js";
+import { sequelizeInstance } from "../../utils/persistence/sequelize.js";
+import { RaidEvent } from "../../utils/persistence/sequelizeModels/raidEvent.js";
 const SlashCommand = new Command({
     name: "рейд",
     nameLocalizations: {
@@ -289,7 +290,7 @@ const SlashCommand = new Command({
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const subCommand = args.getSubcommand(true);
         const guild = client.getCachedGuild();
-        const member = await client.getAsyncMember(interaction.user.id);
+        const member = await client.getMember(interaction.user.id);
         if (subCommand === "создать") {
             const raid = args.getString("рейд", true);
             const time = args.getString("время", true);
@@ -315,104 +316,113 @@ const SlashCommand = new Command({
             }
             const raidData = getRaidDetails(raid, difficulty);
             const requiredClears = args.getInteger("требуемых-закрытий") ?? 0;
-            const raidEvent = await RaidEvent.create({
-                channelId: member.id,
-                inChannelMessageId: member.id,
-                messageId: member.id,
-                creator: member.id,
-                joined: [member.id],
-                time: parsedTime,
-                raid: raidData.raid,
-                difficulty,
-                requiredClears,
-            });
-            const raidClears = completedRaidsData.get(interaction.user.id);
-            const mainComponents = [
-                new ButtonBuilder().setCustomId("raidButton_action_join").setLabel("Записаться").setStyle(ButtonStyle.Success),
-                new ButtonBuilder().setCustomId("raidButton_action_leave").setLabel("Выйти").setStyle(ButtonStyle.Danger),
-                new ButtonBuilder().setCustomId("raidButton_action_alt").setLabel("Возможно буду").setStyle(ButtonStyle.Secondary),
-            ];
-            const isUserCreatedRaidRecently = checkIfUserRecentlyCreatedActivity(interaction.user.id);
-            const roleMention = !isUserCreatedRaidRecently
-                ? raidData.requiredRole !== null
-                    ? `<@&${raidData.requiredRole}>`
-                    : member.guild.roles.everyone
-                : "";
-            const content = `Открыт набор в рейд: ${raidData.raidName} ${roleMention}`;
-            const raidChannel = client.getCachedTextChannel(process.env.RAID_CHANNEL_ID) || (await client.getAsyncTextChannel(process.env.RAID_CHANNEL_ID));
-            const additionalPosition = guild.channels.cache.get(process.env.RAID_CATEGORY)?.children?.cache.size || 1;
-            const privateRaidChannel = await member.guild.channels.create({
-                name: `🔥｜${raidEvent.id}-${raidData.channelName}`,
-                parent: process.env.RAID_CATEGORY,
-                position: raidChannel.rawPosition + additionalPosition,
-                permissionOverwrites: [
-                    {
-                        deny: "ViewChannel",
-                        id: guild.roles.everyone,
-                    },
-                    {
-                        allow: ["ViewChannel", "ManageMessages", "MentionEveryone"],
-                        id: member.id,
-                    },
-                ],
-                reason: `${nameCleaner(member.displayName)} created new raid`,
-            });
-            raidEvent.channelId = privateRaidChannel.id;
-            const inChannelMessagePromise = sendRaidPrivateMessage({ channel: privateRaidChannel, raidEvent });
-            const raidClearsText = raidClears
-                ? ` — ${generateRaidCompletionText(raidClears[raidData.raid])}${raidClears[raidData.raid + "Master"] ? ` (+**${raidClears[raidData.raid + "Master"]}** на мастере)` : ""}`
-                : "";
-            const embed = new EmbedBuilder()
-                .setTitle(`Рейд: ${raidData.raidName}${requiredClears >= 1 ? ` от ${requiredClears} закрыт${requiredClears === 1 ? "ия" : "ий"}` : ""}`)
-                .setColor(raidData.raidColor)
-                .setFooter({
-                text: `Создатель рейда: ${nameCleaner(member.displayName)}`,
-                iconURL: activityIcons.raid,
-            })
-                .setThumbnail(raidData.raidBanner)
-                .addFields([
-                {
-                    name: "Id",
-                    value: `[${raidEvent.id}](https://discord.com/channels/${interaction.guildId}/${privateRaidChannel.id})`,
-                    inline: true,
-                },
-                {
-                    name: `Начало: <t:${parsedTime}:R>`,
-                    value: `<t:${parsedTime}>`,
-                    inline: true,
-                },
-                {
-                    name: "Участник: 1/6",
-                    value: `⁣　1. **${nameCleaner(member.displayName, true)}**${raidClearsText}`,
-                },
-            ]);
-            if (raidDescription !== null && raidDescription.length < 1024) {
-                embed.spliceFields(2, 0, {
-                    name: "Описание",
-                    value: descriptionFormatter(raidDescription),
+            let transaction;
+            try {
+                transaction = await sequelizeInstance.transaction();
+                const raidClears = completedRaidsData.get(interaction.user.id);
+                const mainComponents = [
+                    new ButtonBuilder().setCustomId("raidButton_action_join").setLabel("Записаться").setStyle(ButtonStyle.Success),
+                    new ButtonBuilder().setCustomId("raidButton_action_leave").setLabel("Выйти").setStyle(ButtonStyle.Danger),
+                    new ButtonBuilder().setCustomId("raidButton_action_alt").setLabel("Возможно буду").setStyle(ButtonStyle.Secondary),
+                ];
+                const isUserCreatedRaidRecently = checkIfUserRecentlyCreatedActivity(interaction.user.id);
+                const roleMention = !isUserCreatedRaidRecently
+                    ? raidData.requiredRole !== null
+                        ? `<@&${raidData.requiredRole}>`
+                        : member.guild.roles.everyone
+                    : "";
+                const content = `Открыт набор в рейд: ${raidData.raidName} ${roleMention}`;
+                const raidChannelPromise = client.getTextChannel(process.env.RAID_CHANNEL_ID);
+                const additionalPosition = guild.channels.cache.get(process.env.RAID_CATEGORY)?.children?.cache.size || 1;
+                const raidEventPromise = RaidEvent.create({
+                    channelId: member.id,
+                    inChannelMessageId: member.id,
+                    messageId: member.id,
+                    creator: member.id,
+                    joined: [member.id],
+                    time: parsedTime,
+                    raid: raidData.raid,
+                    difficulty,
+                    requiredClears,
+                }, { transaction });
+                const [raidEvent, raidChannel] = await Promise.all([raidEventPromise, raidChannelPromise]);
+                const privateRaidChannel = await member.guild.channels.create({
+                    name: `🔥｜${raidEvent.id}-${raidData.channelName}`,
+                    parent: process.env.RAID_CATEGORY,
+                    position: raidChannel.rawPosition + additionalPosition,
+                    permissionOverwrites: [
+                        {
+                            deny: "ViewChannel",
+                            id: guild.roles.everyone,
+                        },
+                        {
+                            allow: ["ViewChannel", "ManageMessages", "MentionEveryone"],
+                            id: member.id,
+                        },
+                    ],
+                    reason: `${nameCleaner(member.displayName)} created new raid`,
                 });
-            }
-            const message = await raidChannel.send({
-                content,
-                embeds: [embed],
-                components: addButtonsToMessage(mainComponents),
-            });
-            const inChannelMessage = await inChannelMessagePromise;
-            raidEvent.inChannelMessageId = inChannelMessage.id;
-            raidEvent.messageId = message.id;
-            await raidEvent.save();
-            deferredReply.then(async (_) => {
+                raidEvent.channelId = privateRaidChannel.id;
+                const inChannelMessagePromise = sendRaidPrivateMessage({ channel: privateRaidChannel, raidEvent, transaction });
+                const raidClearsText = raidClears
+                    ? ` — ${generateRaidCompletionText(raidClears[raidData.raid])}${raidClears[raidData.raid + "Master"] ? ` (+**${raidClears[raidData.raid + "Master"]}** на мастере)` : ""}`
+                    : "";
                 const embed = new EmbedBuilder()
-                    .setColor(colors.success)
-                    .setAuthor({ name: "Рейд создан", iconURL: icons.success })
-                    .setDescription(`Канал рейда: <#${privateRaidChannel.id}>, [ссылка на сообщение набора](https://discord.com/channels/${guild.id}/${process
-                    .env.RAID_CHANNEL_ID}/${message.id})`);
-                interaction.editReply({ embeds: [embed] });
-            });
-            if (parsedTime <= Math.floor(Date.now() / 1000 + 24 * 60 * 60 * 2)) {
-                updateNotifications(interaction.user.id);
+                    .setTitle(`Рейд: ${raidData.raidName}${requiredClears >= 1 ? ` от ${requiredClears} закрыт${requiredClears === 1 ? "ия" : "ий"}` : ""}`)
+                    .setColor(raidData.raidColor)
+                    .setFooter({
+                    text: `Создатель рейда: ${nameCleaner(member.displayName)}`,
+                    iconURL: activityIcons.raid,
+                })
+                    .setThumbnail(raidData.raidBanner)
+                    .addFields([
+                    {
+                        name: "Id",
+                        value: `[${raidEvent.id}](https://discord.com/channels/${interaction.guildId}/${privateRaidChannel.id})`,
+                        inline: true,
+                    },
+                    {
+                        name: `Начало: <t:${parsedTime}:R>`,
+                        value: `<t:${parsedTime}>`,
+                        inline: true,
+                    },
+                    {
+                        name: "Участник: 1/6",
+                        value: `⁣　1. **${nameCleaner(member.displayName, true)}**${raidClearsText}`,
+                    },
+                ]);
+                if (raidDescription !== null && raidDescription.length < 1024) {
+                    embed.spliceFields(2, 0, {
+                        name: "Описание",
+                        value: descriptionFormatter(raidDescription),
+                    });
+                }
+                const messagePromise = raidChannel.send({
+                    content,
+                    embeds: [embed],
+                    components: addButtonsToMessage(mainComponents),
+                });
+                const [message, inChannelMessage] = await Promise.all([messagePromise, inChannelMessagePromise]);
+                raidEvent.messageId = message.id;
+                raidEvent.inChannelMessageId = inChannelMessage.id;
+                await raidEvent.save({ transaction });
+                await transaction.commit();
+                deferredReply.then(async (_) => {
+                    const embed = new EmbedBuilder()
+                        .setColor(colors.success)
+                        .setAuthor({ name: "Рейд создан", iconURL: icons.success })
+                        .setDescription(`Канал рейда: <#${privateRaidChannel.id}>, [ссылка на сообщение набора](https://discord.com/channels/${guild.id}/${process.env.RAID_CHANNEL_ID}/${message.id})`);
+                    interaction.editReply({ embeds: [embed] });
+                });
+                if (parsedTime <= Math.floor(Date.now() / 1000 + 24 * 60 * 60 * 2)) {
+                    updateNotifications(interaction.user.id);
+                }
+                raidFireteamCheckerSystem(raidEvent.id);
             }
-            raidFireteamCheckerSystem(raidEvent.id);
+            catch (error) {
+                await transaction?.rollback();
+                console.error(`[Error code: 2045]`, error);
+            }
         }
         else if (subCommand === "изменить") {
             const raidId = args.getInteger("id-рейда");
@@ -422,7 +432,7 @@ const SlashCommand = new Command({
             const newDescription = args.getString("новое-описание");
             let newDifficulty = args.getInteger("новая-сложность");
             const newReqClears = args.getInteger("новое-требование-закрытий");
-            const isSilent = !(args.getBoolean("silent") || false);
+            const notSilently = !(args.getBoolean("silent") || false);
             let raidData = await getRaidDatabaseInfo(raidId, interaction);
             if (!raidData || (Array.isArray(raidData) && raidData.length === 0)) {
                 await deferredReply;
@@ -435,9 +445,9 @@ const SlashCommand = new Command({
             const changes = [];
             const raidMessage = await client.getAsyncMessage(process.env.RAID_CHANNEL_ID, raidData.messageId);
             const raidEmbed = EmbedBuilder.from(raidMessage?.embeds[0]);
-            const transaction = await database.transaction();
+            const transaction = await sequelizeInstance.transaction();
             const changesForChannel = [];
-            const raidPrivateChannel = await client.getAsyncTextChannel(raidData.channelId);
+            const raidPrivateChannel = await client.getTextChannel(raidData.channelId);
             let inChannelMessage;
             try {
                 inChannelMessage =
@@ -513,7 +523,7 @@ const SlashCommand = new Command({
                         raidEmbed.setFields(updatedRaidMessage.embeds[0].data.fields);
                     }
                     raidChallenges({ privateChannelMessage: inChannelMessage, raidData: raidInfo, raidEvent: raidData });
-                    const channel = await client.getAsyncTextChannel(updatedRaid.channelId);
+                    const channel = await client.getTextChannel(updatedRaid.channelId);
                     channel.edit({ name: `🔥｜${updatedRaid.id}${raidInfo.channelName}` }).catch((e) => console.error("[Error code: 1696]", e));
                 }
             }
@@ -607,7 +617,7 @@ const SlashCommand = new Command({
             }
             if (newRaidLeader !== null) {
                 if (!newRaidLeader.bot) {
-                    const raidLeaderName = nameCleaner((await client.getAsyncMember(newRaidLeader.id)).displayName);
+                    const raidLeaderName = nameCleaner((await client.getMember(newRaidLeader.id)).displayName);
                     raidPrivateChannel.permissionOverwrites.edit(raidData.creator, { ManageMessages: null, MentionEveryone: null });
                     raidPrivateChannel.permissionOverwrites.edit(newRaidLeader.id, {
                         ManageMessages: true,
@@ -657,7 +667,7 @@ const SlashCommand = new Command({
                     text: `Изменение ${raidData.creator === interaction.user.id ? "создателем рейда" : "администратором"}`,
                 });
                 editedEmbedReplyInChn.addFields(changesForChannel);
-                isSilent && client.getCachedTextChannel(raidData.channelId).send({ embeds: [editedEmbedReplyInChn] });
+                notSilently && client.getCachedTextChannel(raidData.channelId).send({ embeds: [editedEmbedReplyInChn] });
             }
             else {
                 await transaction.rollback();
@@ -711,7 +721,7 @@ const SlashCommand = new Command({
                 await deferredReply;
                 throw { name: "Нельзя записать бота как участника" };
             }
-            const addedUserDisplayName = nameCleaner((await client.getAsyncMember(addedUser.id)).displayName);
+            const addedUserDisplayName = nameCleaner((await client.getMember(addedUser.id)).displayName);
             const userAlreadyInHotJoined = raidData.hotJoined.includes(addedUser.id);
             const userAlreadyJoined = raidData.joined.includes(addedUser.id);
             const userAlreadyAlt = raidData.alt.includes(addedUser.id);
@@ -776,7 +786,7 @@ const SlashCommand = new Command({
                 where: { id: raidData.id },
                 returning: ["id", "channelId", "inChannelMessageId", "joined", "hotJoined", "alt", "messageId", "raid", "difficulty"],
             });
-            const raidChn = await client.getAsyncTextChannel(raidData.channelId);
+            const raidChn = await client.getTextChannel(raidData.channelId);
             raidChn.send({ embeds: [embedReply] });
             raidChn.permissionOverwrites.create(addedUser.id, {
                 ViewChannel: true,
@@ -821,7 +831,7 @@ const SlashCommand = new Command({
                 updatePrivateRaidMessage(raidEvent);
                 updateRaidMessage({ raidEvent, interaction });
                 raidEmitter.emit("leave", raidEvent, kickableUser.id);
-                const kickedUserDisplayName = nameCleaner((await client.getAsyncMember(kickableUser.id)).displayName);
+                const kickedUserDisplayName = nameCleaner((await client.getMember(kickableUser.id)).displayName);
                 const embed = new EmbedBuilder()
                     .setColor(colors.success)
                     .setTitle(`Вы исключили ${escapeString(kickedUserDisplayName)} с рейда ${raidData.id}-${raidData.raid}`);
@@ -840,7 +850,7 @@ const SlashCommand = new Command({
                     .setFooter({
                     text: `Пользователь исключен ${raidData.creator === interaction.user.id ? "создателем рейда" : "администратором"}`,
                 });
-                const raidChn = await client.getAsyncTextChannel(raidData.channelId);
+                const raidChn = await client.getTextChannel(raidData.channelId);
                 await raidChn.send({ embeds: [inChnEmbed] });
                 await raidChn.permissionOverwrites.delete(kickableUser.id);
                 updateNotifications(kickableUser.id);

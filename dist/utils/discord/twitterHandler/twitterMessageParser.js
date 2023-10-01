@@ -7,15 +7,35 @@ import convertMp4ToGif from "./mp4IntoGif.js";
 import resolveAuthor from "./resolveAuthor.js";
 import { processTwitterGifFile } from "./saveGifInChannel.js";
 let publicNewsChannel = null;
-function extractMediaUrl(content) {
+function extractMediaUrl(content, preferable = "image") {
     if (!content)
         return null;
-    const pattern = /https:\/\/video\.twimg\.com\/amplify_video\/\d+\/vid\/.*?\.(mp4|gif)/;
-    const videoMatch = content.match(pattern);
-    return videoMatch ? videoMatch[0] : null;
+    const imgRegex = /(https?:\/\/[^"]*?(?:png|jpg|jpeg|gif)(?:&amp;[^"]*)?)/g;
+    const videoRegex = /(https?:\/\/[^"]*?\.mp4[^"]*)|(https:\/\/video\.twimg\.com\/amplify_video\/\d+\/vid\/.*?\.(mp4|gif))/g;
+    const imgMatch = content.match(imgRegex);
+    const videoMatch = content.match(videoRegex);
+    if (preferable === "image") {
+        return imgMatch ? imgMatch[1] || imgMatch[0] : null;
+    }
+    else if (preferable === "video") {
+        return videoMatch ? videoMatch[1] || videoMatch[0] : null;
+    }
+    return null;
 }
 function clearText(content) {
     return content
+        .replace(/&nbsp;/g, " ")
+        .replace(/<br\s*\/?>/gi, "")
+        .replace(/&gt;/gi, ">")
+        .replace(/&lt;/gi, "<")
+        .replace(/&amp;/gi, "&")
+        .replace(/&quot;/gi, '"')
+        .replace(/&apos;/gi, "'")
+        .replace(/<div class="rsshub-quote">[\s\S]*?<\/div>|<[^>]*>/g, "")
+        .replace(/<div class="rsshub-quote">[\s\S]*?<\/div>|<[^>]*>|https:\/\/t\.co\/\S+|https:\/\/twitter\.com\/i\/web\/status\/\S+/g, "")
+        .replace(/nitter\.[^ \n]+/g, "")
+        .replace(/^Re /, "")
+        .replace(/^ +/gm, (match) => "\u00A0".repeat(match.length))
         .replace(/ ?⏵\s*\[\[\d+\]\]\((https?:\/\/[^\)]+)\)/g, "")
         .trim();
 }
@@ -31,7 +51,7 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
     const embedMedia = originalEmbed?.data && (originalEmbed.data.thumbnail?.url || originalEmbed.data.image?.url || originalEmbed.data.video?.url);
     const extractedMedia = extractMediaUrl(twitterData.content) || embedMedia;
     const replacedDescription = replaceTimeWithEpoch(cleanContent);
-    let tranlsatedContent = null;
+    let tranlsatedContent = "";
     try {
         const translateRequest = await translateDestinyText(replacedDescription);
         if (translateRequest && translateRequest.length > 1 && !translateRequest.includes("You exceeded your current quota")) {
@@ -55,15 +75,16 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
         embed.setImage(extractedMedia);
     }
     if (!publicNewsChannel)
-        publicNewsChannel = await client.getAsyncTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
+        publicNewsChannel = await client.getTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
     await publicNewsChannel.send({ embeds: [embed], components: addButtonsToMessage(components) }).then((m) => {
         if (tranlsatedContent) {
             const voteRecord = { original: new Set(), translation: new Set() };
             twitterOriginalVoters.set(m.id, voteRecord);
             originalTweetData.set(m.id, cleanContent);
         }
-        if (extractedMedia && extractedMedia.endsWith(".mp4")) {
-            convertVideoToGif(extractedMedia, m, embed);
+        const extractedVideoMedia = extractMediaUrl(twitterData.content, "video");
+        if (extractedVideoMedia && extractedVideoMedia.endsWith(".mp4")) {
+            convertVideoToGif(extractedVideoMedia, m, embed);
         }
     });
     return;
@@ -103,7 +124,7 @@ function replaceTimeWithEpoch(text) {
         setDate = true;
     }
     const timeRegex = /(\d{1,2})(:)?(\d{2})?\s?(AM|PM)(\s?PDT\s?\(-7\s?UTC\)|\s?PST\s?\(\d{4}\s?UTC\)|\s?PST\s?\(-7\s?UTC\)|\s?PT|\s?PDT|\s?PST\s?\(-8\s?UTC\)|\s?PST)?/gi;
-    const replacement = (match, hour, colon, minute, amPm, timezone) => {
+    const replacement = (_, hour, __, minute, amPm, timezone) => {
         let hourNumber = parseInt(hour, 10);
         const minuteNumber = parseInt(minute || "0", 10);
         if (amPm.toUpperCase() === "PM" && hourNumber !== 12) {

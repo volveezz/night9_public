@@ -3,14 +3,14 @@ import colors from "../configs/colors.js";
 import { activityRoles, classRoles, statisticsRoles, trialsRoles } from "../configs/roles.js";
 import { Button } from "../structures/button.js";
 import { pause } from "../utils/general/utilities.js";
-import { AuthData } from "../utils/persistence/sequelize.js";
+import { AuthData } from "../utils/persistence/sequelizeModels/authData.js";
 const ButtonCommand = new Button({
     name: "roleChannel",
     run: async ({ client, interaction }) => {
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const commandFull = interaction.customId.split("_").slice(1);
         const commandId = commandFull.shift();
-        const member = await client.getAsyncMember(interaction.user.id);
+        const member = await client.getMember(interaction.user.id);
         const guild = client.getCachedGuild();
         switch (commandId) {
             case "classRoles": {

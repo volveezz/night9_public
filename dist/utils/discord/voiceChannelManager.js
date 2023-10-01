@@ -1,6 +1,6 @@
 import { ChannelType } from "discord.js";
 import { channelDataMap } from "../persistence/dataStore.js";
-import { VoiceChannels } from "../persistence/sequelize.js";
+import { VoiceChannels } from "../persistence/sequelizeModels/voiceChannels.js";
 const managedVoiceChannelIds = new Set();
 const ignoredCategories = new Set([process.env.ADMIN_CATEGORY, process.env.TECHNICAL_CATEGORY]);
 const romanNumbers = ["𝐈", "𝐈𝐈", "𝐈𝐈𝐈", "𝐈𝐕", "𝐕", "𝐕𝐈", "𝐕𝐈𝐈", "𝐕𝐈𝐈𝐈", "𝐈𝐗", "𝐗"];
@@ -74,7 +74,7 @@ async function manageVoiceChannels(oldState, newState) {
             reason: "Users have filled all existing channels",
         });
         managedVoiceChannelIds.add(channel.id);
-        await VoiceChannels.create({ channelId: channel.id });
+        await VoiceChannels.create({ channelId: channel.id }, { returning: false });
     }
 }
 async function removeChannel(channel) {

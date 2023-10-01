@@ -5,11 +5,11 @@ import icons from "../../../configs/icons.js";
 import { client } from "../../../index.js";
 import { addButtonsToMessage } from "../../general/addButtonsToMessage.js";
 import nameCleaner from "../../general/nameClearer.js";
-import { updateRaidMessage } from "../../general/raidFunctions.js";
+import { checkRaidTimeConflicts, updateRaidMessage } from "../../general/raidFunctions.js";
 import updatePrivateRaidMessage from "../../general/raidFunctions/privateMessage/updatePrivateMessage.js";
 import { raidEmitter } from "../../general/raidFunctions/raidEmitter.js";
 import { updateNotifications } from "../../general/raidFunctions/raidNotifications.js";
-import { RaidEvent } from "../../persistence/sequelize.js";
+import { RaidEvent } from "../../persistence/sequelizeModels/raidEvent.js";
 async function moveUserFromHotJoinedIntoJoined(raidData) {
     if (raidData.joined.length === 6)
         return;
@@ -70,6 +70,7 @@ async function moveUserFromHotJoinedIntoJoined(raidData) {
     if (!updatedRaidData)
         return console.error("[Error code: 1637]", updatedRaidData);
     await updatePrivateRaidMessage(updatedRaidData);
+    checkRaidTimeConflicts(member.id, raidData);
     updateNotifications(member.id, true);
     raidEmitter.emit("join", updatedRaidData, member.id);
 }

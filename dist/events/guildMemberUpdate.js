@@ -5,7 +5,7 @@ import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { escapeString } from "../utils/general/utilities.js";
-import { AuthData } from "../utils/persistence/sequelize.js";
+import { AuthData } from "../utils/persistence/sequelizeModels/authData.js";
 let guildMemberChannel = null;
 export default new Event("guildMemberUpdate", async (oldMember, newMember) => {
     if (!oldMember.joinedTimestamp || (!oldMember.nickname && oldMember.roles.cache.size === 0))
@@ -22,7 +22,7 @@ export default new Event("guildMemberUpdate", async (oldMember, newMember) => {
         embeds.push(muteEmbed);
     if (embeds.length > 0) {
         if (!guildMemberChannel)
-            guildMemberChannel = await client.getAsyncTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID);
+            guildMemberChannel = await client.getTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID);
         await guildMemberChannel.send({ embeds });
     }
 });
@@ -54,7 +54,7 @@ async function checkNameExecutor(member) {
         return null;
     if (executor.id === member.id)
         return null;
-    const executorMember = await client.getAsyncMember(executor.id);
+    const executorMember = await client.getMember(executor.id);
     return executorMember;
 }
 async function generateNameEmbed(oldMember, newMember) {

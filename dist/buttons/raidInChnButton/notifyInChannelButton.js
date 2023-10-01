@@ -4,66 +4,79 @@ import icons from "../../configs/icons.js";
 import { client } from "../../index.js";
 import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../../utils/general/nameClearer.js";
+import { findVoiceChannelWithMostActivityMembers } from "../../utils/general/raidFunctions/findVoiceChannelWithMostMembers.js";
 import { descriptionFormatter, getRandomRaidGIF } from "../../utils/general/utilities.js";
+async function createInvite(channel, reason) {
+    try {
+        return await channel.createInvite({ reason, maxAge: 60 * 120 });
+    }
+    catch (err) {
+        console.error(`Failed to create invite for channel ${channel.name}:`, err);
+        return null;
+    }
+}
 async function notifyInChannelButton({ deferredUpdate, interaction, raidEvent, guild, member }) {
-    await deferredUpdate;
+    const { id: interactionId, user } = interaction;
+    const [_, userDM, gifImage] = await Promise.all([deferredUpdate, user.createDM(), getRandomRaidGIF()]);
     interaction.editReply({
-        content: `Перейдите в [личные сообщения](https://discord.com/channels/@me/${client.user.dmChannel?.id || "774617169169743872"}) для настройки и отправки оповещения`,
+        content: `Перейдите в [личные сообщения](https://discord.com/channels/@me/${userDM.id}) для настройки и отправки оповещения`,
     });
-    const GIFImage = (await getRandomRaidGIF()) || "https://media.giphy.com/media/cKJZAROeOx7MfU6Kws/giphy.gif";
     let modalTitle = `Рейдовое оповещение ${raidEvent.id}-${raidEvent.raid}`;
-    let modalDescription = `Рейдер, тебя оповестил ${raidEvent.creator === interaction.user.id ? "создатель рейда" : "администратор"} об скором старте.\n\nЗаходи в голосовой канал как можно скорее!`;
-    let modalImage = GIFImage;
+    let modalDescription = `Рейдер, тебя оповестил ${raidEvent.creator === user.id ? "создатель рейда" : "администратор"} об скором старте.\n\nЗаходи в голосовой канал как можно скорее!`;
+    let modalImage = gifImage;
     let interactionResponded = false;
     async function sendNotificationToMembers(raidEvent, linkComponent, interaction, message) {
-        const channel = client.getCachedTextChannel(interaction.channel.id);
         const notificationEmbed = new EmbedBuilder().setColor(colors.serious);
         if (modalTitle?.length > 0) {
             try {
                 notificationEmbed.setAuthor({ name: modalTitle, iconURL: icons.notify });
             }
-            catch (e) { }
+            catch (e) {
+                console.error("[Error code: 2068] Failed to set author", e);
+            }
         }
         if (modalDescription?.length > 0) {
             try {
                 notificationEmbed.setDescription(modalDescription || null);
             }
-            catch (e) { }
+            catch (e) {
+                console.error("[Error code: 2067] Failed to set description", e);
+            }
         }
         if (modalImage?.length > 0) {
             try {
                 notificationEmbed.setImage(modalImage || null);
             }
-            catch (e) { }
+            catch (e) {
+                console.error("[Error code: 2066] Failed to set image", e);
+            }
         }
         collector.stop("completed");
         const sendedTo = [];
-        const raidMembersLength = interaction.user.id === raidEvent.creator ? raidEvent.joined.length - 1 : raidEvent.joined.length;
-        const linkButton = [
-            {
-                type: ComponentType.ActionRow,
-                components: linkComponent,
-            },
-        ];
+        const raidMembersLength = user.id === raidEvent.creator ? raidEvent.joined.length - 1 : raidEvent.joined.length;
+        const linkButton = addButtonsToMessage(linkComponent);
         const cachedMembers = client.getCachedMembers();
-        const creatorVoiceChannel = guild.channels.cache.filter((ch) => ch.type === ChannelType.GuildVoice).find((m) => m.id === raidEvent.creator);
+        const voiceChannels = guild.channels.cache.filter((ch) => ch.type === ChannelType.GuildVoice);
+        const creatorVoiceChannel = voiceChannels.find((m) => m.members.has(raidEvent.creator)) || voiceChannels.find((m) => m.members.has(user.id));
         await Promise.all(raidEvent.joined.map(async (id) => {
             const member = cachedMembers.get(id);
             if (!member)
                 return console.error("[Error code: 1211]", id, member);
-            if (member.id === raidEvent.creator || (creatorVoiceChannel && creatorVoiceChannel.members.has(member.id)))
+            if ((member.id === raidEvent.creator && user.id === raidEvent.creator) ||
+                (creatorVoiceChannel && creatorVoiceChannel.members.has(member.id)))
                 return;
             await member
                 .send({
                 embeds: [notificationEmbed],
-                components: linkComponent.length > 0 ? linkButton : undefined,
+                components: linkButton,
             })
-                .then((_) => sendedTo.push(`${nameCleaner(member.displayName, true)} получил оповещение`))
+                .then((_) => sendedTo.push(`**${nameCleaner(member.displayName, true)}** получил оповещение`))
                 .catch(async (e) => {
                 if (e.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
+                    const channel = client.getCachedTextChannel(raidEvent.channelId);
                     await channel
                         .send({ content: `<@${member.id}>`, embeds: [notificationEmbed] })
-                        .then((d) => sendedTo.push(`${nameCleaner(member.displayName, true)} получил текстовое оповещение`));
+                        .then((_) => sendedTo.push(`**${nameCleaner(member.displayName, true)}** получил текстовое оповещение`));
                 }
                 else {
                     console.error("[Error code: 1212]", e.requestBody.json.components);
@@ -170,22 +183,27 @@ async function notifyInChannelButton({ deferredUpdate, interaction, raidEvent, g
         await message.edit({ components: [], embeds: [cancelEmbed] });
         collector.stop("canceled");
     }
-    let invite = member.voice.channel?.members.has(raidEvent.creator)
-        ? await member.voice.channel?.createInvite({ reason: "Raid invite to raid leader", maxAge: 60 * 120 })
-        : null;
     const raidVoiceChannels = member.guild.channels.cache
         .filter((chn) => chn.parentId === process.env.RAID_CATEGORY && chn.type === ChannelType.GuildVoice && chn.name.includes("Raid"))
         .reverse();
-    let raidChnInvite = null;
-    for (const [_, voiceChannel] of raidVoiceChannels) {
-        if (voiceChannel.members.has(raidEvent.creator)) {
-            if (!invite)
-                invite = await voiceChannel.createInvite({ reason: "Raid invite", maxAge: 60 * 120 });
-            break;
-        }
-        if (voiceChannel.userLimit === 0 || voiceChannel.userLimit - 6 > voiceChannel.members.size) {
-            raidChnInvite = await voiceChannel.createInvite({ reason: "Raid invite", maxAge: 60 * 120 });
-            break;
+    let inviteToVoiceWithCreator = null;
+    let raidWithMostMembersInvite = null;
+    const voiceWithCreator = raidVoiceChannels.find((channel) => channel.members.has(raidEvent.creator));
+    const voiceWithMostMembers = await findVoiceChannelWithMostActivityMembers(raidVoiceChannels, raidEvent.joined);
+    if (voiceWithCreator) {
+        inviteToVoiceWithCreator = await createInvite(voiceWithCreator, "Raid invite to the voice with the raid leader");
+    }
+    if (voiceWithMostMembers) {
+        raidWithMostMembersInvite = await createInvite(voiceWithMostMembers, "Raid invite to the raid channel with the most raid members");
+    }
+    else {
+        const emptiestRaidChannel = raidVoiceChannels.reduce((prev, curr) => {
+            if (curr.members.size < prev.members.size)
+                return curr;
+            return prev;
+        });
+        if (emptiestRaidChannel) {
+            raidWithMostMembersInvite = await createInvite(emptiestRaidChannel, "Raid invite to the emptiest raid channel");
         }
     }
     const components = [
@@ -193,47 +211,45 @@ async function notifyInChannelButton({ deferredUpdate, interaction, raidEvent, g
         new ButtonBuilder().setCustomId("raidAddFunc_notify_edit").setLabel("Изменить текст").setStyle(ButtonStyle.Secondary),
         new ButtonBuilder().setCustomId("raidAddFunc_notify_cancel").setLabel("Отменить оповещение").setStyle(ButtonStyle.Danger),
     ];
-    const linkComponent = [];
-    if (invite) {
-        linkComponent.push(new ButtonBuilder({ style: ButtonStyle.Link, url: invite.url, label: "Перейти к создателю рейда" }));
+    const linkButtons = [];
+    if (inviteToVoiceWithCreator) {
+        linkButtons.push(new ButtonBuilder({ style: ButtonStyle.Link, url: inviteToVoiceWithCreator.url, label: "Перейти к создателю рейда" }));
     }
-    if (raidChnInvite) {
-        linkComponent.push(new ButtonBuilder({ style: ButtonStyle.Link, url: raidChnInvite.url, label: "Перейти в рейдовый канал" }));
+    if (raidWithMostMembersInvite) {
+        linkButtons.push(new ButtonBuilder({ style: ButtonStyle.Link, url: raidWithMostMembersInvite.url, label: "Перейти в рейдовый канал" }));
     }
     const raidLeaderEmbed = new EmbedBuilder()
         .setColor(colors.serious)
         .setAuthor({ name: "Отправьте заготовленное оповещение или измените его", iconURL: icons.notify })
-        .setDescription(`Рейдер, тебя оповестил ${raidEvent.creator === interaction.user.id ? "создатель рейда" : "администратор"} об скором старте.\n\nЗаходи в голосовой канал как можно скорее!`)
-        .setImage(GIFImage);
-    let message = null;
-    try {
-        message = await interaction.user.send({
-            embeds: [raidLeaderEmbed],
-            components: addButtonsToMessage(components),
-        });
-    }
-    catch (error) {
+        .setDescription(`Рейдер, тебя оповестил ${raidEvent.creator === user.id ? "создатель рейда" : "администратор"} об скором старте.\n\nЗаходи в голосовой канал как можно скорее!`)
+        .setImage(gifImage);
+    const message = await user
+        .send({
+        embeds: [raidLeaderEmbed],
+        components: addButtonsToMessage(components),
+    })
+        .catch((error) => {
         if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
             throw { errorType: "CLOSED_DM" };
         }
         else {
             console.error("[Error code: 1960] Unexpected error", error);
         }
-    }
+        return null;
+    });
     if (!message)
         return;
     const collector = message.createMessageComponentCollector({
-        filter: (interaction) => interaction.user.id === member.id,
+        filter: (i) => i.user.id === user.id,
         time: 60 * 1000 * 10,
         componentType: ComponentType.Button,
     });
-    const interactionId = interaction.id;
     collector.on("collect", async (collectorInteraction) => {
         if (interactionId !== interaction.id)
             return;
         switch (collectorInteraction.customId) {
             case "raidAddFunc_notify_confirm":
-                await sendNotificationToMembers(raidEvent, linkComponent, interaction, message);
+                await sendNotificationToMembers(raidEvent, linkButtons, interaction, message);
                 break;
             case "raidAddFunc_notify_edit":
                 await handleEditAction(collectorInteraction);

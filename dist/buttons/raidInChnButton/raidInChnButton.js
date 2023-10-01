@@ -5,10 +5,11 @@ import icons from "../../configs/icons.js";
 import { client } from "../../index.js";
 import { Button } from "../../structures/button.js";
 import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
+import nameCleaner from "../../utils/general/nameClearer.js";
 import { removeRaid } from "../../utils/general/raidFunctions.js";
 import sendRaidPrivateMessage from "../../utils/general/raidFunctions/privateMessage/sendPrivateMessage.js";
 import { stopFireteamCheckingSystem } from "../../utils/general/raidFunctions/raidFireteamChecker/raidFireteamChecker.js";
-import { RaidEvent } from "../../utils/persistence/sequelize.js";
+import { RaidEvent } from "../../utils/persistence/sequelizeModels/raidEvent.js";
 import moveRaidVoiceMembers from "./moveRaidVoiceMembersButton.js";
 import notifyInChannelButton from "./notifyInChannelButton.js";
 import unlockRaidMessage from "./unlockRaidMessage.js";
@@ -128,7 +129,9 @@ const ButtonCommand = new Button({
             throw { errorType: "RAID_NOT_FOUND" };
         }
         if (raidEvent.creator !== interaction.user.id && !interaction.memberPermissions?.has("Administrator")) {
-            throw { errorType: "RAID_MISSING_PERMISSIONS" };
+            const member = client.getCachedMembers().get(interaction.user.id);
+            const displayName = member && nameCleaner(member.displayName, true);
+            throw { errorType: "ACTIVITY_MISSING_PERMISSIONS", errorData: { displayName }, interaction };
         }
         switch (interaction.customId) {
             case "raidInChnButton_notify": {

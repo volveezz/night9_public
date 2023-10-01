@@ -1,5 +1,5 @@
 import { activeRaidEventFunctions } from "../../persistence/dataStore.js";
-import { RaidEvent } from "../../persistence/sequelize.js";
+import { RaidEvent } from "../../persistence/sequelizeModels/raidEvent.js";
 import { pause } from "../utilities.js";
 export default async function getRaidEventData(id) {
     if (activeRaidEventFunctions.has(id)) {

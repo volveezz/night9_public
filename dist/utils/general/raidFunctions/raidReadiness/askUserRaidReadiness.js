@@ -4,7 +4,7 @@ import icons from "../../../../configs/icons.js";
 import { client } from "../../../../index.js";
 import { default as readinessInstance, default as readinessSystemInstance } from "../../../../structures/RaidReadinessSystem.js";
 import kickMemberFromRaid from "../../../discord/raid/kickMemberFromRaid.js";
-import { RaidEvent } from "../../../persistence/sequelize.js";
+import { RaidEvent } from "../../../persistence/sequelizeModels/raidEvent.js";
 import { addButtonsToMessage } from "../../addButtonsToMessage.js";
 import nameCleaner from "../../nameClearer.js";
 import getRaidEventData from "../getRaidEventData.js";
@@ -19,7 +19,7 @@ const generateEmbed = ({ raid, id, messageId }) => {
             iconURL: icons.mark,
             url: `https://discord.com/channels/${GUILD_ID}/${RAID_CHANNEL_ID}/${messageId}`,
         })
-            .setDescription(`Подтвердите свою готовность к рейду, который начнется через час`),
+            .setDescription("Подтвердите, что вы готовы к рейду, который начнётся через час"),
     ];
 };
 const components = [
@@ -41,7 +41,7 @@ export async function stopAllRaidReadinessCollectors() {
 const raidCollectors = new Map();
 const notifiedUsersAboutClosedDM = new Set();
 export async function askRaidReadinessNotification(discordId, raidId) {
-    const member = client.getCachedMembers().get(discordId) || (await client.getAsyncMember(discordId));
+    const member = client.getCachedMembers().get(discordId) || (await client.getMember(discordId));
     const raidEventData = await getRaidEventData(raidId);
     if (!raidEventData) {
         console.error("[Error code: 1985] Raid wasn't found", raidId);
@@ -57,8 +57,8 @@ export async function askRaidReadinessNotification(discordId, raidId) {
             const errorEmbed = new EmbedBuilder()
                 .setColor(colors.error)
                 .setAuthor({ name: `${nameCleaner(member.displayName)}, откройте свои личные сообщения` })
-                .setDescription("Поскольку у вас закрытые личные сообщения, то вы не можете получить систему готовности к рейду, из-за чего вы считаетесь как неготовый участник");
-            const raidChannel = client.getCachedTextChannel(raidEventData.channelId) || (await client.getAsyncTextChannel(raidEventData.channelId));
+                .setDescription("Поскольку у вас закрыты личные сообщения, вы не можете получить системное оповещение о готовности к рейду, и поэтому считаетесь неготовым участником");
+            const raidChannel = client.getCachedTextChannel(raidEventData.channelId) || (await client.getTextChannel(raidEventData.channelId));
             raidChannel.send({ embeds: [errorEmbed] });
             notifiedUsersAboutClosedDM.add(discordId);
             setTimeout(async () => {

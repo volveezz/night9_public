@@ -1,5 +1,6 @@
 import { ActivityType, ChannelType, Client, Collection, GatewayIntentBits, GuildMember, Partials, TextChannel, } from "discord.js";
 import { join, resolve } from "path";
+import { pathToFileURL } from "url";
 import checkClanActivitiesPeriodically from "../core/periodicActivityChecker.js";
 import handleMemberStatistics from "../core/statisticsChecker/userStatisticsManagement.js";
 import tokenManagment from "../core/tokenManagement.js";
@@ -7,13 +8,15 @@ import fetchNewsArticles from "../utils/api/bungieRssFetcher.js";
 import { fetchGlobalAlerts } from "../utils/api/globalAlertsFetcher.js";
 import { voiceChannelJoinTimestamps } from "../utils/discord/userActivityHandler.js";
 import { clanOnlineMemberActivityChecker } from "../utils/general/activityCompletionChecker.js";
+import { updateActivityCache } from "../utils/general/cacheAvailableActivities.js";
+import cacheRaidMilestones from "../utils/general/cacheRaidMilestones.js";
 import getFiles from "../utils/general/fileReader.js";
 import raidFireteamCheckerSystem from "../utils/general/raidFunctions/raidFireteamChecker/raidFireteamChecker.js";
 import { loadNotifications } from "../utils/general/raidFunctions/raidNotifications.js";
-import cacheRaidMilestones from "../utils/general/raidMilestones.js";
 import restoreDataFromRedis from "../utils/general/redisData/restoreDataFromRedis.js";
 import { pause } from "../utils/general/utilities.js";
 import { restoreFetchedPGCRs } from "../utils/logging/activityLogger.js";
+import { LFGController } from "./LFGController.js";
 import VoteSystem from "./VoteSystem.js";
 const __dirname = resolve();
 const directory = process.env.NODE_ENV === "development" && process.env.LOCAL_ENV === "true" ? "src" : "dist";
@@ -26,6 +29,7 @@ export class ExtendedClient extends Client {
         { name: "🔁 Подготовка рейдов", type: ActivityType.Custom },
         { name: "🔁 Обновление статистики", type: ActivityType.Custom },
         { name: "🔁 Загрузка свежих данных", type: ActivityType.Custom },
+        { name: "🔁 Синхронизация данных", type: ActivityType.Custom },
         { name: "🔁 Устранение ошибок", type: ActivityType.Custom },
         { name: "🔁 Благодарность меценатам", type: ActivityType.Custom },
         {
@@ -52,7 +56,8 @@ export class ExtendedClient extends Client {
         this.start();
     }
     async start() {
-        await this.login(process.env.TOKEN);
+        const seqPromise = import(`../utils/persistence/sequelize.js`);
+        await Promise.all([this.login(process.env.TOKEN), seqPromise]);
         this.user.setPresence({
             activities: [this.activities[Math.floor(Math.random() * this.activities.length)]],
             status: "idle",
@@ -66,7 +71,7 @@ export class ExtendedClient extends Client {
         }, 60000);
         setTimeout(() => {
             const checkInterval = setInterval(() => {
-                if (this.user.presence.activities[0].name.startsWith("🔁")) {
+                if (!this.user.presence.activities[0].name.startsWith("🔁")) {
                     clearInterval(updateInterval);
                     clearInterval(checkInterval);
                 }
@@ -80,7 +85,9 @@ export class ExtendedClient extends Client {
             activities: [activity],
         });
     }
-    async getGuild() {
+    async getGuild(guild) {
+        if (guild)
+            return guild;
         return this.guild || this.guilds.cache.get(process.env.GUILD_ID) || this.guilds.fetch(process.env.GUILD_ID);
     }
     getCachedGuild(guild) {
@@ -89,8 +96,10 @@ export class ExtendedClient extends Client {
         return (this.guild || this.guilds.cache.get(process.env.GUILD_ID));
     }
     async getMember(memberOrId) {
-        if (!memberOrId)
+        if (!memberOrId) {
+            console.debug(`[Error code: 2053] No data provided for member. Returning null`);
             throw { errorType: "MEMBER_NOT_FOUND" };
+        }
         if (memberOrId instanceof GuildMember)
             return memberOrId;
         const guild = await this.getGuild();
@@ -108,8 +117,20 @@ export class ExtendedClient extends Client {
     getCachedMembers() {
         return (this.guild || this.guilds.cache.get(process.env.GUILD_ID)).members.cache;
     }
-    async getAsyncMember(id) {
-        return this.guild?.members.fetch(id);
+    async getTextChannel(channelOrId) {
+        if (channelOrId instanceof TextChannel)
+            return channelOrId;
+        const channelId = typeof channelOrId === "string" ? channelOrId : channelOrId.id;
+        const guild = await this.getGuild();
+        const cachedTextChannel = guild.channels.cache.get(channelId);
+        if (cachedTextChannel)
+            return cachedTextChannel;
+        console.debug(`[Error code: 2035] Text channel not found in cache: ${channelId}`);
+        const fetchedTextChannel = await guild.channels.fetch(channelId).catch(() => null);
+        if (fetchedTextChannel)
+            return fetchedTextChannel;
+        console.error(`[Error code: 2036] Text channel not found: ${channelId}`);
+        throw { errorType: "CHANNEL_NOT_FOUND" };
     }
     getCachedTextChannel(channelOrId) {
         if (channelOrId instanceof TextChannel)
@@ -117,12 +138,8 @@ export class ExtendedClient extends Client {
         const channelId = typeof channelOrId === "string" ? channelOrId : channelOrId.id;
         return this.getCachedGuild().channels.cache.get(channelId);
     }
-    async getAsyncTextChannel(id) {
-        const guild = await this.getGuild();
-        return (this.getCachedTextChannel(id) || guild.channels.cache.get(id) || guild.channels.fetch(id));
-    }
     async getAsyncMessage(inputChannel, messageId) {
-        const resolvedChannel = typeof inputChannel === "string" ? await this.getAsyncTextChannel(inputChannel) : inputChannel;
+        const resolvedChannel = typeof inputChannel === "string" ? await this.getTextChannel(inputChannel) : inputChannel;
         try {
             return resolvedChannel.messages.cache.get(messageId) || (await resolvedChannel.messages.fetch(messageId));
         }
@@ -132,114 +149,116 @@ export class ExtendedClient extends Client {
         }
     }
     async importFile(filePath) {
-        return (await import(filePath))?.default;
+        try {
+            const fileUrl = pathToFileURL(filePath);
+            const module = await import(fileUrl.toString());
+            return module.default || module;
+        }
+        catch (error) {
+            console.error("[Error code: 2062] Failed to import file", { filePath }, error);
+        }
     }
     async registerCommands({ global, commands }) {
-        if (global) {
-            this.application.commands.set(commands);
+        try {
+            if (global) {
+                await this.application.commands.set(commands);
+            }
+            else {
+                const targetGuild = this.guild || this.guilds.cache.get(process.env.GUILD_ID);
+                if (!targetGuild) {
+                    console.error("[Error code: 2063] Target guild is undefined, failed to set guild-specific commands");
+                    return;
+                }
+                await targetGuild.commands.set(commands);
+            }
         }
-        else {
-            (this.guild || this.guilds.cache.get(process.env.GUILD_ID))?.commands.set(commands);
+        catch (error) {
+            console.error("[Error code: 2064] Failed to register commands", error);
         }
     }
     async loadCommands() {
-        const guildCommands = [];
-        const globalCommands = [];
-        const commandFiles = await getFiles(join(__dirname, `${directory}/commands/`));
-        const commandReading = commandFiles.map((filePath) => {
-            return this.importFile(`../commands/${filePath}`).then((command) => {
-                if (!command) {
-                    console.error("[Error code: 1132] Command file not valid", { filePath });
-                    return;
+        try {
+            const commandFiles = await getFiles(join(__dirname, `${directory}/commands/`));
+            const commandReadingPromises = commandFiles.map((filePath) => this.importFile(filePath));
+            const commandStructs = await Promise.all(commandReadingPromises);
+            const guildCommands = [];
+            const globalCommands = [];
+            for (const command of commandStructs) {
+                if (!command || !command.name) {
+                    console.error("[Error code: 1132] Command file not valid", { filePath: command.filePath });
+                    continue;
                 }
-                if (!command.name) {
-                    console.error("[Error code: 1135] Unable to find command name for", { filePath });
-                    return;
+                const contexts = [command.userContextMenu, command.messageContextMenu, command].filter(Boolean);
+                for (const context of contexts) {
+                    this.commands.set(context.name, command);
+                    (command.global ? globalCommands : guildCommands).push(context);
                 }
-                if (command.userContextMenu) {
-                    this.commands.set(command.userContextMenu.name, command);
-                    if (command.global) {
-                        globalCommands.push(command.userContextMenu);
-                    }
-                    else {
-                        guildCommands.push(command.userContextMenu);
-                    }
-                }
-                if (command.messageContextMenu) {
-                    this.commands.set(command.messageContextMenu.name, command);
-                    if (command.global) {
-                        globalCommands.push(command.messageContextMenu);
-                    }
-                    else {
-                        guildCommands.push(command.messageContextMenu);
-                    }
-                }
-                this.commands.set(command.name, command);
-                if (command.global) {
-                    return globalCommands.push(command);
-                }
-                guildCommands.push(command);
-            });
-        });
-        await Promise.all(commandReading);
-        await this.registerCommands({ global: true, commands: globalCommands });
-        await this.registerCommands({ global: false, commands: guildCommands });
+            }
+            await Promise.all([
+                this.registerCommands({ global: true, commands: globalCommands }),
+                this.registerCommands({ global: false, commands: guildCommands }),
+            ]);
+        }
+        catch (error) {
+            console.error("[Error code: 2059] Failed to load commands", error);
+        }
     }
     async loadEvents() {
         const eventFiles = await getFiles(join(__dirname, `${directory}/events/`));
-        const eventPromises = eventFiles.map((filePath) => {
-            return this.importFile(`../events/${filePath}`).then((event) => {
-                if (!event) {
-                    console.error("[Error code: 1805] Event file not valid", { filePath });
-                    return;
-                }
-                this.on(event.event, event.run);
-            });
+        const eventPromises = eventFiles.map(async (filePath) => {
+            const event = await this.importFile(filePath);
+            if (!event) {
+                console.error("[Error code: 1805] Event file not valid", { filePath });
+                return;
+            }
+            this.on(event.event, event.run);
         });
         await Promise.all(eventPromises);
     }
     async loadButtons() {
         const buttonFiles = await getFiles(join(__dirname, `${directory}/buttons/`));
-        const buttonReading = buttonFiles.map((filePath) => {
-            return this.importFile(`../buttons/${filePath}`).then((button) => {
-                if (!button) {
-                    console.error("[Error code: 1140] Button file not valid", { filePath });
-                    return;
-                }
-                this.buttons.set(button.name, button);
-            });
+        const buttonReading = buttonFiles.map(async (filePath) => {
+            const button = await this.importFile(filePath);
+            if (!button) {
+                console.error("[Error code: 1140] Button file not valid", { filePath });
+                return;
+            }
+            this.buttons.set(button.name, button);
         });
         await Promise.all(buttonReading);
     }
     async loadAutocompletions() {
         const autocompleteFiles = await getFiles(join(__dirname, `${directory}/autocompletions/`));
-        const autocompleteReading = autocompleteFiles.map((filePath) => {
-            return this.importFile(`../autocompletions/${filePath}`).then((autocomplete) => {
-                if (!autocomplete) {
-                    console.error("[Error code: 1141] Autocomplete file not valid", { filePath });
-                    return;
+        const autocompleteReading = autocompleteFiles.map(async (filePath) => {
+            const autocomplete = await this.importFile(filePath);
+            if (!autocomplete) {
+                console.error("[Error code: 1141] Autocomplete file not valid", { filePath });
+                return;
+            }
+            this.autocomplete.set(autocomplete.name, autocomplete);
+            if (autocomplete.aliases) {
+                for (let i = 0; i < autocomplete.aliases.length; i++) {
+                    this.autocomplete.set(autocomplete.aliases[i], autocomplete);
                 }
-                this.autocomplete.set(autocomplete.name, autocomplete);
-                if (autocomplete.aliases) {
-                    autocomplete.aliases.forEach((alias) => {
-                        this.autocomplete.set(alias, autocomplete);
-                    });
-                }
-            });
+            }
         });
         await Promise.all(autocompleteReading);
     }
     registerModules() {
         this.once("ready", async (client) => {
             this.guild = await this.fetchGuild(client);
-            this.loadComponents().then(() => {
-                if (process.env.NODE_ENV !== "development") {
-                    this.loadProdComponents();
-                }
-                console.info(`\x1b[32m${this.user.username} online since ${new Date().toLocaleString()}\x1b[0m`);
-                VoteSystem.getInstance().init();
-                this.fetchMembersAndMessages();
-            });
+            await this.loadComponents();
+            if (process.env.NODE_ENV !== "development") {
+                this.loadProdComponents();
+            }
+            console.info(`\x1b[32m${this.user.username} online since ${new Date().toLocaleString()}\x1b[0m`);
+            Promise.allSettled([
+                restoreDataFromRedis(),
+                VoteSystem.getInstance().init(),
+                LFGController.getInstance().init(),
+                this.fetchMembersAndMessages(),
+                updateActivityCache(),
+            ]);
         });
     }
     async fetchGuild(client) {
@@ -266,17 +285,21 @@ export class ExtendedClient extends Client {
         await pause(1000);
         loadNotifications();
         await pause(2000);
-        raidFireteamCheckerSystem();
-        await pause(2000);
         cacheRaidMilestones();
         await pause(2000);
-        this.importFile("../core/guildNicknameManagement.js");
-        await pause(1000 * 15);
-        restoreDataFromRedis();
-        setTimeout(() => {
-            fetchGlobalAlerts();
-            fetchNewsArticles();
-        }, 1000 * 60);
+        if (process.env.NODE_ENV === "production") {
+            await pause(2000);
+            raidFireteamCheckerSystem();
+            await pause(1000);
+            this.importFile("../utils/api/rssHandler.js");
+            await pause(1000 * 15);
+            this.importFile("../core/guildNicknameManagement.js");
+            await pause(2000);
+            setTimeout(() => {
+                fetchGlobalAlerts();
+                fetchNewsArticles();
+            }, 1000 * 60);
+        }
     }
     async fetchMembersAndMessages() {
         await pause(1000);

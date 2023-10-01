@@ -4,7 +4,7 @@ import { client } from "../../index.js";
 import nameCleaner from "../general/nameClearer.js";
 let authLogChannel = null;
 export async function logUserRegistrationAttempt(state, user, isNewUser) {
-    const memberDisplayName = nameCleaner((client.getCachedMembers().get(user.id) || (await client.getAsyncMember(user.id))).displayName);
+    const memberDisplayName = nameCleaner((client.getCachedMembers().get(user.id) || (await client.getMember(user.id))).displayName);
     const embed = new EmbedBuilder()
         .setColor(colors.serious)
         .setAuthor({
@@ -18,7 +18,7 @@ export async function logUserRegistrationAttempt(state, user, isNewUser) {
     ]);
     if (!authLogChannel)
         authLogChannel =
-            client.getCachedTextChannel(process.env.BOT_CHANNEL_ID) || (await client.getAsyncTextChannel(process.env.BOT_CHANNEL_ID));
+            client.getCachedTextChannel(process.env.BOT_CHANNEL_ID) || (await client.getTextChannel(process.env.BOT_CHANNEL_ID));
     await authLogChannel.send({ embeds: [embed] });
 }
 //# sourceMappingURL=logUserRegistration.js.map

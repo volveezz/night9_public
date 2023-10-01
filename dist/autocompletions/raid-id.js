@@ -1,5 +1,5 @@
 import { Autocomplete } from "../structures/autocomplete.js";
-import { RaidEvent } from "../utils/persistence/sequelize.js";
+import { RaidEvent } from "../utils/persistence/sequelizeModels/raidEvent.js";
 const AutocompleteFile = new Autocomplete({
     name: "id-рейда",
     run: async ({ interaction }) => {

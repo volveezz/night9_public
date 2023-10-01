@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import tokenRefresher from "../../../../structures/tokenRefresher.js";
-import { AuthData } from "../../../persistence/sequelize.js";
+import { AuthData } from "../../../persistence/sequelizeModels/authData.js";
 export const previouslyCheckedFireteamMembers = new Map();
 async function getVoiceChannelMembersAuthData(raidId, voiceChannelMemberIds) {
     const previouslyCheckedRaid = previouslyCheckedFireteamMembers.get(raidId);

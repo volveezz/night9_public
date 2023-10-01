@@ -10,7 +10,9 @@ import setMemberRoles from "../../../utils/discord/setRoles.js";
 import calculateVoteResults from "../../../utils/discord/twitterHandler/twitterTranslationVotes.js";
 import { convertSeconds } from "../../../utils/general/convertSeconds.js";
 import { pause } from "../../../utils/general/utilities.js";
-import { AuthData, AutoRoleData, UserActivityData } from "../../../utils/persistence/sequelize.js";
+import { AuthData } from "../../../utils/persistence/sequelizeModels/authData.js";
+import { AutoRoleData } from "../../../utils/persistence/sequelizeModels/autoRoleData.js";
+import { UserActivityData } from "../../../utils/persistence/sequelizeModels/userActivityData.js";
 import exportRaidGuide from "./exportRaidData.js";
 let wasInitialCheck = false;
 const SlashCommand = new Command({

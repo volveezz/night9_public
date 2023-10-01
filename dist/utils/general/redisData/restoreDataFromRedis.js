@@ -3,7 +3,7 @@ import { channelDataMap, completedRaidsData, lastAlertsTimestamps } from "../../
 import { redisClient } from "../../persistence/redis.js";
 import { completedPhases } from "../activityCompletionChecker.js";
 async function restoreDataFromRedis() {
-    await Promise.all([restoreCompletedPhases(), restoreLfgChannelData(), restoreCompletedRaids()]);
+    await Promise.all([restoreCompletedPhases(), restoreLfgChannelData(), restoreCompletedRaids(), restoreLastAlertsTimestamps()]);
     console.info("Data from Redis was restored!");
 }
 async function restoreCompletedPhases() {
@@ -15,7 +15,7 @@ async function restoreLfgChannelData() {
     const data = await fetchDataFromRedis("lfgData");
     if (!data)
         return;
-    const guild = client.getCachedGuild() || (await client.guilds.fetch(process.env.GUILD_ID));
+    const guild = await client.getGuild();
     if (!guild)
         return;
     for (const value of data) {
@@ -33,11 +33,12 @@ async function restoreCompletedRaids() {
         populateMapFromEntries(completedRaidsData, data);
 }
 async function restoreLastAlertsTimestamps() {
-    const rawData = await redisClient.get("lastAlertsTimestamps");
-    if (!rawData)
+    const data = await fetchDataFromRedis("lastAlertsTimestamps");
+    if (!data)
         return;
-    const restoredData = JSON.parse(rawData);
-    restoredData.forEach((item) => lastAlertsTimestamps.add(item));
+    for (const item of data) {
+        lastAlertsTimestamps.add(item);
+    }
 }
 async function fetchDataFromRedis(key) {
     const rawData = await redisClient.get(key);

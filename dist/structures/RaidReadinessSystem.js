@@ -10,7 +10,7 @@ class RaidReadiness {
         const raidDetails = await fetchRaidDetails(raidId);
         if (!raidDetails || raidDetails.time * 1000 <= Date.now())
             return;
-        const raidChannel = client.getCachedTextChannel(raidDetails.channelId) || (await client.getAsyncTextChannel(raidDetails.channelId));
+        const raidChannel = client.getCachedTextChannel(raidDetails.channelId) || (await client.getTextChannel(raidDetails.channelId));
         this.raidDetailsMap.set(raidId, {
             channel: raidChannel,
             message: null,
@@ -57,7 +57,7 @@ class RaidReadiness {
         }
         const updateStatusList = async (statusSet, targetList, emoji, isLateUsers = false) => {
             Array.from(statusSet).forEach(async (userId) => {
-                const memberName = client.getCachedMembers().get(userId)?.displayName || (await client.getAsyncMember(userId)).displayName;
+                const memberName = client.getCachedMembers().get(userId)?.displayName || (await client.getMember(userId)).displayName;
                 targetList.push(`⁣　${emoji} ${sanitizeName(memberName, true)}${isLateUsers && currentRaidDetails.lateReasons.has(userId) ? `: ${currentRaidDetails.lateReasons.get(userId)}` : ""}`);
             });
         };

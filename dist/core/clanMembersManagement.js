@@ -1,6 +1,7 @@
 import { ActivityType } from "discord.js";
 import { clanJoinDateRoles } from "../configs/roles.js";
 import { client } from "../index.js";
+import BungieAPIError from "../structures/BungieAPIError.js";
 import getClanMemberData from "../utils/api/getClanMemberData.js";
 import kickClanMember from "../utils/api/kickClanMember.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
@@ -102,7 +103,13 @@ async function clanMembersManagement(databaseData) {
                         }
                         else if (typeof isUserMeetsRequirements === "string") {
                             const { platform, bungieId } = memberAuthData;
-                            await kickClanMember(platform, bungieId);
+                            try {
+                                await kickClanMember(platform, bungieId);
+                            }
+                            catch (error) {
+                                console.error(`[Error code: 2042] Failed to kick ${platform}/${bungieId} from the clan`);
+                                await kickClanMember(platform, bungieId);
+                            }
                             if (!recentlyNotifiedKickedMembers.has(bungieId)) {
                                 console.debug(`Notifing ${memberAuthData.displayName} about not meeting the clan joining requirements`);
                                 await notifyUserNotMeetRequirements(memberAuthData, isUserMeetsRequirements);
@@ -115,7 +122,7 @@ async function clanMembersManagement(databaseData) {
                     }
                 }
                 catch (error) {
-                    console.error("[Error code: 1924]", error);
+                    console.error(`[Error code: 1924] Received ${error.statusCode} error during checking clan requirements`);
                 }
             }
             const destinyUserName = clanMember.destinyUserInfo.bungieGlobalDisplayName ||
@@ -135,7 +142,7 @@ async function clanMembersManagement(databaseData) {
                     if (daysRequiredInClan <= userInClanDays) {
                         const rolesExceptTheNeeded = clanJoinDateRoles.allRoles.filter((r) => r !== roleId);
                         try {
-                            const member = await client.getAsyncMember(memberAuthData.discordId);
+                            const member = await client.getMember(memberAuthData.discordId);
                             if (member.roles.cache.hasAny(...rolesExceptTheNeeded)) {
                                 await member.roles.remove(rolesExceptTheNeeded);
                             }
@@ -187,10 +194,17 @@ async function clanMembersManagement(databaseData) {
         }
     }
     catch (e) {
-        if (e.statusCode >= 400 || e.statusCode <= 599)
+        if (e instanceof BungieAPIError && e.errorCode) {
+            console.error(`[Error code: 2052] Received ${e.errorCode}/${e.errorStatus} error during clan checking`);
+            updateEndpointStatus("api", e.errorCode);
+            return;
+        }
+        if (e.statusCode >= 400 || e.statusCode <= 599) {
             console.error(`[Error code: 1221] ${e.statusCode} error during clan checking`);
-        else
+        }
+        else {
             console.error("[Error code: 1222]", e.error?.stack || e.error || e, e.statusCode);
+        }
     }
 }
 function updateBotPresence(membersOnline, totalMembers) {

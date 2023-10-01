@@ -1,5 +1,5 @@
 import { requestTokenRefresh } from "../../../core/tokenManagement.js";
-import { AuthData } from "../../persistence/sequelize.js";
+import { AuthData } from "../../persistence/sequelizeModels/authData.js";
 import { sendApiRequest } from "../sendApiRequest.js";
 export async function checkEndpointStatus(endpoint) {
     let endpointURL = "";

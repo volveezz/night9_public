@@ -1,5 +1,5 @@
 import pkg from "lodash";
-import { VotingDatabase } from "../utils/persistence/sequelize.js";
+import { VotingDatabase } from "../utils/persistence/sequelizeModels/votingDatabase.js";
 const { debounce } = pkg;
 class VoteSystem {
     static instance;
@@ -15,27 +15,35 @@ class VoteSystem {
         return VoteSystem.instance;
     }
     flushSaveToDatabase() {
-        console.debug("Received a call. Beginning of database synchronization.");
+        console.debug("Received a call. Beginning of vote database synchronization.");
         this.saveToDatabaseDebounced.flush();
     }
     async init() {
         const voteRecords = await VotingDatabase.findAll();
         for (const voteRecord of voteRecords) {
+            const { channelId, messageId, creatorId } = voteRecord;
             const votes = new Map();
             for (const voteOption of voteRecord.votes) {
                 votes.set(voteOption.option, new Set(voteOption.discordIds));
             }
-            this.votingData.set(voteRecord.uniqueId, { multiVote: voteRecord.multiVote, votes });
+            this.votingData.set(voteRecord.uniqueId, {
+                multiVote: voteRecord.multiVote,
+                votes,
+                channelId,
+                creatorId,
+                messageId,
+            });
         }
     }
     async saveToDatabase() {
         await VotingDatabase.destroy({ where: {} });
         for (const [uniqueId, voteData] of this.votingData) {
+            const { channelId, messageId, creatorId } = voteData;
             const voteOptions = [];
             for (const [voteOption, voteOptionSet] of voteData.votes) {
                 voteOptions.push({ option: voteOption, discordIds: Array.from(voteOptionSet) });
             }
-            await VotingDatabase.create({ uniqueId, multiVote: voteData.multiVote, votes: voteOptions });
+            await VotingDatabase.create({ uniqueId, multiVote: voteData.multiVote, votes: voteOptions, channelId, messageId, creatorId });
         }
     }
     removePreviousVote(uniqueId, discordId) {
@@ -68,14 +76,20 @@ class VoteSystem {
             voteOptionSet.add(discordId);
         }
         this.saveToDatabaseDebounced();
-        return VoteSystem.instance.getVoteCounts(uniqueId);
+        return this.getVoteCounts(uniqueId);
     }
-    addVote(uniqueId, multiVote) {
+    addVote(uniqueId, multiVote, messageId, creatorId, channelId) {
         if (this.votingData.has(uniqueId)) {
             throw new Error(`Vote with uniqueId ${uniqueId} already exists`);
         }
         const votes = new Map();
-        this.votingData.set(uniqueId, { multiVote: multiVote, votes });
+        this.votingData.set(uniqueId, {
+            multiVote: multiVote,
+            votes,
+            messageId,
+            creatorId,
+            channelId,
+        });
     }
     getVoteCounts(uniqueId) {
         const voteData = this.votingData.get(uniqueId);

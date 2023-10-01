@@ -25,8 +25,7 @@ export default new Event("voiceStateUpdate", async (oldState, newState) => {
     }
     if (!voiceLogChannel)
         voiceLogChannel =
-            client.getCachedTextChannel(process.env.VOICE_LOG_CHANNEL_ID) ||
-                (await client.getAsyncTextChannel(process.env.VOICE_LOG_CHANNEL_ID));
+            client.getCachedTextChannel(process.env.VOICE_LOG_CHANNEL_ID) || (await client.getTextChannel(process.env.VOICE_LOG_CHANNEL_ID));
     if (!oldState.channelId && newState.channelId) {
         if (!oldState.member?.user.bot && channelDataMap.has(newState.channelId))
             lfgTextChannelHandler(newState.channelId, newState.member, "join");

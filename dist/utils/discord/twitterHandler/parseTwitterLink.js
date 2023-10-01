@@ -1,4 +1,5 @@
 import { pause } from "../../general/utilities.js";
+import { processedRssLinks } from "../../persistence/dataStore.js";
 import { generateTwitterEmbed } from "./twitterMessageParser.js";
 async function parseTwitterLinkMessage(message) {
     for (let i = 0; i < message.embeds.length; i++) {
@@ -9,7 +10,13 @@ async function parseTwitterLinkMessage(message) {
         let embed = message.embeds[index];
         while ((!embed || !embed?.author?.name) && attempts < 5) {
             await pause(attempts * 500 + 500);
-            embed = (await message.fetch()).embeds[index];
+            try {
+                embed = (await message.fetch()).embeds[index];
+            }
+            catch (error) {
+                console.error(`[Error code: 2051] Failed to fetch message ${message.id}`, error);
+                return;
+            }
             attempts++;
         }
         if (!embed?.author?.name) {
@@ -21,11 +28,16 @@ async function parseTwitterLinkMessage(message) {
             return;
         }
         const tweetUrl = message.content.match(/https:\/\/twitter\.com\/\w+\/status\/\d+/)?.[0];
+        const url = tweetUrl || embed.author.url;
+        if (url && processedRssLinks.has(url)) {
+            message.delete();
+            return;
+        }
         await generateTwitterEmbed({
             twitterData: { content, link: tweetUrl || "" },
             author,
             icon: embed.author.iconURL,
-            url: tweetUrl || embed.author.url,
+            url,
             originalEmbed: embed,
         });
         message.delete();

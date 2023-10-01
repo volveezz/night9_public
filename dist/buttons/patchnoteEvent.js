@@ -18,9 +18,7 @@ const ButtonCommand = new Button({
                 ]);
                 const messageOptions = { content, components };
                 if (!channelOfGods)
-                    channelOfGods =
-                        client.getCachedTextChannel(process.env.GOD_BOT_CHANNEL_ID) ||
-                            (await client.getAsyncTextChannel(process.env.GOD_BOT_CHANNEL_ID));
+                    channelOfGods = await client.getTextChannel(process.env.GOD_BOT_CHANNEL_ID);
                 await channelOfGods.send(messageOptions);
                 await interaction.reply({ content: `Отправлено в <#${process.env.GOD_BOT_CHANNEL_ID}>`, ephemeral: true });
                 await interaction.message.delete();
@@ -28,9 +26,7 @@ const ButtonCommand = new Button({
             }
             case "patchnoteEvent_sendToPublic": {
                 if (!newsChannel)
-                    newsChannel =
-                        client.getCachedTextChannel(process.env.NEWS_CHANNEL_ID) ||
-                            (await client.getAsyncTextChannel(process.env.NEWS_CHANNEL_ID));
+                    newsChannel = await client.getTextChannel(process.env.NEWS_CHANNEL_ID);
                 await newsChannel.send(content);
                 await interaction.reply({ content: `Отправлено в <#${process.env.NEWS_CHANNEL_ID}>`, ephemeral: true });
                 await interaction.message.delete();

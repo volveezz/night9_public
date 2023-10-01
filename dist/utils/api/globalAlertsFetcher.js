@@ -27,7 +27,7 @@ async function fetchAndPostAlerts() {
                     if (!newsChannel) {
                         newsChannel =
                             client.getCachedTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID) ||
-                                (await client.getAsyncTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID));
+                                (await client.getTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID));
                     }
                     const embed = new EmbedBuilder()
                         .setTitle(latestAlert.AlertKey || "New Global Alert")
@@ -67,7 +67,7 @@ async function fetchAndPostAlerts() {
             }
         }
         catch (error) {
-            console.error("[Error code: 1938] Error fetching global alerts:", error);
+            console.error(`[Error code: 1938] Received ${error.statusCode} error while fetching global alerts`);
         }
         finally {
             setTimeout(executeFetch, 60000);

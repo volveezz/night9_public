@@ -4,7 +4,7 @@ import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
 import { client } from "../../../index.js";
 import { completedRaidsData } from "../../persistence/dataStore.js";
-import { RaidEvent } from "../../persistence/sequelize.js";
+import { RaidEvent } from "../../persistence/sequelizeModels/raidEvent.js";
 import { addButtonsToMessage } from "../addButtonsToMessage.js";
 import nameCleaner from "../nameClearer.js";
 import { removeRaid } from "../raidFunctions.js";
@@ -32,7 +32,7 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
     }
     catch (error) {
         if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
-            const raidChannel = await client.getAsyncTextChannel(process.env.RAID_CHANNEL_ID);
+            const raidChannel = await client.getTextChannel(process.env.RAID_CHANNEL_ID);
             message = await raidChannel.send({ content: `<@${creator.id}>`, embeds: [embed], components: buttons });
         }
         else {

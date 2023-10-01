@@ -12,7 +12,7 @@ async function downloadFile(url, fileName) {
 }
 async function sendFileToDiscord(filePath) {
     if (!textChannel)
-        textChannel = await client.getAsyncTextChannel(process.env.STORAGE_CHANNEL_ID);
+        textChannel = await client.getTextChannel(process.env.STORAGE_CHANNEL_ID);
     try {
         const message = await textChannel.send({
             files: [

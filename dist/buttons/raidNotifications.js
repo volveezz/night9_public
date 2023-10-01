@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import { Button } from "../structures/button.js";
 import { sendNotificationInfo } from "../utils/general/raidFunctions/raidNotifications.js";
-import { RaidUserNotification } from "../utils/persistence/sequelize.js";
+import { RaidUserNotifications } from "../utils/persistence/sequelizeModels/raidUserNotifications.js";
 const ButtonCommand = new Button({
     name: "raidNotifications",
     run: async ({ interaction: commandInteraction, modalSubmit: modalInteraction }) => {
@@ -18,7 +18,7 @@ const ButtonCommand = new Button({
             const modal = new ModalBuilder()
                 .setTitle("Настройка своего времени оповещения об рейдах")
                 .setCustomId("changeCustomRaidNotifications");
-            const alreadyDefinedTimeByUser = await RaidUserNotification.findByPk(interaction.user.id);
+            const alreadyDefinedTimeByUser = await RaidUserNotifications.findByPk(interaction.user.id);
             const specifiedTime = new TextInputBuilder()
                 .setCustomId("raidNotifications_modal_time")
                 .setLabel("Укажите время перед оповещением")

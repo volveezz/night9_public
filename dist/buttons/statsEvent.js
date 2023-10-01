@@ -5,7 +5,8 @@ import { GetManifest } from "../utils/api/ManifestManager.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { getEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
-import { AuthData } from "../utils/persistence/sequelize.js";
+import { convertModifiersPlaceholders } from "../utils/general/raidFunctions/convertModifiersPlaceholders.js";
+import { AuthData } from "../utils/persistence/sequelizeModels/authData.js";
 const ButtonCommand = new Button({
     name: "statsEvent",
     run: async ({ interaction }) => {
@@ -112,7 +113,7 @@ const ButtonCommand = new Button({
                             rewards: milestone.rewards,
                         });
                     });
-                    const embed = new EmbedBuilder().setColor(colors.success).setFooter({ text: `Id: ${id}` });
+                    const embed = new EmbedBuilder().setColor(colors.success);
                     const curDate = Date.now();
                     const milestoneDefinition = await GetManifest("DestinyMilestoneDefinition");
                     storedMilestones.forEach((mile) => {
@@ -123,7 +124,7 @@ const ButtonCommand = new Button({
                                 if (subRew.redeemed === true || (embed.data.fields && embed.data.fields.length >= 25))
                                     return;
                                 embed.addFields({
-                                    name: `${milestoneDefinition[mile.milestoneHash].displayProperties.name}\n${milestoneDefinition[mile.milestoneHash].displayProperties.description}`,
+                                    name: `${convertModifiersPlaceholders(milestoneDefinition[mile.milestoneHash].displayProperties.name)}\n${convertModifiersPlaceholders(milestoneDefinition[mile.milestoneHash].displayProperties.description)}`,
                                     value: `Можно выполнить и получить награду`,
                                 });
                             });

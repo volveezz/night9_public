@@ -14,7 +14,7 @@ async function exportRaidGuide(interaction, deferredReply) {
     }
     else {
         if (!storageChannel)
-            storageChannel = await client.getAsyncTextChannel(process.env.STORAGE_CHANNEL_ID);
+            storageChannel = await client.getTextChannel(process.env.STORAGE_CHANNEL_ID);
         await storageChannel.send({ embeds: [embed], files: [attachment] });
     }
 }

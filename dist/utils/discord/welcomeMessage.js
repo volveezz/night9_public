@@ -2,7 +2,7 @@ import { ButtonBuilder, ButtonStyle, EmbedBuilder, RESTJSONErrorCodes } from "di
 import colors from "../../configs/colors.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import { escapeString, pause } from "../general/utilities.js";
-import { AuthData } from "../persistence/sequelize.js";
+import { AuthData } from "../persistence/sequelizeModels/authData.js";
 const welcomeEmbed = new EmbedBuilder()
     .setColor(colors.invisible)
     .setTitle(" Приветствуем Вас на сервере ")

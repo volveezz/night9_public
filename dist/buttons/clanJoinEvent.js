@@ -81,8 +81,7 @@ const ButtonCommand = new Button({
             });
             if (!clanLogChannel)
                 clanLogChannel =
-                    client.getCachedTextChannel(process.env.CLAN_CHANNEL_ID) ||
-                        (await client.getAsyncTextChannel(process.env.CLAN_CHANNEL_ID));
+                    client.getCachedTextChannel(process.env.CLAN_CHANNEL_ID) || (await client.getTextChannel(process.env.CLAN_CHANNEL_ID));
             await clanLogChannel.send({ embeds: [loggedEmbed] });
         }
     },

@@ -4,7 +4,7 @@ import { getEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js"
 import { destinyActivityChecker } from "../utils/general/destinyActivityChecker.js";
 import { pause } from "../utils/general/utilities.js";
 import { clanOnline } from "../utils/persistence/dataStore.js";
-import { AuthData } from "../utils/persistence/sequelize.js";
+import { AuthData } from "../utils/persistence/sequelizeModels/authData.js";
 async function checkClanActivitiesPeriodically() {
     if (process.env.NODE_ENV === "development")
         return;

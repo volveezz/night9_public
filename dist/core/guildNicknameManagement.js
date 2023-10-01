@@ -1,6 +1,8 @@
 import { client } from "../index.js";
-import { AuthData } from "../utils/persistence/sequelize.js";
-setTimeout(guildNicknameManagement, 1000 * 60);
+import { AuthData } from "../utils/persistence/sequelizeModels/authData.js";
+if (process.env.NODE_ENV !== "development") {
+    setTimeout(guildNicknameManagement, 1000 * 60);
+}
 async function guildNicknameManagement() {
     const dbData = await AuthData.findAll({
         attributes: ["discordId", "displayName", "timezone"],

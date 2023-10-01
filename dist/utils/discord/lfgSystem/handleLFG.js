@@ -94,7 +94,7 @@ async function createLfgPost({ userLimit, roomActivityName, description, additio
     if (additionalParams) {
         handleAdditionalLfgParams(additionalParams, userSettings, activityName || undefined);
     }
-    const member = await client.getAsyncMember(user.id);
+    const member = await client.getMember(user.id);
     const lfgData = member.voice.channel && channelDataMap.get(member.voice.channel?.id);
     let deletable = member.voice.channel ? false : true;
     const embed = new EmbedBuilder().setThumbnail(userSettings.activitySettings?.image ?? null);
@@ -150,7 +150,7 @@ async function createLfgPost({ userLimit, roomActivityName, description, additio
         });
     }
     if (!pvePartyChannel)
-        pvePartyChannel = await client.getAsyncTextChannel(process.env.PVE_PARTY_CHANNEL_ID);
+        pvePartyChannel = await client.getTextChannel(process.env.PVE_PARTY_CHANNEL_ID);
     const voiceChannel = member.voice.channel?.type === ChannelType.GuildVoice
         ? member.voice.channel
         : await member.guild?.channels.create({

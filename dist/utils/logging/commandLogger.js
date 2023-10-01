@@ -16,7 +16,7 @@ const logCommandInteraction = async (interaction) => {
     if (interaction instanceof AutocompleteInteraction)
         return;
     const discordId = interaction.user.id;
-    const memberDisplayName = client.getCachedMembers().get(discordId)?.displayName || (await client.getAsyncMember(discordId)).displayName;
+    const memberDisplayName = client.getCachedMembers().get(discordId)?.displayName || (await client.getMember(discordId)).displayName;
     const username = nameCleaner(memberDisplayName) || interaction.user.username;
     const embedInfo = interaction.isMessageComponent() && interaction.message && interaction.message.embeds
         ? getEmbedTitleOrAuthorName(interaction.message.embeds)

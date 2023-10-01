@@ -2,18 +2,19 @@ import { Op } from "sequelize";
 import { dungeonsTriumphHashes } from "../../configs/roleRequirements.js";
 import { activityRoles, guardianRankRoles, seasonalRoles, statisticsRoles, trialsRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
+import BungieAPIError from "../../structures/BungieAPIError.js";
 import { sendApiRequest } from "../../utils/api/sendApiRequest.js";
-import { getEndpointStatus } from "../../utils/api/statusCheckers/statusTracker.js";
+import { getEndpointStatus, updateEndpointStatus } from "../../utils/api/statusCheckers/statusTracker.js";
 import { destinyActivityChecker } from "../../utils/general/destinyActivityChecker.js";
 import { pause } from "../../utils/general/utilities.js";
 import { bungieNames, clanOnline, longOffline, userTimezones } from "../../utils/persistence/dataStore.js";
-import { AuthData, AutoRoleData, UserActivityData } from "../../utils/persistence/sequelize.js";
+import { AuthData } from "../../utils/persistence/sequelizeModels/authData.js";
+import { AutoRoleData } from "../../utils/persistence/sequelizeModels/autoRoleData.js";
+import { UserActivityData } from "../../utils/persistence/sequelizeModels/userActivityData.js";
 import clanMembersManagement from "../clanMembersManagement.js";
 import assignDlcRoles from "./assignDlcRoles.js";
+import { dungeonRoles } from "./getDungeonRoleIds.js";
 const throttleSet = new Set();
-const dungeonRoles = await AutoRoleData.findAll({ where: { category: 8 } }).then((rolesData) => {
-    return rolesData.filter((roleData) => dungeonsTriumphHashes.includes(roleData.triumphRequirement)).map((r) => r.roleId);
-});
 async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessToken, displayName, roleCategoriesBits, UserActivityData: userActivity }, member, roleDataFromDatabase, isEasyCheck = false) {
     const roleIdsForAdding = [];
     const roleIdForRemoval = [];
@@ -202,9 +203,10 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                             if (hasRole(process.env.DUNGEON_MASTER_ROLE)) {
                                 return;
                             }
-                            if (member.roles.cache.hasAll(...dungeonRoles) && !roleIdsForAdding.includes(process.env.DUNGEON_MASTER_ROLE)) {
+                            const dungeonRolesIds = (await dungeonRoles());
+                            if (member.roles.cache.hasAll(...dungeonRolesIds) && !roleIdsForAdding.includes(process.env.DUNGEON_MASTER_ROLE)) {
                                 roleIdsForAdding.push(process.env.DUNGEON_MASTER_ROLE);
-                                roleIdForRemoval.push(...dungeonRoles);
+                                roleIdForRemoval.push(...dungeonRolesIds);
                             }
                         }
                         else {
@@ -308,6 +310,8 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
     }
 }
 async function checkUserKDRatio({ platform, bungieId, accessToken }, member) {
+    if (getEndpointStatus("account") !== 1)
+        return;
     try {
         const request = await sendApiRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
         if (!request) {
@@ -342,8 +346,13 @@ async function checkUserKDRatio({ platform, bungieId, accessToken }, member) {
         }
     }
     catch (e) {
-        if (e.statusCode >= 400 || e.statusCode <= 599)
+        if (e instanceof BungieAPIError && e.errorCode) {
+            console.error(`[Error code: 2049] Received ${e.errorCode}/${e.errorStatus} error during checking KD of ${member.displayName}`);
+            updateEndpointStatus("account", e.errorCode);
+        }
+        else if (e.statusCode >= 400 || e.statusCode <= 599) {
             console.error(`[Error code: 1219] ${e.statusCode} error for ${bungieId}`);
+        }
         else {
             throttleSet.add(member.id);
             console.error("[Error code: 1016]", e.error?.message || e.message || e.error?.name || e.name, bungieId, e.statusCode || e, e?.ErrorStatus);
@@ -493,7 +502,7 @@ async function handleMemberStatistics() {
 }
 async function checkIndiviualUserStatistics(user) {
     const userId = typeof user === "string" ? user : user.id;
-    const memberPromise = client.getAsyncMember(userId);
+    const memberPromise = client.getMember(userId);
     const databasePromise = AuthData.findOne({
         where: { discordId: userId },
         attributes: ["discordId", "bungieId", "platform", "accessToken", "displayName", "roleCategoriesBits"],

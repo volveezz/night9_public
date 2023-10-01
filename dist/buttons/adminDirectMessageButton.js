@@ -14,7 +14,7 @@ const ButtonCommand = new Button({
         const messageId = interaction.message.embeds[0].footer.text.split(" | MId: ").pop();
         const userId = interaction.message.embeds[0].footer.text.split(" | MId: ").shift().split("UId: ").pop();
         const replyMember = interaction.guild.members.cache.get(userId);
-        const channel = await client.getAsyncTextChannel(process.env.DIRECT_MESSAGES_CHANNEL_ID);
+        const channel = await client.getTextChannel(process.env.DIRECT_MESSAGES_CHANNEL_ID);
         if (!replyMember) {
             console.error("[Error code: 1728]", userId);
             throw { errorType: "MEMBER_NOT_FOUND" };

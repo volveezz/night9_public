@@ -3,7 +3,7 @@ import { completedRaidsData } from "../../../persistence/dataStore.js";
 import nameCleaner from "../../nameClearer.js";
 const getUserRaidStatusString = async (discordId) => {
     const userRaidData = completedRaidsData.get(discordId);
-    const member = await client.getAsyncMember(discordId);
+    const member = await client.getMember(discordId);
     if (!userRaidData) {
         if (member?.roles.cache.has(process.env.VERIFIED)) {
             return `⁣　<@${discordId}> не закеширован`;
@@ -30,7 +30,7 @@ const getUserRaidStatusString = async (discordId) => {
     ].filter((raid) => raid.length > 0);
     const displayName = nameCleaner(member?.displayName || member?.user.username || "неизвестный пользователь", true);
     return `⁣　**${displayName}** ${raidClears.length > 0
-        ? `завершил: ${raidClears.join(", ")}`
+        ? `: ${raidClears.join(", ")}`
         : userRaidData?.totalRaidClears === 0
             ? "не проходил ранее рейды"
             : "не проходил доступные на данный момент рейды"}`;

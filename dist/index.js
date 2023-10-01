@@ -2,16 +2,18 @@ import cookieParser from "cookie-parser";
 import "dotenv/config";
 import express from "express";
 import { join, resolve } from "path";
+import { LFGController } from "./structures/LFGController.js";
 import VoteSystem from "./structures/VoteSystem.js";
 import { ExtendedClient } from "./structures/client.js";
 import webHandler from "./utils/api/webHandler.js";
 import calculateVoteResults from "./utils/discord/twitterHandler/twitterTranslationVotes.js";
 import { forceUpdateUserActivity } from "./utils/discord/userActivityHandler.js";
+import { interactionErrorResolver } from "./utils/errorHandling/interactionErrorResolver.js";
 import { getOAuthTokens, getOAuthUrl, getUserData, updateMetadata } from "./utils/general/linkedRoles.js";
 import { stopAllRaidReadinessCollectors } from "./utils/general/raidFunctions/raidReadiness/askUserRaidReadiness.js";
 import saveDataToRedis from "./utils/general/redisData/saveDataToRedis.js";
 import { redisClient } from "./utils/persistence/redis.js";
-import * as storage from "./utils/persistence/webStorage.js";
+import { storeDiscordTokens } from "./utils/persistence/webStorage.js";
 export const client = new ExtendedClient();
 client.rest.on("rateLimited", (rateLimit) => {
     console.error(`Ratelimited for ${rateLimit.timeToReset} ms, route: ${rateLimit.route}${rateLimit.majorParameter ? `, parameter: ${rateLimit.majorParameter}` : ""}`);
@@ -23,23 +25,29 @@ process.on("SIGINT", handleExit);
 process.on("SIGTERM", handleExit);
 async function handleExit(signal) {
     console.log(`Received ${signal}. Saving data...`);
-    await Promise.all([
+    await Promise.allSettled([
+        LFGController.getInstance().saveToDatabaseFlush(),
         VoteSystem.getInstance().flushSaveToDatabase(),
         forceUpdateUserActivity(),
         calculateVoteResults(),
         stopAllRaidReadinessCollectors(),
         saveDataToRedis(),
     ]);
-    await redisClient.quit();
-    console.log("Data saved. Exiting from discord client...");
-    await client.destroy();
-    console.log("Discord client exited. Exiting from process...");
+    await Promise.allSettled([client.destroy(), redisClient.quit()]);
+    console.info("Data saved and the client had been shut down. Exiting from process...");
     process.exit(0);
 }
 process.on("uncaughtException", (error) => {
     console.error("UncaughtException at top level", error);
 });
-process.on("unhandledRejection", (error) => {
+process.on("unhandledRejection", async (error) => {
+    if (error.interaction) {
+        console.error("[Error code: 2057] Received an interaction error", error.interaction?.customId, error.interaction?.user?.id);
+        if (error.deferred)
+            await error.deferred;
+        await interactionErrorResolver({ error: error.error, interaction: error.interaction, retryOperation: false });
+        return;
+    }
     if (error.code === "ECONNRESET")
         return console.error(`[Error code: 1060] ${error.code} ${error.name}`);
     if (error.code === "EPROTO")
@@ -83,7 +91,7 @@ app.get("/callback", async (req, res) => {
         const tokens = (await getOAuthTokens(code));
         const meData = (await getUserData(tokens));
         const userId = meData.user.id;
-        await storage.storeDiscordTokens(userId, {
+        await storeDiscordTokens(userId, {
             access_token: tokens.access_token,
             refresh_token: tokens.refresh_token,
             expires_at: Date.now() + tokens.expires_in * 1000,

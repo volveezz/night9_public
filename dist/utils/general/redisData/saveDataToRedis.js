@@ -10,7 +10,7 @@ async function saveDataToRedis() {
         saveIterableToRedis(completedPhases.entries(), "completedPhasesKey", EXPIRATION_TIMES.HALF_HOUR),
         saveIterableToRedis(channelDataMap, "lfgData", EXPIRATION_TIMES.HALF_HOUR, mapLfgData),
         saveIterableToRedis(completedRaidsData, "completedRaidsData", null),
-        saveIterableToRedis(lastAlertsTimestamps, "lastAlertsTimestamps", EXPIRATION_TIMES.ONE_HOUR),
+        saveIterableToRedis(lastAlertsTimestamps, "lastAlertsTimestamps", null),
     ]);
     return true;
 }

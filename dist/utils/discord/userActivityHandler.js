@@ -1,4 +1,4 @@
-import { UserActivityData } from "../persistence/sequelize.js";
+import { UserActivityData } from "../persistence/sequelizeModels/userActivityData.js";
 const userMessageSentMap = new Map();
 export const userVoiceTimeMap = new Map();
 export const voiceChannelJoinTimestamps = new Map();
@@ -33,23 +33,32 @@ export async function forceUpdateUserActivity() {
     await userActivityUpdater();
 }
 async function userActivityUpdater() {
-    for (const [userId, value] of userMessageSentMap) {
-        userMessageSentMap.delete(userId);
-        try {
-            await UserActivityData.increment("messages", { by: value ?? 0, where: { discordId: userId } });
-        }
-        catch (error) {
-            console.error("[Error code: 1825]", userId, error);
-        }
-    }
-    for (const [userId, value] of userVoiceTimeMap) {
-        userVoiceTimeMap.delete(userId);
-        try {
-            await UserActivityData.increment("voice", { by: value ?? 0, where: { discordId: userId } });
-        }
-        catch (error) {
-            console.error("[Error code: 1824]", userId, error);
+    async function updateMessageSentCount() {
+        for (const [userId, value] of userMessageSentMap) {
+            userMessageSentMap.delete(userId);
+            if (!value || value <= 0)
+                continue;
+            try {
+                await UserActivityData.increment("messages", { by: value, where: { discordId: userId } });
+            }
+            catch (error) {
+                console.error("[Error code: 1825]", userId, error);
+            }
         }
     }
+    async function updateVoiceTimeCount() {
+        for (const [userId, value] of userVoiceTimeMap) {
+            userVoiceTimeMap.delete(userId);
+            if (!value || value <= 0)
+                continue;
+            try {
+                await UserActivityData.increment("voice", { by: value, where: { discordId: userId } });
+            }
+            catch (error) {
+                console.error("[Error code: 1824]", userId, error);
+            }
+        }
+    }
+    await Promise.allSettled([updateMessageSentCount(), updateVoiceTimeCount()]);
 }
 //# sourceMappingURL=userActivityHandler.js.map

@@ -23,7 +23,7 @@ const ButtonCommand = new Button({
             return;
         }
         if (keyValueBasedOnMessageId.value.creator !== interaction.user.id) {
-            const member = await client.getAsyncMember(interaction.user.id);
+            const member = await client.getMember(interaction.user.id);
             if (!member || !member.permissions.has("Administrator")) {
                 const embed = new EmbedBuilder().setColor(colors.error).setAuthor({ name: "Ошибка. Недостаточно прав", iconURL: icons.error });
                 interaction.reply({ embeds: [embed], ephemeral: true });

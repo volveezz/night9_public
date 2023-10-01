@@ -4,7 +4,7 @@ import { Autocomplete } from "../structures/autocomplete.js";
 import { sendApiPostRequest } from "../utils/api/sendApiPostRequest.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { isBungieId, isMembershipId } from "../utils/general/utilities.js";
-import { AuthData } from "../utils/persistence/sequelize.js";
+import { AuthData } from "../utils/persistence/sequelizeModels/authData.js";
 const AutocompleteFile = new Autocomplete({
     name: "identifier",
     run: async ({ interaction, option }) => {
@@ -70,7 +70,7 @@ const AutocompleteFile = new Autocomplete({
             let memberName = null;
             let clanStatus = undefined;
             try {
-                memberName = userData.discordId ? (await client.getAsyncMember(userData.discordId)).displayName : null;
+                memberName = userData.discordId ? (await client.getMember(userData.discordId)).displayName : null;
                 clanStatus = userData.clan;
             }
             catch (error) {

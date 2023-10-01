@@ -36,7 +36,7 @@ const SlashCommand = new Command({
     ],
     run: async ({ client, interaction, args }) => {
         const channelId = args.getString("channel", true);
-        const channel = await client.getAsyncTextChannel(channelId);
+        const channel = await client.getTextChannel(channelId);
         const permissionsStatus = !channel.permissionsFor(interaction.user.id)?.has("ViewChannel");
         if (permissionsStatus) {
             await channel.permissionOverwrites.create(interaction.user.id, {

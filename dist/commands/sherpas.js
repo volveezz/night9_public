@@ -32,7 +32,7 @@ function formatRaidUserData(discordId) {
     const raidClears = generateRaidClears(raidUserData);
     const cleanedName = nameCleaner(member.displayName);
     return `**${cleanedName}** ${raidClears.length > 0
-        ? `завершил: ${raidClears.join(", ")}`
+        ? `: ${raidClears.join(", ")}`
         : raidUserData?.totalRaidClears === 0
             ? "не проходил ранее рейды"
             : "не проходил доступные на данный момент рейды"}`;

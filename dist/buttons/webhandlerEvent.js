@@ -6,7 +6,7 @@ import { client } from "../index.js";
 import { Button } from "../structures/button.js";
 import { sendApiPostRequest } from "../utils/api/sendApiPostRequest.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
-import { AuthData } from "../utils/persistence/sequelize.js";
+import { AuthData } from "../utils/persistence/sequelizeModels/authData.js";
 const ButtonCommand = new Button({
     name: "webhandlerEvent",
     run: async ({ interaction }) => {

@@ -10,7 +10,8 @@ import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { pause } from "../utils/general/utilities.js";
 import { recentlyExpiredAuthUsersBungieIds } from "../utils/persistence/dataStore.js";
-import { AuthData, LeavedUsersData } from "../utils/persistence/sequelize.js";
+import { AuthData } from "../utils/persistence/sequelizeModels/authData.js";
+import { LeavedUsersData } from "../utils/persistence/sequelizeModels/leavedUsersData.js";
 const BUNGIE_TOKEN_URL = "https://www.bungie.net/Platform/App/OAuth/Token/";
 export async function requestTokenRefresh({ userId, table = AuthData, refresh_token, }) {
     let refreshToken = refresh_token;
@@ -106,7 +107,7 @@ async function handleAuthorizationRecordExpired(row, table) {
                 .setLabel("Регистрация")
                 .setStyle(ButtonStyle.Success);
             const components = addButtonsToMessage([registerButton]);
-            const member = await client.getAsyncMember(discordId);
+            const member = await client.getMember(discordId);
             if (member) {
                 await setMemberRoles({ member, roles: [process.env.NEWBIE], reason: "Authorization token expired" }).catch(async (e) => {
                     console.error(`[Error code: 1635] An error occurred while deleting roles of ${member.displayName || member.user.username}\n`, e);
@@ -114,7 +115,7 @@ async function handleAuthorizationRecordExpired(row, table) {
             }
             await member.send({ embeds: [embed], components }).catch(async (e) => {
                 if (e.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
-                    const botChannel = await client.getAsyncTextChannel(process.env.PUBLIC_BOT_CHANNEL_ID);
+                    const botChannel = await client.getTextChannel(process.env.PUBLIC_BOT_CHANNEL_ID);
                     embed.setAuthor({
                         name: `${nameCleaner(member.displayName)}`,
                         iconURL: member.displayAvatarURL(),

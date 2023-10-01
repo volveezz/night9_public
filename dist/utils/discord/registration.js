@@ -1,7 +1,7 @@
 import { EmbedBuilder, Message } from "discord.js";
 import icons from "../../configs/icons.js";
 import { logUserRegistrationAttempt } from "../logging/logUserRegistration.js";
-import { InitData } from "../persistence/sequelize.js";
+import { InitData } from "../persistence/sequelizeModels/initData.js";
 const clientId = process.env.BUNGIE_CLIENT_ID || "34432";
 const EMBED_COLOR = "#cdf9ff";
 async function sendRegistrationLink(interaction) {

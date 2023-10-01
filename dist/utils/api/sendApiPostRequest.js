@@ -5,7 +5,7 @@ export async function sendApiPostRequest({ apiEndpoint, accessToken, requestData
     try {
         const response = await fetch(apiUrl, options);
         if (!response.ok) {
-            console.error(`[Error code: 1831] Error fetching data: ${response.statusText}`);
+            console.error(`[Error code: 1831] Error fetching data: ${response.status} ${response.type}`);
             return undefined;
         }
         const jsonResponse = await parseJsonResponse(response);

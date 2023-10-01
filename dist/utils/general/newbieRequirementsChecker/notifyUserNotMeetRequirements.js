@@ -4,7 +4,7 @@ import icons from "../../../configs/icons.js";
 import { client } from "../../../index.js";
 import nameCleaner from "../nameClearer.js";
 async function notifyUserNotMeetRequirements(authData, missedRequirementsMessage) {
-    const member = await client.getAsyncMember(authData.discordId);
+    const member = await client.getMember(authData.discordId);
     const embed = new EmbedBuilder()
         .setColor(colors.warning)
         .setAuthor({

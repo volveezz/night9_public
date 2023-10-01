@@ -1,4 +1,4 @@
-import { ApplicationCommandType, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, EmbedBuilder, } from "discord.js";
+import { ApplicationCommandType, ButtonBuilder, ButtonStyle, CommandInteraction, EmbedBuilder, } from "discord.js";
 import colors from "../configs/colors.js";
 import { Command } from "../structures/command.js";
 import { GetManifest } from "../utils/api/ManifestManager.js";
@@ -7,7 +7,8 @@ import { getEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js"
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { convertSeconds } from "../utils/general/convertSeconds.js";
 import { bungieNames } from "../utils/persistence/dataStore.js";
-import { AuthData, UserActivityData } from "../utils/persistence/sequelize.js";
+import { AuthData } from "../utils/persistence/sequelizeModels/authData.js";
+import { UserActivityData } from "../utils/persistence/sequelizeModels/userActivityData.js";
 const SlashCommand = new Command({
     name: "информация",
     nameLocalizations: {
@@ -29,12 +30,9 @@ const SlashCommand = new Command({
             throw { errorType: "API_UNAVAILABLE" };
         }
         const interaction = messageMenuInteraction || userInteraction || commandInteraction;
-        const deferPromise = interaction.deferReply({ ephemeral: true });
-        const optionId = interaction instanceof ChatInputCommandInteraction ? interaction.options.getString("bungiename") : null;
-        let targetId = interaction instanceof ChatInputCommandInteraction
-            ? optionId
-                ? undefined
-                : interaction.user.id
+        const deferredPromise = interaction.deferReply({ ephemeral: true });
+        const targetId = interaction instanceof CommandInteraction
+            ? interaction.user.id
             : interaction.targetId;
         const databasePromise = AuthData.findOne({
             where: {
@@ -43,8 +41,12 @@ const SlashCommand = new Command({
             include: { model: UserActivityData },
             attributes: ["platform", "bungieId", "accessToken", "membershipId"],
         });
-        const memberPromise = client.getCachedMembers().get(targetId) || client.getAsyncMember(targetId);
+        const memberPromise = client.getCachedMembers().get(targetId) || client.getMember(targetId);
         const [targetMember, databaseData] = await Promise.all([memberPromise, databasePromise]);
+        if (!databaseData) {
+            await deferredPromise;
+            throw { errorType: "DB_USER_NOT_FOUND", errorData: { isSelf: interaction.user.id === targetId } };
+        }
         const targetName = targetMember && targetMember.displayName;
         const targetAvatar = targetMember && targetMember.displayAvatarURL();
         const bunigeName = bungieNames.get(targetId || interaction.user.id);
@@ -54,10 +56,6 @@ const SlashCommand = new Command({
             iconURL: targetAvatar,
         })
             .setFooter({ text: `Id: ${targetId}` });
-        if (!databaseData) {
-            await deferPromise;
-            throw { errorType: "DB_USER_NOT_FOUND", errorData: { isSelf: interaction.user.id === targetId } };
-        }
         const { platform, bungieId, membershipId } = databaseData;
         const reportPlatform = platform === 3 ? "pc" : platform === 2 ? "ps" : platform === 1 ? "xb" : platform === 6 ? "epic" : "stadia";
         const fieldUrls = [];
@@ -89,10 +87,9 @@ const SlashCommand = new Command({
                 const raceDefinitionPromise = GetManifest("DestinyRaceDefinition");
                 const response = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${bungieId}/?components=100,200`);
                 const data = response?.profile?.data;
-                const characterDataArray = [];
                 if (!data) {
                     embed.setTitle("Произошла ошибка со стороны Bungie").setColor(colors.error);
-                    await deferPromise;
+                    await deferredPromise;
                     return interaction.editReply({
                         embeds: [embed],
                         components: [],
@@ -108,6 +105,7 @@ const SlashCommand = new Command({
                 }
                 fieldUrls.push(`[Guardian.gg](https://guardian.gg/2/profile/${bungieId}/${data.userInfo.bungieGlobalDisplayName.replace(/\s/g, "%20")})`);
                 const raceDefinition = await raceDefinitionPromise;
+                const characterDataArray = [];
                 for (const characterId in response.characters.data) {
                     const character = response.characters.data[characterId];
                     const classEmoji = character.classHash === 671679327
@@ -143,11 +141,11 @@ const SlashCommand = new Command({
             }
         };
         await Promise.all([fetchProfileAndCharacters(), fetchClanData()]);
-        await deferPromise;
-        await interaction.editReply({
-            embeds: [embed],
-            components: optionId ? undefined : addButtonsToMessage(components),
-        });
+        (await deferredPromise) &&
+            interaction.editReply({
+                embeds: [embed],
+                components: addButtonsToMessage(components),
+            });
     },
 });
 export default SlashCommand;

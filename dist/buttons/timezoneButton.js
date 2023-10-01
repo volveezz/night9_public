@@ -9,7 +9,7 @@ const ButtonCommand = new Button({
         const embed = new EmbedBuilder()
             .setColor(colors.default)
             .setTitle("Установите свой часовой пояс")
-            .setDescription("Если не знаете свой, то в описании каждого часового пояса есть текущее время по нему\nЧасовой пояс устанавливается от Гринвича! От +00:00, а не от Московского времени");
+            .setDescription("Если вы не знаете свой часовой пояс, вы можете узнать текущее время для каждого пояса в его описании.\nЧасовой пояс устанавливается относительно времени по Гринвичу, т.е. от +00:00, а не относительно Московского времени!");
         const tzBlank = new StringSelectMenuBuilder()
             .setCustomId("tzEvent_selectmenu")
             .setPlaceholder("Часовой пояс не выбран")

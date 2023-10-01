@@ -2,7 +2,7 @@ import { checkedStoryActivities, forbiddenRaidIds } from "../../configs/ids.js";
 import { activityRoles, raidRoles, trialsRoles } from "../../configs/roles.js";
 import BungieAPIError from "../../structures/BungieAPIError.js";
 import { sendApiRequest } from "../api/sendApiRequest.js";
-import { getEndpointStatus } from "../api/statusCheckers/statusTracker.js";
+import { getEndpointStatus, updateEndpointStatus } from "../api/statusCheckers/statusTracker.js";
 import { logActivityCompletion } from "../logging/activityLogger.js";
 import getGrandmasterHashes from "../logging/getGrandmasterHashes.js";
 import { completedRaidsData, userCharactersId } from "../persistence/dataStore.js";
@@ -54,8 +54,9 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
             await fetchAndProcessActivities();
         }
         catch (error) {
-            if (error instanceof BungieAPIError) {
+            if (error instanceof BungieAPIError && error.errorCode) {
                 console.error(`[Error code: 2035] Received ${error.errorCode}/${error.errorStatus} error during checking ${mode} mode of ${authData.displayName || discordId || bungieId}`);
+                updateEndpointStatus("activity", error.errorCode);
             }
             else {
                 console.error(`[Error code: 1996] Error happened during checking ${mode} mode of ${authData.displayName || discordId || bungieId}`);

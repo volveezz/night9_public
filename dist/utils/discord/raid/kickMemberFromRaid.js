@@ -5,7 +5,7 @@ import updatePrivateRaidMessage from "../../general/raidFunctions/privateMessage
 import { handleRaidCreatorLeaving } from "../../general/raidFunctions/raidCreatorHandler.js";
 import { raidEmitter } from "../../general/raidFunctions/raidEmitter.js";
 import { updateNotifications } from "../../general/raidFunctions/raidNotifications.js";
-import { RaidEvent } from "../../persistence/sequelize.js";
+import { RaidEvent } from "../../persistence/sequelizeModels/raidEvent.js";
 import moveUserFromHotJoinedIntoJoined from "./handleHotJoinedTransfer.js";
 import raidActionMessageHandler from "./raidActionMessageHandler.js";
 async function kickMemberFromRaid({ kickedMember, cachedRaidEvent, raidId }) {

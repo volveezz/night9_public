@@ -33,7 +33,7 @@ async function sendAdminNotification(message, member) {
     const buttons = [new ButtonBuilder().setCustomId("adminDirectMessageButton_reply").setLabel("Reply").setStyle(ButtonStyle.Success)];
     if (!dmChannel) {
         const channelId = process.env.DIRECT_MESSAGES_CHANNEL_ID;
-        dmChannel = client.getCachedTextChannel(channelId) || (await client.getAsyncTextChannel(channelId));
+        dmChannel = client.getCachedTextChannel(channelId) || (await client.getTextChannel(channelId));
     }
     await dmChannel.send({
         embeds: [embed],
@@ -43,7 +43,7 @@ async function sendAdminNotification(message, member) {
 export async function handleDm(message) {
     if (message.channel.type !== ChannelType.DM)
         return;
-    const member = client.getCachedMembers().get(message.author.id) || (await client.getAsyncMember(message.author.id));
+    const member = client.getCachedMembers().get(message.author.id) || (await client.getMember(message.author.id));
     await sendAdminNotification(message, member);
 }
 //# sourceMappingURL=dmHandler.js.map

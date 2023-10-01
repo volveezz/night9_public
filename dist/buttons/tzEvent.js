@@ -3,7 +3,7 @@ import colors from "../configs/colors.js";
 import { Button } from "../structures/button.js";
 import nameCleaner from "../utils/general/nameClearer.js";
 import { userTimezones } from "../utils/persistence/dataStore.js";
-import { AuthData } from "../utils/persistence/sequelize.js";
+import { AuthData } from "../utils/persistence/sequelizeModels/authData.js";
 const ButtonCommand = new Button({
     name: "tzEvent",
     run: async ({ client, selectMenu: interaction }) => {

@@ -91,7 +91,7 @@ const SlashCommand = new Command({
             }
             case "set": {
                 const userId = args.getUser("user", true).id;
-                const member = await client.getAsyncMember(userId);
+                const member = await client.getMember(userId);
                 const embed = new EmbedBuilder();
                 await setMemberRoles({ member, roles: [role.id], reason: "Admin command action" });
                 embed

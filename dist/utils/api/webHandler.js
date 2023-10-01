@@ -8,7 +8,10 @@ import { client } from "../../index.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import nameCleaner from "../general/nameClearer.js";
 import { escapeString } from "../general/utilities.js";
-import { AuthData, InitData, LeavedUsersData, UserActivityData } from "../persistence/sequelize.js";
+import { AuthData } from "../persistence/sequelizeModels/authData.js";
+import { InitData } from "../persistence/sequelizeModels/initData.js";
+import { LeavedUsersData } from "../persistence/sequelizeModels/leavedUsersData.js";
+import { UserActivityData } from "../persistence/sequelizeModels/userActivityData.js";
 import { sendApiRequest } from "./sendApiRequest.js";
 function isValidUUIDv4(uuid) {
     const uuidv4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -94,7 +97,7 @@ export default async function webHandler(code, state, res) {
                 const embed = new EmbedBuilder()
                     .setColor(colors.success)
                     .setAuthor({ name: "Вы обновили данные авторизации", iconURL: icons.success });
-                const member = await client.getAsyncMember(json.discordId);
+                const member = await client.getMember(json.discordId);
                 try {
                     member.send({ embeds: [embed] });
                 }
@@ -102,8 +105,8 @@ export default async function webHandler(code, state, res) {
                     if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
                         const isUserClanMember = member.roles.cache.has(process.env.CLANMEMBER);
                         const channel = await (isUserClanMember
-                            ? client.getAsyncTextChannel(process.env.PUBLIC_BOT_CHANNEL_ID)
-                            : client.getAsyncTextChannel(process.env.JOIN_REQUEST_CHANNEL_ID));
+                            ? client.getTextChannel(process.env.PUBLIC_BOT_CHANNEL_ID)
+                            : client.getTextChannel(process.env.JOIN_REQUEST_CHANNEL_ID));
                         const embed = new EmbedBuilder()
                             .setColor(colors.serious)
                             .setAuthor({
@@ -125,7 +128,7 @@ export default async function webHandler(code, state, res) {
                         .setColor(colors.success)
                         .setAuthor({ name: member.displayName, iconURL: member.displayAvatarURL() })
                         .setTitle("Пользователь обновил существующую регистрацию");
-                    await (await client.getAsyncTextChannel(process.env.BOT_CHANNEL_ID)).send({ embeds: [loggedEmbed] });
+                    await (await client.getTextChannel(process.env.BOT_CHANNEL_ID)).send({ embeds: [loggedEmbed] });
                 }
                 catch (error) {
                     console.error("[Error code: 1808] Failed to send log message", error, json.discordId);
@@ -142,7 +145,7 @@ export default async function webHandler(code, state, res) {
         });
         res.send("<script>location.replace('index.html')</script>").end();
         const clanResponse = await sendApiRequest(`/Platform/GroupV2/User/${platform}/${bungieId}/0/1/`, body.access_token);
-        const member = await client.getAsyncMember(json.discordId);
+        const member = await client.getMember(json.discordId);
         if (!member) {
             return console.error("[Error code: 1012] Member error during webHandling of", json);
         }
@@ -211,12 +214,14 @@ export default async function webHandler(code, state, res) {
             .setCustomId("timezoneButton")
             .setLabel("Установить часовой пояс")
             .setStyle(ButtonStyle.Secondary);
-        try {
-            guildNicknameManagement();
-            checkIndiviualUserStatistics(member.id);
-        }
-        catch (error) {
-            console.error("[Error code: 1736]", error);
+        if (process.env.NODE_ENV === "production") {
+            try {
+                guildNicknameManagement();
+                checkIndiviualUserStatistics(member.id);
+            }
+            catch (error) {
+                console.error("[Error code: 1736]", error);
+            }
         }
         if (!clanResponse || !clanResponse.results) {
             embed.setDescription(embed.data.description
@@ -248,8 +253,8 @@ export default async function webHandler(code, state, res) {
                 if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
                     const isUserClanMember = member.roles.cache.has(process.env.CLANMEMBER);
                     const channel = await (isUserClanMember
-                        ? client.getAsyncTextChannel(process.env.PUBLIC_BOT_CHANNEL_ID)
-                        : client.getAsyncTextChannel(process.env.JOIN_REQUEST_CHANNEL_ID));
+                        ? client.getTextChannel(process.env.PUBLIC_BOT_CHANNEL_ID)
+                        : client.getTextChannel(process.env.JOIN_REQUEST_CHANNEL_ID));
                     const embed = new EmbedBuilder()
                         .setColor(colors.serious)
                         .setAuthor({ name: `${nameCleaner(member.displayName)}, вы зарегистрировались`, iconURL: member.displayAvatarURL() })

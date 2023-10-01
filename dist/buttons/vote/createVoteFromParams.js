@@ -4,7 +4,7 @@ import colors from "../../configs/colors.js";
 import VoteSystem from "../../structures/VoteSystem.js";
 import createModalCollector from "../../utils/discord/modalCollector.js";
 import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
-import { VotingDatabase } from "../../utils/persistence/sequelize.js";
+import { VotingDatabase } from "../../utils/persistence/sequelizeModels/votingDatabase.js";
 import VoteButtons from "./VoteButtons.js";
 import generateVoteEditModal, { convertAnswersInButtonLabels, createProgressBar } from "./voteUtils.js";
 const components = [
@@ -101,12 +101,15 @@ async function createVoteFromParams({ interaction, question, description, answer
             interaction.deleteReply(buttonInteraction.message);
             const { uniqueId, components } = generateComponents(validatedAnswers);
             embed.data.fields?.pop();
-            const message = buttonInteraction.channel.send({ embeds: [embed], components: addButtonsToMessage(components) });
+            const message = await buttonInteraction.channel.send({ embeds: [embed], components: addButtonsToMessage(components) });
             const query = VotingDatabase.create({
                 uniqueId,
                 multiVote: allowMultipleAnswers,
                 votes: [],
-            }).then((_) => VoteSystem.getInstance().addVote(uniqueId, allowMultipleAnswers));
+                messageId: message.id,
+                creatorId: interaction.user.id,
+                channelId: message.channelId,
+            }).then((_) => VoteSystem.getInstance().addVote(uniqueId, allowMultipleAnswers, message.id, interaction.user.id, message.channelId));
             await Promise.all([message, query]);
             function generateComponents(fieldTitles) {
                 const uniqueId = randomUUID().split("-")[0];

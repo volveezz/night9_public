@@ -10,7 +10,7 @@ raidEmitter.on("join", async (raidData, userId) => {
     const raidInfo = await defaultEmitFunction(raidData.id, userId);
     if (!raidInfo)
         return;
-    raidInfo.unmarkedMembers.add(userId);
+    raidInfo.readyMembers.add(userId);
     readinessSystemInstance.updateReadinessMessage(raidData.id);
 });
 raidEmitter.on("leave", async (raidData, userId) => {
@@ -23,9 +23,9 @@ async function defaultEmitFunction(raidId, userId) {
     const raidInfo = readinessSystemInstance.raidDetailsMap.get(raidId);
     if (!raidInfo)
         return;
-    raidInfo.unmarkedMembers.delete(userId);
     raidInfo.readyMembers.delete(userId);
     raidInfo.notReadyMembers.delete(userId);
+    raidInfo.unmarkedMembers.delete(userId);
     raidInfo.lateMembers.delete(userId);
     raidInfo.lateReasons.delete(userId);
     return raidInfo;

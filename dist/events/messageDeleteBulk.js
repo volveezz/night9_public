@@ -84,8 +84,7 @@ export default new Event("messageDeleteBulk", async (messages) => {
     }
     if (!messageChannel)
         messageChannel =
-            client.getCachedTextChannel(process.env.MESSAGES_CHANNEL_ID) ||
-                (await client.getAsyncTextChannel(process.env.MESSAGES_CHANNEL_ID));
+            client.getCachedTextChannel(process.env.MESSAGES_CHANNEL_ID) || (await client.getTextChannel(process.env.MESSAGES_CHANNEL_ID));
     await messageChannel.send({ embeds: embeds });
 });
 //# sourceMappingURL=messageDeleteBulk.js.map

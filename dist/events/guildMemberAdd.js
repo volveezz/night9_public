@@ -7,7 +7,11 @@ import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import welcomeMessage from "../utils/discord/welcomeMessage.js";
 import { escapeString } from "../utils/general/utilities.js";
-import { AuthData, InitData, LeavedUsersData, UserActivityData, database } from "../utils/persistence/sequelize.js";
+import { sequelizeInstance } from "../utils/persistence/sequelize.js";
+import { AuthData } from "../utils/persistence/sequelizeModels/authData.js";
+import { InitData } from "../utils/persistence/sequelizeModels/initData.js";
+import { LeavedUsersData } from "../utils/persistence/sequelizeModels/leavedUsersData.js";
+import { UserActivityData } from "../utils/persistence/sequelizeModels/userActivityData.js";
 let guildMemberChannel = null;
 export default new Event("guildMemberAdd", async (member) => {
     try {
@@ -36,16 +40,14 @@ export default new Event("guildMemberAdd", async (member) => {
         });
     }
     if (!guildMemberChannel)
-        guildMemberChannel =
-            client.getCachedTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID) ||
-                (await client.getAsyncTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID));
+        guildMemberChannel = await client.getTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID);
     const message = await guildMemberChannel.send({ embeds: [embed] });
     const data = await LeavedUsersData.findOne({
         where: { discordId: member.id },
     });
     if (!data)
         return;
-    const transaction = await database.transaction();
+    const transaction = await sequelizeInstance.transaction();
     const loggedEmbed = EmbedBuilder.from(message.embeds[0]);
     let authorizationData = {
         refreshToken: "",
@@ -100,12 +102,14 @@ export default new Event("guildMemberAdd", async (member) => {
         const messagePromise = message.edit({ embeds: [loggedEmbed] });
         const rolesPromise = member.roles.set([process.env.MEMBER, process.env.VERIFIED]);
         await Promise.all([messagePromise, rolesPromise]);
-        try {
-            guildNicknameManagement();
-            checkIndiviualUserStatistics(member.id);
-        }
-        catch (error) {
-            console.error("[Error code: 1809]", error);
+        if (process.env.NODE_ENV === "production") {
+            try {
+                guildNicknameManagement();
+                checkIndiviualUserStatistics(member.id);
+            }
+            catch (error) {
+                console.error("[Error code: 1809]", error);
+            }
         }
     }
     catch (error) {

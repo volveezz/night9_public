@@ -48,7 +48,7 @@ export async function getRandomGIF(prompt, offset) {
 let fetchGifPromise = null;
 export async function getRandomRaidGIF() {
     if (fetchGifPromise) {
-        return await fetchGifPromise;
+        return (await fetchGifPromise) || "https://media.giphy.com/media/cKJZAROeOx7MfU6Kws/giphy.gif";
     }
     fetchGifPromise = (async () => {
         try {
@@ -57,7 +57,7 @@ export async function getRandomRaidGIF() {
                 console.debug(`Returning saved gif`, savedGif);
                 return savedGif;
             }
-            const prompts = ["military guns", "raid time", "raiding destiny2"];
+            const prompts = ["military guns", "raid time", "raiding destiny2", "military+action", "breaking+bad"];
             const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
             const response = await (await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${process.env
                 .GIPHY_API}&q=${randomPrompt}&limit=250&offset=0&rating=r&lang=ru`)).json();
@@ -79,13 +79,13 @@ export async function getRandomRaidGIF() {
         }
         catch (error) {
             console.error("[Error code: 1659] Giphy error", error);
-            return null;
+            return "https://media.giphy.com/media/cKJZAROeOx7MfU6Kws/giphy.gif";
         }
         finally {
             fetchGifPromise = null;
         }
     })();
-    return await fetchGifPromise;
+    return (await fetchGifPromise) || "https://media.giphy.com/media/cKJZAROeOx7MfU6Kws/giphy.gif";
 }
 async function updateSavedGif(gifUrl) {
     if (gifUrl) {

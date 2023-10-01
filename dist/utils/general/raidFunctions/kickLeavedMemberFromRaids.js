@@ -2,7 +2,7 @@ import { EmbedBuilder, GuildMember } from "discord.js";
 import { Op, Sequelize } from "sequelize";
 import colors from "../../../configs/colors.js";
 import { client } from "../../../index.js";
-import { RaidEvent } from "../../persistence/sequelize.js";
+import { RaidEvent } from "../../persistence/sequelizeModels/raidEvent.js";
 import nameCleaner from "../nameClearer.js";
 import { updateRaidMessage } from "../raidFunctions.js";
 import updatePrivateRaidMessage from "./privateMessage/updatePrivateMessage.js";
@@ -54,7 +54,7 @@ export default async function kickLeavedUserFromRaids(member) {
                     .setFooter({
                     text: `Пользователь выписан системой, поскольку покинул сервер`,
                 });
-                const raidChannel = await client.getAsyncTextChannel(raidEvent.channelId);
+                const raidChannel = await client.getTextChannel(raidEvent.channelId);
                 if (raidChannel) {
                     await raidChannel.send({ embeds: [embed] });
                 }

@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { AuthData } from "../persistence/sequelize.js";
+import { AuthData } from "../persistence/sequelizeModels/authData.js";
 import { sendApiRequest } from "./sendApiRequest.js";
 async function getClanMemberData(id) {
     let authData = null;
@@ -7,7 +7,7 @@ async function getClanMemberData(id) {
         authData = id;
     }
     else {
-        const providedUserId = id instanceof AuthData ? id.bungieId || id.discordId || id.membershipId : typeof id === "string" ? id : id.bungieId;
+        const providedUserId = (id instanceof AuthData ? id.bungieId || id.discordId || id.membershipId : typeof id === "string" ? id : id.bungieId) || null;
         authData = await AuthData.findOne({
             where: { [Op.or]: [{ discordId: providedUserId }, { bungieId: providedUserId }, { membershipId: providedUserId }] },
         });

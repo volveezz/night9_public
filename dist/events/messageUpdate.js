@@ -25,8 +25,7 @@ export default new Event("messageUpdate", async (oldMessage, newMessage) => {
         : embed.addFields({ name: "⁣", value: "Текст сообщения слишком длинный" });
     if (!messageChannel)
         messageChannel =
-            client.getCachedTextChannel(process.env.MESSAGES_CHANNEL_ID) ||
-                (await client.getAsyncTextChannel(process.env.MESSAGES_CHANNEL_ID));
+            client.getCachedTextChannel(process.env.MESSAGES_CHANNEL_ID) || (await client.getTextChannel(process.env.MESSAGES_CHANNEL_ID));
     await messageChannel.send({ embeds: [embed] });
 });
 //# sourceMappingURL=messageUpdate.js.map

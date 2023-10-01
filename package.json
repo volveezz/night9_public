@@ -1,6 +1,6 @@
 {
 	"name": "nightfuture",
-	"version": "2.20.9.3",
+	"version": "2.21.0",
 	"engines": {
 		"node": "18.x"
 	},
@@ -27,7 +27,9 @@
 		"pg": "^8.11.3",
 		"pg-hstore": "^2.3.4",
 		"redis": "^4.6.9",
+		"rss-parser": "^3.13.0",
 		"sequelize": "^6.33.0",
+		"sequelize-typescript": "^2.1.5",
 		"tiny-typed-emitter": "^2.1.0"
 	},
 	"devDependencies": {

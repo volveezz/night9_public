@@ -1,12 +1,14 @@
 import { escapeString } from "../general/utilities.js";
-import { AuthData, LeavedUsersData, database } from "../persistence/sequelize.js";
+import { sequelizeInstance } from "../persistence/sequelize.js";
+import { AuthData } from "../persistence/sequelizeModels/authData.js";
+import { LeavedUsersData } from "../persistence/sequelizeModels/leavedUsersData.js";
 async function removeUserAndSaveLeavedData({ discordMessage, discordMember }) {
     const userId = discordMember.user.id;
     const authData = await AuthData.findByPk(userId);
     if (!authData)
         return;
     const { discordId, bungieId, displayName, platform, accessToken, refreshToken, membershipId, timezone } = authData;
-    const transaction = await database.transaction();
+    const transaction = await sequelizeInstance.transaction();
     const embed = discordMessage.embeds[0];
     try {
         await Promise.all([

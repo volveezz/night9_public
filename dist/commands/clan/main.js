@@ -11,7 +11,8 @@ import createErrorEmbed from "../../utils/errorHandling/createErrorEmbed.js";
 import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
 import { convertSeconds } from "../../utils/general/convertSeconds.js";
 import { parseIdentifierString } from "../../utils/general/utilities.js";
-import { AuthData, UserActivityData } from "../../utils/persistence/sequelize.js";
+import { AuthData } from "../../utils/persistence/sequelizeModels/authData.js";
+import { UserActivityData } from "../../utils/persistence/sequelizeModels/userActivityData.js";
 import clanInvites from "./clanInvites.js";
 const CustomRuntimeGroupMemberType = {
     0: "Не в клане",
@@ -138,7 +139,7 @@ const SlashCommand = new Command({
             return;
         }
         else {
-            const member = interaction.member instanceof GuildMember ? interaction.member : await client.getAsyncMember(interaction.user.id);
+            const member = interaction.member instanceof GuildMember ? interaction.member : await client.getMember(interaction.user.id);
             if (!member || !member.permissions.has("Administrator")) {
                 throw { errorType: "MISSING_PERMISSIONS" };
             }

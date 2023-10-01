@@ -80,7 +80,7 @@ export default new Event("guildUpdate", async (oldGuild, newGuild) => {
     }
     if (!guildChannel)
         guildChannel =
-            client.getCachedTextChannel(process.env.GUILD_CHANNEL_ID) || (await client.getAsyncTextChannel(process.env.GUILD_CHANNEL_ID));
+            client.getCachedTextChannel(process.env.GUILD_CHANNEL_ID) || (await client.getTextChannel(process.env.GUILD_CHANNEL_ID));
     await guildChannel.send({ embeds: [embed] });
 });
 //# sourceMappingURL=guildUpdate.js.map

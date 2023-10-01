@@ -11,9 +11,10 @@ import { GetManifest } from "../api/ManifestManager.js";
 import { sendApiRequest } from "../api/sendApiRequest.js";
 import { getEndpointStatus } from "../api/statusCheckers/statusTracker.js";
 import { completedRaidsData } from "../persistence/dataStore.js";
-import { RaidEvent } from "../persistence/sequelize.js";
+import { RaidEvent } from "../persistence/sequelizeModels/raidEvent.js";
 import { addButtonsToMessage } from "./addButtonsToMessage.js";
 import nameCleaner from "./nameClearer.js";
+import { convertModifiersPlaceholders } from "./raidFunctions/convertModifiersPlaceholders.js";
 import { raidEmitter } from "./raidFunctions/raidEmitter.js";
 import { clearNotifications } from "./raidFunctions/raidNotifications.js";
 const blockedModifierHashesArray = [
@@ -46,7 +47,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 raid,
                 raidName: difficulty != 1 ? "Крах Кроты: Мастер" : "Крах Кроты",
                 maxDifficulty: 2,
-                raidBanner: "https://cdn.discordapp.com/attachments/679191036849029167/1134306618213937263/ce.jpg",
+                raidBanner: "https://cdn.discordapp.com/attachments/1134620378615001178/1158035262421606502/Crotas-End-PGCR.webp",
                 raidColor: (difficulty >= 2 ? MASTER_DIFFICULTY_COLOR : "#5da75c"),
                 channelName: "-крах-кроты",
                 requiredRole: null,
@@ -58,7 +59,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 raid,
                 raidName: difficulty === 2 ? "Источник кошмаров: Мастер" : "Источник кошмаров",
                 maxDifficulty: 2,
-                raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/raid_root_of_nightmares.jpg",
+                raidBanner: "https://cdn.discordapp.com/attachments/1134620378615001178/1158035263210135572/Root-of-Nightmares-PGCR.webp",
                 raidColor: (difficulty === 2 ? MASTER_DIFFICULTY_COLOR : "#ffa8ae"),
                 channelName: "-источник-кошмаров",
                 requiredRole: dlcRoles.lightfall,
@@ -69,7 +70,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 raid: raid,
                 raidName: difficulty === 2 ? "Гибель короля: Мастер" : "Гибель короля",
                 maxDifficulty: 2,
-                raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/raid_kings_fall.jpg",
+                raidBanner: "https://cdn.discordapp.com/attachments/1134620378615001178/1158035263948333056/Kings-Fall-PGCR.webp",
                 raidColor: (difficulty === 2 ? MASTER_DIFFICULTY_COLOR : "#a02200"),
                 channelName: "-гибель-короля",
                 requiredRole: null,
@@ -80,7 +81,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 raid: raid,
                 raidName: difficulty === 2 ? "Клятва послушника: Мастер" : "Клятва послушника",
                 maxDifficulty: 2,
-                raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/raid_nemesis.jpg",
+                raidBanner: "https://cdn.discordapp.com/attachments/1134620378615001178/1158035263608598550/Vow-of-the-Disciple-PGCR.webp",
                 raidColor: (difficulty === 2 ? MASTER_DIFFICULTY_COLOR : "#52E787"),
                 channelName: "-клятва-послушника",
                 requiredRole: dlcRoles.theWitchQueen,
@@ -91,7 +92,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 raid: raid,
                 raidName: difficulty === 2 ? "Хрустальный чертог: Мастер" : "Хрустальный чертог",
                 maxDifficulty: 2,
-                raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/vault_of_glass.jpg",
+                raidBanner: "https://cdn.discordapp.com/attachments/1134620378615001178/1158035262794903603/Vault-of-Glass-PGCR.webp",
                 raidColor: (difficulty === 2 ? MASTER_DIFFICULTY_COLOR : "#52E787"),
                 channelName: "-хрустальный-чертог",
                 requiredRole: null,
@@ -102,7 +103,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 raid: raid,
                 raidName: "Склеп Глубокого камня",
                 maxDifficulty: 1,
-                raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/europa-raid-deep-stone-crypt.jpg",
+                raidBanner: "https://cdn.discordapp.com/attachments/1134620378615001178/1158035265131130940/Deep-Stone-Crypt-PGCR.webp",
                 raidColor: "#29ACFF",
                 channelName: "-склеп-глубокого-камня",
                 requiredRole: dlcRoles.beyondLight,
@@ -113,7 +114,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 raid: raid,
                 raidName: "Сад спасения",
                 maxDifficulty: 1,
-                raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/raid_garden_of_salvation.jpg",
+                raidBanner: "https://cdn.discordapp.com/attachments/1134620378615001178/1158035264330018976/Garden-of-Salvation-PGCR.webp",
                 raidColor: "#45FFA2",
                 channelName: "-сад-спасения",
                 requiredRole: dlcRoles.shadowkeep,
@@ -124,7 +125,7 @@ export function getRaidDetails(raid, difficulty = 1) {
                 raid: raid,
                 raidName: "Последнее желание",
                 maxDifficulty: 1,
-                raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/raid_beanstalk.jpg",
+                raidBanner: "https://cdn.discordapp.com/attachments/1134620378615001178/1158035264736862208/Last-Wish-PGCR.webp",
                 raidColor: "#79A1FF",
                 channelName: "-последнее-желание",
                 requiredRole: dlcRoles.forsaken,
@@ -166,7 +167,9 @@ export async function getRaidDatabaseInfo(raidId, interaction) {
             throw { errorType: "RAID_NOT_FOUND" };
         }
         else if (raidData.creator !== interaction.user.id && !interaction.memberPermissions?.has("Administrator")) {
-            throw { errorType: "RAID_MISSING_PERMISSIONS" };
+            const creatorMember = client.getCachedMembers().get(raidData.creator);
+            const displayName = creatorMember && nameCleaner(creatorMember.displayName, true);
+            throw { errorType: "ACTIVITY_MISSING_PERMISSIONS", errorData: { displayName }, interaction };
         }
         else {
             return raidData;
@@ -183,7 +186,7 @@ export async function updateRaidMessage(options) {
         return;
     }
     const embed = EmbedBuilder.from(raidMessage.embeds[0]);
-    const cleanMemberName = async (id) => nameCleaner((await client.getAsyncMember(id))?.displayName || "неизвестный пользователь", true);
+    const cleanMemberName = async (id) => nameCleaner((await client.getMember(id))?.displayName || "неизвестный пользователь", true);
     const [joinedUsersText, hotJoinedUsersText, altUsersText] = await Promise.all([
         generateJoinedAdvancedRoster(joined, raidName, cleanMemberName, id, raidEvent),
         generateUsersRoster(hotJoined, cleanMemberName),
@@ -335,75 +338,41 @@ export async function raidChallenges({ raidData, raidEvent, privateChannelMessag
         await privateChannelMessage.edit({ embeds: [embed] });
         return;
     }
-    activityModifiers.forEach((modifier) => {
-        if (blockedModifierHashesArray.includes(modifier) || (difficulty !== 1 && modifier === 97112028))
+    activityModifiers.forEach((modifierHash) => {
+        const modifier = manifest[modifierHash];
+        const modifierName = modifier.displayProperties.name;
+        const manifestModifierDescription = modifier.displayProperties.description.toLowerCase();
+        const modifierDescription = manifestModifierDescription.endsWith(".")
+            ? manifestModifierDescription.slice(0, -1)
+            : manifestModifierDescription;
+        if (blockedModifierHashesArray.includes(modifierHash) || (difficulty !== 1 && modifierHash === 97112028))
             return;
-        if (manifest[modifier].displayProperties.description.toLowerCase().startsWith("вас ждет испытание")) {
-            const challenge = (new Date(raidMilestone.endDate).getTime() > startTime * 1000
-                ? raidDataChallanges.find((a) => a.hash === modifier)
-                : raidDataChallanges.find((a) => a.hash === modifier)?.encounter === raidDataChallanges.length
+        const modifierEndTime = new Date(raidMilestone.endDate).getTime();
+        if (manifestModifierDescription.toLowerCase().startsWith("вас ждет испытание")) {
+            const challenge = (modifierEndTime > startTime * 1000
+                ? raidDataChallanges.find((a) => a.hash === modifierHash)
+                : raidDataChallanges.find((a) => a.hash === modifierHash)?.encounter === raidDataChallanges.length
                     ? raidDataChallanges.find((a) => a.encounter === 1)
-                    : raidDataChallanges.find((a) => a.encounter === raidDataChallanges.find((a) => a.hash === modifier).encounter + 1));
-            raidChallengesArray.push("⁣　⁣**" + manifest[challenge.hash].displayProperties.name + `**, ${challenge.encounter} этап: ${challenge.description}`);
+                    : raidDataChallanges.find((a) => a.encounter === raidDataChallanges.find((a) => a.hash === modifierHash).encounter + 1));
+            raidChallengesArray.push(`⁣　⁣**${manifest[challenge.hash].displayProperties.name}**, ${challenge.encounter} этап: ${challenge.description}`);
         }
-        else if (new Date(raidMilestone.endDate).getTime() > startTime * 1000) {
-            const modifierDescription = findModifierDescription(modifier);
-            if (modifierDescription)
-                return raidModifiersArray.push(modifierDescription);
-            const manifestModifierDescription = manifest[modifier].displayProperties.description.toLowerCase();
-            raidModifiersArray.push(`⁣　⁣**${manifest[modifier].displayProperties.name}:** ${manifestModifierDescription.endsWith(".") ? manifestModifierDescription.slice(0, -1) : manifestModifierDescription}`);
+        else if (modifierEndTime > startTime * 1000) {
+            const predefinedModifierDescription = findModifierDescription(modifierHash);
+            if (predefinedModifierDescription)
+                return raidModifiersArray.push(predefinedModifierDescription);
+            raidModifiersArray.push(`⁣　⁣**${convertModifiersPlaceholders(modifierName)}:** ${convertModifiersPlaceholders(modifierDescription)}`);
         }
     });
     function findModifierDescription(modifier) {
         switch (modifier) {
-            case 3303073618:
-                return "⁣　⁣**Испытания рейда:** все испытания активированы";
-            case 4038464106:
-                return `⁣　⁣**Противники-воители:** ${barrierEmoji}барьерные, ${overloadEmoji}перегруженные и ${unstoppableEmoji}неудержимые воители`;
             case 2116552995:
                 return "⁣　⁣**Модификаторы «Мастер»:** больше воителей и щитов";
             case 1990363418:
                 return `⁣　⁣**Противники-воители:** ${barrierEmoji}барьерные и ${overloadEmoji}перегруженные воители`;
             case 438106166:
-            case 1806568190:
                 return `⁣　⁣**Противники-воители:** ${barrierEmoji}барьерные и ${unstoppableEmoji}неудержимые воители`;
-            case 40182179:
-                return `⁣　⁣**Противники-воители:** ${overloadEmoji}перегруженные и ${unstoppableEmoji}неудержимые воители`;
-            case 4087563963:
-                return "⁣　⁣**Модификаторы «Мастер»:** больше воителей, больше щитов, установлен порог максимального уровня силы";
-            case 1057289452:
             case 4226469317:
                 return "⁣　⁣**Сверхзаряженное оружие:** используется оружие со сверхзарядами, кинетический урон повышен при соответствии подкласса эффекту мощи";
-            case 3810297122:
-                return "⁣　⁣**Мощь Нити:** бонус к наносимому урону нитью";
-            case 426976067:
-                return "⁣　⁣**Мощь Солнца:** бонус к наносимому солнечному урону";
-            case 2691200658:
-                return "⁣　⁣**Мощь Молнии:** бонус к наносимому электрическому урону";
-            case 3196075844:
-                return "⁣　⁣**Мощь Пустоты:** бонус к наносимому пустотному урону";
-            case 3809788899:
-                return "⁣　⁣**Мощь Стазиса:** бонус к наносимому стазисному урону";
-            case 2626834038:
-                return "⁣　⁣**Сверхзаряженная плазменная винтовка:** плазменные винтовки наносят повышенный урон";
-            case 3132780533:
-                return "⁣　⁣**Сверхзаряженный дробовик:** дробовики наносят повышенный урон";
-            case 1282934989:
-                return "⁣　⁣**Сверхзаряженная снайперская винтовка:** снайперки наносят повышенный урон";
-            case 2178457119:
-                return "⁣　⁣**Сверхзаряженная лучевая винтовка:** лучевые наносят повышенный урон";
-            case 3758645512:
-                return "⁣　⁣**Сверхзаряженный гранатомет:** гранатометы наносят повышенный урон";
-            case 95459596:
-                return "⁣　⁣**Сверхзаряженная ракетная установка:** ракетницы наносят повышенный урон";
-            case 1326581064:
-                return "⁣　⁣**Сверхзаряженный меч:** мечи наносят повышенный урон";
-            case 1326581064:
-                return "⁣　⁣**Сверхзаряженная линейно-плазменная винтовка:** линейки наносят повышенный урон";
-            case 1651706850:
-                return "⁣　⁣**Враги со щитами:** в этом рейде встречаются электрические, солнечные и пустотные щиты";
-            case 3230561446:
-                return "⁣　⁣**Враги со щитами:** в этом рейде встречаются электрические и солнечные щиты";
             default:
                 return null;
         }
@@ -421,8 +390,8 @@ export async function raidChallenges({ raidData, raidEvent, privateChannelMessag
         : ""}`;
     return privateChannelMessage.edit({ embeds: [embed] });
 }
-export async function checkRaidTimeConflicts(interaction, raidEvent) {
-    const member = client.getCachedMembers().get(interaction.user.id) || (await client.getCachedGuild().members.fetch(interaction.user.id));
+export async function checkRaidTimeConflicts(userId, raidEvent) {
+    const member = await client.getMember(userId);
     const { time: targetRaidTime } = raidEvent;
     const conflictingRaids = await RaidEvent.findAll({
         where: {
@@ -448,7 +417,7 @@ export async function checkRaidTimeConflicts(interaction, raidEvent) {
         }
         catch (error) {
             if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
-                const raidChannel = await client.getAsyncTextChannel(raidEvent.channelId);
+                const raidChannel = await client.getTextChannel(raidEvent.channelId);
                 await raidChannel.send({ content: `<@${member.id}>`, embeds: [embed] });
             }
             else {
@@ -459,11 +428,11 @@ export async function checkRaidTimeConflicts(interaction, raidEvent) {
 }
 export async function removeRaid(raid, interaction, requireMessageReply = true, mainInteraction) {
     const deletionResult = await RaidEvent.destroy({ where: { id: raid.id }, limit: 1 });
-    const privateRaidChannel = await client.getAsyncTextChannel(raid.channelId);
+    const privateRaidChannel = await client.getTextChannel(raid.channelId);
     const raidMessage = await client.getAsyncMessage(process.env.RAID_CHANNEL_ID, raid.messageId).catch((e) => {
         console.error("[Error code: 1697] Not found raid message", raid.id, e);
     });
-    const interactingMember = interaction ? await client.getAsyncMember(interaction.user.id) : null;
+    const interactingMember = interaction ? await client.getMember(interaction.user.id) : null;
     const editMessageReply = async (embed) => {
         if (!interaction || !interaction.channel || !interaction.channel.isDMBased() || !requireMessageReply)
             return;
@@ -507,8 +476,8 @@ export async function removeRaid(raid, interaction, requireMessageReply = true, 
         if (!interaction)
             return;
         const errorEmbed = new EmbedBuilder()
-            .setColor("DarkGreen")
-            .setTitle("Произошла ошибка во время удаления")
+            .setColor(colors.error)
+            .setAuthor({ name: "Произошла ошибка во время удаления", iconURL: icons.error })
             .setDescription(`Удалено ${deletionResult} рейдов`);
         return await editMessageReply(errorEmbed);
     }
@@ -576,13 +545,13 @@ export async function sendUserRaidGuideNoti(user, raidName, raidChannelId) {
     }
     catch (error) {
         if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
-            const member = await client.getAsyncMember(user.id);
+            const member = await client.getMember(user.id);
             embed
                 .setAuthor({
                 name: `${nameCleaner(member.displayName || user.username)}, ознакомься с текстовым прохождением рейда перед его началом`,
             })
                 .setDescription("Вы закрыли доступ к своим личным сообщениям\nДля лучшего опыта на сервере, пожалуйста, откройте доступ к личным сообщениям в настройках Discord");
-            const raidChannel = await client.getAsyncTextChannel(raidChannelId);
+            const raidChannel = await client.getTextChannel(raidChannelId);
             await raidChannel.send({ content: `<@${user.id}>`, embeds: [embed], components: addButtonsToMessage(components) });
         }
     }

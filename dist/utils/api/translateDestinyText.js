@@ -8,7 +8,7 @@ async function translateDestinyText(sourceText) {
 Translated dataset:
 {
 "Forsaken": "Отвергнутые",
-"Shadowkeep": "Обитель теней",
+"Shadowkeep": "Обитель Теней",
 "Beyond Light": "За гранью Света",
 "The Witch Queen": "Королева-ведьма",
 "Lightfall": "Конец Света",

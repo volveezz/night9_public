@@ -4,7 +4,7 @@ import colors from "../../../../configs/colors.js";
 import { client } from "../../../../index.js";
 import { sendApiRequest } from "../../../api/sendApiRequest.js";
 import { getEndpointStatus } from "../../../api/statusCheckers/statusTracker.js";
-import { RaidEvent } from "../../../persistence/sequelize.js";
+import { RaidEvent } from "../../../persistence/sequelizeModels/raidEvent.js";
 import nameCleaner from "../../nameClearer.js";
 import { getRaidNameFromHash, updateRaidMessage } from "../../raidFunctions.js";
 import updatePrivateRaidMessage from "../privateMessage/updatePrivateMessage.js";
@@ -84,7 +84,7 @@ async function checkFireteamStatus(raidData) {
             return updatedData ? updatedData[0] : 0;
         };
         const sendChannelEmbed = async () => {
-            const member = await client.getAsyncMember(discordId);
+            const member = await client.getMember(discordId);
             const userAlreadyWasJoined = raidEvent.joined.includes(member.id);
             const userAlreadyWasHotJoined = raidEvent.hotJoined.includes(member.id);
             const userAlreadyWasAlt = raidEvent.alt.includes(member.id);

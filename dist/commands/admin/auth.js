@@ -5,7 +5,7 @@ import icons from "../../configs/icons.js";
 import { requestTokenRefresh } from "../../core/tokenManagement.js";
 import { Command } from "../../structures/command.js";
 import { isSnowflake } from "../../utils/general/utilities.js";
-import { AuthData } from "../../utils/persistence/sequelize.js";
+import { AuthData } from "../../utils/persistence/sequelizeModels/authData.js";
 const SlashCommand = new Command({
     name: "auth",
     description: "Refresh of the user's authorisation data for the selected user",
