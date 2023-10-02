@@ -1,4 +1,4 @@
-const minActiveScore = 1000;
+const minActiveScore = 2000;
 const checkRequirements = (userProfile) => {
     let message = "";
     let allRequirementsMet = true;

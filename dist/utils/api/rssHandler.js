@@ -41,8 +41,11 @@ async function fetchAndSendLatestTweets(url, latestLink, routeName, isRetry = fa
         const feed = await parser.parseURL(url).catch((e) => {
             console.error("[Error code: 1706] Error fetching RSS feed:", e.message, e.statusMessage, e.status, e.statusCode, url);
             if (!isRetry) {
-                console.debug("Retrying another RSS request...");
+                console.info("Retrying another RSS request...");
                 fetchAndSendLatestTweets(url, latestLink, routeName, true);
+            }
+            else {
+                console.error("[Error code: 2077] Failed to fetch RSS feed twice");
             }
             return;
         });
