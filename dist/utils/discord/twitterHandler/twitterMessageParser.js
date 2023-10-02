@@ -39,7 +39,7 @@ function clearText(content) {
         .replace(/ ?⏵\s*\[\[\d+\]\]\((https?:\/\/[^\)]+)\)/g, "")
         .trim();
 }
-async function generateTwitterEmbed({ twitterData, author, icon, url, originalEmbed }) {
+async function generateTwitterEmbed({ twitterData, author, icon, url, originalEmbed, content }) {
     if (!twitterData.content)
         return;
     const cleanContent = clearText(twitterData.content);
@@ -49,7 +49,7 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
     }
     let components = [];
     const embedMedia = originalEmbed?.data && (originalEmbed.data.thumbnail?.url || originalEmbed.data.image?.url || originalEmbed.data.video?.url);
-    const extractedMedia = extractMediaUrl(twitterData.content) || embedMedia;
+    const extractedMedia = extractMediaUrl(content) || embedMedia;
     const replacedDescription = replaceTimeWithEpoch(cleanContent);
     let tranlsatedContent = "";
     try {
@@ -86,8 +86,10 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
         if (extractedVideoMedia && extractedVideoMedia.endsWith(".mp4")) {
             convertVideoToGif(extractedVideoMedia, m, embed);
         }
+        else if (extractedMedia && extractedMedia.includes("nitter")) {
+            processTwitterGifFile(extractedMedia, m, embed);
+        }
     });
-    return;
 }
 async function convertVideoToGif(videoUrl, message, embed) {
     const gifUrl = await convertMp4ToGif(videoUrl);

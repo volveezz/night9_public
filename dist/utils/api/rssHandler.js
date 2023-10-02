@@ -36,10 +36,14 @@ function rehostLink(link) {
         return link;
     }
 }
-async function fetchAndSendLatestTweets(url, latestLink, routeName) {
+async function fetchAndSendLatestTweets(url, latestLink, routeName, isRetry = false) {
     try {
         const feed = await parser.parseURL(url).catch((e) => {
-            console.error("[Error code: 1706] Error fetching RSS feed:", e.message, e.name, url.split("/")?.[5]);
+            console.error("[Error code: 1706] Error fetching RSS feed:", e.message, e.statusMessage, e.status, e.statusCode, url);
+            if (!isRetry) {
+                console.debug("Retrying another RSS request...");
+                fetchAndSendLatestTweets(url, latestLink, routeName, true);
+            }
             return;
         });
         if (!feed || !feed.items || feed.items.length < 2)
@@ -63,7 +67,8 @@ async function fetchAndSendLatestTweets(url, latestLink, routeName) {
             const author = getBungieTwitterAuthor(entry.creator);
             if (author && isValidTweet(author, entry.guid) && entry.content && entry.content.length > 0) {
                 await generateTwitterEmbed({
-                    twitterData: entry.title ? { content: entry.title } : entry.contentSnippet ? { content: entry.contentSnippet } : entry,
+                    twitterData: entry.title ? { content: entry.title } : entry.content ? { content: entry.content } : entry,
+                    content: entry.content,
                     author,
                     icon: feed.image?.url,
                     url: correctedLink,

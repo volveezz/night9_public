@@ -29,11 +29,11 @@ const getUserRaidStatusString = async (discordId) => {
         formatRaidData(userRaidData.lw, 0, "ПЖ"),
     ].filter((raid) => raid.length > 0);
     const displayName = nameCleaner(member?.displayName || member?.user.username || "неизвестный пользователь", true);
-    return `⁣　**${displayName}** ${raidClears.length > 0
+    return `⁣　**${displayName}**${raidClears.length > 0
         ? `: ${raidClears.join(", ")}`
         : userRaidData?.totalRaidClears === 0
-            ? "не проходил ранее рейды"
-            : "не проходил доступные на данный момент рейды"}`;
+            ? " не проходил ранее рейды"
+            : " не проходил доступные на данный момент рейды"}`;
 };
 export default getUserRaidStatusString;
 //# sourceMappingURL=privateMessageRaidCounter.js.map

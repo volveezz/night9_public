@@ -31,8 +31,10 @@ async function sendFileToDiscord(filePath) {
 }
 async function deleteFile(filePath) {
     fs.unlink(filePath, (err) => {
-        if (err)
+        if (err) {
+            console.error("[Error code: 2075] Error upon file deletion");
             throw err;
+        }
     });
 }
 export async function processTwitterGifFile(url, message, embed) {
@@ -40,8 +42,8 @@ export async function processTwitterGifFile(url, message, embed) {
         const filePath = await downloadFile(url, message.id);
         const fileMessage = await sendFileToDiscord(filePath);
         if (fileMessage) {
-            const gifUrl = fileMessage.attachments.first().url;
-            embed.setImage(gifUrl);
+            const attachmentUrl = fileMessage.attachments.first().url;
+            embed.setImage(attachmentUrl);
             message.edit({ embeds: [embed] });
         }
         await deleteFile(filePath);

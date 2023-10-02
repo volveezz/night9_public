@@ -31,11 +31,11 @@ function formatRaidUserData(discordId) {
         return "Неизвестный пользователь";
     const raidClears = generateRaidClears(raidUserData);
     const cleanedName = nameCleaner(member.displayName);
-    return `**${cleanedName}** ${raidClears.length > 0
+    return `**${cleanedName}**${raidClears.length > 0
         ? `: ${raidClears.join(", ")}`
         : raidUserData?.totalRaidClears === 0
-            ? "не проходил ранее рейды"
-            : "не проходил доступные на данный момент рейды"}`;
+            ? " не проходил ранее рейды"
+            : " не проходил доступные на данный момент рейды"}`;
 }
 async function sendEmbed({ deferredReply, embedIndex, interaction, raidDescription, selectedRaid }) {
     const embed = new EmbedBuilder()

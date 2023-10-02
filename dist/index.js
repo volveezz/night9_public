@@ -40,7 +40,7 @@ async function handleExit(signal) {
 process.on("uncaughtException", (error) => {
     console.error("UncaughtException at top level", error);
 });
-process.on("unhandledRejection", async (error) => {
+process.on("unhandledRejection", async (error, promise) => {
     if (error.interaction) {
         console.error("[Error code: 2057] Received an interaction error", error.interaction?.customId, error.interaction?.user?.id);
         if (error.deferred)
@@ -58,7 +58,7 @@ process.on("unhandledRejection", async (error) => {
         return console.error(`[Error code: 1214] ${error.statusCode}`);
     if (error.code >= 400 && error.code <= 599)
         return console.error(`[Error code: 1215] ${error.code}`);
-    console.error("UnhandledRejection at top level", error.stack || error);
+    console.error("UnhandledRejection at top level", error.stack || error, promise);
 });
 const app = express();
 const port = process.env.PORT || 3000;

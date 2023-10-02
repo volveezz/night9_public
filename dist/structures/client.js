@@ -287,19 +287,17 @@ export class ExtendedClient extends Client {
         await pause(2000);
         cacheRaidMilestones();
         await pause(2000);
-        if (process.env.NODE_ENV === "production") {
-            await pause(2000);
-            raidFireteamCheckerSystem();
-            await pause(1000);
-            import("../core/guildNicknameManagement.js");
-            await pause(1000 * 15);
-            import("../utils/api/rssHandler.js");
-            await pause(2000);
-            setTimeout(() => {
-                fetchGlobalAlerts();
-                fetchNewsArticles();
-            }, 1000 * 60);
-        }
+        await pause(2000);
+        raidFireteamCheckerSystem();
+        await pause(1000);
+        import("../core/guildNicknameManagement.js");
+        await pause(1000 * 15);
+        import("../utils/api/rssHandler.js");
+        await pause(2000);
+        setTimeout(() => {
+            fetchGlobalAlerts();
+            fetchNewsArticles();
+        }, 1000 * 60);
     }
     async fetchMembersAndMessages() {
         await pause(1000);
