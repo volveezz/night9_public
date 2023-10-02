@@ -19,6 +19,10 @@ async function fetchAndPostAlerts() {
     async function executeFetch() {
         try {
             const alerts = await sendApiRequest(url);
+            if (!alerts) {
+                console.error("[Error code: 2076] Failed to fetch Bungie global alerts");
+                return;
+            }
             if (alerts.length > 0) {
                 alerts.forEach(async (latestAlert) => {
                     if (lastAlertsTimestamps.has(latestAlert.AlertTimestamp))
@@ -64,6 +68,9 @@ async function fetchAndPostAlerts() {
                         }
                     });
                 });
+            }
+            else if (lastAlertsTimestamps.size > 0) {
+                lastAlertsTimestamps.clear();
             }
         }
         catch (error) {

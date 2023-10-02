@@ -20,6 +20,11 @@ const availableRequiredRoles = [
         nameLocalizations: { "en-GB": "Beyond Light", "en-US": "Beyond Light" },
     },
     {
+        name: "Набор к 30-летию",
+        value: process.env.ANNIVERSARY_ROLE_ID,
+        nameLocalizations: { "en-GB": "30th Anniversary Pack", "en-US": "30th Anniversary Pack" },
+    },
+    {
         name: "За гранью Света",
         value: process.env.BEYONDLIGHT_ROLE_ID,
         nameLocalizations: { "en-GB": "The Witch Queen", "en-US": "The Witch Queen" },

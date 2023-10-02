@@ -83,56 +83,52 @@ const SlashCommand = new Command({
         if (subcommandGroup === "embed") {
             const subcommand = args.getSubcommand();
             if (subcommand === "code") {
-                const embedCode = args.getString("embed_code", true);
+                const embedCode = args.getString("embed_code", false);
                 const messageId = args.getString("message-id");
+                const channelId = args.getString("channelId");
+                const embedChannel = (channelId ? await client.channels.fetch(channelId) : interaction.channel);
                 try {
-                    let parsedJSON = JSON.parse(embedCode);
-                    let embedJSON;
-                    if (parsedJSON.embed && typeof parsedJSON.embed === "object") {
-                        embedJSON = parsedJSON.embed;
+                    let content;
+                    let embed;
+                    if (embedCode) {
+                        let parsedJSON = JSON.parse(embedCode);
+                        content = parsedJSON.content || undefined;
+                        if (parsedJSON.embed) {
+                            const embedJSON = parsedJSON.embed;
+                            embed = EmbedBuilder.from(embedJSON);
+                        }
                     }
-                    else {
-                        embedJSON = parsedJSON;
-                    }
-                    const embed = EmbedBuilder.from(embedJSON);
                     const responseEmbed = new EmbedBuilder()
                         .setColor(colors.success)
-                        .setAuthor({ name: `Сообщение успешно ${messageId ? "изменено" : "отправлено"}`, iconURL: icons.success });
+                        .setAuthor({ name: `Сообщение было ${messageId ? "изменено" : "отправлено"}`, iconURL: icons.success });
+                    const messageOptions = {};
+                    if (content)
+                        messageOptions.content = content;
+                    if (embed)
+                        messageOptions.embeds = [embed];
                     if (messageId) {
-                        const message = await channel.messages.fetch(messageId);
+                        const message = await embedChannel.messages.fetch(messageId);
                         if (!message) {
-                            throw { name: "Ошибка", description: "Редактируемое сообщение не найдено" };
+                            throw { name: "Ошибка", description: "Изменяемое сообщение не найдено" };
                         }
-                        await message.edit({ content: parsedJSON.content, embeds: [embed] });
-                        await deferredReply;
-                        interaction.editReply({ embeds: [responseEmbed] });
-                        return;
+                        await message.edit(messageOptions);
                     }
                     else {
-                        try {
-                            await channel.send({ content: parsedJSON.content, embeds: [embed] });
-                        }
-                        catch (error) {
-                            throw {
-                                name: "Discord API Error",
-                                description: "An error occurred while sending the embed to Discord",
-                                details: error,
-                            };
-                        }
-                        await deferredReply;
-                        interaction.editReply({ embeds: [responseEmbed] });
-                        return;
+                        if (!content && !embed)
+                            throw { name: "Ошибка", description: "Ни содержимое, ни embed-сообщение не были предоставлены" };
+                        await embedChannel.send(messageOptions);
                     }
+                    await deferredReply;
+                    interaction.editReply({ embeds: [responseEmbed] });
                 }
                 catch (error) {
-                    console.error("[Error code: 1646] Error during handling embed message", error);
+                    console.error("[Error] Error during handling message", error);
                     const errorResponse = new EmbedBuilder().setColor(colors.error).setAuthor({
-                        name: `Произошла ошибка во время ${messageId ? "редактирования" : "отправки"} сообщения`,
+                        name: `Произошла ошибка во время ${messageId ? "изменения" : "отправления"} сообщения`,
                         iconURL: icons.close,
                     });
                     await deferredReply;
                     interaction.editReply({ embeds: [errorResponse] });
-                    return;
                 }
             }
             else if (subcommand === "preset") {

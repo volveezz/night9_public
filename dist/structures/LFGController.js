@@ -4,6 +4,7 @@ import { Op } from "sequelize";
 import colors from "../configs/colors.js";
 import { client } from "../index.js";
 import { GetManifest } from "../utils/api/ManifestManager.js";
+import checkIfUserRecentlyCreatedActivity from "../utils/discord/checkRecentlyCreatedActivity.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { activityCache } from "../utils/general/cacheAvailableActivities.js";
 import nameCleaner from "../utils/general/nameClearer.js";
@@ -451,7 +452,7 @@ export class LFGController {
     async sendLfgMessage({ lfg, mention, messageOptions }) {
         const lfgChannel = this.textChannel;
         let additionalOptions = { content: undefined };
-        if (mention && lfg.requiredDLC) {
+        if (mention && lfg.requiredDLC && !checkIfUserRecentlyCreatedActivity(lfg.creatorId)) {
             const everyoneRole = client.getCachedGuild().roles.everyone;
             const isEveryoneRole = lfg.requiredDLC === everyoneRole.id;
             additionalOptions.content = isEveryoneRole ? everyoneRole.toString() : `<@&${lfg.requiredDLC}>`;
