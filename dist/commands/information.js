@@ -1,4 +1,4 @@
-import { ApplicationCommandType, ButtonBuilder, ButtonStyle, CommandInteraction, EmbedBuilder, } from "discord.js";
+import { ApplicationCommandType, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import { Command } from "../structures/command.js";
 import { GetManifest } from "../utils/api/ManifestManager.js";
@@ -31,9 +31,7 @@ const SlashCommand = new Command({
         }
         const interaction = messageMenuInteraction || userInteraction || commandInteraction;
         const deferredPromise = interaction.deferReply({ ephemeral: true });
-        const targetId = interaction instanceof CommandInteraction
-            ? interaction.user.id
-            : interaction.targetId;
+        const targetId = ("targetId" in interaction ? interaction.targetId : interaction.user.id);
         const databasePromise = AuthData.findOne({
             where: {
                 discordId: targetId,

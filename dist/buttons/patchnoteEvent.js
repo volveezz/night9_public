@@ -9,13 +9,16 @@ const ButtonCommand = new Button({
     run: async ({ interaction }) => {
         const content = interaction.message.content;
         switch (interaction.customId) {
+            case "patchnoteEvent_sendToGodsWithoutButtons":
             case "patchnoteEvent_sendToGods": {
-                const components = addButtonsToMessage([
-                    new ButtonBuilder()
-                        .setCustomId("patchnoteEvent_sendToPublic")
-                        .setStyle(ButtonStyle.Success)
-                        .setLabel("Опубликовать для всех"),
-                ]);
+                const components = interaction.customId === "patchnoteEvent_sendToGods"
+                    ? addButtonsToMessage([
+                        new ButtonBuilder()
+                            .setCustomId("patchnoteEvent_sendToPublic")
+                            .setStyle(ButtonStyle.Success)
+                            .setLabel("Опубликовать для всех"),
+                    ])
+                    : [];
                 const messageOptions = { content, components };
                 if (!channelOfGods)
                     channelOfGods = await client.getTextChannel(process.env.GOD_BOT_CHANNEL_ID);

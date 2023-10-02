@@ -29,9 +29,7 @@ async function fetchAndPostAlerts() {
                         return;
                     lastAlertsTimestamps.add(latestAlert.AlertTimestamp);
                     if (!newsChannel) {
-                        newsChannel =
-                            client.getCachedTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID) ||
-                                (await client.getTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID));
+                        newsChannel = await client.getTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
                     }
                     const embed = new EmbedBuilder()
                         .setTitle(latestAlert.AlertKey || "New Global Alert")

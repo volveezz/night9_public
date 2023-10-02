@@ -35,7 +35,19 @@ async function kickMemberFromRaid({ kickedMember, cachedRaidEvent, raidId }) {
     };
     const [rowsUpdated, [raidEvent]] = await RaidEvent.update(updateQuery, {
         where: searchQuery,
-        returning: ["id", "messageId", "creator", "channelId", "inChannelMessageId", "joined", "hotJoined", "alt", "raid", "difficulty"],
+        returning: [
+            "id",
+            "messageId",
+            "creator",
+            "channelId",
+            "inChannelMessageId",
+            "time",
+            "joined",
+            "hotJoined",
+            "alt",
+            "raid",
+            "difficulty",
+        ],
     });
     if (!rowsUpdated || !raidEvent)
         return;

@@ -54,7 +54,7 @@ function handleFetchError(status, error) {
         "524": "A timeout occurred",
         "503": "Server is not available",
         "502": "Web error",
-        "409": "Confilt error",
+        "409": "Conflict error",
         "522": "Timed out error",
         "401": "Authorization error",
         "500": "Internal server error",

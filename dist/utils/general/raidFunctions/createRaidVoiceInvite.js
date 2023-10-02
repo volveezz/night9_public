@@ -20,7 +20,7 @@ export async function createActivityVoiceInvite({ channels, creatorId, joinedUse
         }
         let inviteChannel = await findVoiceChannelWithMostActivityMembers(channels, joinedUsers);
         if (!inviteChannel) {
-            inviteChannel = channels.reduce((prev, curr) => (prev && prev.members.size > curr.members.size ? prev : curr));
+            inviteChannel = channels.reduce((prev, curr) => (prev && prev.members.size < curr.members.size ? prev : curr));
         }
         if (inviteChannel) {
             console.debug(`[DEBUG] Creating invite for ${inviteChannel.name}`);

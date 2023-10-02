@@ -53,9 +53,6 @@ export class LFGController {
         console.debug("Received a call. Beginning of lfg database synchronization.");
         this.syncCacheDebounced.flush();
     }
-    getCacheById(id) {
-        return this.localCache[id];
-    }
     async syncCacheToDb() {
         console.debug("Syncing local cache to database.");
         const cacheIds = Object.keys(this.localCache).map(Number);
@@ -108,23 +105,37 @@ export class LFGController {
                     requiredDLC: record.requiredDLC,
                     ...record.dataValues,
                 };
-                const channel = await ((record.channelId && (await client.getTextChannel(record.channelId).catch(() => null))) ||
-                    this.createLfgPrivateChannel(record));
-                const message = await ((record.messageId &&
-                    (await client.getAsyncMessage(this.textChannel, record.messageId).catch(() => null))) ||
-                    this.sendLfgMessage({ lfg: record }));
-                if (!message) {
-                    throw { errorType: "LFG_MESSAGE_NOT_FOUND" };
+                let message = null;
+                let channel = null;
+                if (process.env.NODE_ENV === "production") {
+                    channel = await ((record.channelId && (await client.getTextChannel(record.channelId).catch(() => null))) ||
+                        this.createLfgPrivateChannel(record));
+                    message = await ((record.messageId &&
+                        (await client.getAsyncMessage(this.textChannel, record.messageId).catch(() => null))) ||
+                        this.sendLfgMessage({ lfg: record }));
+                    if (!message) {
+                        throw { errorType: "LFG_MESSAGE_NOT_FOUND" };
+                    }
                 }
-                const descriptionField = message.embeds[0].fields.find((field) => field.name === "Описание");
+                else {
+                    message = record.messageId ? await client.getAsyncMessage(this.textChannel, record.messageId).catch(() => null) : null;
+                    channel = record.channelId ? await client.getTextChannel(record.channelId).catch(() => null) : null;
+                }
+                if (!message && !channel && process.env.NODE_ENV !== "production") {
+                    delete this.localCache[record.id];
+                    return;
+                }
+                const descriptionField = message && message.embeds[0].fields.find((field) => field.name === "Описание");
                 this.localCache[record.id].description = descriptionField?.value ?? null;
                 this.localCache[record.id].message = message;
                 this.localCache[record.id].channel = channel;
-                this.localCache[record.id].joinmentState = message.components[0].components.find((buttonC) => {
-                    buttonC.customId.startsWith("lfgController_join");
-                })?.disabled
-                    ? true
-                    : false;
+                this.localCache[record.id].joinmentState =
+                    message &&
+                        message.components[0].components.find((buttonC) => {
+                            buttonC.customId.startsWith("lfgController_join");
+                        })?.disabled
+                        ? true
+                        : false;
             });
             notificationScheduler.updateCache({ lfgCache: this.localCache });
             console.info("Initial sync with database completed successfully.");
@@ -132,6 +143,9 @@ export class LFGController {
         catch (error) {
             console.error("[Error code: 2048] Error during initial sync with database:", error);
         }
+    }
+    getCacheById(id) {
+        return this.localCache[id];
     }
     generateMemberCountText(joinedUsers) {
         switch (joinedUsers) {

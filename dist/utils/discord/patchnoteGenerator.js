@@ -20,8 +20,12 @@ export async function generatePatchNotes(message) {
         throw new Error("Патчноут слишком длинный");
     }
     const components = [
-        new ButtonBuilder().setCustomId("patchnoteEvent_sendToGods").setStyle(ButtonStyle.Primary).setLabel("Опубликовать в премиум-чате"),
-        new ButtonBuilder().setCustomId("patchnoteEvent_sendToPublic").setStyle(ButtonStyle.Success).setLabel("Опубликовать для всех"),
+        new ButtonBuilder().setCustomId("patchnoteEvent_sendToGods").setStyle(ButtonStyle.Primary).setLabel("Отправить в премиум-чат"),
+        new ButtonBuilder()
+            .setCustomId("patchnoteEvent_sendToGodsWithoutButtons")
+            .setStyle(ButtonStyle.Secondary)
+            .setLabel("Отправить в премиум чат (без кнопок)"),
+        new ButtonBuilder().setCustomId("patchnoteEvent_sendToPublic").setStyle(ButtonStyle.Success).setLabel("Отправить для всех"),
         new ButtonBuilder().setCustomId("patchnoteEvent_cancel").setStyle(ButtonStyle.Danger).setLabel("Отменить"),
     ];
     channel

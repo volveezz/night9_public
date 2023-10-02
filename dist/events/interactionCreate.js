@@ -17,7 +17,6 @@ export default new Event("interactionCreate", async (interaction) => {
     else if (interaction.isButton() || interaction.isAnySelectMenu() || interaction.isModalSubmit()) {
         const button = client.buttons.get(interaction.customId.split("_").shift());
         if (!button) {
-            console.error("[Error code: 2054] Called button wasn't found", interaction.customId);
             return logCommandInteraction(interaction);
         }
         const buttonInteraction = (interaction.isButton() ? interaction : null);
@@ -34,7 +33,7 @@ export default new Event("interactionCreate", async (interaction) => {
         const autocompleteId = option.name.split("_")[0];
         const autocomplete = client.autocomplete.get(autocompleteId);
         if (!autocomplete)
-            return console.error(`[Error code: 1138] Found unknown autocomplete interaction ${autocompleteId}`, interaction);
+            return console.error(`[Error code: 1138] Found unknown autocomplete interaction ${autocompleteId}`, interaction.commandName);
         autocomplete.run({ client, interaction, option }).catch((e) => console.error("[Error code: 1139]", e));
     }
     logCommandInteraction(interaction);

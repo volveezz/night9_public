@@ -466,7 +466,7 @@ const SlashCommand = new Command({
                 throw { name: "Ошибка", description: "Не удалось найти сообщение в канале рейда" };
             }
             const components = [];
-            if ((newRaid && newRaid in raidsGuide) || raidData.raid in raidsGuide) {
+            if ((newRaid && newRaid in raidsGuide) || ((!newRaid || newRaid === raidData.raid) && raidData.raid in raidsGuide)) {
                 components.push(new ButtonBuilder()
                     .setCustomId(`raidGuide_${newRaid || raidData.raid}`)
                     .setLabel("Руководство по рейду")

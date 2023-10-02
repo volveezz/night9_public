@@ -45,6 +45,7 @@ const ButtonCommand = new Button({
                     "channelId",
                     "inChannelMessageId",
                     "joined",
+                    "time",
                     "hotJoined",
                     "alt",
                     "raid",
