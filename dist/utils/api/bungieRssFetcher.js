@@ -21,7 +21,7 @@ async function fetchNewsArticles() {
             }
             lastArticlePubDate = redisData ? parseInt(redisData) : new Date().getTime();
         }
-        if (new Date(currentArticles[0].PubDate).getTime() !== lastArticlePubDate) {
+        if (new Date(currentArticles[0].PubDate).getTime() > lastArticlePubDate) {
             const newArticles = getNewArticles(currentArticles, lastArticlePubDate);
             await postArticlesToDiscord(newArticles);
         }

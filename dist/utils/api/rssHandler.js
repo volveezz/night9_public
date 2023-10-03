@@ -4,7 +4,7 @@ import { processedRssLinks } from "../persistence/dataStore.js";
 import { redisClient } from "../persistence/redis.js";
 const parser = new Parser();
 const createTwitterAccountUrl = (accountName) => {
-    return `http://twiiit.com/${accountName}/rss`;
+    return `https://twiiit.com/${accountName}/rss`;
 };
 const rssUrls = {
     BungieHelp: createTwitterAccountUrl("bungiehelp"),
@@ -38,7 +38,7 @@ function rehostLink(link) {
 async function fetchAndSendLatestTweets(url, latestTweetInfo, routeName, isRetry = false) {
     try {
         const feed = await parser.parseURL(url).catch((e) => {
-            console.error("[Error code: 1706] Error fetching RSS feed:", e.message, e, url);
+            console.error("[Error code: 1706] Error fetching RSS feed:", e.message, url);
             if (!isRetry) {
                 console.info("Retrying another RSS request...");
                 fetchAndSendLatestTweets(url, latestTweetInfo, routeName, true);
@@ -48,10 +48,12 @@ async function fetchAndSendLatestTweets(url, latestTweetInfo, routeName, isRetry
             }
             return;
         });
-        if (!feed || !feed.items || feed.items.length < 2)
+        if (!feed || !feed.items || feed.items.length < 2) {
             return latestTweetInfo;
+        }
         if (!latestTweetInfo && feed.items[0].link && feed.items[0].pubDate) {
-            return { link: feed.items[0].link, pubDate: feed.items[0].pubDate };
+            const correctedLink = rehostLink(feed.items[0].link);
+            return { link: correctedLink, pubDate: feed.items[0].pubDate };
         }
         else if (!latestTweetInfo && (!feed.items[0].link || !feed.items[0].pubDate)) {
             console.error("[Error code: 2079] Invalid feed item", feed.items[0]);
@@ -86,13 +88,14 @@ async function fetchAndSendLatestTweets(url, latestTweetInfo, routeName, isRetry
             };
             const author = getBungieTwitterAuthor(entry.creator);
             if (author && isValidTweet(author, entry.guid) && entry.content && entry.content.length > 0) {
-                await generateTwitterEmbed({
+                const params = {
                     twitterData: entry.title ? { content: entry.title } : entry.content ? { content: entry.content } : entry,
                     content: entry.content,
                     author,
                     icon: feed.image?.url,
                     url: correctedLink,
-                });
+                };
+                await generateTwitterEmbed(params);
             }
             else {
                 console.error("[Error code: 1705]", entry, author, author && isValidTweet(author, entry.guid), entry.content?.length);
@@ -177,7 +180,7 @@ const twitterAccounts = [
     },
 ];
 (async () => {
-    console.debug("Starting rssHandler");
+    console.info("[RSS Feed] Starting RSS feed fetcher.");
     const fetchAndReschedule = async (account) => {
         const request = await fetchAndSendLatestTweets(account.rssUrl, account.latestTweetInfo, account.name);
         if (request)
@@ -186,9 +189,11 @@ const twitterAccounts = [
     };
     for (let account of twitterAccounts) {
         account.latestTweetInfo = await getLatestTweetInfoFromDatabase(account.name);
-        const request = await fetchAndSendLatestTweets(account.rssUrl, account.latestTweetInfo, account.name);
-        if (request)
-            account.latestTweetInfo = request;
+        if (!account.latestTweetInfo) {
+            const request = await fetchAndSendLatestTweets(account.rssUrl, account.latestTweetInfo, account.name);
+            if (request)
+                account.latestTweetInfo = request;
+        }
         fetchAndReschedule(account);
     }
 })();
