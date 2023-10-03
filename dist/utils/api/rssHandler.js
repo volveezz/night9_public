@@ -39,7 +39,7 @@ function rehostLink(link) {
 async function fetchAndSendLatestTweets(url, latestLink, routeName, isRetry = false) {
     try {
         const feed = await parser.parseURL(url).catch((e) => {
-            console.error("[Error code: 1706] Error fetching RSS feed:", e.message, e.body, url);
+            console.error("[Error code: 1706] Error fetching RSS feed:", e.message, e, url);
             if (!isRetry) {
                 console.info("Retrying another RSS request...");
                 fetchAndSendLatestTweets(url, latestLink, routeName, true);

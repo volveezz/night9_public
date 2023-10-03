@@ -116,8 +116,10 @@ async function testAutonameUserStatus(member) {
     notifiedUsers.add(member.id);
     const embed = new EmbedBuilder()
         .setColor(colors.serious)
-        .setAuthor({ name: "Вы изменили никнейм с включенной системой за слежкой за ником", iconURL: icons.notify })
-        .setDescription(`На сервере работает система слежки за никнеймами пользователей в игре\n\n> Ваш никнейм в игре: \`${escapeString(authData.displayName)}\`\n> Текущий никнейм: \`${escapeString(member.displayName)}\`${`\n> Текущий часовой пояс: ${authData.timezone ? `\`${authData.timezone}\`` : `не указан. Введите \`/timezone\` (</timezone:1055308734794043503>)`}`}\n\nВаш текущий никнейм будет изменен в течение часа на тот, который в игре\nОтключить эту систему Вы можете введя команду \`/autoname\` (работает в любых каналах на сервере Night 9)`);
+        .setAuthor({ name: "Изменение никнейма с активированной системой отслеживания", iconURL: icons.notify })
+        .setDescription(`На сервере включена система отслеживания игровых никнеймов.\n\n- Ваш игровой никнейм: \`${escapeString(authData.displayName)}\`\n- Ваш текущий никнейм: \`${escapeString(member.displayName)}\`${`\n- Ваш часовой пояс: ${authData.timezone
+        ? `\`${authData.timezone}\``
+        : `не указан. Чтобы указать, введите команду \`/timezone\` (</timezone:1055308734794043503>)`}`}\n\nВ течение часа ваш текущий никнейм будет синхронизирован с игровым. Для отключения этой функции, введите команду \`/autoname\` (доступно в любом канале сервера Night 9).`);
     await member.send({ embeds: [embed] });
 }
 //# sourceMappingURL=guildMemberUpdate.js.map

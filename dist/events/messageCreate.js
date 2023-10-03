@@ -3,7 +3,7 @@ import { workingCollectors } from "../buttons/adminDirectMessageButton.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { Event } from "../structures/event.js";
-import { RefreshManifest } from "../utils/api/ManifestManager.js";
+import { refreshManifest } from "../utils/api/ManifestManager.js";
 import { manageAdminDMChannel } from "../utils/discord/adminDmManager.js";
 import blockChannelMessage from "../utils/discord/blockChannelMessages.js";
 import { handleDm } from "../utils/discord/dmHandler.js";
@@ -14,12 +14,17 @@ import parseTwitterLinkMessage from "../utils/discord/twitterHandler/parseTwitte
 import { cacheUserActivity } from "../utils/discord/userActivityHandler.js";
 async function handleMessage(message) {
     if (message.author.id === "879470138531921920") {
-        return RefreshManifest();
+        refreshManifest();
+        return;
     }
-    if (message.channelId === process.env.TWITTER_MESSAGES_CHANNEL_ID &&
-        !message.cleanContent.includes("Retweeted") &&
-        message.content.match(/(?:\[(Tweeted|Quoted)\]\()?https:\/\/twitter\.com\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/)) {
-        return parseTwitterLinkMessage(message);
+    if (message.channelId === process.env.TWITTER_MESSAGES_CHANNEL_ID) {
+        for (let embed of message.embeds) {
+            const { title: embedTitle, url: embedUrl } = embed;
+            const regex = /(?:\[(Tweeted|Quoted)\]\()?https:\/\/(twitter\.com|x\.com)\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/;
+            if ((embedTitle === "Tweeted" || embedTitle === "Quoted") && embedUrl?.match(regex)) {
+                parseTwitterLinkMessage(message);
+            }
+        }
     }
     if (!message.author || message.author.bot || message.system || !(message instanceof Message))
         return;

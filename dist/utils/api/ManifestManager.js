@@ -61,7 +61,7 @@ export async function GetManifest(page) {
     return manifestManager.getDefinition(page);
 }
 let isManifestUpdating = false;
-export async function RefreshManifest() {
+export async function refreshManifest() {
     if (isManifestUpdating)
         return;
     isManifestUpdating = true;

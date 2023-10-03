@@ -10,7 +10,7 @@ async function downloadFile(url, fileName) {
     await promisify(stream.pipeline)(response.body, fileStream);
     return fileName;
 }
-async function sendFileToDiscord(filePath) {
+async function sendFileToDiscord(filePath, fileType = "gif") {
     if (!textChannel)
         textChannel = await client.getTextChannel(process.env.STORAGE_CHANNEL_ID);
     try {
@@ -18,7 +18,7 @@ async function sendFileToDiscord(filePath) {
             files: [
                 {
                     attachment: filePath,
-                    name: "boosty.to_night9.gif",
+                    name: `boosty.to_night9.${fileType}`,
                 },
             ],
         });
@@ -37,10 +37,10 @@ async function deleteFile(filePath) {
         }
     });
 }
-export async function processTwitterGifFile(url, message, embed) {
+export async function processTwitterGifFile(url, message, embed, fileType = "gif") {
     try {
         const filePath = await downloadFile(url, message.id);
-        const fileMessage = await sendFileToDiscord(filePath);
+        const fileMessage = await sendFileToDiscord(filePath, fileType);
         if (fileMessage) {
             const attachmentUrl = fileMessage.attachments.first().url;
             embed.setImage(attachmentUrl);

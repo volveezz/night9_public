@@ -50,7 +50,7 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
     let components = [];
     const embedMedia = originalEmbed?.data && (originalEmbed.data.thumbnail?.url || originalEmbed.data.image?.url || originalEmbed.data.video?.url);
     const extractedMedia = extractMediaUrl(content) || embedMedia;
-    console.debug(`Extracted media: ${extractedMedia}`, content, embedMedia);
+    console.debug(`Extracted media: ${extractedMedia}`, embedMedia);
     const replacedDescription = replaceTimeWithEpoch(cleanContent);
     let tranlsatedContent = "";
     try {
@@ -83,14 +83,14 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
             twitterOriginalVoters.set(m.id, voteRecord);
             originalTweetData.set(m.id, cleanContent);
         }
-        const extractedVideoMedia = extractMediaUrl(twitterData.content, "video");
+        const extractedVideoMedia = extractMediaUrl(content, "video");
         if (extractedVideoMedia && extractedVideoMedia.endsWith(".mp4")) {
             console.debug("Converting video to gif");
             convertVideoToGif(extractedVideoMedia, m, embed);
         }
         else if (extractedMedia && extractedMedia.includes("nitter")) {
             console.debug("Processing nitter image");
-            processTwitterGifFile(extractedMedia, m, embed);
+            processTwitterGifFile(extractedMedia, m, embed, "jpg");
         }
     });
 }
