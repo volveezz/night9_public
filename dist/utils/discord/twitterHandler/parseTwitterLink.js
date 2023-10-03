@@ -28,7 +28,7 @@ async function parseTwitterLinkMessage(message) {
             return;
         }
         const tweetUrl = message.content.match(/https:\/\/twitter\.com\/\w+\/status\/\d+/)?.[0];
-        const url = tweetUrl || embed.author.url;
+        const url = tweetUrl || embed.url || embed.author.url;
         if (url && processedRssLinks.has(url)) {
             message.delete();
             return;

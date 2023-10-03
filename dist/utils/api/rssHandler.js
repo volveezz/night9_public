@@ -3,9 +3,8 @@ import { generateTwitterEmbed } from "../discord/twitterHandler/twitterMessagePa
 import { processedRssLinks } from "../persistence/dataStore.js";
 import { redisClient } from "../persistence/redis.js";
 const parser = new Parser();
-const hostUrl = "twiiit.com";
 const createTwitterAccountUrl = (accountName) => {
-    return `http://${hostUrl}/${accountName}/rss`;
+    return `http://twiiit.com/${accountName}/rss`;
 };
 const rssUrls = {
     BungieHelp: createTwitterAccountUrl("bungiehelp"),
@@ -36,13 +35,13 @@ function rehostLink(link) {
         return link;
     }
 }
-async function fetchAndSendLatestTweets(url, latestLink, routeName, isRetry = false) {
+async function fetchAndSendLatestTweets(url, latestTweetInfo, routeName, isRetry = false) {
     try {
         const feed = await parser.parseURL(url).catch((e) => {
             console.error("[Error code: 1706] Error fetching RSS feed:", e.message, e, url);
             if (!isRetry) {
                 console.info("Retrying another RSS request...");
-                fetchAndSendLatestTweets(url, latestLink, routeName, true);
+                fetchAndSendLatestTweets(url, latestTweetInfo, routeName, true);
             }
             else {
                 console.error("[Error code: 2077] Failed to fetch RSS feed twice");
@@ -50,23 +49,41 @@ async function fetchAndSendLatestTweets(url, latestLink, routeName, isRetry = fa
             return;
         });
         if (!feed || !feed.items || feed.items.length < 2)
-            return latestLink;
-        if (!latestLink) {
-            return feed.items[0].link;
+            return latestTweetInfo;
+        if (!latestTweetInfo && feed.items[0].link && feed.items[0].pubDate) {
+            return { link: feed.items[0].link, pubDate: feed.items[0].pubDate };
         }
-        let finalLink;
+        else if (!latestTweetInfo && (!feed.items[0].link || !feed.items[0].pubDate)) {
+            console.error("[Error code: 2079] Invalid feed item", feed.items[0]);
+            return undefined;
+        }
+        else if (!latestTweetInfo) {
+            console.error("[Error code: 2080] Latest tweet info wasn't found", feed.items[0]);
+            return undefined;
+        }
+        let finalInfo;
         for (const entry of feed.items) {
             if (!entry.link) {
                 break;
             }
+            if (!entry.pubDate) {
+                console.error("[Error code: 2078] Pub date wasn't found in the tweet info", entry);
+                break;
+            }
+            if (latestTweetInfo && new Date(entry.pubDate) <= new Date(latestTweetInfo.pubDate)) {
+                break;
+            }
             const correctedLink = rehostLink(entry.link);
-            if (correctedLink === latestLink || processedRssLinks.has(correctedLink)) {
+            if (correctedLink === latestTweetInfo.link || processedRssLinks.has(correctedLink)) {
                 break;
             }
             if (isRetweet(entry))
                 continue;
             processedRssLinks.add(correctedLink);
-            finalLink = correctedLink;
+            finalInfo = {
+                link: correctedLink,
+                pubDate: entry.pubDate,
+            };
             const author = getBungieTwitterAuthor(entry.creator);
             if (author && isValidTweet(author, entry.guid) && entry.content && entry.content.length > 0) {
                 await generateTwitterEmbed({
@@ -81,18 +98,22 @@ async function fetchAndSendLatestTweets(url, latestLink, routeName, isRetry = fa
                 console.error("[Error code: 1705]", entry, author, author && isValidTweet(author, entry.guid), entry.content?.length);
             }
         }
-        if (finalLink) {
-            await updateLatestLinkInDatabase(routeName, finalLink);
-            return finalLink;
+        if (finalInfo) {
+            await updateLatestTweetInfoInDatabase(routeName, finalInfo);
+            return finalInfo;
         }
     }
     catch (error) {
         console.error("[Error code: 1704] Error fetching RSS feed:", error);
     }
-    return latestLink;
+    return latestTweetInfo;
 }
-async function updateLatestLinkInDatabase(route, link) {
-    await redisClient.set(route, link);
+async function updateLatestTweetInfoInDatabase(route, info) {
+    await redisClient.set(route, JSON.stringify(info));
+}
+async function getLatestTweetInfoFromDatabase(route) {
+    const record = await redisClient.get(route);
+    return record ? JSON.parse(record) : undefined;
 }
 function getBungieTwitterAuthor(creator) {
     switch (creator) {
@@ -158,29 +179,17 @@ const twitterAccounts = [
 (async () => {
     console.debug("Starting rssHandler");
     const fetchAndReschedule = async (account) => {
-        const request = await fetchAndSendLatestTweets(account.rssUrl, account.latestTweetLink, account.name);
+        const request = await fetchAndSendLatestTweets(account.rssUrl, account.latestTweetInfo, account.name);
         if (request)
-            account.latestTweetLink = request;
+            account.latestTweetInfo = request;
         setTimeout(fetchAndReschedule, account.interval, account);
     };
     for (let account of twitterAccounts) {
-        account.latestTweetLink = await getLatestLinkFromDatabase(account.name);
-        console.debug(`Latest link for ${account.name}:`, account.latestTweetLink);
-        if (!account.latestTweetLink) {
-            const request = await fetchAndSendLatestTweets(account.rssUrl, account.latestTweetLink, account.name);
-            if (request)
-                account.latestTweetLink = request;
-        }
+        account.latestTweetInfo = await getLatestTweetInfoFromDatabase(account.name);
+        const request = await fetchAndSendLatestTweets(account.rssUrl, account.latestTweetInfo, account.name);
+        if (request)
+            account.latestTweetInfo = request;
         fetchAndReschedule(account);
     }
 })();
-async function getLatestLinkFromDatabase(route) {
-    try {
-        const record = await redisClient.get(route);
-        return record || undefined;
-    }
-    catch (error) {
-        console.error(`[Error code: 1946] Error retrieving the latest link from the database for route ${route}:`, error);
-    }
-}
 //# sourceMappingURL=rssHandler.js.map

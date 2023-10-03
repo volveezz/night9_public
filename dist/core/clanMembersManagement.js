@@ -12,6 +12,15 @@ import notifyUserNotMeetRequirements from "../utils/general/newbieRequirementsCh
 import { updateClanRolesWithLogging } from "../utils/logging/clanEventLogger.js";
 import { bungieNames, clanOnline, joinDateCheckedClanMembers, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, userCharactersId, } from "../utils/persistence/dataStore.js";
 let lastLoggedErrorCode = 1;
+async function updateClientPresence(errorCode) {
+    const activities = errorCode === 5
+        ? [{ name: "API игры отключено", type: ActivityType.Custom }]
+        : [{ name: "API не отвечает", type: ActivityType.Custom }];
+    client.user.setPresence({
+        activities,
+        status: "idle",
+    });
+}
 async function clanMembersManagement(databaseData) {
     const dataForProcessing = new Array(...databaseData);
     try {
@@ -35,13 +44,7 @@ async function clanMembersManagement(databaseData) {
         }
         else if (errorCode != null && errorCode != getEndpointStatus("api") && errorCode != 1) {
             updateEndpointStatus("api", errorCode);
-            const activities = errorCode === 5
-                ? [{ name: "API игры отключено", type: ActivityType.Custom }]
-                : [{ name: "API не отвечает", type: ActivityType.Custom }];
-            client.user.setPresence({
-                activities,
-                status: "idle",
-            });
+            updateClientPresence(errorCode);
             return;
         }
         if (!clanList.results || !clanList.results?.length) {
@@ -197,6 +200,7 @@ async function clanMembersManagement(databaseData) {
         if (e instanceof BungieAPIError && e.errorCode) {
             console.error(`[Error code: 2052] Received ${e.errorCode}/${e.errorStatus} error during clan checking`);
             updateEndpointStatus("api", e.errorCode);
+            updateClientPresence(e.errorCode);
             return;
         }
         if (e.statusCode >= 400 || e.statusCode <= 599) {

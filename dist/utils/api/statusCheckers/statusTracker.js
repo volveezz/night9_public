@@ -14,6 +14,10 @@ export const endpointCheckers = {
 export function updateEndpointStatus(endpoint, status) {
     endpointStatuses[endpoint] = status;
     if (status !== 1 && !endpointCheckers[endpoint]) {
+        if (status === 1665) {
+            console.error("[Error code: 2081] Request failed due user's privacy settings");
+            return;
+        }
         endpointCheckers[endpoint] = startEndpointCheck(endpoint);
     }
 }

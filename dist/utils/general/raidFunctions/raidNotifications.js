@@ -52,7 +52,7 @@ async function scheduleNextNotification() {
             }, sleepDuration);
             runningTimeouts.push({ discordId, timeout });
         }
-        else if (sleepDuration > -1000) {
+        else if (sleepDuration > -2000) {
             console.debug("Scheduled a new notification task for", discordId, new Date(notifyTime));
             const timeout = setTimeout(async () => {
                 console.debug("Sending a notification for", discordId, new Date(notifyTime));

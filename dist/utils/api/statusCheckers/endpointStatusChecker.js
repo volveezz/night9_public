@@ -43,15 +43,17 @@ async function handleApiCall(endpointURL, accessToken) {
     }
     try {
         console.debug("Making a request to", endpointURL);
-        const request = await sendApiRequest(endpointURL, accessToken, true);
-        console.debug("Made a request to", endpointURL, "and got", request.ErrorCode);
-        if (request && request.ErrorCode != null) {
-            console.debug(`[Error code: 2000] Error code for ${endpointURL} is ${request.ErrorCode}`);
-            return request.ErrorCode;
+        const request = await sendApiRequest(endpointURL, accessToken, true).catch((e) => e);
+        const errorCode = request && (request.ErrorCode || request.errorCode);
+        console.debug("Made a request to", endpointURL, "and got", errorCode);
+        if (request && errorCode != null) {
+            console.debug(`[Error code: 2000] Error code for ${endpointURL} is ${errorCode}`);
+            return errorCode;
         }
     }
     catch (error) {
-        console.error("[Error code: 1970]", error);
+        const { statusCode, statusText, errorCode, errorStatus } = error;
+        console.error(`[Error code: 1970] StatusCode: ${statusCode}, StatusText: ${statusText}, ErrorCode: ${errorCode}, ErrorStatus: ${errorStatus}`);
         return 5;
     }
     return 5;
