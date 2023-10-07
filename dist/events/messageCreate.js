@@ -20,9 +20,16 @@ async function handleMessage(message) {
     if (message.channelId === process.env.TWITTER_MESSAGES_CHANNEL_ID) {
         for (let embed of message.embeds) {
             const { title: embedTitle, url: embedUrl } = embed;
-            const regex = /(?:\[(Tweeted|Quoted)\]\()?https:\/\/(twitter\.com|x\.com)\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/;
-            if ((embedTitle === "Tweeted" || embedTitle === "Quoted") && embedUrl?.match(regex)) {
-                parseTwitterLinkMessage(message);
+            if (message.content.length > 0 &&
+                !message.cleanContent.includes("Retweeted") &&
+                message.content.match(/(?:\[Tweeted]\(\))?https:\/\/twitter\.com\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/)) {
+                return parseTwitterLinkMessage(message);
+            }
+            else {
+                const regex = /(?:\[(Tweeted|Quoted)\]\()?https:\/\/(twitter\.com|x\.com)\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/;
+                if ((embedTitle === "Tweeted" || embedTitle === "Quoted") && embedUrl?.match(regex)) {
+                    parseTwitterLinkMessage(message);
+                }
             }
         }
     }

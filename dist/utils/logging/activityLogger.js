@@ -343,6 +343,12 @@ async function logActivityCompletion(pgcrId) {
                         if (startTime < latestEndTime && preciseStoredEncounterTime.length > 0) {
                             startTime = latestEndTime;
                         }
+                        if (preciseStoredEncounterTime.length > 0) {
+                            const previousPhase = preciseStoredEncounterTime[preciseStoredEncounterTime.length - 1];
+                            if (previousPhase.end > startTime) {
+                                previousPhase.end = startTime;
+                            }
+                        }
                         if (startTime < endTime) {
                             preciseStoredEncounterTime.push({
                                 phaseIndex: phaseData[0].phaseIndex,
