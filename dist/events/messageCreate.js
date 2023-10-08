@@ -23,7 +23,7 @@ async function handleMessage(message) {
             if (message.content.length > 0 &&
                 !message.cleanContent.includes("Retweeted") &&
                 message.content.match(/(?:\[Tweeted]\(\))?https:\/\/twitter\.com\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/)) {
-                return parseTwitterLinkMessage(message);
+                parseTwitterLinkMessage(message);
             }
             else {
                 const regex = /(?:\[(Tweeted|Quoted)\]\()?https:\/\/(twitter\.com|x\.com)\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/;
@@ -32,6 +32,7 @@ async function handleMessage(message) {
                 }
             }
         }
+        return;
     }
     if (!message.author || message.author.bot || message.system || !(message instanceof Message))
         return;

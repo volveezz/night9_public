@@ -72,7 +72,7 @@ app.get("/", async (req, res) => {
         webHandler(req.query.code.toString(), req.query.state.toString(), res);
     }
     else
-        res.status(404).end();
+        res.status(404).send("Not found");
 });
 app.get("/verify", async (req, res) => {
     const { url, state } = getOAuthUrl();

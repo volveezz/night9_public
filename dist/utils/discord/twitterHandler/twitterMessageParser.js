@@ -2,11 +2,12 @@ import { ButtonBuilder, ButtonStyle } from "discord.js";
 import { client } from "../../../index.js";
 import translateDestinyText from "../../api/translateDestinyText.js";
 import { addButtonsToMessage } from "../../general/addButtonsToMessage.js";
-import { originalTweetData, twitterOriginalVoters } from "../../persistence/dataStore.js";
+import { originalTweetData, processedRssLinks, twitterOriginalVoters } from "../../persistence/dataStore.js";
 import convertMp4ToGif from "./mp4IntoGif.js";
 import resolveAuthor from "./resolveAuthor.js";
 import { processTwitterGifFile } from "./saveGifInChannel.js";
 let publicNewsChannel = null;
+const originalButton = new ButtonBuilder().setCustomId("twitter_showOriginal").setLabel("Оригинал").setStyle(ButtonStyle.Secondary);
 function extractMediaUrl(content, preferable = "image") {
     if (!content)
         return null;
@@ -40,59 +41,68 @@ function clearText(content) {
         .trim();
 }
 async function generateTwitterEmbed({ twitterData, author, icon, url, originalEmbed, content }) {
-    if (!twitterData.content)
-        return;
-    const cleanContent = clearText(twitterData.content);
-    if (!cleanContent || cleanContent.length === 0) {
-        console.error("[Error code: 1754]", twitterData);
-        return;
-    }
-    let components = [];
-    const embedMedia = originalEmbed?.data && (originalEmbed.data.thumbnail?.url || originalEmbed.data.image?.url || originalEmbed.data.video?.url);
-    const extractedMedia = extractMediaUrl(content) || embedMedia;
-    console.debug(`Extracted media: ${extractedMedia}`, embedMedia);
-    const replacedDescription = replaceTimeWithEpoch(cleanContent);
-    let tranlsatedContent = "";
     try {
-        const translateRequest = await translateDestinyText(replacedDescription);
-        if (translateRequest && translateRequest.length > 1 && !translateRequest.includes("You exceeded your current quota")) {
-            tranlsatedContent = translateRequest;
-            components = [new ButtonBuilder().setCustomId("twitter_showOriginal").setLabel("Оригинал").setStyle(ButtonStyle.Secondary)];
+        if (!twitterData.content)
+            return;
+        const cleanContent = clearText(twitterData.content);
+        if (!cleanContent || cleanContent.length === 0) {
+            console.error("[Error code: 1754]", twitterData);
+            return;
         }
-        else {
-            console.error("[Error code: 1966]", translateRequest);
+        let components = [];
+        const embedMedia = originalEmbed?.data && (originalEmbed.data.thumbnail?.url || originalEmbed.data.image?.url || originalEmbed.data.video?.url);
+        const extractedMedia = extractMediaUrl(content) || embedMedia;
+        console.debug(`Extracted media: ${extractedMedia}`, embedMedia);
+        const replacedDescription = replaceTimeWithEpoch(cleanContent);
+        let tranlsatedContent = "";
+        try {
+            const translateRequest = await translateDestinyText(replacedDescription);
+            if (translateRequest && translateRequest.length > 1 && !translateRequest.includes("You exceeded your current quota")) {
+                tranlsatedContent = translateRequest;
+                components = [originalButton];
+            }
+            else {
+                console.error("[Error code: 1966]", translateRequest);
+            }
         }
+        catch (error) {
+            console.error("[Error code: 1967]", error);
+        }
+        const embed = resolveAuthor({ author, icon, url, originalAuthor: originalEmbed?.author?.name?.replace(/\s\(@\w+\)/, "") });
+        if (!embed) {
+            console.error("[Error code: 1998]", embed, author, icon, url);
+            return;
+        }
+        embed.setDescription(tranlsatedContent && tranlsatedContent.length > 1 ? tranlsatedContent : replacedDescription.length > 0 ? replacedDescription : null);
+        if (extractedMedia) {
+            embed.setImage(extractedMedia);
+        }
+        if (!publicNewsChannel)
+            publicNewsChannel = await client.getTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
+        if (url && !processedRssLinks.has(url))
+            processedRssLinks.add(url);
+        await publicNewsChannel.send({ embeds: [embed], components: addButtonsToMessage(components) }).then((m) => {
+            if (tranlsatedContent) {
+                const voteRecord = { original: new Set(), translation: new Set() };
+                twitterOriginalVoters.set(m.id, voteRecord);
+                originalTweetData.set(m.id, cleanContent);
+            }
+            const extractedVideoMedia = extractMediaUrl(content, "video");
+            if (extractedVideoMedia && extractedVideoMedia.endsWith(".mp4")) {
+                console.debug("Converting video to gif");
+                convertVideoToGif(extractedVideoMedia, m, embed);
+            }
+            else if (extractedMedia && extractedMedia.includes("nitter")) {
+                console.debug("Processing nitter image");
+                processTwitterGifFile(extractedMedia, m, embed, "jpg");
+            }
+        });
     }
     catch (error) {
-        console.error("[Error code: 1967]", error);
+        console.error("[Error code: 2083]", error);
+        if (url && processedRssLinks.has(url))
+            processedRssLinks.delete(url);
     }
-    const embed = resolveAuthor({ author, icon, url, originalAuthor: originalEmbed?.author?.name?.replace(/\s\(@\w+\)/, "") });
-    if (!embed) {
-        console.error("[Error code: 1998]", embed, author, icon, url);
-        return;
-    }
-    embed.setDescription(tranlsatedContent && tranlsatedContent.length > 1 ? tranlsatedContent : replacedDescription.length > 0 ? replacedDescription : null);
-    if (extractedMedia) {
-        embed.setImage(extractedMedia);
-    }
-    if (!publicNewsChannel)
-        publicNewsChannel = await client.getTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
-    await publicNewsChannel.send({ embeds: [embed], components: addButtonsToMessage(components) }).then((m) => {
-        if (tranlsatedContent) {
-            const voteRecord = { original: new Set(), translation: new Set() };
-            twitterOriginalVoters.set(m.id, voteRecord);
-            originalTweetData.set(m.id, cleanContent);
-        }
-        const extractedVideoMedia = extractMediaUrl(content, "video");
-        if (extractedVideoMedia && extractedVideoMedia.endsWith(".mp4")) {
-            console.debug("Converting video to gif");
-            convertVideoToGif(extractedVideoMedia, m, embed);
-        }
-        else if (extractedMedia && extractedMedia.includes("nitter")) {
-            console.debug("Processing nitter image");
-            processTwitterGifFile(extractedMedia, m, embed, "jpg");
-        }
-    });
 }
 async function convertVideoToGif(videoUrl, message, embed) {
     const gifUrl = await convertMp4ToGif(videoUrl);

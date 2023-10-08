@@ -13,6 +13,14 @@ import { InitData } from "../persistence/sequelizeModels/initData.js";
 import { LeavedUsersData } from "../persistence/sequelizeModels/leavedUsersData.js";
 import { UserActivityData } from "../persistence/sequelizeModels/userActivityData.js";
 import { sendApiRequest } from "./sendApiRequest.js";
+const clanRequestComponent = new ButtonBuilder()
+    .setCustomId("webhandlerEvent_clan_request")
+    .setLabel("Отправить приглашение")
+    .setStyle(ButtonStyle.Success);
+const timezoneComponent = new ButtonBuilder()
+    .setCustomId("timezoneButton")
+    .setLabel("Установить часовой пояс")
+    .setStyle(ButtonStyle.Secondary);
 function isValidUUIDv4(uuid) {
     const uuidv4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     return uuidv4Regex.test(uuid);
@@ -35,14 +43,15 @@ export default async function webHandler(code, state, res) {
         body: form,
     })).json());
     if (body.error === "invalid_request" || body.error === "invalid_grant") {
-        res.send("<script>location.replace('error.html')</script>").end();
+        res.send("<script>location.replace('error.html')</script>");
         return console.error("[Error code: 1010]", `There is problem with fetching authData from state: ${state}`, body);
     }
     try {
         const request = await sendApiRequest("/Platform/User/GetMembershipsForCurrentUser/", body.access_token);
         if (!request || !request.destinyMemberships) {
-            res.send("<script>location.replace('error.html')</script>").end();
-            return console.error(`[Error code: 1034] State: ${state} / Code: ${code}`, body, request);
+            res.send("<script>location.replace('error.html')</script>");
+            console.error(`[Error code: 1034] State: ${state} / Code: ${code}`, body, request);
+            return;
         }
         const fetchedData = request.destinyMemberships.find((membership) => {
             {
@@ -64,15 +73,15 @@ export default async function webHandler(code, state, res) {
                 })) ||
             request.destinyMemberships[0];
         if (!fetchedData) {
-            res.send("<script>location.replace('error.html')</script>").end();
+            res.send("<script>location.replace('error.html')</script>");
             return console.error("[Error code: 1011]", `State: ${state} / Code:${code}`, body, request);
         }
-        const { membershipType: platform, membershipId: bungieId } = fetchedData;
-        const displayName = fetchedData.bungieGlobalDisplayName || fetchedData.LastSeenDisplayName || fetchedData.displayName;
+        const { membershipType: platform, membershipId: bungieId, bungieGlobalDisplayName, LastSeenDisplayName, displayName: bungieDisplayName, } = fetchedData;
+        const displayName = bungieGlobalDisplayName || LastSeenDisplayName || bungieDisplayName;
         const ifHasLeaved = await LeavedUsersData.findOne({ where: { bungieId }, attributes: ["discordId"] });
         if (ifHasLeaved) {
             console.error(`[Error code: 1691] User (${json.discordId}) tried to connect already registered bungieId (${bungieId})`);
-            return res.send("<script>location.replace('error.html')</script>").end();
+            return res.send("<script>location.replace('error.html')</script>");
         }
         const [authData, created] = await AuthData.findOrCreate({
             where: {
@@ -134,18 +143,19 @@ export default async function webHandler(code, state, res) {
                     console.error("[Error code: 1808] Failed to send log message", error, json.discordId);
                 }
                 InitData.destroy({ where: { discordId: json.discordId }, limit: 1 });
-                return res.send("<script>location.replace('index.html')</script>").end();
+                return res.send("<script>location.replace('index.html')</script>");
             }
             console.error(`[Error code: 1439] User (${json.discordId}) tried to connect already registered bungieId`, authData?.discordId, authData?.bungieId);
-            return res.send("<script>location.replace('error.html')</script>").end();
+            return res.send("<script>location.replace('error.html')</script>");
         }
         InitData.destroy({
             where: { discordId: json.discordId },
             limit: 1,
         });
-        res.send("<script>location.replace('index.html')</script>").end();
-        const clanResponse = await sendApiRequest(`/Platform/GroupV2/User/${platform}/${bungieId}/0/1/`, body.access_token);
-        const member = await client.getMember(json.discordId);
+        res.send("<script>location.replace('index.html')</script>");
+        const clanResponsePromise = sendApiRequest(`/Platform/GroupV2/User/${platform}/${bungieId}/0/1/`, body.access_token);
+        const memberPromise = client.getMember(json.discordId);
+        const [clanResponse, member] = await Promise.all([clanResponsePromise, memberPromise]);
         if (!member) {
             return console.error("[Error code: 1012] Member error during webHandling of", json);
         }
@@ -197,23 +207,15 @@ export default async function webHandler(code, state, res) {
             givenRoles.push(process.env.VERIFIED);
         if (givenRoles.length > 0) {
             try {
-                await member.roles.add(givenRoles, "User registration").then(async (member) => {
+                await member.roles.add(givenRoles, "User registration").then((member) => {
                     if (member.roles.cache.has(process.env.NEWBIE))
-                        await member.roles.remove(process.env.NEWBIE, "User registration");
+                        member.roles.remove(process.env.NEWBIE, "User registration");
                 });
             }
             catch (error) {
                 console.error("[Error code: 1959] Failed to add roles to member", error, member.id);
             }
         }
-        const clanRequestComponent = new ButtonBuilder()
-            .setCustomId("webhandlerEvent_clan_request")
-            .setLabel("Отправить приглашение")
-            .setStyle(ButtonStyle.Success);
-        const timezoneComponent = new ButtonBuilder()
-            .setCustomId("timezoneButton")
-            .setLabel("Установить часовой пояс")
-            .setStyle(ButtonStyle.Secondary);
         if (process.env.NODE_ENV === "production") {
             try {
                 guildNicknameManagement();
@@ -272,12 +274,12 @@ export default async function webHandler(code, state, res) {
     }
     catch (error) {
         try {
-            res.send("<script>location.replace('error.html')</script>").end();
+            res.send("<script>location.replace('error.html')</script>");
         }
         catch (e) {
             console.error("[Error code: 1802]", e);
         }
-        return console.error(`[Error code: 1234] State: ${state} / Code:${code}`, body, error);
+        console.error(`[Error code: 1234] State: ${state} / Code:${code}`, body, error);
     }
 }
 //# sourceMappingURL=webHandler.js.map

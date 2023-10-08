@@ -114,9 +114,9 @@ async function clanMembersManagement(databaseData) {
                                 await kickClanMember(platform, bungieId);
                             }
                             if (!recentlyNotifiedKickedMembers.has(bungieId)) {
-                                console.debug(`Notifing ${memberAuthData.displayName} about not meeting the clan joining requirements`);
+                                console.debug(`Notifing ${memberAuthData.displayName} about not meeting joining requirements`);
                                 await notifyUserNotMeetRequirements(memberAuthData, isUserMeetsRequirements);
-                                console.debug("User was notified");
+                                console.debug(`${memberAuthData.displayName} was notified`);
                             }
                         }
                         else {
@@ -125,7 +125,7 @@ async function clanMembersManagement(databaseData) {
                     }
                 }
                 catch (error) {
-                    console.error(`[Error code: 1924] Received ${error.statusCode} error during checking clan requirements`);
+                    console.error(`[Error code: 1924] Received ${error.statusCode} error during checking joining requirements`);
                 }
             }
             const destinyUserName = clanMember.destinyUserInfo.bungieGlobalDisplayName ||

@@ -190,6 +190,7 @@ const twitterAccounts = [
     for (let account of twitterAccounts) {
         account.latestTweetInfo = await getLatestTweetInfoFromDatabase(account.name);
         if (!account.latestTweetInfo) {
+            console.error("[Error code: 2082] Didn't found a latest tweet info for", account.name);
             const request = await fetchAndSendLatestTweets(account.rssUrl, account.latestTweetInfo, account.name);
             if (request)
                 account.latestTweetInfo = request;

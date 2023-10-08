@@ -331,33 +331,33 @@ async function logActivityCompletion(pgcrId) {
                     }
                     const preciseStoredEncounterTime = [];
                     let latestEndTime = 0;
-                    for (const [phase, phaseData] of allPhases) {
+                    const phaseEntries = [...allPhases.entries()];
+                    for (let i = 0; i < phaseEntries.length; i++) {
+                        const [phase, phaseData] = phaseEntries[i];
                         const phaseStartTimes = phaseData.map((p) => p.start).filter((time) => time > 300);
                         const phaseEndTimes = phaseData.map((p) => p.end).filter((time) => time > 300);
                         if (phaseStartTimes.length === 0 || phaseEndTimes.length === 0) {
                             continue;
                         }
                         let startTime = Math.min(...phaseStartTimes);
-                        const endTime = Math.min(...phaseEndTimes);
-                        console.debug(`Checking phase ${phase} with start time ${startTime} and end time ${endTime}, latest end time ${latestEndTime}`);
-                        if (startTime < latestEndTime && preciseStoredEncounterTime.length > 0) {
+                        let endTime = Math.min(...phaseEndTimes);
+                        if (startTime < latestEndTime) {
                             startTime = latestEndTime;
                         }
-                        if (preciseStoredEncounterTime.length > 0) {
-                            const previousPhase = preciseStoredEncounterTime[preciseStoredEncounterTime.length - 1];
-                            if (previousPhase.end > startTime) {
-                                previousPhase.end = startTime;
+                        if (i + 1 < phaseEntries.length) {
+                            const nextPhaseData = phaseEntries[i + 1][1];
+                            const nextPhaseStartTime = Math.min(...nextPhaseData.map((p) => p.start));
+                            if (endTime > nextPhaseStartTime) {
+                                endTime = nextPhaseStartTime;
                             }
                         }
-                        if (startTime < endTime) {
-                            preciseStoredEncounterTime.push({
-                                phaseIndex: phaseData[0].phaseIndex,
-                                phase: phase,
-                                start: startTime,
-                                end: endTime,
-                            });
-                            latestEndTime = endTime;
-                        }
+                        preciseStoredEncounterTime.push({
+                            phaseIndex: phaseData[0].phaseIndex,
+                            phase: phase,
+                            start: startTime,
+                            end: endTime,
+                        });
+                        latestEndTime = endTime;
                     }
                     console.debug("[Debug code: DDERGQX]", preciseStoredEncounterTime);
                     return preciseStoredEncounterTime;

@@ -10,10 +10,13 @@ let generalLogChannel = null;
 const recentlyJoinedMembersIds = new Set();
 const welcomeMessageIds = new Map();
 export async function updateClanRolesWithLogging(result, join) {
-    const member = await client.getMember(result.discordId);
-    const clanUserData = await getClanMemberData(result);
+    const [member, clanUserData, clanLogChannelRequest] = await Promise.all([
+        client.getMember(result.discordId),
+        getClanMemberData(result),
+        clanLogChannel || client.getTextChannel(process.env.CLAN_CHANNEL_ID),
+    ]);
     if (!clanLogChannel) {
-        clanLogChannel = await client.getTextChannel(process.env.CLAN_CHANNEL_ID);
+        clanLogChannel = clanLogChannelRequest;
     }
     if (clanUserData?.member?.groupId && clanUserData.member.groupId !== process.env.GROUP_ID) {
         console.error("[Error code: 1919]", clanUserData);

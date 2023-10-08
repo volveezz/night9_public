@@ -17,22 +17,21 @@ async function getClanMemberData(id) {
     }
     const { platform: membershipType, bungieId: membershipId } = typeof id === "object" && !(id instanceof AuthData) ? id : authData;
     const destinyRequest = await sendApiRequest(`/Platform/GroupV2/User/${membershipType}/${membershipId}/${0}/${1}/`);
-    if (destinyRequest.results && destinyRequest.results.length === 1) {
-        const clanData = destinyRequest.results[0];
-        return {
-            ...(authData || {}),
-            ...(clanData || {}),
-        };
+    if (!destinyRequest.results || destinyRequest.results.length === 0) {
+        return {};
     }
-    else if (destinyRequest.results && destinyRequest.results.length > 1) {
+    const clanData = destinyRequest.results[0];
+    const returnData = {
+        ...(authData || {}),
+        ...(clanData || {}),
+    };
+    if (destinyRequest.results.length === 1) {
+        return returnData;
+    }
+    else {
         console.error("[Error code: 1905]", destinyRequest.results, authData?.bungieId || id, destinyRequest.totalResults);
-        const clanData = destinyRequest.results[0];
-        return {
-            ...(authData || {}),
-            ...(clanData || {}),
-        };
+        return returnData;
     }
-    return {};
 }
 export default getClanMemberData;
 //# sourceMappingURL=getClanMemberData.js.map
