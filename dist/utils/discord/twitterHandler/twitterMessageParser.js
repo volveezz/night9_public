@@ -1,5 +1,6 @@
 import { ButtonBuilder, ButtonStyle } from "discord.js";
 import { client } from "../../../index.js";
+import { updateLatestTweetInfoInDatabase } from "../../api/rssHandler.js";
 import translateDestinyText from "../../api/translateDestinyText.js";
 import { addButtonsToMessage } from "../../general/addButtonsToMessage.js";
 import { originalTweetData, processedRssLinks, twitterOriginalVoters } from "../../persistence/dataStore.js";
@@ -40,6 +41,20 @@ function clearText(content) {
         .replace(/ ?⏵\s*\[\[\d+\]\]\((https?:\/\/[^\)]+)\)/g, "")
         .trim();
 }
+function getTwitterAccountNameFromAuthor(author) {
+    switch (author) {
+        case 1:
+            return "destinythegame";
+        case 2:
+            return "bungie";
+        case 3:
+            return "bungiehelp";
+        case 4:
+            return "destiny2team";
+        default:
+            return null;
+    }
+}
 async function generateTwitterEmbed({ twitterData, author, icon, url, originalEmbed, content }) {
     try {
         if (!twitterData.content)
@@ -79,8 +94,16 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
         }
         if (!publicNewsChannel)
             publicNewsChannel = await client.getTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
-        if (url && !processedRssLinks.has(url))
+        if (url && !processedRssLinks.has(url)) {
             processedRssLinks.add(url);
+            try {
+                const authorName = getTwitterAccountNameFromAuthor(author);
+                authorName && updateLatestTweetInfoInDatabase(authorName, { link: url, pubDate: new Date().toString() });
+            }
+            catch (error) {
+                console.error("[Error code: 2084]", error);
+            }
+        }
         await publicNewsChannel.send({ embeds: [embed], components: addButtonsToMessage(components) }).then((m) => {
             if (tranlsatedContent) {
                 const voteRecord = { original: new Set(), translation: new Set() };

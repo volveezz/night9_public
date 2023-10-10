@@ -111,7 +111,7 @@ async function fetchAndSendLatestTweets(url, latestTweetInfo, routeName, isRetry
     }
     return latestTweetInfo;
 }
-async function updateLatestTweetInfoInDatabase(route, info) {
+export async function updateLatestTweetInfoInDatabase(route, info) {
     await redisClient.set(route, JSON.stringify(info));
 }
 async function getLatestTweetInfoFromDatabase(route) {
