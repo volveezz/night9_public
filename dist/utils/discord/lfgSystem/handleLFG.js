@@ -105,8 +105,13 @@ async function createLfgPost({ userLimit, roomActivityName, description, additio
     catch (error) {
         await resolveLfgError("Ошибка названия", "Не удалось установить ваш заголовок\nВозможные причины: текст слишком длинный или содержит специальные символы", message || interaction);
     }
+    const lfgDescriptionRegex = /--\w+((="[^"]+")|=('[^']+')|)?/g;
     try {
-        embed.setDescription((userSettings.activitySettings?.description ?? description) || null);
+        const lfgDescription = userSettings.activitySettings?.description ?? description;
+        if (lfgDescription && lfgDescription.length > 1) {
+            const cleanedDescription = lfgDescription.replace(lfgDescriptionRegex, "").trim();
+            embed.setDescription(cleanedDescription);
+        }
     }
     catch (error) {
         await resolveLfgError("Ошибка описания", "Не удалось установить ваше описание\nВозможные причины: текст слишком длинный или содержит специальные символы", message || interaction);
@@ -120,12 +125,16 @@ async function createLfgPost({ userLimit, roomActivityName, description, additio
     }
     if (userSettings.activitySettings?.name && roomActivityName) {
         embed.addFields({
-            name: userSettings.activitySettings?.name && description && embed.data.description !== description
+            name: (userSettings.activitySettings?.name && description && embed.data.description !== description
                 ? roomActivityName
                 : description && embed.data.description !== description
                     ? `${roomActivityName}`
-                    : "Описание",
-            value: description && embed.data.description !== description ? description : `${roomActivityName}`,
+                    : "Описание")
+                .replace(lfgDescriptionRegex, "")
+                .trim(),
+            value: (description && embed.data.description !== description ? description : `${roomActivityName}`)
+                .replace(lfgDescriptionRegex, "")
+                .trim(),
         });
     }
     if (userSettings.activitySettings?.lightLevel) {

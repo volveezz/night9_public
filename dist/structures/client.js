@@ -310,6 +310,17 @@ export class ExtendedClient extends Client {
                 });
             }
             if (channel.isTextBased()) {
+                if (channel.id === process.env.ENGLISH_NEWS_CHANNEL_ID) {
+                    setTimeout(() => {
+                        channel.messages.fetch({ limit: 100 }).then(async (messages) => {
+                            const messageWithButtons = messages.filter((m) => m.components?.[0]?.components?.[0]?.customId === "twitter_showOriginal");
+                            for (const [_, message] of messageWithButtons) {
+                                await message.edit({ components: [] });
+                            }
+                        });
+                    }, 1000 * 30);
+                    return;
+                }
                 setTimeout(async () => {
                     try {
                         await channel.messages.fetch({ limit: 15 });

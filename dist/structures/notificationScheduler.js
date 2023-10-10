@@ -60,19 +60,16 @@ class NotificationScheduler {
         }
     }
     collectNotifications(type) {
-        const currentTimestamp = Date.now() / 1000;
         const cache = type === "lfg" ? this.lfgCache : this.raidCache;
         if (!cache)
             return [];
         return Object.entries(cache).map(([id, detail]) => {
-            const isSixtyMinutesBefore = Math.abs(detail.time - 60 * 60 - currentTimestamp) < 60;
             const numericId = Number(id);
             if (type === "lfg") {
                 return {
                     users: detail.joinedUsers,
                     time: detail.time,
                     lfgId: numericId,
-                    isSixtyMinutesBefore,
                 };
             }
             else {
@@ -80,7 +77,6 @@ class NotificationScheduler {
                     users: detail.joinedUsers,
                     time: detail.time,
                     raidId: numericId,
-                    isSixtyMinutesBefore,
                 };
             }
         });
@@ -105,16 +101,19 @@ class NotificationScheduler {
         }, Infinity);
     }
     async processNotification(notification) {
-        if (notification.isSixtyMinutesBefore && notification.raidId) {
-            for (let i = 0; i < notification.users.length; i++) {
-                await askRaidReadinessNotification(notification.users[i], notification.raidId);
-            }
-            return;
-        }
         const cache = notification.lfgId ? this.lfgCache?.[notification.lfgId] : this.raidCache?.[notification.raidId];
         if (!cache)
             return;
-        const randomGif = await getRandomRaidGIF().catch((e) => "https://media.giphy.com/media/cKJZAROeOx7MfU6Kws/giphy.gif");
+        if (notification.raidId) {
+            let timeDifference = Math.floor(Date.now() / 1000) - cache.time;
+            if (Math.abs(timeDifference - 3600) <= 59) {
+                for (let i = 0; i < notification.users.length; i++) {
+                    await askRaidReadinessNotification(notification.users[i], notification.raidId);
+                }
+                return;
+            }
+        }
+        const randomGif = await getRandomRaidGIF().catch((_) => "https://media.giphy.com/media/cKJZAROeOx7MfU6Kws/giphy.gif");
         const embed = new EmbedBuilder()
             .setImage(randomGif)
             .addFields({ name: "Id", value: (notification.raidId || notification.lfgId).toString(), inline: true }, { name: `Начало <t:${cache.time}:R>`, value: `<t:${cache.time}>`, inline: true });

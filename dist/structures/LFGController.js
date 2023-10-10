@@ -11,7 +11,7 @@ import nameCleaner from "../utils/general/nameClearer.js";
 import { convertModifiersPlaceholders } from "../utils/general/raidFunctions/convertModifiersPlaceholders.js";
 import convertTimeStringToNumber from "../utils/general/raidFunctions/convertTimeStringToNumber.js";
 import { descriptionFormatter, escapeString } from "../utils/general/utilities.js";
-import { bungieNames } from "../utils/persistence/dataStore.js";
+import { bungieNames, userTimezones } from "../utils/persistence/dataStore.js";
 import { LfgDatabase } from "../utils/persistence/sequelizeModels/lfgDatabase.js";
 import notificationScheduler from "./notificationScheduler.js";
 const { debounce } = pkg;
@@ -326,13 +326,13 @@ export class LFGController {
         let privateMessage;
         if (managementMessage) {
             privateMessage = await managementMessage.edit(messageOptions);
-            console.debug("[NotificationScheduler] Updated management message");
+            console.debug("Updated management message");
         }
         else {
             const targetChannel = channel || (await this.createLfgPrivateChannel(lfg));
             privateMessage = await targetChannel.send({ ...messageOptions, allowedMentions: { parse: [] } });
             await privateMessage.pin("LFG Management message");
-            console.debug("[NotificationScheduler] Sent new management message");
+            console.debug("Sent new management message");
             lfgObject.managementMessage = privateMessage;
         }
     }
@@ -732,7 +732,7 @@ export class LFGController {
             }
         }
         if (newTime) {
-            const convertedTime = convertTimeStringToNumber(newTime);
+            const convertedTime = convertTimeStringToNumber(newTime, userTimezones.get(requesterId || lfg.creatorId));
             if (!convertedTime) {
                 throw { errorType: "RAID_TIME_ERROR" };
             }

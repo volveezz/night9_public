@@ -8,6 +8,7 @@ import { validateAvailableOrInputedLfgId } from "../../utils/discord/lfgSystem/v
 import { activityCache } from "../../utils/general/cacheAvailableActivities.js";
 import nameCleaner from "../../utils/general/nameClearer.js";
 import convertTimeStringToNumber from "../../utils/general/raidFunctions/convertTimeStringToNumber.js";
+import { userTimezones } from "../../utils/persistence/dataStore.js";
 const availableRequiredRoles = [
     {
         name: "Конец Света",
@@ -269,7 +270,7 @@ const SlashCommand = new Command({
                     isActivityHash = true;
                 }
                 const timeString = args.getString("time", true);
-                const convertedTime = convertTimeStringToNumber(timeString);
+                const convertedTime = convertTimeStringToNumber(timeString, userTimezones.get(interaction.user.id));
                 if (!convertedTime) {
                     throw { errorType: "RAID_TIME_ERROR" };
                 }
