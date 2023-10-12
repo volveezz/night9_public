@@ -5,8 +5,8 @@ import raidGuide from "../../../configs/raidGuideData.js";
 import { client } from "../../../index.js";
 let storageChannel = null;
 async function exportRaidGuide(interaction, deferredReply) {
-    fs.writeFileSync("exported-raids-guides.js", JSON.stringify(raidGuide));
-    const attachment = new AttachmentBuilder("./exported-raids-guides.js");
+    fs.writeFileSync("exported-raids-guides.json", JSON.stringify(raidGuide));
+    const attachment = new AttachmentBuilder("./exported-raids-guides.json");
     const embed = new EmbedBuilder().setColor(colors.invisible).setTitle("Raid guide was exported!");
     if (interaction) {
         await deferredReply;

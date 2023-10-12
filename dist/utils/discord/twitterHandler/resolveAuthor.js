@@ -1,6 +1,8 @@
 import { EmbedBuilder } from "discord.js";
 function resolveAuthor({ author, icon, url, originalAuthor }) {
     const embed = new EmbedBuilder();
+    if (url)
+        embed.setURL(url);
     switch (author) {
         case 2:
             return embed.setColor("#d3d2d0").setAuthor({

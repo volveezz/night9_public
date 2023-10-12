@@ -1,25 +1,3 @@
-import { ButtonStyle } from "discord.js";
-const emojis = {
-    operator: "<:operator:1121300682826338304>",
-    scanner: "<:scanner:1121300684852166787>",
-    suppressor: "<:suppressor:1121300679479283752>",
-    overload: "<:overload:1090473013398491236>",
-};
-const weaponLightGGLinks = {
-    tractor: "https://www.light.gg/db/ru/items/3580904581/%D0%B1%D1%83%D0%BA%D1%81%D0%B8%D1%80%D0%BE%D0%B2%D0%BE%D1%87%D0%BD%D0%B0%D1%8F-%D0%BF%D1%83%D1%88%D0%BA%D0%B0/",
-    witherhoard: "https://www.light.gg/db/ru/items/2357297366/%D0%B3%D0%BE%D1%80%D1%81%D1%82%D0%BA%D0%B0-%D0%BF%D0%B5%D0%BF%D0%BB%D0%B0/",
-    izanagi: "https://www.light.gg/db/ru/items/3211806999/%D0%B1%D1%80%D0%B5%D0%BC%D1%8F-%D0%B8%D0%B4%D0%B7%D0%B0%D0%BD%D0%B0%D0%B3%D0%B8/",
-    hothead: "https://www.light.gg/db/ru/items/4255171531/%D0%B7%D0%B0%D0%B1%D0%B8%D1%8F%D0%BA%D0%B0/",
-    palmira: "https://www.light.gg/db/ru/items/3489657138/%D0%BF%D0%B0%D0%BB%D1%8C%D0%BC%D0%B8%D1%80%D0%B0-%D0%B1/",
-    gjallarhorn: "https://www.light.gg/db/ru/items/1363886209/%D0%B3%D1%8C%D1%8F%D0%BB%D0%BB%D0%B0%D1%80%D1%85%D0%BE%D1%80%D0%BD/",
-    coldcomfort: "https://www.light.gg/db/ru/items/839786290/%D1%85%D0%BE%D0%BB%D0%BE%D0%B4%D0%BD%D1%8B%D0%B9-%D0%BF%D1%80%D0%B8%D0%B5%D0%BC/",
-    lament: "https://www.light.gg/db/ru/items/3487253372/%D0%BF%D0%BB%D0%B0%D1%87/",
-    thunderlord: "https://www.light.gg/db/ru/items/3325463374/%D0%B2%D0%BB%D0%B0%D0%B4%D1%8B%D0%BA%D0%B0-%D0%B3%D1%80%D0%BE%D0%BC%D0%B0/",
-    guillotine: "https://www.light.gg/db/ru/items/614426548/%D0%BB%D0%B5%D0%B7%D0%B2%D0%B8%D0%B5-%D0%B3%D0%B8%D0%BB%D1%8C%D0%BE%D1%82%D0%B8%D0%BD%D1%8B/",
-    leviBreath: "https://www.light.gg/db/ru/items/2591746970/%D0%B4%D1%8B%D1%85%D0%B0%D0%BD%D0%B8%D0%B5-%D0%BB%D0%B5%D0%B2%D0%B8%D0%B0%D1%84%D0%B0%D0%BD%D0%B0/",
-    divinity: "https://www.light.gg/db/ru/items/4103414242/%D0%B1%D0%BE%D0%B6%D0%B5%D1%81%D1%82%D0%B2%D0%B5%D0%BD%D0%BD%D0%BE%D1%81%D1%82%D1%8C/",
-    xenophage: "https://www.light.gg/db/ru/items/1395261499/%D0%BA%D1%81%D0%B5%D0%BD%D0%BE%D1%84%D0%B0%D0%B3/",
-};
 const raidGuide = {
     ce: [
         {
@@ -28,7 +6,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Карта этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Карта 1 этапа",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184182028615761/CE-Abyss.webp",
                 },
@@ -40,7 +18,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Карта этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Карта 2 этапа",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184182372532244/CE-Bridge.webp",
                 },
@@ -52,7 +30,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Карта этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Карта 3 этапа",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184183186227280/CE-IrYut-Map.webp",
                 },
@@ -64,7 +42,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Карта этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Карта 4 этапа",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184182779387944/CE-Crota.webp",
                 },
@@ -75,15 +53,15 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Награды за этапы рейда",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Награды за этапы рейда",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184183584694283/CE-LootTable.webp",
                 },
                 {
                     label: "Рекомендуемое снаряжение",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Рекомендуемое снаряжение для рейда Крах Кроты",
-                    description: `> **1 и 2 этапы**\n- Любое оружие на зачистку толп противников\n\n> **3 этап**\n- 1 [Божественность](${weaponLightGGLinks.divinity}) на команду\n- Остальные берут [Дыхание Левиафана](${weaponLightGGLinks.leviBreath}) или [Владыка грома](${weaponLightGGLinks.thunderlord})\n- Также рекомендуются любые легендарные плазменные винтовки\n\n> **4 этап**\n- 1 [Буксировочная пушка](${weaponLightGGLinks.tractor}) на команду\n- Остальные берут [Плач](${weaponLightGGLinks.lament}) или [Лезвие гильотины](${weaponLightGGLinks.guillotine}) или любой хороший меч на урон`,
+                    description: "> **1 и 2 этапы**\n- Любое оружие на зачистку толп противников\n\n> **3 этап**\n- 1 [Божественность](https://www.light.gg/db/ru/items/4103414242/%D0%B1%D0%BE%D0%B6%D0%B5%D1%81%D1%82%D0%B2%D0%B5%D0%BD%D0%BD%D0%BE%D1%81%D1%82%D1%8C/) на команду\n- Остальные берут [Дыхание Левиафана](https://www.light.gg/db/ru/items/2591746970/%D0%B4%D1%8B%D1%85%D0%B0%D0%BD%D0%B8%D0%B5-%D0%BB%D0%B5%D0%B2%D0%B8%D0%B0%D1%84%D0%B0%D0%BD%D0%B0/) или [Владыка грома](https://www.light.gg/db/ru/items/3325463374/%D0%B2%D0%BB%D0%B0%D0%B4%D1%8B%D0%BA%D0%B0-%D0%B3%D1%80%D0%BE%D0%BC%D0%B0/)\n- Также рекомендуются любые легендарные плазменные винтовки\n\n> **4 этап**\n- 1 [Буксировочная пушка](https://www.light.gg/db/ru/items/3580904581/%D0%B1%D1%83%D0%BA%D1%81%D0%B8%D1%80%D0%BE%D0%B2%D0%BE%D1%87%D0%BD%D0%B0%D1%8F-%D0%BF%D1%83%D1%88%D0%BA%D0%B0/) на команду\n- Остальные берут [Плач](https://www.light.gg/db/ru/items/3487253372/%D0%BF%D0%BB%D0%B0%D1%87/) или [Лезвие гильотины](https://www.light.gg/db/ru/items/614426548/%D0%BB%D0%B5%D0%B7%D0%B2%D0%B8%D0%B5-%D0%B3%D0%B8%D0%BB%D1%8C%D0%BE%D1%82%D0%B8%D0%BD%D1%8B/) или любой хороший меч на урон",
                 },
             ],
         },
@@ -95,7 +73,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное описание этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Распределение + Основная механика рейда",
@@ -130,7 +108,7 @@ const raidGuide = {
                 },
                 {
                     label: "Карта этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Карта 1 этапа",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184140991533076/RoN-FirstEncounter-Map.webp",
                 },
@@ -142,7 +120,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Распределение",
@@ -165,7 +143,7 @@ const raidGuide = {
                 },
                 {
                     label: "Карта этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Карта 2 этапа",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184141784264784/RoN-SecondEncounter-Map.webp",
                 },
@@ -177,7 +155,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Распределение",
@@ -206,7 +184,7 @@ const raidGuide = {
                 },
                 {
                     label: "Карта этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Карта 3 этапа",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184142153355384/RoN-ThirdEncounter-Map.webp",
                 },
@@ -218,7 +196,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Распределение",
@@ -245,13 +223,13 @@ const raidGuide = {
                 },
                 {
                     label: "Карта этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Карта 4 этапа",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184140609859664/RoN-Boss-GuideMap.webp",
                 },
                 {
                     label: "Босс во время этапа",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Внешний вид босса при разных условиях",
                     description: "В течение этапа босс принимает разные облики, такие как: облик на начало этапа (Immune), облик во время нанесения урона по боссу (DPS), облик во время вайпа (Wipe Casting) и облик при всплеске света или тьмы (Light/Dark attunement).",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184142950281287/RoN-Nezarec.webp",
@@ -263,15 +241,15 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Награды за этапы рейда",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Награды за этапы рейда",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184141364822118/RoN-LootTable.webp",
                 },
                 {
                     label: "Рекомендуемое снаряжение",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Рекомендуемое снаряжение для рейда Источник кошмаров",
-                    description: `> **1 и 2 этапы**\n- Любое оружие на зачистку толп противников\n\n> **3 и 4 этапы**\n- Обязателен 1 (не больше) [Гьяллархорн](${weaponLightGGLinks.gjallarhorn}) на команду\n- Любые легендарные ракетницы ([Забияка](${weaponLightGGLinks.hothead}), [Пальмира-Б](${weaponLightGGLinks.palmira}), [Холодный прием](${weaponLightGGLinks.coldcomfort}))\n- [Бремя идзанаги](${weaponLightGGLinks.izanagi}) / до 1 на команду [Горстка пепла](${weaponLightGGLinks.witherhoard}) / любая другой экзотик или легендарное оружие на хороший урон не в силовой слот\n- До 1 на команду [Буксировочная пушка](${weaponLightGGLinks.tractor})`,
+                    description: "> **1 и 2 этапы**\n- Любое оружие на зачистку толп противников\n\n> **3 и 4 этапы**\n- Обязателен 1 (не больше) [Гьяллархорн](https://www.light.gg/db/ru/items/1363886209/%D0%B3%D1%8C%D1%8F%D0%BB%D0%BB%D0%B0%D1%80%D1%85%D0%BE%D1%80%D0%BD/) на команду\n- Любые легендарные ракетницы ([Забияка](https://www.light.gg/db/ru/items/4255171531/%D0%B7%D0%B0%D0%B1%D0%B8%D1%8F%D0%BA%D0%B0/), [Пальмира-Б](https://www.light.gg/db/ru/items/3489657138/%D0%BF%D0%B0%D0%BB%D1%8C%D0%BC%D0%B8%D1%80%D0%B0-%D0%B1/), [Холодный прием](https://www.light.gg/db/ru/items/839786290/%D1%85%D0%BE%D0%BB%D0%BE%D0%B4%D0%BD%D1%8B%D0%B9-%D0%BF%D1%80%D0%B8%D0%B5%D0%BC/))\n- [Бремя идзанаги](https://www.light.gg/db/ru/items/3211806999/%D0%B1%D1%80%D0%B5%D0%BC%D1%8F-%D0%B8%D0%B4%D0%B7%D0%B0%D0%BD%D0%B0%D0%B3%D0%B8/) / до 1 на команду [Горстка пепла](https://www.light.gg/db/ru/items/2357297366/%D0%B3%D0%BE%D1%80%D1%81%D1%82%D0%BA%D0%B0-%D0%BF%D0%B5%D0%BF%D0%BB%D0%B0/) / любая другой экзотик или легендарное оружие на хороший урон не в силовой слот\n- До 1 на команду [Буксировочная пушка](https://www.light.gg/db/ru/items/3580904581/%D0%B1%D1%83%D0%BA%D1%81%D0%B8%D1%80%D0%BE%D0%B2%D0%BE%D1%87%D0%BD%D0%B0%D1%8F-%D0%BF%D1%83%D1%88%D0%BA%D0%B0/)",
                 },
             ],
         },
@@ -282,26 +260,26 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Награды за этапы рейда",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Награды за этапы рейда",
                     image: "https://media.discordapp.net/attachments/1134620378615001178/1157184169982562324/KF-LootTable.webp",
                 },
                 {
                     label: "Руны на секретный сундук",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Карта рун на секретный сундук",
                     description: "Необходимо узнать какие символы будут активны под порталом после активации 6 статуй на входе\nЭти 3 символа активируются в течение рейда\nЕсли активировать не все или активировать и не деактивировать неверный, то сундук не появится\nПосле активации всех нужных рук прозвучит оповещение и появится соответствующая надпись",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184142514061383/KF-RedBorder-Map.webp",
                 },
                 {
                     label: "Карта лабиринта",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Карта лабиринта после второго этапа",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184169315676190/KF-Labyrinth.webp",
                 },
                 {
                     label: "Рекомендуемое снаряжение",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Рекомендуемое снаряжение для рейда Гибель Короля",
                     description: "> **1 этап**\n- Любое оружие на зачистку толп противников\n\n> **2, 4, 5-ые этапы**\n- Обязателен 1 (не больше) [Гьяллархорн](https://www.light.gg/db/ru/items/1363886209/%D0%B3%D1%8C%D1%8F%D0%BB%D0%BB%D0%B0%D1%80%D1%85%D0%BE%D1%80%D0%BD) на команду\n- Любые легендарные ракетницы ([Забияка](https://www.light.gg/db/ru/items/4255171531/%D0%B7%D0%B0%D0%B1%D0%B8%D1%8F%D0%BA%D0%B0/), [Пальмира-Б](https://www.light.gg/db/ru/items/3489657138/%D0%BF%D0%B0%D0%BB%D1%8C%D0%BC%D0%B8%D1%80%D0%B0-%D0%B1/))\n- [Бремя идзанаги](https://www.light.gg/db/ru/items/3211806999/%D0%B1%D1%80%D0%B5%D0%BC%D1%8F-%D0%B8%D0%B4%D0%B7%D0%B0%D0%BD%D0%B0%D0%B3%D0%B8/) / до 1 на команду [Горстка пепла](https://www.light.gg/db/ru/items/2357297366/%D0%B3%D0%BE%D1%80%D1%81%D1%82%D0%BA%D0%B0-%D0%BF%D0%B5%D0%BF%D0%BB%D0%B0/) / любая другой экзотик или легендарное оружие на хороший урон не в силовой слот\n\n> **3 этап**\n- Для людей, которые занимаются баффом: [Буксировочная пушка](https://www.light.gg/db/ru/items/3580904581/%D0%B1%D1%83%D0%BA%D1%81%D0%B8%D1%80%D0%BE%D0%B2%D0%BE%D1%87%D0%BD%D0%B0%D1%8F-%D0%BF%D1%83%D1%88%D0%BA%D0%B0), любые снайперские винтовки\n- Любые хорошие линейно-плазменные винтовки ([Катаклизм](https://www.light.gg/db/ru/items/999767358/%D0%BA%D0%B0%D1%82%D0%B0%D0%BA%D0%BB%D0%B8%D0%B7%D0%BC/), [Тайпан-4fr](https://www.light.gg/db/ru/items/1911060537/%D1%82%D0%B0%D0%B9%D0%BF%D0%B0%D0%BD-4fr/)) \n- [Бремя идзанаги](https://www.light.gg/db/ru/items/3211806999/%D0%B1%D1%80%D0%B5%D0%BC%D1%8F-%D0%B8%D0%B4%D0%B7%D0%B0%D0%BD%D0%B0%D0%B3%D0%B8/) / до 1 на команду [Горстка пепла](https://www.light.gg/db/ru/items/2357297366/%D0%B3%D0%BE%D1%80%D1%81%D1%82%D0%BA%D0%B0-%D0%BF%D0%B5%D0%BF%D0%BB%D0%B0/) / любая другой экзотик или легендарное оружие на хороший урон не в силовой слот",
                 },
@@ -315,7 +293,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение задачи",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Открытие прохода",
@@ -332,11 +310,11 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Основная задача",
-                            description: `Игроки распределяются на 3 пары и обороняют слияния вексов от 3 волн противников\nВ слияние может интегрироваться не более 4 вексов или 1 виверна\nВ течение этапа появляются ${emojis.overload} Перегруженные минотавры`,
+                            description: "Игроки распределяются на 3 пары и обороняют слияния вексов от 3 волн противников\nВ слияние может интегрироваться не более 4 вексов или 1 виверна\nВ течение этапа появляются <:overload:1090473013398491236> Перегруженные минотавры",
                         },
                         {
                             name: "Первая фаза - одно слияние",
@@ -367,7 +345,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Задача этапа",
@@ -400,7 +378,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Эгида",
@@ -426,7 +404,7 @@ const raidGuide = {
                 },
                 {
                     label: "Карта лабиринта",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Карта лабиринта после этапа",
                     image: "https://media.discordapp.net/attachments/1134620378615001178/1157184169621856296/VoG-Labyrinth.webp",
                 },
@@ -438,7 +416,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Подготовка",
@@ -446,7 +424,7 @@ const raidGuide = {
                         },
                         {
                             name: "Активация порталов",
-                            description: `Активируйте порталы, встав на платформы и захватив их, а после защищайте их от ${emojis.overload} Перегруженных минотавров вексов`,
+                            description: "Активируйте порталы, встав на платформы и захватив их, а после защищайте их от <:overload:1090473013398491236> Перегруженных минотавров вексов",
                         },
                         {
                             name: "Оборона слияний вексов",
@@ -476,7 +454,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Начало этапа и портал",
@@ -513,13 +491,13 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Награды за этапы рейда",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Награды за этапы рейда",
                     image: "https://media.discordapp.net/attachments/1134620378615001178/1157184143336149032/VoG-LootTable-Ru.webp",
                 },
                 {
                     label: "Полная карта рейда",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Карта рейда",
                     description: "Откройте карту в полном размере с помощью кнопки снизу в изображении",
                     image: "https://media.discordapp.net/attachments/1134620378615001178/1157184168959152138/VoG-FullMap.webp",
@@ -534,7 +512,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Зачистка мобов и предэтапье - Выжить в снежной буре",
@@ -558,7 +536,7 @@ const raidGuide = {
                 },
                 {
                     label: "Карта пути",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Карта пути",
                     image: "https://media.discordapp.net/attachments/1134620378615001178/1157184167457595443/DSC-Entrance-Map.webp",
                 },
@@ -570,32 +548,32 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Механика рейда - Аугментации",
-                            description: `С данного этапа и на всех последующих этапах будут доступны аугментации. На первом этапе присутствуют две аугментации: ${emojis.operator} Оператор (красный) и ${emojis.scanner} Сканер (желтый).\n\n- ${emojis.operator} **Оператор** имеет возможность взаимодействовать с консолями, подсвеченными красным цветом.\n- ${emojis.scanner} **Сканер** выделяет желтым цветом "правильные" объекты, будь то консоли или сундуки.\n\nАугментации можно передать друг другу с помощью **терминалов**, которые находятся на каждом этапе рейда.`,
+                            description: 'С данного этапа и на всех последующих этапах будут доступны аугментации. На первом этапе присутствуют две аугментации: <:operator:1121300682826338304> Оператор (красный) и <:scanner:1121300684852166787> Сканер (желтый).\n\n- <:operator:1121300682826338304> **Оператор** имеет возможность взаимодействовать с консолями, подсвеченными красным цветом.\n- <:scanner:1121300684852166787> **Сканер** выделяет желтым цветом "правильные" объекты, будь то консоли или сундуки.\n\nАугментации можно передать друг другу с помощью **терминалов**, которые находятся на каждом этапе рейда.',
                             image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157420056557387908/DSC-Terminal.webp",
                         },
                         {
                             name: "Прохождение этапа",
-                            description: `Чтобы снять щит, игроки делятся на 2 группы: 4 человека идут на тьму, а 2 остаются на "светлой" стороне. Этап начинается, когда один из игроков берет оператора. Затем человек-оператор стоит у двери, позволяющей спуститься вниз, и ожидает человека-сканера.\n\nКогда этап начался, с обеих сторон начнут выходить противники, которых нужно убить. Кроме того, на тьме появляется падший-вандал с аугментацией **сканера** над головой. Его нужно убить, и **человеку-сканеру** подобрать аугментацию, после чего назвать 2 подсвеченные **желтым цветом** консоли. Затем человек-сканер переходит на светлую сторону и называет 2 желтые консоли на свету, а **человек-оператор** спускается вниз.\n\nКогда человек-оператор спустился вниз, его задача - отстрелить названные сканером консоли. Если он отстрелит неверную, сработает защита, и нижний этаж загорится, убив игрока. Этаж начнет гореть также, если **оператор** будет находиться на этаже слишком долго.\n\nОстальные игроки должны зачищать врагов. Иногда будут появляться ${emojis.overload} Перегруженные воители, поэтому имеет смысл взять что-то против них.\n\n**ВАЖНО:** Периодически появляется прислужник, блокирующий терминалы, поэтому его нужно убивать как можно быстрее.`,
+                            description: 'Чтобы снять щит, игроки делятся на 2 группы: 4 человека идут на тьму, а 2 остаются на "светлой" стороне. Этап начинается, когда один из игроков берет оператора. Затем человек-оператор стоит у двери, позволяющей спуститься вниз, и ожидает человека-сканера.\n\nКогда этап начался, с обеих сторон начнут выходить противники, которых нужно убить. Кроме того, на тьме появляется падший-вандал с аугментацией **сканера** над головой. Его нужно убить, и **человеку-сканеру** подобрать аугментацию, после чего назвать 2 подсвеченные **желтым цветом** консоли. Затем человек-сканер переходит на светлую сторону и называет 2 желтые консоли на свету, а **человек-оператор** спускается вниз.\n\nКогда человек-оператор спустился вниз, его задача - отстрелить названные сканером консоли. Если он отстрелит неверную, сработает защита, и нижний этаж загорится, убив игрока. Этаж начнет гореть также, если **оператор** будет находиться на этаже слишком долго.\n\nОстальные игроки должны зачищать врагов. Иногда будут появляться <:overload:1090473013398491236> Перегруженные воители, поэтому имеет смысл взять что-то против них.\n\n**ВАЖНО:** Периодически появляется прислужник, блокирующий терминалы, поэтому его нужно убивать как можно быстрее.',
                             image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157420055089385522/DSC-First-Encounter-Terminals.webp",
                         },
                         {
                             name: "Фаза нанесения урона по батареям",
-                            description: `Когда **оператор** правильно отстреливает все 4 консоли, начинается фаза урона по батареям, сопровождающаяся звуковым сигналом и поднятием щитов у батарей.\n\nЧеловек-оператор должен передать свою аугментацию, и любой человек без аугментации должен её взять. Затем человек-сканер передает свою аугментацию вниз.\n\nИгрок снизу забирает её, тем самым подсвечивая какую батарею нужно атаковать для уничтожения. Например, он скажет "свет право", то игроки сверху должны атаковать эту батарею. **Оператор** продолжает называть батареи, пока не закончится фаза.\n\n**Важно:** Если выстрелить в неверную батарею, это приведет к вайпу команды.`,
+                            description: 'Когда **оператор** правильно отстреливает все 4 консоли, начинается фаза урона по батареям, сопровождающаяся звуковым сигналом и поднятием щитов у батарей.\n\nЧеловек-оператор должен передать свою аугментацию, и любой человек без аугментации должен её взять. Затем человек-сканер передает свою аугментацию вниз.\n\nИгрок снизу забирает её, тем самым подсвечивая какую батарею нужно атаковать для уничтожения. Например, он скажет "свет право", то игроки сверху должны атаковать эту батарею. **Оператор** продолжает называть батареи, пока не закончится фаза.\n\n**Важно:** Если выстрелить в неверную батарею, это приведет к вайпу команды.',
                             image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157420054216966224/DSC-Basement.webp",
                         },
                         {
                             name: "Повторение",
-                            description: `Если игроки сломают все 6 батарей за одну фазу, этап завершится, и на тьме появится сундук рядом с дверью к следующему этапу.\n\nЕсли же фаза закончится раньше, игрок снизу называет 4 консоли, например, 25 тьма, 14 свет, после чего его выпускает человек, взявший аугментацию оператора перед фазой урона, отстреливая консоли. Затем процесс повторяется, пока не будут уничтожены все батареи.`,
+                            description: "Если игроки сломают все 6 батарей за одну фазу, этап завершится, и на тьме появится сундук рядом с дверью к следующему этапу.\n\nЕсли же фаза закончится раньше, игрок снизу называет 4 консоли, например, 25 тьма, 14 свет, после чего его выпускает человек, взявший аугментацию оператора перед фазой урона, отстреливая консоли. Затем процесс повторяется, пока не будут уничтожены все батареи.",
                         },
                     ],
                 },
                 {
                     label: "Карта этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Карта 1 этапа",
                     image: "https://media.discordapp.net/attachments/1134620378615001178/1157184167025577994/DSC-Basement-Map.webp",
                 },
@@ -607,11 +585,11 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Механика рейда - Аугментации",
-                            description: `- ${emojis.operator} **Оператор** (красный) - отстреливает терминалы и репликации Атракс\n- ${emojis.scanner} **Сканер** (желтый) - позволяет увидеть Атракс, которую нужно дамажить\n\nАугментации можно передавать с помощью терминалов, расположенных на каждом этапе`,
+                            description: "- <:operator:1121300682826338304> **Оператор** (красный) - отстреливает терминалы и репликации Атракс\n- <:scanner:1121300684852166787> **Сканер** (желтый) - позволяет увидеть Атракс, которую нужно дамажить\n\nАугментации можно передавать с помощью терминалов, расположенных на каждом этапе",
                         },
                         {
                             name: "Прохождение этапа",
@@ -634,7 +612,7 @@ const raidGuide = {
                 },
                 {
                     label: "Карта этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Карта 2 этапа",
                     image: "https://media.discordapp.net/attachments/1134620378615001178/1157184183957995520/DSC-Atrask-Map.webp",
                 },
@@ -646,11 +624,11 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Механика рейда - Аугментации",
-                            description: `- ${emojis.operator} **Оператор** (красный) позволяет отстреливать консоли\n- ${emojis.scanner} **Сканер** (желтый) позволяет увидеть два нужных сундука\n- ${emojis.suppressor} **Подавитель** (синий) позволяет "застанить" босса`,
+                            description: '- <:operator:1121300682826338304> **Оператор** (красный) позволяет отстреливать консоли\n- <:scanner:1121300684852166787> **Сканер** (желтый) позволяет увидеть два нужных сундука\n- <:suppressor:1121300679479283752> **Подавитель** (синий) позволяет "застанить" босса',
                         },
                         {
                             name: "Прохождение этапа",
@@ -695,7 +673,7 @@ const raidGuide = {
                 },
                 {
                     label: "Карта этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Карта 3 этапа",
                     image: "https://media.discordapp.net/attachments/1134620378615001178/1157184168229351485/DSC-Rapture-Map.webp",
                 },
@@ -707,11 +685,11 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Механика рейда - Аугментации",
-                            description: `- ${emojis.operator} **Оператор** (красный) позволяет отстреливать людей. Появляется в зоне с 1 и 2 ящиком\n- ${emojis.scanner} **Сканер** (желтый) позволяет увидеть два нужных сундука. Появляется в зоне с 3 и 4 ящиком\n- ${emojis.suppressor} **Подавитель** (синий) позволяет "застанить" босса. Появляется в зоне с 5 и 6 ящиком`,
+                            description: '- <:operator:1121300682826338304> **Оператор** (красный) позволяет отстреливать людей. Появляется в зоне с 1 и 2 ящиком\n- <:scanner:1121300684852166787> **Сканер** (желтый) позволяет увидеть два нужных сундука. Появляется в зоне с 3 и 4 ящиком\n- <:suppressor:1121300679479283752> **Подавитель** (синий) позволяет "застанить" босса. Появляется в зоне с 5 и 6 ящиком',
                         },
                         {
                             name: "Прохождение этапа",
@@ -738,7 +716,7 @@ const raidGuide = {
                 },
                 {
                     label: "Карта этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Карта 4 этапа",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184168573280278/DSC-Taniks-Map.webp",
                 },
@@ -749,19 +727,19 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Награды за этапы рейда",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Награды за этапы рейда",
                     image: "https://media.discordapp.net/attachments/1134620378615001178/1157184167906381885/DSC-LootTable.webp",
                 },
                 {
                     label: "Рекомендуемое снаряжение",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Рекомендуемое снаряжение для рейда Склеп Глубокого камня",
-                    description: `> **1 этап**\n- [Ксенофаг](${weaponLightGGLinks.xenophage}), [Бастион](https://www.light.gg/db/ru/items/2415517654/%D0%B1%D0%B0%D1%81%D1%82%D0%B8%D0%BE%D0%BD/), [Тысяча голосов](https://www.light.gg/db/ru/items/2069224589/%D1%82%D1%8B%D1%81%D1%8F%D1%87%D0%B0-%D0%B3%D0%BE%D0%BB%D0%BE%D1%81%D0%BE%D0%B2/), [Уордклиффская катушка](https://www.light.gg/db/ru/items/1508896098/%D1%83%D0%BE%D1%80%D0%B4%D0%BA%D0%BB%D0%B8%D1%84%D1%84%D1%81%D0%BA%D0%B0%D1%8F-%D0%BA%D0%B0%D1%82%D1%83%D1%88%D0%BA%D0%B0/), легендарные ракетницы, плазменные винтовки и другое оружие, которое наносит большой урон не по криту (т.е. через желтые цифры)\n\n> **2 этап**\n- [Паразит](https://www.light.gg/db/ru/items/2812324400/%D0%BF%D0%B0%D1%80%D0%B0%D0%B7%D0%B8%D1%82/), [Плач](${weaponLightGGLinks.lament}), хороший легендарный меч\n\n> **3 этап**\n- Любое оружие на зачистку толп противников\n\n> **4 этап**\n- Обязателен 1 (не больше) [Гьяллархорн](${weaponLightGGLinks.gjallarhorn}) на команду\n- Любые легендарные ракетницы ([Забияка](${weaponLightGGLinks.hothead}), [Пальмира-Б](${weaponLightGGLinks.palmira}), [Холодный прием](${weaponLightGGLinks.coldcomfort}))\n- [Бремя идзанаги](${weaponLightGGLinks.izanagi}) / до 1 на команду [Горстка пепла](${weaponLightGGLinks.witherhoard}) / любая другой экзотик или легендарное оружие на хороший урон не в силовой слот`,
+                    description: "> **1 этап**\n- [Ксенофаг](https://www.light.gg/db/ru/items/1395261499/%D0%BA%D1%81%D0%B5%D0%BD%D0%BE%D1%84%D0%B0%D0%B3/), [Бастион](https://www.light.gg/db/ru/items/2415517654/%D0%B1%D0%B0%D1%81%D1%82%D0%B8%D0%BE%D0%BD/), [Тысяча голосов](https://www.light.gg/db/ru/items/2069224589/%D1%82%D1%8B%D1%81%D1%8F%D1%87%D0%B0-%D0%B3%D0%BE%D0%BB%D0%BE%D1%81%D0%BE%D0%B2/), [Уордклиффская катушка](https://www.light.gg/db/ru/items/1508896098/%D1%83%D0%BE%D1%80%D0%B4%D0%BA%D0%BB%D0%B8%D1%84%D1%84%D1%81%D0%BA%D0%B0%D1%8F-%D0%BA%D0%B0%D1%82%D1%83%D1%88%D0%BA%D0%B0/), легендарные ракетницы, плазменные винтовки и другое оружие, которое наносит большой урон не по криту (т.е. через желтые цифры)\n\n> **2 этап**\n- [Паразит](https://www.light.gg/db/ru/items/2812324400/%D0%BF%D0%B0%D1%80%D0%B0%D0%B7%D0%B8%D1%82/), [Плач](https://www.light.gg/db/ru/items/3487253372/%D0%BF%D0%BB%D0%B0%D1%87/), хороший легендарный меч\n\n> **3 этап**\n- Любое оружие на зачистку толп противников\n\n> **4 этап**\n- Обязателен 1 (не больше) [Гьяллархорн](https://www.light.gg/db/ru/items/1363886209/%D0%B3%D1%8C%D1%8F%D0%BB%D0%BB%D0%B0%D1%80%D1%85%D0%BE%D1%80%D0%BD/) на команду\n- Любые легендарные ракетницы ([Забияка](https://www.light.gg/db/ru/items/4255171531/%D0%B7%D0%B0%D0%B1%D0%B8%D1%8F%D0%BA%D0%B0/), [Пальмира-Б](https://www.light.gg/db/ru/items/3489657138/%D0%BF%D0%B0%D0%BB%D1%8C%D0%BC%D0%B8%D1%80%D0%B0-%D0%B1/), [Холодный прием](https://www.light.gg/db/ru/items/839786290/%D1%85%D0%BE%D0%BB%D0%BE%D0%B4%D0%BD%D1%8B%D0%B9-%D0%BF%D1%80%D0%B8%D0%B5%D0%BC/))\n- [Бремя идзанаги](https://www.light.gg/db/ru/items/3211806999/%D0%B1%D1%80%D0%B5%D0%BC%D1%8F-%D0%B8%D0%B4%D0%B7%D0%B0%D0%BD%D0%B0%D0%B3%D0%B8/) / до 1 на команду [Горстка пепла](https://www.light.gg/db/ru/items/2357297366/%D0%B3%D0%BE%D1%80%D1%81%D1%82%D0%BA%D0%B0-%D0%BF%D0%B5%D0%BF%D0%BB%D0%B0/) / любая другой экзотик или легендарное оружие на хороший урон не в силовой слот",
                 },
                 {
                     label: "Секретные записи",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Секретные записи для призрака",
                     description: "В течение рейда вы можете найти 5 секретных записей. Собрав их все, вы получите призрака",
                     embeds: [
@@ -802,7 +780,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Знакомство с этапом",
@@ -834,7 +812,7 @@ const raidGuide = {
                 },
                 {
                     label: "Альтернативное прохождение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Объяснение",
@@ -853,7 +831,7 @@ const raidGuide = {
                 },
                 {
                     label: "Обозначение символов",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Обозначение символов",
                     description: "Знание обозначений символов на этом этапе не так важно, поскольку на этом этапе необходимо лишь занимать соответствующие точки",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184140228165632/LW-Symbols.webp",
@@ -866,7 +844,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Дебафф-обратный отсчёт этапа",
@@ -898,7 +876,7 @@ const raidGuide = {
                 },
                 {
                     label: "Подсказка по головоломке",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Руководство по прохождению калькулятора",
                     image: "https://cdn.discordapp.com/attachments/679191036849029167/1117271938885230642/fpsp6ce.gif",
                 },
@@ -910,7 +888,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Распределение и начало этапа",
@@ -947,7 +925,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Распределение",
@@ -992,7 +970,7 @@ const raidGuide = {
                 },
                 {
                     label: "Обозначение символов",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Обозначение символов",
                     description: "",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184140228165632/LW-Symbols.webp",
@@ -1005,7 +983,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Начало этапа",
@@ -1040,7 +1018,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "Основная Задача",
@@ -1077,15 +1055,15 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Награды за этапы рейда",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Награды за этапы рейда",
                     image: "https://media.discordapp.net/attachments/1134620378615001178/1157184139838099537/LW-LootTable.webp",
                 },
                 {
                     label: "Рекомендуемое снаряжение",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Рекомендуемое снаряжение для рейда Последнее Желание",
-                    description: `> **2, 4, 6 этапы**\n- Любое оружие на зачистку толп противников\n\n> **5 этап**\n- [Плач](${weaponLightGGLinks.lament}) или любой другой хороший легендарный меч\n- До 1 на команду [Буксировочная пушка](${weaponLightGGLinks.tractor})`,
+                    description: "> **2, 4, 6 этапы**\n- Любое оружие на зачистку толп противников\n\n> **5 этап**\n- [Плач](https://www.light.gg/db/ru/items/3487253372/%D0%BF%D0%BB%D0%B0%D1%87/) или любой другой хороший легендарный меч\n- До 1 на команду [Буксировочная пушка](https://www.light.gg/db/ru/items/3580904581/%D0%B1%D1%83%D0%BA%D1%81%D0%B8%D1%80%D0%BE%D0%B2%D0%BE%D1%87%D0%BD%D0%B0%D1%8F-%D0%BF%D1%83%D1%88%D0%BA%D0%B0/)",
                 },
             ],
         },
@@ -1097,11 +1075,22 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
-                            name: "placeholder",
-                            description: "placeholder",
+                            name: "Чаша Света",
+                            description: "Чаша света - бафф, который будет на протяжении всего рейда.\n\nЕсли игрок возьмет Чашу с пьедестала, она начнет заряжаться. Таймер будет находиться в списке баффов. \n\nПосле зарядки Чаши, издается звук и появляется дебафф Окутывающий Свет, длительностью 10 секунд. Если другие игроки не успеют перехватить Чашу или носитель не поставит её на пьедестал за отведенное время - он умрет.\n\n**ВАЖНО:** Когда игрок умирает, чаша лежит на месте призрака ещё секунд 5, после чего возвращается в последний пьедестал, откуда её брали.",
+                            image: "",
+                        },
+                        {
+                            name: "",
+                            description: "После того, как у игрока забрали заряженную Чашу, на него навешивается **Просветление**. \n\n**ВАЖНО:** Если игрок внес Чашу в пьедестал или у него забрали Чашу до её полной зарядки, он НЕ получит Просветление.\n\n**Просветление** - бафф, с помощью которого можно активировать лампы, начинать зарядку пластин, проходить через зеленые барьеры и брать мечи.\n\nВне зависимости от того, что сделает игрок из вышеперечисленного, на него повесится дебафф **Лишение Света** длительностью 45 секунд. \n\n**ВАЖНО:** Пока у игрока есть бафф Просветление или Лишение Света, он НЕ МОЖЕТ взять Чашу вновь.",
+                            image: "",
+                        },
+                        {
+                            name: "Построение моста",
+                            description: "Чтобы игроки могли построить мост, любому игроку необходимо взять Чашу Света и зарядиться, после чего вставить Просветление в мост, начав его строить. \n\n**ВАЖНО:** Мост будет строиться, если хотя бы ***один*** игрок стоит на пластине\n\nКогда пластина зарядится, мост начнет строиться и в конце будет ожидать спуск вниз, в который игрокам необходимо прыгнуть.",
+                            image: "",
                         },
                     ],
                 },
@@ -1113,17 +1102,22 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
-                            name: "placeholder",
-                            description: "placeholder",
+                            name: "Чаша Света",
+                            description: "Когда игрок берет Чашу Света, она начинает заряжаться. После полной зарядки, один из союзников должен перехватить Чашу в течении 10 секунд, иначе игрок умрет. \n\nЕсли игрок полностью зарядился и у него забрали Чашу - он получает **Просветление**.\n\nЕсли игрок зарядился не до конца и/или он внес Чашу в пьедестал - он **НЕ** получает **Просветление**.\n\nС помощью Просветления, игрок может освещать лампы и скидывать с себя дебафф **Гнет Тьмы**, а также обновлять таймер.\n\n**ВАЖНО:** После внесения Просветления в лампу, она загорается на 15 секунд, после чего взрывается, убивая всех рядом стоящих игроков.",
+                            image: "",
+                        },
+                        {
+                            name: "Временный заголовок",
+                            description: "Временное описание",
                         },
                     ],
                 },
                 {
                     label: "Карта этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Карта 1 этапа",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184182028615761/CE-Abyss.webp",
                 },
@@ -1135,7 +1129,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "placeholder",
@@ -1145,7 +1139,7 @@ const raidGuide = {
                 },
                 {
                     label: "Карта этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Карта 2 этапа",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184182372532244/CE-Bridge.webp",
                 },
@@ -1157,7 +1151,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "placeholder",
@@ -1167,7 +1161,7 @@ const raidGuide = {
                 },
                 {
                     label: "Карта этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Карта 3 этапа",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184183186227280/CE-IrYut-Map.webp",
                 },
@@ -1179,7 +1173,7 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Подробное объяснение этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     embeds: [
                         {
                             name: "placeholder",
@@ -1189,7 +1183,7 @@ const raidGuide = {
                 },
                 {
                     label: "Карта этапа",
-                    style: ButtonStyle.Primary,
+                    style: 1,
                     name: "Карта 4 этапа",
                     image: "https://cdn.discordapp.com/attachments/1134620378615001178/1157184182779387944/CE-Crota.webp",
                 },
@@ -1200,15 +1194,15 @@ const raidGuide = {
             buttons: [
                 {
                     label: "Награды за этапы рейда",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Награды за этапы рейда",
                     image: "https://media.discordapp.net/attachments/1134620378615001178/1157184183584694283/CE-LootTable.webp",
                 },
                 {
                     label: "Рекомендуемое снаряжение",
-                    style: ButtonStyle.Secondary,
+                    style: 2,
                     name: "Рекомендуемое снаряжение для рейда Крах Кроты",
-                    description: `> **1 и 2 этапы**\n- Любое оружие на зачистку толп противников\n\n> **3 этап**\n- 1 [Божественность](${weaponLightGGLinks.divinity}) на команду\n- Остальные берут [Дыхание Левиафана](${weaponLightGGLinks.leviBreath}) или [Владыка грома](${weaponLightGGLinks.thunderlord})\n- Также рекомендуются любые легендарные плазменные винтовки\n\n> **4 этап**\n- 1 [Буксировочная пушка](${weaponLightGGLinks.tractor}) на команду\n- Остальные берут [Плач](${weaponLightGGLinks.lament}) или [Лезвие гильотины](${weaponLightGGLinks.guillotine}) или любой хороший меч на урон`,
+                    description: "> **1 и 2 этапы**\n- Любое оружие на зачистку толп противников\n\n> **3 этап**\n- 1 [Божественность](https://www.light.gg/db/ru/items/4103414242/%D0%B1%D0%BE%D0%B6%D0%B5%D1%81%D1%82%D0%B2%D0%B5%D0%BD%D0%BD%D0%BE%D1%81%D1%82%D1%8C/) на команду\n- Остальные берут [Дыхание Левиафана](https://www.light.gg/db/ru/items/2591746970/%D0%B4%D1%8B%D1%85%D0%B0%D0%BD%D0%B8%D0%B5-%D0%BB%D0%B5%D0%B2%D0%B8%D0%B0%D1%84%D0%B0%D0%BD%D0%B0/) или [Владыка грома](https://www.light.gg/db/ru/items/3325463374/%D0%B2%D0%BB%D0%B0%D0%B4%D1%8B%D0%BA%D0%B0-%D0%B3%D1%80%D0%BE%D0%BC%D0%B0/)\n- Также рекомендуются любые легендарные плазменные винтовки\n\n> **4 этап**\n- 1 [Буксировочная пушка](https://www.light.gg/db/ru/items/3580904581/%D0%B1%D1%83%D0%BA%D1%81%D0%B8%D1%80%D0%BE%D0%B2%D0%BE%D1%87%D0%BD%D0%B0%D1%8F-%D0%BF%D1%83%D1%88%D0%BA%D0%B0/) на команду\n- Остальные берут [Плач](https://www.light.gg/db/ru/items/3487253372/%D0%BF%D0%BB%D0%B0%D1%87/) или [Лезвие гильотины](https://www.light.gg/db/ru/items/614426548/%D0%BB%D0%B5%D0%B7%D0%B2%D0%B8%D0%B5-%D0%B3%D0%B8%D0%BB%D1%8C%D0%BE%D1%82%D0%B8%D0%BD%D1%8B/) или любой хороший меч на урон",
                 },
             ],
         },

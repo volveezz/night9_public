@@ -18,18 +18,19 @@ async function handleMessage(message) {
         return;
     }
     if (message.channelId === process.env.TWITTER_MESSAGES_CHANNEL_ID) {
-        for (let embed of message.embeds) {
+        if (message.content.length > 0 &&
+            !message.cleanContent.includes("Retweeted") &&
+            message.content.match(/(?:\[Tweeted]\(\))?https:\/\/(twitter\.com|x\.com)\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/)) {
+            parseTwitterLinkMessage(message);
+        }
+        else {
+            const embed = message.embeds?.[0];
+            if (!embed)
+                return;
+            const regex = /(?:\[(Tweeted|Quoted)\]\()?https:\/\/(twitter\.com|x\.com)\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/;
             const { title: embedTitle, url: embedUrl } = embed;
-            if (message.content.length > 0 &&
-                !message.cleanContent.includes("Retweeted") &&
-                message.content.match(/(?:\[Tweeted]\(\))?https:\/\/twitter\.com\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/)) {
+            if ((embedTitle === "Tweeted" || embedTitle === "Quoted") && embedUrl?.match(regex)) {
                 parseTwitterLinkMessage(message);
-            }
-            else {
-                const regex = /(?:\[(Tweeted|Quoted)\]\()?https:\/\/(twitter\.com|x\.com)\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/;
-                if ((embedTitle === "Tweeted" || embedTitle === "Quoted") && embedUrl?.match(regex)) {
-                    parseTwitterLinkMessage(message);
-                }
             }
         }
         return;

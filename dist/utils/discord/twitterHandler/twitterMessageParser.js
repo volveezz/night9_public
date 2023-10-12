@@ -1,4 +1,4 @@
-import { ButtonBuilder, ButtonStyle } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { client } from "../../../index.js";
 import { updateLatestTweetInfoInDatabase } from "../../api/rssHandler.js";
 import translateDestinyText from "../../api/translateDestinyText.js";
@@ -55,11 +55,12 @@ function getTwitterAccountNameFromAuthor(author) {
             return null;
     }
 }
-async function generateTwitterEmbed({ twitterData, author, icon, url, originalEmbed, content }) {
+async function generateTwitterEmbed({ twitterData, author, icon, url, originalEmbed, content, images, }) {
+    console.debug("Started to generate twitter embed");
     try {
-        if (!twitterData.content)
+        if (!twitterData)
             return;
-        const cleanContent = clearText(twitterData.content);
+        const cleanContent = clearText(twitterData);
         if (!cleanContent || cleanContent.length === 0) {
             console.error("[Error code: 1754]", twitterData);
             return;
@@ -89,8 +90,14 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
             return;
         }
         embed.setDescription(tranlsatedContent && tranlsatedContent.length > 1 ? tranlsatedContent : replacedDescription.length > 0 ? replacedDescription : null);
+        const embeds = [embed];
         if (extractedMedia) {
-            embed.setImage(extractedMedia);
+            embeds[0].setImage(extractedMedia);
+            if (images && images.length > 0 && url) {
+                const imageIndex = images.indexOf(extractedMedia);
+                imageIndex > -1 && images.splice(imageIndex, 1);
+                images.forEach((image) => embeds.push(new EmbedBuilder().setURL(url).setImage(image)));
+            }
         }
         if (!publicNewsChannel)
             publicNewsChannel = await client.getTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
@@ -104,7 +111,7 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
                 console.error("[Error code: 2084]", error);
             }
         }
-        await publicNewsChannel.send({ embeds: [embed], components: addButtonsToMessage(components) }).then((m) => {
+        await publicNewsChannel.send({ embeds, components: addButtonsToMessage(components) }).then((m) => {
             if (tranlsatedContent) {
                 const voteRecord = { original: new Set(), translation: new Set() };
                 twitterOriginalVoters.set(m.id, voteRecord);
@@ -114,10 +121,6 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
             if (extractedVideoMedia && extractedVideoMedia.endsWith(".mp4")) {
                 console.debug("Converting video to gif");
                 convertVideoToGif(extractedVideoMedia, m, embed);
-            }
-            else if (extractedMedia && extractedMedia.includes("nitter")) {
-                console.debug("Processing nitter image");
-                processTwitterGifFile(extractedMedia, m, embed, "jpg");
             }
         });
     }

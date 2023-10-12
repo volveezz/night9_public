@@ -89,13 +89,19 @@ const SlashCommand = new Command({
                 const embedChannel = (channelId ? await client.channels.fetch(channelId) : interaction.channel);
                 try {
                     let content;
-                    let embed;
+                    let embeds = [];
                     if (embedCode) {
                         let parsedJSON = JSON.parse(embedCode);
                         content = parsedJSON.content || undefined;
-                        if (parsedJSON.embed) {
-                            const embedJSON = parsedJSON.embed;
-                            embed = EmbedBuilder.from(embedJSON);
+                        const embedPath = parsedJSON.embed || parsedJSON.embeds;
+                        if (embedPath) {
+                            if (Array.isArray(embedPath)) {
+                                embeds = embedPath.map((embedJSON) => EmbedBuilder.from(embedJSON));
+                            }
+                            else {
+                                const embedJSON = embedPath;
+                                embeds.push(EmbedBuilder.from(embedJSON));
+                            }
                         }
                     }
                     const responseEmbed = new EmbedBuilder()
@@ -104,8 +110,8 @@ const SlashCommand = new Command({
                     const messageOptions = {};
                     if (content)
                         messageOptions.content = content;
-                    if (embed)
-                        messageOptions.embeds = [embed];
+                    if (embeds.length > 0)
+                        messageOptions.embeds = embeds;
                     if (messageId) {
                         const message = await embedChannel.messages.fetch(messageId);
                         if (!message) {
@@ -114,7 +120,7 @@ const SlashCommand = new Command({
                         await message.edit(messageOptions);
                     }
                     else {
-                        if (!content && !embed)
+                        if (!content && !embeds)
                             throw { name: "Ошибка", description: "Ни содержимое, ни embed-сообщение не были предоставлены" };
                         await embedChannel.send(messageOptions);
                     }

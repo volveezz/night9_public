@@ -2,16 +2,16 @@ import { pause } from "../../general/utilities.js";
 import { processedRssLinks } from "../../persistence/dataStore.js";
 import { generateTwitterEmbed } from "./twitterMessageParser.js";
 async function parseTwitterLinkMessage(message) {
-    for (let i = 0; i < message.embeds.length; i++) {
-        await processTwitterMessage(i);
+    if (message.author.bot) {
+        await processEmbeds(message.embeds);
     }
-    async function processTwitterMessage(index) {
+    else {
         let attempts = 0;
-        let embed = message.embeds[index];
-        while ((!embed || !embed?.author?.name) && attempts < 5) {
+        let fetchedMessage = message;
+        while (fetchedMessage.embeds.length === 0 && attempts < 5) {
             await pause(attempts * 500 + 500);
             try {
-                embed = (await message.fetch()).embeds[index];
+                fetchedMessage = await message.fetch();
             }
             catch (error) {
                 console.error(`[Error code: 2051] Failed to fetch message ${message.id}`, error);
@@ -19,33 +19,43 @@ async function parseTwitterLinkMessage(message) {
             }
             attempts++;
         }
-        if (!embed?.author?.name) {
-            return;
+        await processEmbeds(fetchedMessage.embeds);
+    }
+    async function processEmbeds(embeds) {
+        const urlToImagesMap = new Map();
+        for (const embed of embeds) {
+            const url = embed.url;
+            if (!url)
+                continue;
+            if (urlToImagesMap.has(url) && embed.image?.url) {
+                urlToImagesMap.get(url).push(embed.image.url);
+            }
+            else {
+                urlToImagesMap.set(url, embed.image?.url ? [embed.image.url] : []);
+            }
         }
-        const author = getBungieTwitterAuthor(embed.author.name);
-        const content = embed.description;
-        if (!author || !content) {
-            return;
+        for (const [url, images] of urlToImagesMap.entries()) {
+            if (processedRssLinks.has(url))
+                continue;
+            const associatedEmbed = embeds.find((e) => e.url === url);
+            if (associatedEmbed && associatedEmbed.description) {
+                const author = getBungieTwitterAuthor(associatedEmbed.author?.name);
+                const content = associatedEmbed.description;
+                await generateTwitterEmbed({
+                    twitterData: content,
+                    author,
+                    icon: associatedEmbed.author?.iconURL,
+                    url,
+                    originalEmbed: associatedEmbed,
+                    images,
+                });
+            }
         }
-        const tweetUrl = message.content.match(/https:\/\/twitter\.com\/\w+\/status\/\d+/)?.[0];
-        const url = tweetUrl || embed.url || embed.author.url;
-        if (url && processedRssLinks.has(url)) {
-            message.delete();
-            return;
-        }
-        await generateTwitterEmbed({
-            twitterData: { content, link: tweetUrl || "" },
-            author,
-            icon: embed.author.iconURL,
-            url,
-            originalEmbed: embed,
-        });
-        message.delete();
     }
 }
 function getBungieTwitterAuthor(author) {
     const cleanedAuthor = author
-        .replace(/\s\(@\w+\)/, "")
+        ?.replace(/\s\(@\w+\)/, "")
         .replace("✧", "")
         .trim();
     switch (cleanedAuthor) {

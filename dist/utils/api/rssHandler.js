@@ -88,8 +88,11 @@ async function fetchAndSendLatestTweets(url, latestTweetInfo, routeName, isRetry
             };
             const author = getBungieTwitterAuthor(entry.creator);
             if (author && isValidTweet(author, entry.guid) && entry.content && entry.content.length > 0) {
+                const content = entry.title ? entry.title : entry.content ? entry.content : entry.contentSnippet;
+                if (!content)
+                    continue;
                 const params = {
-                    twitterData: entry.title ? { content: entry.title } : entry.content ? { content: entry.content } : entry,
+                    twitterData: content,
                     content: entry.content,
                     author,
                     icon: feed.image?.url,

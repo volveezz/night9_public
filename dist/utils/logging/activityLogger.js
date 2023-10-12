@@ -262,6 +262,7 @@ async function logActivityCompletion(pgcrId) {
         });
         if (mode === 4) {
             try {
+                const startTimeFromGame = new Date(response.period).getTime();
                 const preciseEncountersTime = getCommonEncounterTimes();
                 if (preciseEncountersTime && preciseEncountersTime.length > 0) {
                     const encountersData = [];
@@ -269,7 +270,6 @@ async function logActivityCompletion(pgcrId) {
                     for (let i = 0; i < phasesArray.length; i++) {
                         const encounterData = phasesArray[i];
                         if (i === 0) {
-                            const startTimeFromGame = new Date(response.period).getTime();
                             encountersData.push({
                                 end: encounterData.end,
                                 phase: encounterData.phase,
@@ -334,8 +334,8 @@ async function logActivityCompletion(pgcrId) {
                     const phaseEntries = [...allPhases.entries()];
                     for (let i = 0; i < phaseEntries.length; i++) {
                         const [phase, phaseData] = phaseEntries[i];
-                        const phaseStartTimes = phaseData.map((p) => p.start).filter((time) => time > 300);
-                        const phaseEndTimes = phaseData.map((p) => p.end).filter((time) => time > 300);
+                        const phaseStartTimes = phaseData.map((p) => p.start).filter((time) => time >= startTimeFromGame);
+                        const phaseEndTimes = phaseData.map((p) => p.end).filter((time) => time >= startTimeFromGame);
                         if (phaseStartTimes.length === 0 || phaseEndTimes.length === 0) {
                             continue;
                         }

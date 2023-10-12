@@ -20,17 +20,19 @@ const handleMessageInteraction = async (interaction) => {
     const messageData = originalTweetData.get(interaction.message.id);
     if (!messageData) {
         interaction.reply({ embeds: [TweetNotFoundEmbed], ephemeral: true });
-        await interaction.message.edit({ components: [] });
+        interaction.message.edit({ components: [] });
         return;
     }
-    const embed = EmbedBuilder.from(interaction.message.embeds[0]);
-    embed.setDescription(messageData);
+    const embeds = interaction.message.embeds;
+    let newEmbedData = JSON.parse(JSON.stringify(embeds[0].data));
+    newEmbedData.description = messageData;
+    let newEmbed = { ...newEmbedData };
     const voteData = twitterOriginalVoters.get(interaction.message.id);
     let components = [];
     if (voteData) {
         components = TwitterVoteButtonsComponents;
     }
-    return interaction.reply({ embeds: [embed], components: addButtonsToMessage(components), ephemeral: true });
+    return interaction.reply({ embeds: [newEmbed, ...embeds.slice(1)], components: addButtonsToMessage(components), ephemeral: true });
 };
 const handleVote = async (interaction, userVote, messageId) => {
     const userId = interaction.user.id;
