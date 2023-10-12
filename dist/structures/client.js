@@ -34,7 +34,7 @@ export class ExtendedClient extends Client {
         {
             name: "🔁 Слежка за революцией",
             type: ActivityType.Streaming,
-            url: "https://www.youtube.com/watch?v=pLBhEAo2wXc",
+            url: "https://youtu.be/pLBhEAo2wXc?si=MNT4wpr-W4YXJ9r8&t=7",
         },
     ];
     constructor() {

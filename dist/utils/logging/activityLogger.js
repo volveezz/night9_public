@@ -320,6 +320,7 @@ async function logActivityCompletion(pgcrId) {
                             completedPhases.delete(characterId);
                         }
                     }
+                    console.debug("Completed phases", filteredCompletedPhases);
                     const allPhases = new Map();
                     for (const phases of filteredCompletedPhases.values()) {
                         for (const phase of phases) {
@@ -331,11 +332,12 @@ async function logActivityCompletion(pgcrId) {
                     }
                     const preciseStoredEncounterTime = [];
                     let latestEndTime = 0;
+                    let latestStartTime = startTimeFromGame;
                     const phaseEntries = [...allPhases.entries()];
                     for (let i = 0; i < phaseEntries.length; i++) {
                         const [phase, phaseData] = phaseEntries[i];
-                        const phaseStartTimes = phaseData.map((p) => p.start).filter((time) => time >= startTimeFromGame);
-                        const phaseEndTimes = phaseData.map((p) => p.end).filter((time) => time >= startTimeFromGame);
+                        const phaseStartTimes = phaseData.map((p) => p.start).filter((time) => time >= latestStartTime);
+                        const phaseEndTimes = phaseData.map((p) => p.end).filter((time) => time >= latestStartTime);
                         if (phaseStartTimes.length === 0 || phaseEndTimes.length === 0) {
                             continue;
                         }
@@ -357,6 +359,7 @@ async function logActivityCompletion(pgcrId) {
                             start: startTime,
                             end: endTime,
                         });
+                        latestStartTime = startTime;
                         latestEndTime = endTime;
                     }
                     console.debug("[Debug code: DDERGQX]", preciseStoredEncounterTime);
