@@ -85,7 +85,7 @@ app.get("/callback", async (req, res) => {
         const discordState = req.query["state"];
         const { clientState } = req.signedCookies;
         if (clientState !== discordState) {
-            console.error("State verification failed.");
+            console.error("State verification failed");
             return res.sendStatus(403);
         }
         const tokens = (await getOAuthTokens(code));

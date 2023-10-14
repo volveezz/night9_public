@@ -83,6 +83,7 @@ export async function updateClanRolesWithLogging(result, join) {
             const welcomeMessage = welcomeMessageIds.get(member.id);
             if (welcomeMessage) {
                 welcomeMessage.edit("https://tenor.com/view/palla-deserto-desert-hot-gif-6014273");
+                welcomeMessage.reactions.removeAll();
                 welcomeMessageIds.delete(member.id);
             }
         }

@@ -35,7 +35,7 @@ async function raidFireteamCheckerSystem(raidId) {
 }
 async function raidFireteamChecker(raidParam) {
     const initialRaidEvent = typeof raidParam === "number" ? (await RaidEvent.findByPk(raidParam)) : raidParam;
-    console.debug("Processing with", initialRaidEvent.id, "raid");
+    console.debug("Processing raid with ID", initialRaidEvent.id);
     const { id: raidId, time: initialRaidTime } = initialRaidEvent;
     if (fireteamCheckingSystem.has(raidId))
         return;
@@ -44,7 +44,7 @@ async function raidFireteamChecker(raidParam) {
     const raidStartTimePlus5 = new Date(startTime + MINUTES_AFTER_RAID * 60 * 1000).getTime();
     console.debug(`Next step for raid ID: ${raidId} will be in ${(raidStartTimePlus5 - Date.now()) / 1000}s`);
     const timeout = setTimeout(async () => {
-        console.debug(`Processing with the next step for raid ID: ${raidId}`);
+        console.debug("Processing with the next step for raid ID", raidId);
         try {
             console.debug(`Trying to send a private channel notification for raid ID: ${raidId}`);
             sendPrivateChannelNotify(initialRaidEvent);

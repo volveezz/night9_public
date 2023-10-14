@@ -183,7 +183,7 @@ const twitterAccounts = [
     },
 ];
 (async () => {
-    console.info("[RSS Feed] Starting RSS feed fetcher.");
+    console.info("[RSS Feed] Starting RSS feed fetcher");
     const fetchAndReschedule = async (account) => {
         const request = await fetchAndSendLatestTweets(account.rssUrl, account.latestTweetInfo, account.name);
         if (request)

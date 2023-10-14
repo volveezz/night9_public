@@ -17,7 +17,7 @@ async function fetchNewsArticles() {
         if (!lastArticlePubDate) {
             const redisData = await redisClient.get("lastArticlePubDate");
             if (!redisData) {
-                console.error("[Error code: 2037] No last article pub date found in Redis. Setting to current date.");
+                console.error("[Error code: 2037] No last article pub date found in Redis. Setting to current date");
             }
             lastArticlePubDate = redisData ? parseInt(redisData) : new Date().getTime();
         }

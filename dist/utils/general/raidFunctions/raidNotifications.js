@@ -31,9 +31,9 @@ let tasks = [];
 let runningTimeouts = [];
 const DEFAULT_NOTIFICATIONS_TIMES = [15, 60];
 async function scheduleNextNotification() {
-    console.debug("Scheduling the next notification task.");
+    console.debug("Scheduling the next notification task");
     if (tasks.length === 0) {
-        console.debug("No more tasks to schedule.");
+        console.debug("No more tasks to schedule");
         return;
     }
     tasks.sort((a, b) => a.notifyTime - b.notifyTime);
@@ -55,9 +55,9 @@ async function scheduleNextNotification() {
             runningTimeouts.push({ discordId, timeout });
         }
         else if (sleepDuration > -2000) {
-            console.debug("Scheduled a new notification task for", discordId, new Date(notifyTime));
+            console.debug(`Scheduled a new notification task for ${discordId} ${new Date(notifyTime)}`);
             const timeout = setTimeout(async () => {
-                console.debug("Sending a notification for", discordId, new Date(notifyTime));
+                console.debug(`Sending a notification for ${discordId} ${new Date(notifyTime)}`);
                 await sendNotification(task).catch((err) => {
                     if (err.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
                         return notifyAboutClosedDM(raidId, discordId);
@@ -111,7 +111,7 @@ async function sendNotification(task) {
     }
     console.debug("Initiating notification for", task.discordId, "for raid", raid.id);
     await announceRaidEvent(raid, task.discordId);
-    console.debug("Notification is sent. Scheduling the next notification task.");
+    console.debug("Notification is sent. Scheduling the next notification task");
     scheduleNextNotification();
 }
 export async function loadNotifications() {
@@ -281,7 +281,7 @@ async function announceRaidEvent(oldRaidEvent, discordUserId) {
         clearNotifications(currentRaidEvent.id);
         return;
     }
-    console.debug(`[DEBUG] Sending notification to ${discordUser.displayName}.`);
+    console.debug("Sending notification to", discordUser.displayName);
     await discordUser.send({
         embeds: [raidEmbed],
         components: addButtonsToMessage(buttonComponents),

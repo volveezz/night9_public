@@ -11,7 +11,7 @@ async function fetchAndCacheActivities() {
     if (!ownerAuthData) {
         ownerAuthData = await AuthData.findOne({ attributes: ["bungieId", "platform", "accessToken"] });
         if (!ownerAuthData) {
-            console.warn("[Error code: 2038] No available authentication data in the database.");
+            console.warn("[Error code: 2038] No available authentication data in the database");
             return;
         }
     }
@@ -53,7 +53,7 @@ async function fetchAndCacheActivities() {
     for (const activityHash in activityCache) {
         if (!newActivityCache[activityHash]) {
             delete activityCache[activityHash];
-            console.info(`Removed activity ${activityHash} from activity cache.`);
+            console.info(`Removed activity ${activityHash} from activity cache`);
         }
     }
     Object.assign(activityCache, newActivityCache);
@@ -71,7 +71,7 @@ async function fetchAndRetry(attempt = 1) {
     }
 }
 async function updateActivityCache() {
-    console.debug("Updating activity cache.");
+    console.debug("Updating activity cache");
     if (isUpdating)
         return;
     isUpdating = true;
