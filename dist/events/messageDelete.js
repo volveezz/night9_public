@@ -1,8 +1,9 @@
-import { EmbedBuilder } from "discord.js";
+import { AuditLogEvent, EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { client } from "../index.js";
 import { Event } from "../structures/event.js";
+import nameCleaner from "../utils/general/nameClearer.js";
 import { uploadImageToImgur } from "../utils/general/uploadImageToImgur.js";
 let messageChannel = null;
 function isValidMessage(message) {
@@ -33,11 +34,43 @@ function createDeletedMessageEmbed(message) {
         inline: true,
     });
 }
+async function getDeleterFromAuditLogs(message, embed) {
+    if (!message.guild)
+        return Promise.resolve();
+    const auditLogs = await message.guild.fetchAuditLogs({
+        limit: 1,
+        type: AuditLogEvent.MessageDelete,
+    });
+    const firstEntry = auditLogs.entries.first();
+    if (!firstEntry) {
+        console.error("[Error code: 2093] Failed to fetch audit logs for message delete event");
+        return Promise.resolve();
+    }
+    const { executorId, targetId, extra } = firstEntry;
+    if (targetId !== message.author.id || extra.channel.id !== message.channelId) {
+        return;
+    }
+    const fieldObject = { name: "Удалил сообщение", value: "Сам пользователь", inline: true };
+    if (executorId === targetId) {
+        embed.addFields(fieldObject);
+    }
+    else {
+        const deleter = await client.getMember(executorId);
+        if (deleter) {
+            fieldObject.value = nameCleaner(deleter.displayName, true);
+        }
+        else {
+            fieldObject.value = `<@${executorId}>`;
+        }
+        embed.addFields(fieldObject);
+    }
+}
 export default new Event("messageDelete", async (message) => {
     if (!isValidMessage(message))
         return;
     const embed = createDeletedMessageEmbed(message);
     let attachmentsPromise;
+    let deleterPromise = getDeleterFromAuditLogs(message, embed);
     const embeds = [embed];
     if (message.content && message.content.length > 0) {
         embed.addFields({
@@ -56,7 +89,7 @@ export default new Event("messageDelete", async (message) => {
     }
     if (!messageChannel)
         messageChannel = await client.getTextChannel(process.env.MESSAGES_CHANNEL_ID);
-    await attachmentsPromise;
+    await Promise.all([attachmentsPromise, deleterPromise]);
     messageChannel.send({ embeds });
     function processEmbeds() {
         const embedTitles = message.embeds.map((embed) => embed.title);

@@ -86,7 +86,7 @@ const SlashCommand = new Command({
                 const embedCode = args.getString("embed_code", false);
                 const messageId = args.getString("message-id");
                 const channelId = args.getString("channelId");
-                const embedChannel = (channelId ? await client.channels.fetch(channelId) : interaction.channel);
+                const embedChannel = await client.getTextChannel(interaction.channel || channelId);
                 try {
                     let content;
                     let embeds = [];
@@ -128,7 +128,7 @@ const SlashCommand = new Command({
                     interaction.editReply({ embeds: [responseEmbed] });
                 }
                 catch (error) {
-                    console.error("[Error] Error during handling message", error);
+                    console.error("[Error code: 2097] Error during handling message", error);
                     const errorResponse = new EmbedBuilder().setColor(colors.error).setAuthor({
                         name: `Произошла ошибка во время ${messageId ? "изменения" : "отправления"} сообщения`,
                         iconURL: icons.close,
