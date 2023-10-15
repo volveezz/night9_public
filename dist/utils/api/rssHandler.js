@@ -182,7 +182,7 @@ const twitterAccounts = [
         rssUrl: rssUrls.DestinyTheGame,
     },
 ];
-(async () => {
+export async function startRssFetcher() {
     console.info("[RSS Feed] Starting RSS feed fetcher");
     const fetchAndReschedule = async (account) => {
         const request = await fetchAndSendLatestTweets(account.rssUrl, account.latestTweetInfo, account.name);
@@ -200,5 +200,5 @@ const twitterAccounts = [
         }
         fetchAndReschedule(account);
     }
-})();
+}
 //# sourceMappingURL=rssHandler.js.map

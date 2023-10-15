@@ -64,10 +64,13 @@ async function handleTextChannel(channelId, member, action) {
     membersFieldIndex && membersFieldIndex >= 1
         ? embed.data.fields?.splice(membersFieldIndex, 1, membersReadyField)
         : embed.addFields(membersReadyField);
-    await channelData.channelMessage.edit({ embeds: [embed] }).then((message) => channelDataMap.set(channelId, {
+    await channelData.channelMessage
+        .edit({ embeds: [embed] })
+        .then((message) => channelDataMap.set(channelId, {
         ...channelData,
         channelMessage: message,
-    }));
+    }))
+        .catch((e) => console.error("[Error code: 2095] Failed to edit the message", e));
 }
 export default handleTextChannel;
 //# sourceMappingURL=handleLfgJoin.js.map

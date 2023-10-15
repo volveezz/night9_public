@@ -5,6 +5,7 @@ import handleMemberStatistics from "../core/statisticsChecker/userStatisticsMana
 import tokenManagment from "../core/tokenManagement.js";
 import fetchNewsArticles from "../utils/api/bungieRssFetcher.js";
 import { fetchGlobalAlerts } from "../utils/api/globalAlertsFetcher.js";
+import { startRssFetcher } from "../utils/api/rssHandler.js";
 import { voiceChannelJoinTimestamps } from "../utils/discord/userActivityHandler.js";
 import { clanOnlineMemberActivityChecker } from "../utils/general/activityCompletionChecker.js";
 import { updateActivityCache } from "../utils/general/cacheAvailableActivities.js";
@@ -40,8 +41,8 @@ export class ExtendedClient extends Client {
     constructor() {
         super({
             intents: [
-                GatewayIntentBits.GuildPresences,
                 GatewayIntentBits.Guilds,
+                GatewayIntentBits.GuildPresences,
                 GatewayIntentBits.GuildMembers,
                 GatewayIntentBits.GuildModeration,
                 GatewayIntentBits.GuildInvites,
@@ -292,7 +293,7 @@ export class ExtendedClient extends Client {
         await pause(1000);
         import("../core/guildNicknameManagement.js");
         await pause(1000 * 15);
-        import("../utils/api/rssHandler.js");
+        startRssFetcher();
         await pause(2000);
         setTimeout(() => {
             fetchGlobalAlerts();

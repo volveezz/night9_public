@@ -7,10 +7,10 @@ async function cacheRaidMilestones() {
     for (const milestone of Object.values(milestoneDefinition)) {
         if (!milestone.activities)
             continue;
-        for (const activity of milestone.activities) {
-            if (!activity.phases)
+        for (const { phases, activityHash } of milestone.activities) {
+            if (!phases)
                 continue;
-            raidMilestoneHashes.set(activity.activityHash, milestone.hash);
+            raidMilestoneHashes.set(activityHash, milestone.hash);
         }
     }
 }

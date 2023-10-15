@@ -28,15 +28,17 @@ async function processPveActivities(activity, completedActivities, activityAvail
             completedActivities.push(activity.activityDetails.referenceId);
     }
 }
-export async function destinyActivityChecker({ authData, mode, member, count = 250 }) {
+export async function destinyActivityChecker({ authData, mode, member, count = 250, recursiveCall = false }) {
     if (getEndpointStatus("activity") !== 1)
         return;
     const activityAvailableTime = Date.now() - 1000 * 60 * 60 * 2;
     const { platform, bungieId, accessToken, discordId } = authData;
     const userCharactersArray = userCharactersId.get(discordId);
     if (!userCharactersArray) {
+        if (recursiveCall)
+            return;
         await fetchCharacterStatsAndCache(authData);
-        destinyActivityChecker({ authData, mode, member, count });
+        destinyActivityChecker({ authData, mode, member, count, recursiveCall: true });
         return;
     }
     let completedActivities = [];
@@ -149,21 +151,22 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
             const kfClears = kf + kfMaster;
             const votdClears = votd + votdMaster;
             const vogClears = vog + vogMaster;
-            for (const step of raidRoles.roles) {
-                if ((ceClears >= step.individualClears / 2 &&
-                    ronClears >= step.individualClears &&
-                    kfClears >= step.individualClears &&
-                    votdClears >= step.individualClears &&
-                    vogClears >= step.individualClears &&
-                    dsc >= step.individualClears &&
-                    gos >= step.individualClears &&
-                    lw >= step.individualClears) ||
-                    totalRaidClears >= step.totalClears) {
-                    if (member.roles.cache.hasAny(...raidRoles.allRoles.filter((r) => r !== step.roleId))) {
-                        await member.roles.remove(raidRoles.allRoles.filter((r) => r !== step.roleId));
+            for (const { individualClears, roleId, totalClears } of raidRoles.roles) {
+                if ((ceClears >= individualClears &&
+                    ronClears >= individualClears &&
+                    kfClears >= individualClears &&
+                    votdClears >= individualClears &&
+                    vogClears >= individualClears &&
+                    dsc >= individualClears &&
+                    gos >= individualClears &&
+                    lw >= individualClears) ||
+                    totalRaidClears >= totalClears) {
+                    const allRolesExceptCurrent = raidRoles.allRoles.filter((r) => r !== roleId);
+                    if (member.roles.cache.hasAny(...allRolesExceptCurrent)) {
+                        await member.roles.remove(allRolesExceptCurrent);
                     }
-                    if (!member.roles.cache.has(step.roleId)) {
-                        await member.roles.add(step.roleId);
+                    if (!member.roles.cache.has(roleId)) {
+                        await member.roles.add(roleId);
                     }
                     break;
                 }
@@ -192,14 +195,14 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
             console.error(`[Error code: 1019] KD is NaN for ${member.displayName}`);
             return;
         }
-        for (const step of trialsRoles.kd) {
-            if (userKD < step.kd)
+        for (const { kd, roleId } of trialsRoles.kd) {
+            if (userKD < kd)
                 continue;
-            if (member.roles.cache.hasAny(...trialsRoles.allKd.filter((r) => r !== step.roleId))) {
-                await member.roles.remove(trialsRoles.allKd.filter((r) => r !== step.roleId));
+            if (member.roles.cache.hasAny(...trialsRoles.allKd.filter((r) => r !== roleId))) {
+                await member.roles.remove(trialsRoles.allKd.filter((r) => r !== roleId));
             }
-            if (!member.roles.cache.has(step.roleId)) {
-                await member.roles.add(!member.roles.cache.has(trialsRoles.category) ? [step.roleId, trialsRoles.category] : [step.roleId]);
+            if (!member.roles.cache.has(roleId)) {
+                await member.roles.add(!member.roles.cache.has(trialsRoles.category) ? [roleId, trialsRoles.category] : [roleId]);
             }
             return;
         }

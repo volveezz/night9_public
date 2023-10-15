@@ -19,17 +19,9 @@ async function checkClanActivitiesPeriodically() {
             },
             attributes: ["discordId", "bungieId", "displayName", "platform", "accessToken"],
         });
-        const missingUsers = onlineClanMembers
-            .filter((memberData) => !client.getCachedMembers().has(memberData.discordId))
-            .map((missingMember) => {
-            return `[Error code: 1008] ${missingMember.displayName}/${missingMember.discordId} not found on server`;
-        });
-        if (missingUsers.length > 0) {
-            await client.getCachedGuild().fetch();
-            console.error("[Error code: 1005]", missingUsers);
-        }
+        const cachedMembers = client.getCachedMembers();
         for (const memberData of onlineClanMembers) {
-            const member = client.getCachedMembers().get(memberData.discordId);
+            const member = cachedMembers.get(memberData.discordId);
             if (!member) {
                 await client.getCachedGuild().fetch();
                 console.error("[Error code: 1007]", memberData.displayName);

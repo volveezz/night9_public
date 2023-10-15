@@ -3,6 +3,7 @@ import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { client } from "../../index.js";
 import nameCleaner from "../../utils/general/nameClearer.js";
+import { pause } from "../../utils/general/utilities.js";
 const ERROR_EMBED = new EmbedBuilder()
     .setColor(colors.error)
     .setAuthor({ name: "Ошибка", iconURL: icons.error })
@@ -48,6 +49,8 @@ async function moveRaidVoiceMembers({ guild, interaction, raidEvent }) {
         else {
             await activeVoiceMember.voice.setChannel(availableRaidVoiceChannel, `${initiatorDisplayName} переместил участников в рейдовый голосовой канал`);
             movedUsers.push(`**${memberDisplayName}** был перемещен`);
+            if (movedUsers.length === 1)
+                await pause(500);
         }
     }
     const replyEmbed = new EmbedBuilder()

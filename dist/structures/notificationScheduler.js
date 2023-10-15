@@ -2,7 +2,7 @@ import { ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder } from "discord.j
 import pkg from "lodash";
 import { Op } from "sequelize";
 import colors from "../configs/colors.js";
-import icons from "../configs/icons.js";
+import { activityIcons } from "../configs/icons.js";
 import { client } from "../index.js";
 import { GetManifest } from "../utils/api/ManifestManager.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
@@ -166,7 +166,7 @@ class NotificationScheduler {
             const raidActivity = getRaidDetails(cache.raid, cache.difficulty);
             embed
                 .setColor(colors.deepBlue)
-                .setAuthor({ name: "Оповещение о скором рейде", iconURL: icons.raid })
+                .setAuthor({ name: "Оповещение о скором рейде", iconURL: activityIcons.raid })
                 .setTitle(raidActivity.raidName)
                 .setThumbnail(raidActivity.raidBanner)
                 .setURL(`https://discord.com/channels/${cache.guild?.id || process.env.GUILD_ID}/${cache.channel?.id || process.env.RAID_CHANNEL_ID}${cache.message?.id ? `/${cache.message.id}` : ""}}`)

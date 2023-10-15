@@ -19,6 +19,9 @@ export async function interactionErrorResolver({ error, interaction, retryOperat
             }
             console.error("[Error code: 1685] Unknown error on command reply", error);
         });
+        if (error.interaction) {
+            delete error.interaction;
+        }
         console.trace(`[Error code: 1694] Error during execution of ${interaction.customId || interaction.commandName || interaction.name} for ${username}\n`, error);
     }
     catch (e) {

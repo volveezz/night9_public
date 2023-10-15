@@ -11,11 +11,10 @@ export default new Event("channelCreate", async (channel) => {
         name: `Канал ${channel.name} создан`,
         iconURL: icons.moderation,
     })
-        .setFooter({ text: `ChnId: ${channel.id}` })
+        .setFooter({ text: `ChannelId: ${channel.id}` })
         .addFields({ name: "Канал", value: `<#${channel.id}>`, inline: true });
     if (!guildChannel)
-        guildChannel =
-            client.getCachedTextChannel(process.env.GUILD_CHANNEL_ID) || (await client.getTextChannel(process.env.GUILD_CHANNEL_ID));
+        guildChannel = await client.getTextChannel(process.env.GUILD_CHANNEL_ID);
     guildChannel.send({ embeds: [embed] });
 });
 //# sourceMappingURL=channelCreate.js.map
