@@ -1,4 +1,4 @@
-import { channelDataMap, completedRaidsData, lastAlertsTimestamps } from "../../persistence/dataStore.js";
+import { channelDataMap, completedRaidsData } from "../../persistence/dataStore.js";
 import { redisClient } from "../../persistence/redis.js";
 import { completedPhases } from "../activityCompletionChecker.js";
 const EXPIRATION_TIMES = {
@@ -10,7 +10,6 @@ async function saveDataToRedis() {
         saveIterableToRedis(completedPhases.entries(), "completedPhasesKey", EXPIRATION_TIMES.HALF_HOUR),
         saveIterableToRedis(channelDataMap, "lfgData", EXPIRATION_TIMES.HALF_HOUR, mapLfgData),
         saveIterableToRedis(completedRaidsData, "completedRaidsData", null),
-        saveIterableToRedis(lastAlertsTimestamps, "lastAlertsTimestamps", null),
     ]);
     return true;
 }

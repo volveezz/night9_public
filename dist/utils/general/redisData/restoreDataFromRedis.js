@@ -1,9 +1,9 @@
 import { client } from "../../../index.js";
-import { channelDataMap, completedRaidsData, lastAlertsTimestamps } from "../../persistence/dataStore.js";
+import { channelDataMap, completedRaidsData } from "../../persistence/dataStore.js";
 import { redisClient } from "../../persistence/redis.js";
 import { completedPhases } from "../activityCompletionChecker.js";
 async function restoreDataFromRedis() {
-    await Promise.all([restoreCompletedPhases(), restoreLfgChannelData(), restoreCompletedRaids(), restoreLastAlertsTimestamps()]);
+    await Promise.all([restoreCompletedPhases(), restoreLfgChannelData(), restoreCompletedRaids()]);
     console.info("Data from Redis was restored!");
 }
 async function restoreCompletedPhases() {
@@ -31,17 +31,6 @@ async function restoreCompletedRaids() {
     const data = await fetchDataFromRedis("completedRaidsData");
     if (data)
         populateMapFromEntries(completedRaidsData, data);
-}
-async function restoreLastAlertsTimestamps() {
-    const data = await fetchDataFromRedis("lastAlertsTimestamps");
-    if (!data) {
-        console.debug("No lastAlertsTimestamps data found in Redis");
-        return;
-    }
-    for (const item of data) {
-        console.debug("Restoring lastAlertsTimestamps:", item);
-        lastAlertsTimestamps.add(item);
-    }
 }
 async function fetchDataFromRedis(key) {
     const rawData = await redisClient.get(key);
