@@ -45,7 +45,7 @@ async function fetchAndPostAlerts() {
                         .setURL(alert.AlertLink === BUNGIEHELP_URL ? null : alert.AlertLink)
                         .setColor(alertLevelColors[alert.AlertLevel] || colors.error);
                     if (alert.StreamInfo?.ChannelName) {
-                        embed.addFields([{ name: "Stream Channel", value: alert.StreamInfo.ChannelName }]);
+                        embed.addFields({ name: "Stream Channel", value: alert.StreamInfo.ChannelName });
                     }
                     let translatedDescription = null;
                     let components = [];
@@ -96,7 +96,7 @@ async function fetchLastAlertTimestamp() {
     try {
         const redisLatestAlertTimestamp = await redisClient.get("latestAlertTimestamp");
         if (redisLatestAlertTimestamp) {
-            const parsedData = new Date(redisLatestAlertTimestamp);
+            const parsedData = new Date(JSON.parse(redisLatestAlertTimestamp));
             latestAlertTimestamp = parsedData;
         }
         else {
