@@ -18,7 +18,6 @@ async function unlockRaidMessage({ interaction, raidEvent }) {
         }),
     });
     await Promise.all([publicMessagePromise, privateMessagePromise]);
-    console.debug("Message was updated");
 }
 async function raidButtonsUnlocker({ interaction, raidEvent }, raidMessage) {
     const inChannelMessageButtonRows = interaction.message.components.map((actionRow) => {

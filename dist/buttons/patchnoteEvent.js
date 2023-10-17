@@ -19,7 +19,7 @@ const ButtonCommand = new Button({
                             .setLabel("Опубликовать для всех"),
                     ])
                     : [];
-                const messageOptions = { content, components };
+                const messageOptions = { content, components, allowedMentions: { parse: [] } };
                 if (!channelOfGods)
                     channelOfGods = await client.getTextChannel(process.env.GOD_BOT_CHANNEL_ID);
                 await channelOfGods.send(messageOptions);
@@ -30,7 +30,7 @@ const ButtonCommand = new Button({
             case "patchnoteEvent_sendToPublic": {
                 if (!newsChannel)
                     newsChannel = await client.getTextChannel(process.env.NEWS_CHANNEL_ID);
-                await newsChannel.send(content);
+                await newsChannel.send({ content, allowedMentions: { parse: [] } });
                 await interaction.reply({ content: `Отправлено в <#${process.env.NEWS_CHANNEL_ID}>`, ephemeral: true });
                 await interaction.message.delete();
                 return;

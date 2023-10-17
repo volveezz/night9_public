@@ -129,7 +129,7 @@ const ButtonCommand = new Button({
             throw { errorType: "RAID_NOT_FOUND" };
         }
         if (raidEvent.creator !== interaction.user.id && !interaction.memberPermissions?.has("Administrator")) {
-            const member = client.getCachedMembers().get(interaction.user.id);
+            const member = client.getCachedMembers().get(raidEvent.creator);
             const displayName = member && nameCleaner(member.displayName, true);
             throw { errorType: "ACTIVITY_MISSING_PERMISSIONS", errorData: { displayName }, interaction };
         }

@@ -35,6 +35,10 @@ async function handleMessage(message) {
         }
         return;
     }
+    if (message.channelId === process.env.VEX_INCURSION_CHANNEL_ID) {
+        processVexIncursionMessage(message).catch((e) => null);
+        return;
+    }
     if (!message.author || message.author.bot || message.system || !(message instanceof Message))
         return;
     if (message.channelId === process.env.RAID_CHANNEL_ID && !message.member?.permissions.has("MentionEveryone")) {
@@ -62,6 +66,25 @@ async function handleMessage(message) {
     if (message.member?.roles.cache.has(process.env.VERIFIED)) {
         cacheUserActivity({ userId: message.author.id, messageId: message.id });
     }
+}
+async function processVexIncursionMessage(message) {
+    console.debug('Found a message in "Vex Incursion" channel');
+    const timestampField = message.embeds?.[0]?.fields?.find((field) => field.value.startsWith("<:"));
+    if (!timestampField)
+        return;
+    console.debug("Found a timestamp field in the message", timestampField.value);
+    const regex = /<t:(\d+):R>/;
+    const match = message.content.match(regex);
+    if (!match)
+        return;
+    console.debug("Found timestamp in message content", match[1]);
+    console.debug("Setting a new timeout to delete the message");
+    const timeout = parseInt(match[1]) * 1000 - Date.now() + 60 * 1000 * 5;
+    console.debug("Timeout is", timeout);
+    setTimeout(() => {
+        console.debug("Deleting message", message.id);
+        message.delete().catch((_) => null);
+    }, timeout);
 }
 async function handleDirectMessage(message) {
     if (message.content.includes("init")) {

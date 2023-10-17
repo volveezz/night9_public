@@ -72,7 +72,7 @@ Translated dataset:
 "Fireteam": "Боевая группа",
 "Hive Rune": "Руна Улья",
 "Veil Containment": "Защитная оболочка вуали",
-"Veil": "Вуаль",
+"The Scarlet Keep": "Алая крепость",
 "Guardian Rank": "Ранг Стража",
 "Developer Insights": "Комментарии разработчиков",
 "Community Focus": "Сообщество в фокусе",

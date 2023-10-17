@@ -11,20 +11,19 @@ import resolveAuthor from "./resolveAuthor.js";
 import { processTwitterGifFile } from "./saveGifInChannel.js";
 let publicNewsChannel = null;
 const originalButton = new ButtonBuilder().setCustomId("twitter_showOriginal").setLabel("Оригинал").setStyle(ButtonStyle.Secondary);
-function extractMediaUrl(content, preferable = "image") {
+function extractMediaUrls(content, preferable = "image") {
     if (!content)
-        return null;
-    const imgRegex = /(https?:\/\/[^"]*?(?:png|jpg|jpeg|gif)(?:&amp;[^"]*)?)/g;
+        return [];
+    const imgRegex = /(https?:\/\/[^"\s]*?(?:png|jpg|jpeg|gif)(?:&amp;[^"\s]*)?)/g;
     const videoRegex = /(https?:\/\/[^"]*?\.mp4[^"]*)|(https:\/\/video\.twimg\.com\/amplify_video\/\d+\/vid\/.*?\.(mp4|gif))/g;
-    const imgMatch = content.match(imgRegex);
-    const videoMatch = content.match(videoRegex);
+    let matches = null;
     if (preferable === "image") {
-        return imgMatch ? imgMatch[1] || imgMatch[0] : null;
+        matches = content.match(imgRegex);
     }
     else if (preferable === "video") {
-        return videoMatch ? videoMatch[1] || videoMatch[0] : null;
+        matches = content.match(videoRegex);
     }
-    return null;
+    return matches || [];
 }
 function clearText(content) {
     return content
@@ -58,19 +57,19 @@ function getTwitterAccountNameFromAuthor(author) {
     }
 }
 async function generateTwitterEmbed({ twitterData, author, icon, url, originalEmbed, content, images, }) {
-    console.debug("Started to generate twitter embed");
+    if (!twitterData) {
+        console.error("[Error code: 2103] Passed empty twitter data", author, icon, content);
+        return;
+    }
     try {
-        if (!twitterData)
-            return;
         const cleanContent = clearText(twitterData);
         if (!cleanContent || cleanContent.length === 0) {
             console.error("[Error code: 1754]", twitterData);
             return;
         }
         let components = [];
-        const embedMedia = originalEmbed?.data && (originalEmbed.data.thumbnail?.url || originalEmbed.data.image?.url || originalEmbed.data.video?.url);
-        const extractedMedia = extractMediaUrl(content) || embedMedia;
-        console.debug(`Extracted media: ${extractedMedia}`, embedMedia);
+        const extractedMediaUrls = extractMediaUrls(content).concat(images || []);
+        console.debug("Extracted media:", extractedMediaUrls);
         const replacedDescription = replaceTimeWithEpoch(cleanContent);
         let tranlsatedContent = "";
         try {
@@ -93,26 +92,16 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
         }
         embed.setDescription(tranlsatedContent && tranlsatedContent.length > 1 ? tranlsatedContent : replacedDescription.length > 0 ? replacedDescription : null);
         const embeds = [embed];
-        if (extractedMedia) {
-            const mainEmbedImage = isNitterUrlAllowed(extractedMedia)
-                ? extractedMedia
-                : await uploadImageToImgur(extractedMedia).catch((error) => {
-                    console.error("[Error code: 2101] Failed to upload main embed image to imgur", error);
-                    return extractedMedia;
-                });
-            embeds[0].setImage(mainEmbedImage);
-            if (images && images.length > 0 && url) {
-                const imageIndex = images.indexOf(extractedMedia);
-                imageIndex > -1 && images.splice(imageIndex, 1);
-                images.forEach(async (imageLink) => {
-                    let subEmbedImage = isNitterUrlAllowed(imageLink)
-                        ? extractedMedia
-                        : await uploadImageToImgur(imageLink).catch((error) => {
-                            console.error("[Error code: 2102] Failed to upload sub embed image to imgur", error);
-                            return imageLink;
-                        });
-                    embeds.push(new EmbedBuilder().setURL(url).setImage(subEmbedImage));
-                });
+        if (extractedMediaUrls.length > 0) {
+            const embedURL = url ? url : `https://x.com/${getTwitterAccountNameFromAuthor(author)}`;
+            for (const mediaUrl of extractedMediaUrls) {
+                const imgUrl = isNitterUrlAllowed(mediaUrl)
+                    ? mediaUrl
+                    : await uploadImageToImgur(mediaUrl).catch((error) => {
+                        console.error("[Error code: 2102] Failed to upload image to imgur", error);
+                        return mediaUrl;
+                    });
+                embeds.push(new EmbedBuilder().setURL(url || `https://x.com/${embedURL}`).setImage(imgUrl));
             }
         }
         if (!publicNewsChannel)
@@ -134,7 +123,7 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
                 twitterOriginalVoters.set(m.id, voteRecord);
                 originalTweetData.set(m.id, cleanContent);
             }
-            const extractedVideoMedia = extractMediaUrl(content, "video");
+            const extractedVideoMedia = extractMediaUrls(content, "video")[0];
             if (extractedVideoMedia && extractedVideoMedia.endsWith(".mp4")) {
                 console.debug("Converting video to gif");
                 convertVideoToGif(extractedVideoMedia, m, embed);
