@@ -22,14 +22,19 @@ const SlashCommand = new Command({
                     nameLocalizations: { ru: "+18 канал" },
                 },
                 {
-                    name: "Destiny Lore Channel",
+                    name: "Destiny Lore",
                     value: process.env.LORE_CHANNEL_ID,
-                    nameLocalizations: { ru: "Канал с обсуждением игрового лора" },
+                    nameLocalizations: { ru: "Обсуждение игрового лора" },
                 },
                 {
                     name: "Vex Incursions",
                     value: process.env.VEX_INCURSION_CHANNEL_ID,
                     nameLocalizations: { ru: "Вторжения вексов" },
+                },
+                {
+                    name: "Checkpoints",
+                    value: process.env.CHECKPOINTS_CHANNEL_ID,
+                    nameLocalizations: { ru: "Контрольные точки" },
                 },
             ],
         },
@@ -52,7 +57,7 @@ const SlashCommand = new Command({
             name: `Вы ${permissionsStatus ? "получили" : "забрали свой"} доступ к каналу ${channel.name}`,
             iconURL: permissionsStatus ? icons.success : icons.close,
         });
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        interaction.reply({ embeds: [embed], ephemeral: true });
     },
 });
 export default SlashCommand;

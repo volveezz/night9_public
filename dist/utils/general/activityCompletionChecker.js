@@ -125,49 +125,47 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
     let interval;
     let previousActivityHash;
     let uniqueId = id || Math.floor(Math.random() * 1000);
+    const stopActivityHashChecker = () => {
+        clearInterval(interval);
+        currentlyRunning.delete(uniqueId);
+        activityCompletionCurrentProfiles.delete(characterId);
+        const cachedData = completedPhases.get(characterId);
+        setTimeout(() => {
+            if (completedPhases.has(characterId) && completedPhases.get(characterId) === cachedData) {
+                completedPhases.delete(characterId);
+            }
+        }, 60 * 1000 * 30);
+    };
     async function checkActivityHash() {
         const response = await fetchCharacterResponse({
             bungieId,
             characterId,
             platform,
         });
-        const stopActivityHashChecker = () => {
-            clearInterval(interval);
-            currentlyRunning.delete(uniqueId);
-            activityCompletionCurrentProfiles.delete(characterId);
-            const cachedData = completedPhases.get(characterId);
-            setTimeout(() => {
-                if (completedPhases.get(characterId) === cachedData) {
-                    completedPhases.delete(characterId);
-                }
-            }, 60 * 1000 * 20);
-        };
         if (!response || !response.activities || !response.progressions.data.milestones[milestoneHash].activities) {
             stopActivityHashChecker();
             return null;
         }
         const characterData = response?.activities?.data;
         const currentActivityHash = characterData?.currentActivityHash;
-        if (characterData == null ||
-            response == null ||
-            response.activities?.data == null ||
-            (currentActivityHash !== previousActivityHash && previousActivityHash !== undefined) ||
+        if (!characterData ||
+            !response?.activities?.data ||
+            (previousActivityHash && currentActivityHash !== previousActivityHash) ||
             currentActivityHash === 82913930 ||
             activityDefinition[currentActivityHash]?.activityTypeHash !== raidActivityModeHash ||
-            (previousActivityHash !== undefined &&
+            !response.progressions.data ||
+            (previousActivityHash &&
                 !response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash)) ||
             (discordId && !clanOnline.has(discordId))) {
             stopActivityHashChecker();
             return null;
         }
         try {
-            if (previousActivityHash === undefined) {
+            if (!previousActivityHash) {
                 previousActivityHash = currentActivityHash;
                 const updatedMilestoneActivity = response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash);
-                if (updatedMilestoneActivity && areAllPhasesComplete(updatedMilestoneActivity.phases)) {
-                    clearInterval(interval);
-                    currentlyRunning.delete(uniqueId);
-                    activityCompletionCurrentProfiles.delete(characterId);
+                if (updatedMilestoneActivity && updatedMilestoneActivity.phases && areAllPhasesComplete(updatedMilestoneActivity.phases)) {
+                    stopActivityHashChecker();
                     return null;
                 }
             }
@@ -180,74 +178,68 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
     async function characterMilestonesChecker(response) {
         const characterMilestones = response.progressions.data.milestones;
         const updatedMilestone = characterMilestones[milestoneHash];
-        if (activityCompletionCurrentProfiles.has(characterId)) {
-            const cachedMilestone = activityCompletionCurrentProfiles.get(characterId);
-            if (cachedMilestone !== updatedMilestone) {
-                const cachedMilestoneActivity = cachedMilestone.activities.find((i) => i.activityHash === previousActivityHash);
-                const updatedMilestoneActivity = updatedMilestone.activities.find((i) => i.activityHash === previousActivityHash);
-                if (cachedMilestoneActivity == null ||
-                    cachedMilestoneActivity.phases == null ||
-                    updatedMilestoneActivity == null ||
-                    updatedMilestoneActivity.phases == null ||
-                    updatedMilestoneActivity.phases[0] == null ||
-                    updatedMilestoneActivity.phases[0].phaseHash == null)
-                    return console.error("[Error code: 1645]", cachedMilestoneActivity, updatedMilestoneActivity);
-                for (const phaseIndexString in updatedMilestoneActivity.phases) {
-                    const phaseIndex = parseInt(phaseIndexString);
-                    if (phaseIndex == null)
-                        return console.error("[Error code: 1651]", updatedMilestoneActivity);
-                    const cachedMilestonePhase = cachedMilestoneActivity.phases[phaseIndex];
-                    const updatedMilestonePhase = updatedMilestoneActivity.phases[phaseIndex];
-                    if (cachedMilestonePhase?.phaseHash === updatedMilestonePhase?.phaseHash) {
-                        if (cachedMilestonePhase.complete !== updatedMilestonePhase.complete && updatedMilestonePhase.complete === true) {
-                            let alreadyCompletedPhases = completedPhases.get(characterId) || [
-                                {
-                                    phase: updatedMilestoneActivity.phases[phaseIndex].phaseHash,
-                                    phaseIndex: phaseIndex + 1,
-                                    start: startTime,
-                                    end: -1,
-                                },
-                            ];
-                            let phase = alreadyCompletedPhases[alreadyCompletedPhases.length - 1];
-                            phase.end = Date.now();
-                            alreadyCompletedPhases.splice(alreadyCompletedPhases.length > 0 ? alreadyCompletedPhases.length - 1 : 0, 1, {
-                                ...phase,
-                            });
-                            if (updatedMilestoneActivity.phases[phaseIndex + 1] != null &&
-                                updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash != null) {
-                                const insertedPhaseIndex = alreadyCompletedPhases.findIndex((phase) => phase.phaseIndex === phaseIndex + 2);
-                                const phaseData = {
-                                    phase: updatedMilestoneActivity.phases[phaseIndex + 1].phaseHash,
-                                    phaseIndex: phaseIndex + 2,
-                                    start: phase.end,
-                                    end: -1,
-                                };
-                                if (insertedPhaseIndex === -1) {
-                                    alreadyCompletedPhases.push(phaseData);
-                                }
-                                else {
-                                    alreadyCompletedPhases.splice(insertedPhaseIndex, 1, {
-                                        ...phaseData,
-                                    });
-                                }
-                            }
-                            else {
-                                currentlyRunning.delete(uniqueId);
-                                activityCompletionCurrentProfiles.delete(characterId);
-                                setTimeout(() => {
-                                    if (completedPhases.get(characterId) === alreadyCompletedPhases) {
-                                        completedPhases.delete(characterId);
-                                    }
-                                }, 60 * 1000 * 20);
-                            }
-                            completedPhases.set(characterId, alreadyCompletedPhases);
-                            break;
-                        }
+        if (!activityCompletionCurrentProfiles.has(characterId)) {
+            activityCompletionCurrentProfiles.set(characterId, updatedMilestone);
+            return;
+        }
+        const cachedMilestone = activityCompletionCurrentProfiles.get(characterId);
+        if (cachedMilestone === updatedMilestone)
+            return;
+        const cachedMilestoneActivity = cachedMilestone.activities.find((i) => i.activityHash === previousActivityHash);
+        const updatedMilestoneActivity = updatedMilestone.activities.find((i) => i.activityHash === previousActivityHash);
+        if (!cachedMilestoneActivity?.phases ||
+            !updatedMilestoneActivity?.phases ||
+            !updatedMilestoneActivity.phases[0] ||
+            !updatedMilestoneActivity.phases[0].phaseHash) {
+            console.error("[Error code: 1645]", cachedMilestoneActivity, updatedMilestoneActivity);
+            return;
+        }
+        for (const phaseIndexString in updatedMilestoneActivity.phases) {
+            const phaseArrayIndex = parseInt(phaseIndexString);
+            const phaseIndex = phaseArrayIndex + 1;
+            if (phaseArrayIndex == null)
+                return console.error("[Error code: 1651]", updatedMilestoneActivity);
+            const cachedMilestonePhase = cachedMilestoneActivity.phases[phaseArrayIndex];
+            const updatedMilestonePhase = updatedMilestoneActivity.phases[phaseArrayIndex];
+            if (!cachedMilestone || !updatedMilestone) {
+                console.error("[Error code: 1218]", cachedMilestone, updatedMilestone);
+                continue;
+            }
+            if (cachedMilestonePhase.phaseHash === updatedMilestonePhase.phaseHash &&
+                cachedMilestonePhase.complete !== updatedMilestonePhase.complete &&
+                updatedMilestonePhase.complete === true) {
+                let alreadyCompletedPhases = completedPhases.get(characterId) || [
+                    {
+                        phase: updatedMilestoneActivity.phases[phaseArrayIndex].phaseHash,
+                        phaseIndex: phaseArrayIndex + 1,
+                        start: startTime,
+                        end: -1,
+                    },
+                ];
+                let phase = alreadyCompletedPhases[alreadyCompletedPhases.length - 1];
+                phase.end = Date.now();
+                if (updatedMilestoneActivity.phases[phaseArrayIndex + 1]?.phaseHash) {
+                    const insertedPhaseIndex = alreadyCompletedPhases.findIndex((phase) => phase.phaseIndex === phaseIndex + 1);
+                    const phaseData = {
+                        phase: updatedMilestoneActivity.phases[phaseArrayIndex + 1].phaseHash,
+                        phaseIndex: phaseIndex + 1,
+                        start: phase.end,
+                        end: -1,
+                    };
+                    if (insertedPhaseIndex === -1) {
+                        alreadyCompletedPhases.push(phaseData);
                     }
-                    else if (!cachedMilestone || !updatedMilestone) {
-                        console.error("[Error code: 1218]", cachedMilestone, updatedMilestone);
+                    else {
+                        alreadyCompletedPhases.splice(insertedPhaseIndex, 1, {
+                            ...phaseData,
+                        });
                     }
                 }
+                else {
+                    stopActivityHashChecker();
+                }
+                completedPhases.set(characterId, alreadyCompletedPhases);
+                break;
             }
         }
         activityCompletionCurrentProfiles.set(characterId, updatedMilestone);

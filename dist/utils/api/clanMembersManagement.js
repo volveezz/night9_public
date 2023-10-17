@@ -2,6 +2,7 @@ import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord
 import { getAdminAccessToken } from "../../commands/clan/main.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
+import { client } from "../../index.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import getClanMemberData from "./getClanMemberData.js";
 import kickClanMember from "./kickClanMember.js";
@@ -49,6 +50,7 @@ async function kickMemberFromClan(id, interaction) {
                 let embed = new EmbedBuilder();
                 if (errorCode === 1) {
                     embed.setColor(colors.success).setAuthor({ name: `${memberDisplayName} был исключен`, iconURL: icons.success });
+                    notifyUserAboutBeingKicked(memberData);
                 }
                 else {
                     embed
@@ -67,6 +69,33 @@ async function kickMemberFromClan(id, interaction) {
     });
     collector.on("end", async () => await interaction.deleteReply());
     return memberData;
+}
+async function notifyUserAboutBeingKicked(memberData) {
+    if (!memberData.discordId) {
+        console.error("[Error code: 2099] Discord id wasn't passed into the notify function");
+        return;
+    }
+    const member = await client.getMember(memberData.discordId);
+    if (!member) {
+        console.error("[Error code: 2098] Member not found during his notification about being kicked", memberData.member, memberData.discordId);
+        return;
+    }
+    const guild = await client.getGuild(member.guild);
+    const clanReturnalChannelId = process.env.CLAN_RETURNAL;
+    const ownerId = process.env.OWNER_ID;
+    const clanURL = `https://www.bungie.net/7/ru/Clan/Profile/${process.env.GROUP_ID}`;
+    const embed = new EmbedBuilder()
+        .setColor(colors.kicked)
+        .setAuthor({
+        name: "Уведомление об исключении из клана",
+        iconURL: guild.iconURL() || icons.error,
+        url: clanURL,
+    })
+        .setDescription(`Вы были исключены из клана [Night 9](${clanURL}) в Destiny 2.\nПричина исключения: низкий актив в клане или его отсутствие.\n\nЕсли вы вернетесь в игру, клан готов принять вас снова.\nВступление в клан для исключенных доступно в <#${clanReturnalChannelId}> или по кнопке ниже.\n\nПомните: даже после исключения из клана, у Вас сохраняется доступ к большинству возможностей сервера. Вы всё ещё можете записываться на рейды, общаться в каналах и так далее.\n\nЕсли у вас есть вопросы, обратитесь к <@${ownerId}>.`);
+    const components = addButtonsToMessage([
+        new ButtonBuilder().setCustomId("webhandlerEvent_clan_request").setLabel("Отправить себе приглашение в клан"),
+    ]);
+    member.send({ embeds: [embed], components });
 }
 export default kickMemberFromClan;
 //# sourceMappingURL=clanMembersManagement.js.map

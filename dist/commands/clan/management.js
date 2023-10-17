@@ -145,7 +145,7 @@ export async function handleManagementClanAction(interaction, clanMembers, defer
     };
     const kickUser = async (i) => {
         userData.rank = 0;
-        await kickMemberFromClan({ bungieId: userData.bungieId, platform: userData.platform }, i);
+        await kickMemberFromClan(userData, i);
     };
     const updateMessage = async (fromCollector = false) => {
         const messageData = {

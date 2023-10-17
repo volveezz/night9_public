@@ -3,7 +3,9 @@ import { client } from "../../../index.js";
 import { updateLatestTweetInfoInDatabase } from "../../api/rssHandler.js";
 import translateDestinyText from "../../api/translateDestinyText.js";
 import { addButtonsToMessage } from "../../general/addButtonsToMessage.js";
+import { uploadImageToImgur } from "../../general/uploadImageToImgur.js";
 import { originalTweetData, processedRssLinks, twitterOriginalVoters } from "../../persistence/dataStore.js";
+import { isNitterUrlAllowed } from "./isNitterUrlAllowed.js";
 import convertMp4ToGif from "./mp4IntoGif.js";
 import resolveAuthor from "./resolveAuthor.js";
 import { processTwitterGifFile } from "./saveGifInChannel.js";
@@ -92,11 +94,25 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
         embed.setDescription(tranlsatedContent && tranlsatedContent.length > 1 ? tranlsatedContent : replacedDescription.length > 0 ? replacedDescription : null);
         const embeds = [embed];
         if (extractedMedia) {
-            embeds[0].setImage(extractedMedia);
+            const mainEmbedImage = isNitterUrlAllowed(extractedMedia)
+                ? extractedMedia
+                : await uploadImageToImgur(extractedMedia).catch((error) => {
+                    console.error("[Error code: 2101] Failed to upload main embed image to imgur", error);
+                    return extractedMedia;
+                });
+            embeds[0].setImage(mainEmbedImage);
             if (images && images.length > 0 && url) {
                 const imageIndex = images.indexOf(extractedMedia);
                 imageIndex > -1 && images.splice(imageIndex, 1);
-                images.forEach((image) => embeds.push(new EmbedBuilder().setURL(url).setImage(image)));
+                images.forEach(async (imageLink) => {
+                    let subEmbedImage = isNitterUrlAllowed(imageLink)
+                        ? extractedMedia
+                        : await uploadImageToImgur(imageLink).catch((error) => {
+                            console.error("[Error code: 2102] Failed to upload sub embed image to imgur", error);
+                            return imageLink;
+                        });
+                    embeds.push(new EmbedBuilder().setURL(url).setImage(subEmbedImage));
+                });
             }
         }
         if (!publicNewsChannel)
@@ -105,7 +121,8 @@ async function generateTwitterEmbed({ twitterData, author, icon, url, originalEm
             processedRssLinks.add(url);
             try {
                 const authorName = getTwitterAccountNameFromAuthor(author);
-                authorName && updateLatestTweetInfoInDatabase(authorName, { link: url, pubDate: new Date().toString() });
+                if (authorName)
+                    updateLatestTweetInfoInDatabase(authorName, { link: url, pubDate: new Date().toString() });
             }
             catch (error) {
                 console.error("[Error code: 2084]", error);

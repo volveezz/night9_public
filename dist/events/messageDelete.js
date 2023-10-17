@@ -57,12 +57,12 @@ async function getDeleterFromAuditLogs(message, embed) {
     else {
         const deleter = await client.getMember(executorId);
         if (deleter) {
-            fieldObject.value = nameCleaner(deleter.displayName, true);
+            fieldObject.value = `**${nameCleaner(deleter.displayName, true)}**`;
         }
         else {
             fieldObject.value = `<@${executorId}>`;
         }
-        embed.addFields(fieldObject);
+        embed.spliceFields(2, 0, fieldObject);
     }
 }
 export default new Event("messageDelete", async (message) => {
@@ -92,8 +92,16 @@ export default new Event("messageDelete", async (message) => {
     await Promise.all([attachmentsPromise, deleterPromise]);
     messageChannel.send({ embeds });
     function processEmbeds() {
-        const embedTitles = message.embeds.map((embed) => embed.title);
-        const embedAuthorFields = message.embeds.map((embed) => embed.author?.name);
+        let embedTitles = [];
+        let embedAuthorFields = [];
+        for (let embed of message.embeds) {
+            if (embed.title) {
+                embedTitles.push(embed.title);
+            }
+            if (embed.author && embed.author.name) {
+                embedAuthorFields.push(embed.author.name);
+            }
+        }
         let valueField = "";
         if (embedTitles.length > 0) {
             valueField += `Заголовки: \`${embedTitles.join("`, `")}\``;

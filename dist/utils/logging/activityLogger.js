@@ -263,7 +263,7 @@ async function logActivityCompletion(pgcrId) {
         if (mode === 4) {
             try {
                 const startTimeFromGame = new Date(response.period).getTime();
-                const preciseEncountersTime = getCommonEncounterTimes();
+                const preciseEncountersTime = getValidatedEncounterTimes();
                 if (preciseEncountersTime && preciseEncountersTime.length > 0) {
                     const encountersData = [];
                     const phasesArray = preciseEncountersTime.sort((a, b) => a.phaseIndex - b.phaseIndex);
@@ -311,59 +311,63 @@ async function logActivityCompletion(pgcrId) {
                         console.error("[Error code: 1613]", encountersData, preciseEncountersTime, preciseEncountersTime.length);
                     }
                 }
-                function getCommonEncounterTimes() {
-                    const filteredCompletedPhases = new Map();
+                function getValidatedEncounterTimes() {
+                    const completedPhasesForRaidCharacters = new Map();
                     for (const characterId of raidCharactersIds) {
-                        const value = completedPhases.get(characterId);
-                        if (value) {
-                            filteredCompletedPhases.set(characterId, value);
+                        const phasesDataPerCharacter = completedPhases.get(characterId);
+                        if (phasesDataPerCharacter) {
+                            completedPhasesForRaidCharacters.set(characterId, phasesDataPerCharacter);
                             completedPhases.delete(characterId);
                         }
                     }
-                    console.debug("Completed phases", filteredCompletedPhases);
+                    console.debug("Completed phases", completedPhasesForRaidCharacters);
                     const allPhases = new Map();
-                    for (const phases of filteredCompletedPhases.values()) {
-                        for (const phase of phases) {
-                            if (!allPhases.has(phase.phase)) {
-                                allPhases.set(phase.phase, []);
+                    for (const phasesData of completedPhasesForRaidCharacters.values()) {
+                        for (const phaseData of phasesData) {
+                            if (!allPhases.has(phaseData.phase)) {
+                                allPhases.set(phaseData.phase, [phaseData]);
                             }
-                            allPhases.get(phase.phase).push(phase);
+                            else {
+                                allPhases.get(phaseData.phase).push(phaseData);
+                            }
                         }
                     }
-                    const preciseStoredEncounterTime = [];
-                    let latestEndTime = 0;
+                    const validatedEncounterTimes = [];
+                    let latestEndTime = Infinity;
                     let latestStartTime = startTimeFromGame;
                     const phaseEntries = [...allPhases.entries()];
                     for (let i = 0; i < phaseEntries.length; i++) {
                         const [phase, phaseData] = phaseEntries[i];
+                        const phaseIndex = phaseData[0].phaseIndex;
                         const phaseStartTimes = phaseData.map((p) => p.start).filter((time) => time >= latestStartTime);
                         const phaseEndTimes = phaseData.map((p) => p.end).filter((time) => time >= latestStartTime);
                         if (phaseStartTimes.length === 0 || phaseEndTimes.length === 0) {
                             continue;
                         }
-                        let startTime = Math.min(...phaseStartTimes);
+                        let startTime = Math.min(Math.min(...phaseStartTimes), latestEndTime);
                         let endTime = Math.min(...phaseEndTimes);
-                        if (startTime < latestEndTime) {
-                            startTime = latestEndTime;
+                        const lastPhaseData = validatedEncounterTimes.find((a) => a.phaseIndex === phaseIndex - 1);
+                        if (i > 0 && latestEndTime > startTime && lastPhaseData) {
+                            lastPhaseData.end = startTime;
                         }
-                        if (i + 1 < phaseEntries.length) {
-                            const nextPhaseData = phaseEntries[i + 1][1];
-                            const nextPhaseStartTime = Math.min(...nextPhaseData.map((p) => p.start));
-                            if (endTime > nextPhaseStartTime) {
-                                endTime = nextPhaseStartTime;
-                            }
+                        else if (i === 0 && startTime > startTimeFromGame) {
+                            startTime = startTimeFromGame;
                         }
-                        preciseStoredEncounterTime.push({
-                            phaseIndex: phaseData[0].phaseIndex,
-                            phase: phase,
+                        if (endTime <= startTime) {
+                            console.error("[Error code: 2100] End time is less than start time", endTime, startTime, phaseData);
+                            continue;
+                        }
+                        validatedEncounterTimes.push({
+                            phaseIndex,
+                            phase,
                             start: startTime,
                             end: endTime,
                         });
                         latestStartTime = startTime;
                         latestEndTime = endTime;
                     }
-                    console.debug("[Debug code: DDERGQX]", preciseStoredEncounterTime);
-                    return preciseStoredEncounterTime;
+                    console.debug(validatedEncounterTimes);
+                    return validatedEncounterTimes;
                 }
             }
             catch (error) {
