@@ -30,7 +30,7 @@ function createDeletedMessageEmbed(message) {
         inline: true,
     }, {
         name: "Удалено в",
-        value: message.channel.isDMBased() ? `В личных сообщениях` : `<#${message.channelId}>`,
+        value: message.channel.isDMBased() ? `Личных сообщениях` : `<#${message.channelId}>`,
         inline: true,
     });
 }
@@ -109,10 +109,12 @@ export default new Event("messageDelete", async (message) => {
         if (embedAuthorFields.length > 0) {
             valueField += `${embedTitles.length > 0 ? "\n" : ""}Поля автора: \`${embedAuthorFields.join("`, `")}\``;
         }
-        embed.addFields({
-            name: "Embed-вложения",
-            value: valueField,
-        });
+        if (valueField.length > 0) {
+            embed.addFields({
+                name: "Embed-вложения",
+                value: valueField,
+            });
+        }
     }
     async function processAttachments() {
         const arrayAttachment = [];

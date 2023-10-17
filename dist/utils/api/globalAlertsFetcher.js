@@ -10,7 +10,7 @@ const alertLevelColors = {
     [0]: "Grey",
     [1]: "Blue",
     [2]: "Yellow",
-    [3]: "Red",
+    [3]: colors.error,
 };
 async function fetchAndPostAlerts() {
     const url = "/Platform/GlobalAlerts/";
@@ -28,9 +28,8 @@ async function fetchAndPostAlerts() {
                     if (lastAlertsTimestamps.has(latestAlert.AlertTimestamp))
                         return;
                     lastAlertsTimestamps.add(latestAlert.AlertTimestamp);
-                    if (!newsChannel) {
+                    if (!newsChannel)
                         newsChannel = await client.getTextChannel(process.env.ENGLISH_NEWS_CHANNEL_ID);
-                    }
                     const embed = new EmbedBuilder()
                         .setTitle(latestAlert.AlertKey || "New Global Alert")
                         .setDescription(latestAlert.AlertHtml)

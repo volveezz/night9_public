@@ -6,7 +6,7 @@ import { Event } from "../structures/event.js";
 import { refreshManifest } from "../utils/api/ManifestManager.js";
 import { manageAdminDMChannel } from "../utils/discord/adminDmManager.js";
 import blockChannelMessage from "../utils/discord/blockChannelMessages.js";
-import { handleDm } from "../utils/discord/dmHandler.js";
+import { sendAdminNotification } from "../utils/discord/dmHandler.js";
 import { handleLfgMessage } from "../utils/discord/lfgSystem/handleLFG.js";
 import { generatePatchNotes } from "../utils/discord/patchnoteGenerator.js";
 import sendRegistrationLink from "../utils/discord/registration.js";
@@ -67,7 +67,8 @@ async function handleDirectMessage(message) {
     if (message.content.includes("init")) {
         return message.channel.send({ embeds: [await sendRegistrationLink(message)] });
     }
-    return handleDm(message);
+    sendAdminNotification(message);
+    return;
 }
 export default new Event("messageCreate", async (message) => {
     try {

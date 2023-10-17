@@ -34,9 +34,12 @@ async function restoreCompletedRaids() {
 }
 async function restoreLastAlertsTimestamps() {
     const data = await fetchDataFromRedis("lastAlertsTimestamps");
-    if (!data)
+    if (!data) {
+        console.debug("No lastAlertsTimestamps data found in Redis");
         return;
+    }
     for (const item of data) {
+        console.debug("Restoring lastAlertsTimestamps:", item);
         lastAlertsTimestamps.add(item);
     }
 }

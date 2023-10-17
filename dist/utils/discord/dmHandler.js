@@ -1,11 +1,30 @@
-import { ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
 import { client } from "../../index.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
+import { uploadImageToImgur } from "../general/uploadImageToImgur.js";
 import { escapeString } from "../general/utilities.js";
 let dmChannel = null;
-async function sendAdminNotification(message, member) {
-    const embed = new EmbedBuilder()
+export async function sendAdminNotification(message) {
+    let embeds = [await buildBaseEmbed(message)];
+    embeds = await processAttachments(message, embeds[0]);
+    const primaryEmbed = embeds[0];
+    if (message.cleanContent.length > 0) {
+        primaryEmbed.setDescription(escapeString(message.cleanContent));
+    }
+    addNonImageAttachments(primaryEmbed, message);
+    addStickers(primaryEmbed, message);
+    const buttons = buildButtons();
+    if (!dmChannel)
+        dmChannel = await client.getTextChannel(process.env.DIRECT_MESSAGES_CHANNEL_ID);
+    await dmChannel.send({
+        embeds,
+        components: addButtonsToMessage(buttons),
+    });
+}
+async function buildBaseEmbed(message) {
+    const member = await client.getMember(message.author.id);
+    return new EmbedBuilder()
         .setColor(colors.success)
         .setTitle("Получено новое сообщение")
         .setAuthor({
@@ -13,37 +32,54 @@ async function sendAdminNotification(message, member) {
         iconURL: message.author.displayAvatarURL(),
     })
         .setFooter({ text: `UId: ${message.author.id} | MId: ${message.id}` });
-    if (message.embeds.length > 0 && message.embeds[0].image?.url) {
+}
+function buildButtons() {
+    return [new ButtonBuilder().setCustomId("adminDirectMessageButton_reply").setLabel("Reply").setStyle(ButtonStyle.Success)];
+}
+async function processAttachments(message, primaryEmbed) {
+    const embeds = [primaryEmbed];
+    const arrayAttachment = [];
+    for (const msgAttachment of message.attachments.values()) {
         try {
-            embed.setImage(message.embeds[0].image.url);
+            const imgurLink = await uploadImageToImgur(msgAttachment.url);
+            arrayAttachment.push(imgurLink);
+            if (arrayAttachment.length === 1) {
+                primaryEmbed.setImage(imgurLink);
+                if (message.attachments.size > 1) {
+                    primaryEmbed.setURL(message.url);
+                }
+            }
+            else {
+                const additionalEmbed = new EmbedBuilder().setImage(imgurLink).setURL(message.url);
+                embeds.push(additionalEmbed);
+            }
         }
         catch (error) {
-            console.error("[Error code: 2008] Failed to add image to embed");
+            console.error(`[Error code: 2091] Failed to upload the attachment to Imgur: ${msgAttachment.url}`, error);
         }
     }
-    if (message.cleanContent.length > 0) {
-        embed.setDescription(escapeString(message.cleanContent));
-    }
-    if (message.attachments.size > 0) {
-        embed.addFields([{ name: "Вложения", value: message.attachments.map((att) => att.url).join("\n") }]);
-    }
-    if (message.stickers.size > 0) {
-        embed.addFields([{ name: "Стикеры", value: message.stickers.map((sticker) => sticker.name + ":" + sticker.description).join("\n") }]);
-    }
-    const buttons = [new ButtonBuilder().setCustomId("adminDirectMessageButton_reply").setLabel("Reply").setStyle(ButtonStyle.Success)];
-    if (!dmChannel) {
-        const channelId = process.env.DIRECT_MESSAGES_CHANNEL_ID;
-        dmChannel = client.getCachedTextChannel(channelId) || (await client.getTextChannel(channelId));
-    }
-    await dmChannel.send({
-        embeds: [embed],
-        components: addButtonsToMessage(buttons),
-    });
+    return embeds;
 }
-export async function handleDm(message) {
-    if (message.channel.type !== ChannelType.DM)
-        return;
-    const member = client.getCachedMembers().get(message.author.id) || (await client.getMember(message.author.id));
-    await sendAdminNotification(message, member);
+function addNonImageAttachments(embed, message) {
+    if (message.attachments.size > 0) {
+        const nonImageAttachments = message.attachments
+            .filter((att) => !att.contentType?.startsWith("image/"))
+            .map((att) => att.url)
+            .join(", ");
+        if (nonImageAttachments.length > 0) {
+            embed.addFields({
+                name: "Вложения",
+                value: nonImageAttachments,
+            });
+        }
+    }
+}
+function addStickers(embed, message) {
+    if (message.stickers.size > 0) {
+        embed.addFields({
+            name: "Стикеры",
+            value: message.stickers.map((sticker) => `${sticker.name}:${sticker.description}`).join("\n"),
+        });
+    }
 }
 //# sourceMappingURL=dmHandler.js.map
