@@ -69,7 +69,7 @@ async function handleMessage(message) {
 }
 async function processVexIncursionMessage(message) {
     console.debug('Found a message in "Vex Incursion" channel');
-    const timestampField = message.embeds?.[0]?.fields?.find((field) => field.value.startsWith("<:"));
+    const timestampField = message.embeds?.[0]?.fields?.find((field) => field.value.startsWith("<t:"));
     if (!timestampField)
         return;
     console.debug("Found a timestamp field in the message", timestampField.value);

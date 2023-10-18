@@ -222,6 +222,16 @@ function errorMessages(errorType, ...rest) {
                 ],
             };
         }
+        case "SPECIFIED_MESSAGE_NOT_FOUND": {
+            return {
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(colors.error)
+                        .setAuthor({ name: "Сообщение не найдено", iconURL: icons.error })
+                        .setDescription("Указанное сообщение не найдено"),
+                ],
+            };
+        }
         case "LFG_ACTIVITY_NOT_FOUND": {
             const activityName = `${rest[0][0]}`;
             return {
