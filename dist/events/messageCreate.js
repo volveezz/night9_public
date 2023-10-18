@@ -74,12 +74,12 @@ async function processVexIncursionMessage(message) {
         return;
     console.debug("Found a timestamp field in the message", timestampField.value);
     const regex = /<t:(\d+):R>/;
-    const match = message.content.match(regex);
+    const match = timestampField.value.match(regex);
     if (!match)
         return;
-    console.debug("Found timestamp in message content", match[1]);
+    console.debug("Timestamp was found in the message", match[1]);
     console.debug("Setting a new timeout to delete the message");
-    const timeout = parseInt(match[1]) * 1000 - Date.now() + 60 * 1000 * 5;
+    const timeout = parseInt(match[1]) * 1000 - Date.now() + 60 * 1000 * 3;
     console.debug("Timeout is", timeout);
     setTimeout(() => {
         console.debug("Deleting message", message.id);

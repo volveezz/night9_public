@@ -323,14 +323,16 @@ export class ExtendedClient extends Client {
                     }, 1000 * 30);
                     return;
                 }
-                setTimeout(async () => {
-                    try {
-                        await channel.messages.fetch({ limit: 15 });
-                    }
-                    catch (error) {
-                        console.error(`[Error code: 1991] Looks like channel ${channel.name} was deleted during caching messages. Error: ${error.code}`);
-                    }
-                }, 10000 * Math.random());
+                else {
+                    setTimeout(async () => {
+                        try {
+                            await channel.messages.fetch({ limit: 15 });
+                        }
+                        catch (error) {
+                            console.error(`[Error code: 1991] Looks like channel ${channel.name} was deleted during caching messages. Error: ${error.code}`);
+                        }
+                    }, 10000 * Math.random());
+                }
             }
         });
     }
