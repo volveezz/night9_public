@@ -4,6 +4,7 @@ import icons from "../../configs/icons.js";
 import { client } from "../../index.js";
 import getClanMemberData from "../api/getClanMemberData.js";
 import setMemberRoles from "../discord/setRoles.js";
+import nameCleaner from "../general/nameClearer.js";
 import { escapeString } from "../general/utilities.js";
 let clanLogChannel = null;
 let generalLogChannel = null;
@@ -37,10 +38,24 @@ export async function updateClanRolesWithLogging(result, join) {
                 givenRoles.push(process.env.VERIFIED);
             }
             if (givenRoles.length > 0) {
-                await member.roles.add(givenRoles, "User joined the clan");
+                await member.roles.add(givenRoles, "User joined the clan").then((m) => {
+                    setTimeout(() => {
+                        if (!m.roles.cache.hasAll(...givenRoles)) {
+                            console.error(`[Error code: 2106] Found that ${m.displayName} doesn't have all given roles. Trying to give them again...`);
+                            m.roles.add(givenRoles, "Second attempt to give roles");
+                        }
+                    }, 1000 * 5);
+                });
             }
             if (member.roles.cache.hasAny(process.env.KICKED, process.env.NEWBIE, process.env.MEMBER)) {
-                await member.roles.remove([process.env.KICKED, process.env.NEWBIE, process.env.MEMBER], "User joined the clan");
+                await member.roles.remove([process.env.KICKED, process.env.NEWBIE, process.env.MEMBER], "User joined the clan").then((m) => {
+                    setTimeout(() => {
+                        if (m.roles.cache.hasAny(process.env.KICKED, process.env.NEWBIE, process.env.MEMBER)) {
+                            console.error(`[Error code: 2107] Found that ${m.displayName} still has some of the old roles. Trying to remove them again...`);
+                            m.roles.remove([process.env.KICKED, process.env.NEWBIE, process.env.MEMBER], "Second attempt to remove roles");
+                        }
+                    }, 1000 * 6);
+                });
             }
             embed
                 .setAuthor({
@@ -95,14 +110,17 @@ export async function updateClanRolesWithLogging(result, join) {
         })
             .setColor(join ? colors.success : colors.kicked);
     }
-    await clanLogChannel.send({ embeds: [embed] });
+    clanLogChannel.send({ embeds: [embed] });
 }
 async function notifyJoinedUser(member) {
+    const clientId = client.user.id;
+    const ownerId = process.env.OWNER_ID;
+    const ownerDisplayName = client.getCachedMembers().get(ownerId)?.displayName || "Вольве";
+    const cleanedOwnerDisplayName = nameCleaner(ownerDisplayName);
     const embed = new EmbedBuilder()
         .setColor(colors.success)
         .setAuthor({ name: "Вы были приняты в клан!", iconURL: member.guild.iconURL() || icons.success })
-        .setDescription(`Вы также получили все необходимые роли для доступа к каналам клана\n\nНа сервере разработано множество различных систем, команд и возможностей. При желании Вы можете ввести \`/\` и Discord вам предложит все слеш-команды сервера\nНа сервере есть несколько различных ботов и их команд, но клановыми являются 2: основной - Night 9, <@${client.user.id}> и музыкальный бот - Alfred Jodl, <@719262521768280074>\n\nПо любым вопросам **в любое время** пишите <@${process.env
-        .OWNER_ID}> (Вольве) в личные сообщения или <@${client.user.id}> в этом же чате`);
-    await member.send({ embeds: [embed] });
+        .setDescription(`Вы также получили все необходимые роли для доступа к каналам клана.\nНа сервере имеются многочисленные системы, команды и возможности. Если хотите, введите \`/\`, и Discord предложит вам все слеш-команды сервера. Обратите внимание, что большинство команд доступно только на этом сервере, в любых каналах.\n\nНа сервере работает несколько разных ботов с их командами, но два из них являются клановыми: основной - Night 9, <@${clientId}> и музыкальный бот - Alfred Jodl, <@719262521768280074>.\n\nПо любым вопросам **в любое время** обращайтесь к лидеру клана ${cleanedOwnerDisplayName} <@${ownerId}> в личные сообщения или к <@${clientId}> в этом чате.`);
+    await member.send({ embeds: [embed], allowedMentions: { parse: [] } }).catch((e) => null);
 }
 //# sourceMappingURL=clanEventLogger.js.map

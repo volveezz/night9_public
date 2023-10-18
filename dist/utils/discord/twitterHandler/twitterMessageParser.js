@@ -14,7 +14,7 @@ const originalButton = new ButtonBuilder().setCustomId("twitter_showOriginal").s
 function extractMediaUrls(content, preferable = "image") {
     if (!content)
         return [];
-    const imgRegex = /(https?:\/\/[^"\s]*?(?:png|jpg|jpeg|gif)(?:&amp;[^"\s]*)?)/g;
+    const imgRegex = /(https?:\/\/[^"\s]*?(?:png|jpg|jpeg|gif)(?:&amp;[^"\s]*)?)|(https?:\/\/[^"\s]+?\/pic\/enc\/[a-zA-Z0-9\-_=]+)/g;
     const videoRegex = /(https?:\/\/[^"]*?\.mp4[^"]*)|(https:\/\/video\.twimg\.com\/amplify_video\/\d+\/vid\/.*?\.(mp4|gif))/g;
     let matches = null;
     if (preferable === "image") {
