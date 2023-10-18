@@ -2,6 +2,7 @@ import { ApplicationCommandOptionType, EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { Command } from "../structures/command.js";
+import { updateChannelPermissionsForUser } from "../utils/discord/updateChannelPermissionsForUser.js";
 const SlashCommand = new Command({
     name: "access",
     nameLocalizations: { ru: "доступ" },
@@ -43,16 +44,7 @@ const SlashCommand = new Command({
         const channelId = args.getString("channel", true);
         const channel = await client.getTextChannel(channelId);
         const permissionsStatus = !channel.permissionsFor(interaction.user.id)?.has("ViewChannel");
-        if (permissionsStatus) {
-            await channel.permissionOverwrites.create(interaction.user.id, {
-                ViewChannel: true,
-                ReadMessageHistory: true,
-                SendMessages: true,
-            });
-        }
-        else {
-            await channel.permissionOverwrites.delete(interaction.user.id);
-        }
+        await updateChannelPermissionsForUser(channel, interaction.user.id, permissionsStatus);
         const embed = new EmbedBuilder().setColor(permissionsStatus ? colors.success : colors.error).setAuthor({
             name: `Вы ${permissionsStatus ? "получили" : "забрали свой"} доступ к каналу ${channel.name}`,
             iconURL: permissionsStatus ? icons.success : icons.close,

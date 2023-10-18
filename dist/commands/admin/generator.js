@@ -206,6 +206,18 @@ async function getPreset(presetName) {
             ];
             return { components, embeds };
         }
+        case "access": {
+            const createComponent = (customId, label) => {
+                return new ButtonBuilder().setStyle(ButtonStyle.Secondary).setCustomId(`getAccessToChannel_${customId}`).setLabel(label);
+            };
+            const components = [
+                createComponent(process.env.LORE_CHANNEL_ID, "Обсуждение лора игры"),
+                createComponent(process.env.VEX_INCURSION_CHANNEL_ID, "Оповещения об вторжениях вексов"),
+                createComponent(process.env.CHECKPOINTS_CHANNEL_ID, "Контрольные точки"),
+            ];
+            const embed = new EmbedBuilder().setColor(colors.invisible).setTitle("Выберите канал, к которому хотите получить доступ");
+            return { components, embeds: [embed] };
+        }
         case "godmsg1": {
             const components = [
                 new ButtonBuilder()
