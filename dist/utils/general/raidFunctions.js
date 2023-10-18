@@ -497,6 +497,7 @@ export function getRaidNameFromHash(activityHash) {
             return "ronMaster";
         case 1374392663:
         case 1063970578:
+        case 2897223272:
             return RaidNames.kf;
         case 2964135793:
         case 3257594522:

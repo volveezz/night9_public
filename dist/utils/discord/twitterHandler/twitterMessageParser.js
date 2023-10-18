@@ -27,6 +27,7 @@ function extractMediaUrls(content, preferable = "image") {
 }
 function clearText(content) {
     return content
+        .replace(/^R to @[^:]+: /, "")
         .replace(/&nbsp;/g, " ")
         .replace(/<br\s*\/?>/gi, "")
         .replace(/&gt;/gi, ">")
@@ -56,7 +57,7 @@ function getTwitterAccountNameFromAuthor(author) {
             return null;
     }
 }
-async function generateTwitterEmbed({ twitterData, author, icon, url, originalEmbed, content, images, }) {
+async function generateAndSendTwitterEmbed({ twitterData, author, icon, url, originalEmbed, content, images, }) {
     if (!twitterData) {
         console.error("[Error code: 2103] Passed empty twitter data", author, icon, content);
         return;
@@ -196,5 +197,5 @@ function replaceTimeWithEpoch(text) {
     };
     return text.replace(timeRegex, replacement);
 }
-export { generateTwitterEmbed };
+export { generateAndSendTwitterEmbed };
 //# sourceMappingURL=twitterMessageParser.js.map

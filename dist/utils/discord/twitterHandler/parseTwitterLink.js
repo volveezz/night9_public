@@ -1,6 +1,6 @@
 import { pause } from "../../general/utilities.js";
 import { processedRssLinks } from "../../persistence/dataStore.js";
-import { generateTwitterEmbed } from "./twitterMessageParser.js";
+import { generateAndSendTwitterEmbed } from "./twitterMessageParser.js";
 async function parseTwitterLinkMessage(message) {
     if (message.author.bot) {
         await processEmbeds(message.embeds);
@@ -41,7 +41,7 @@ async function parseTwitterLinkMessage(message) {
             if (associatedEmbed && associatedEmbed.description) {
                 const author = getBungieTwitterAuthor(associatedEmbed.author?.name);
                 const content = associatedEmbed.description;
-                await generateTwitterEmbed({
+                await generateAndSendTwitterEmbed({
                     twitterData: content,
                     author,
                     icon: associatedEmbed.author?.iconURL,

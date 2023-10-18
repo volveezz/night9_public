@@ -1,5 +1,5 @@
 import Parser from "rss-parser";
-import { generateTwitterEmbed } from "../discord/twitterHandler/twitterMessageParser.js";
+import { generateAndSendTwitterEmbed } from "../discord/twitterHandler/twitterMessageParser.js";
 import { processedRssLinks } from "../persistence/dataStore.js";
 import { redisClient } from "../persistence/redis.js";
 const parser = new Parser();
@@ -64,6 +64,7 @@ async function fetchAndSendLatestTweets(url, latestTweetInfo, routeName, isRetry
             return undefined;
         }
         let finalInfo;
+        const newTweets = [];
         for (const entry of feed.items) {
             if (!entry.link) {
                 break;
@@ -98,10 +99,15 @@ async function fetchAndSendLatestTweets(url, latestTweetInfo, routeName, isRetry
                     icon: feed.image?.url,
                     url: correctedLink,
                 };
-                await generateTwitterEmbed(params);
+                newTweets.push(params);
             }
             else {
                 console.error("[Error code: 1705]", entry, author, author && isValidTweet(author, entry.guid), entry.content?.length);
+            }
+        }
+        if (newTweets.length > 0) {
+            for (const params of newTweets.reverse()) {
+                await generateAndSendTwitterEmbed(params);
             }
         }
         if (finalInfo) {
