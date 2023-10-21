@@ -140,8 +140,8 @@ const ButtonCommand = new Button({
                 break;
             }
             case "raidInChnButton_transfer": {
-                const { guild } = requireParams({ interaction, guild: true });
-                moveRaidVoiceMembers({ guild, interaction, raidEvent });
+                const { guild, deferredReply } = requireParams({ interaction, guild: true, deferredReply: true });
+                moveRaidVoiceMembers({ guild, interaction, raidEvent, deferredReply });
                 break;
             }
             case "raidInChnButton_unlock": {

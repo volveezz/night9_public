@@ -1,4 +1,4 @@
-import { ChannelType, EmbedBuilder, GuildMember } from "discord.js";
+import { ChannelType, EmbedBuilder, GuildMember, } from "discord.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { client } from "../../index.js";
@@ -8,7 +8,7 @@ const ERROR_EMBED = new EmbedBuilder()
     .setColor(colors.error)
     .setAuthor({ name: "Ошибка", iconURL: icons.error })
     .setDescription("Не удалось найти свободный голосовой канал");
-async function moveRaidVoiceMembers({ guild, interaction, raidEvent }) {
+async function moveRaidVoiceMembers({ guild, interaction, raidEvent, deferredReply }) {
     const guildVoiceChannels = guild.channels.cache.filter((guildChannel) => guildChannel.type === ChannelType.GuildVoice);
     const membersCollection = [];
     for (let i = 0; i < guildVoiceChannels.size; i++) {
@@ -23,7 +23,8 @@ async function moveRaidVoiceMembers({ guild, interaction, raidEvent }) {
     const availableRaidVoiceChannel = raidVoiceChannels.find((voiceChannel) => voiceChannel.members.has(raidEvent.creator)) ||
         raidVoiceChannels.find((voiceChannel) => voiceChannel.userLimit > voiceChannel.members.size);
     if (!availableRaidVoiceChannel) {
-        interaction.reply({ embeds: [ERROR_EMBED], ephemeral: true });
+        await deferredReply;
+        interaction.editReply({ embeds: [ERROR_EMBED] });
         return;
     }
     const movedUsers = [];
@@ -60,7 +61,8 @@ async function moveRaidVoiceMembers({ guild, interaction, raidEvent }) {
         iconURL: icons.success,
     })
         .setDescription(`${movedUsers.join("\n") + "\n" + alreadyMovedUsers.join("\n")}`);
-    interaction.reply({ embeds: [replyEmbed], ephemeral: true });
+    await deferredReply;
+    interaction.editReply({ embeds: [replyEmbed] });
 }
 export default moveRaidVoiceMembers;
 //# sourceMappingURL=moveRaidVoiceMembersButton.js.map

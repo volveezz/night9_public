@@ -95,14 +95,22 @@ async function generateAndSendTwitterEmbed({ twitterData, author, icon, url, ori
         const embeds = [embed];
         if (extractedMediaUrls.length > 0) {
             const embedURL = url ? url : `https://x.com/${getTwitterAccountNameFromAuthor(author)}`;
-            for (const mediaUrl of extractedMediaUrls) {
+            for (let i = 0; i < extractedMediaUrls.length; i++) {
+                const mediaUrl = extractedMediaUrls[i];
                 const imgUrl = isNitterUrlAllowed(mediaUrl)
                     ? mediaUrl
                     : await uploadImageToImgur(mediaUrl).catch((error) => {
                         console.error("[Error code: 2102] Failed to upload image to imgur", error);
                         return mediaUrl;
                     });
-                embeds.push(new EmbedBuilder().setURL(url || `https://x.com/${embedURL}`).setImage(imgUrl));
+                if (i === 0) {
+                    embed.setImage(imgUrl);
+                    if (extractedMediaUrls.length > 1)
+                        embed.setURL(embedURL);
+                }
+                else {
+                    embeds.push(new EmbedBuilder().setURL(embedURL).setImage(imgUrl));
+                }
             }
         }
         if (!publicNewsChannel)
