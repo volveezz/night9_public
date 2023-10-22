@@ -171,8 +171,10 @@ async function clanMembersManagement(databaseData) {
                     const phasesData = completedPhases.get(characterId);
                     if (!clanMember.isOnline) {
                         setTimeout(() => {
-                            console.debug(`Completed phases data for ${memberAuthData.displayName} was deleted since the user not online`);
-                            completedPhases.delete(characterId);
+                            if (completedPhases.has(characterId)) {
+                                console.debug(`Completed phases data for ${memberAuthData.displayName} was deleted since the user not online`);
+                                completedPhases.delete(characterId);
+                            }
                         }, 60 * 1000 * 5);
                     }
                     else {
@@ -181,9 +183,11 @@ async function clanMembersManagement(databaseData) {
                                 clearInterval(interval);
                             }
                             else if (!clanOnline.has(discordId)) {
-                                console.debug(`Completed phases data for ${memberAuthData.displayName} was deleted during the interval since the user not online`);
                                 clearInterval(interval);
-                                completedPhases.delete(characterId);
+                                if (completedPhases.has(characterId)) {
+                                    console.debug(`Completed phases data for ${memberAuthData.displayName} was deleted during the interval since the user not online`);
+                                    completedPhases.delete(characterId);
+                                }
                             }
                         }, 60 * 1000 * 30);
                     }

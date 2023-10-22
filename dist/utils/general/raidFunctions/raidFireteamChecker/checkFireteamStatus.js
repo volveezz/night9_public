@@ -43,7 +43,7 @@ async function checkFireteamStatus(raidData) {
     const voiceChannelMembersAuthData = await getVoiceChannelMembersAuthData(raidId, userIds);
     const partyMembers = await checkFireteamRoster(voiceChannelMembersAuthData, raidEvent.raid, raidId);
     if (!partyMembers) {
-        console.error("[Error code: 2021] Didn't managed to get the fireteam activity data", partyMembers, raidEvent.raid, raidId);
+        console.error("[Error code: 2021] Didn't managed to get the fireteam activity data", raidEvent.raid, raidId);
         if (badCheckAttempt < 9) {
             countOfChecksMap.set(raidId, badCheckAttempt + 1);
             return true;
