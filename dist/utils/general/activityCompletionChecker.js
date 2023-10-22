@@ -132,6 +132,7 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
         const cachedData = completedPhases.get(characterId);
         setTimeout(() => {
             if (completedPhases.has(characterId) && completedPhases.get(characterId) === cachedData) {
+                console.trace(`Completed phases data for ${platform}/${bungieId}/${characterId} | ${discordId} was deleted`);
                 completedPhases.delete(characterId);
             }
         }, 60 * 1000 * 30);

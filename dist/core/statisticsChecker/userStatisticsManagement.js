@@ -1,5 +1,4 @@
 import { Op } from "sequelize";
-import { dungeonsTriumphHashes } from "../../configs/roleRequirements.js";
 import { activityRoles, guardianRankRoles, seasonalRoles, statisticsRoles, trialsRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
 import BungieAPIError from "../../structures/BungieAPIError.js";
@@ -13,11 +12,11 @@ import { AutoRoleData } from "../../utils/persistence/sequelizeModels/autoRoleDa
 import { UserActivityData } from "../../utils/persistence/sequelizeModels/userActivityData.js";
 import clanMembersManagement from "../clanMembersManagement.js";
 import assignDlcRoles from "./assignDlcRoles.js";
-import { dungeonRoles } from "./getDungeonRoleIds.js";
+import { triumphsChecker } from "./checkUserTriumphs.js";
 const throttleSet = new Set();
 async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessToken, displayName, roleCategoriesBits, UserActivityData: userActivity }, member, roleDataFromDatabase, isEasyCheck = false) {
     const roleIdsForAdding = [];
-    const roleIdForRemoval = [];
+    const roleIdsForRemoval = [];
     const hasRole = (roleId) => member.roles.cache.has(roleId);
     const hasAnyRole = (roleIds) => member.roles.cache.hasAny(...roleIds);
     const response = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${bungieId}/?components=100,900,1100`, accessToken);
@@ -44,7 +43,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                 const guardianRankRoleId = (guardianRankRoles.ranks[userGuardianRank - 1] || guardianRankRoles.ranks[0]).roleId;
                 if (!hasRole(guardianRankRoleId)) {
                     roleIdsForAdding.push(guardianRankRoleId);
-                    roleIdForRemoval.push(...guardianRankRoles.allRoles.filter((roleId) => roleId !== guardianRankRoleId));
+                    roleIdsForRemoval.push(...guardianRankRoles.allRoles.filter((roleId) => roleId !== guardianRankRoleId));
                 }
             }
             catch (error) {
@@ -57,185 +56,37 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                 if (!hasCurrentSeasonRole)
                     roleIdsForAdding.push(seasonalRoles.currentSeasonRole);
                 if (hasNonCurrentSeasonRole)
-                    roleIdForRemoval.push(seasonalRoles.nonCurrentSeasonRole);
+                    roleIdsForRemoval.push(seasonalRoles.nonCurrentSeasonRole);
             }
             else {
                 if (!hasNonCurrentSeasonRole)
                     roleIdsForAdding.push(seasonalRoles.nonCurrentSeasonRole);
                 if (hasCurrentSeasonRole)
-                    roleIdForRemoval.push(seasonalRoles.currentSeasonRole);
+                    roleIdsForRemoval.push(seasonalRoles.currentSeasonRole);
             }
             await assignDlcRoles({
                 addRoles: roleIdsForAdding,
                 member,
-                removeRoles: roleIdForRemoval,
+                removeRoles: roleIdsForRemoval,
                 versionsOwned,
             });
         }
         else {
             console.error("[Error code: 2022] Profile data is null", response);
         }
-        async function triumphsChecker() {
-            if (roleCategoriesBits & 1 && response.profileRecords.data) {
-                const activeTriumphs = response.profileRecords.data.activeScore;
-                for (const step of statisticsRoles.active) {
-                    if (activeTriumphs >= step.triumphScore) {
-                        if (!hasRole(process.env.STATISTICS_CATEGORY))
-                            roleIdsForAdding.push(process.env.STATISTICS_CATEGORY);
-                        if (!hasRole(step.roleId)) {
-                            roleIdsForAdding.push(step.roleId);
-                            roleIdForRemoval.push(...statisticsRoles.allActive.filter((r) => r !== step.roleId));
-                        }
-                        break;
-                    }
-                }
-            }
-            if (!response.profileRecords.data)
-                return;
-            roleDataFromDatabase.forEach(async (role) => {
-                if (!response.profileRecords.data)
-                    return;
-                if (role.category === 4 && !(roleCategoriesBits & 4))
-                    return;
-                if (role.category === 8 && !(roleCategoriesBits & 8))
-                    return;
-                if (role.gildedTriumphRequirement) {
-                    if (response.profileRecords.data.records[role.gildedTriumphRequirement]) {
-                        const triumphRecord = response.profileRecords.data.records[role.gildedTriumphRequirement];
-                        if (triumphRecord && triumphRecord.completedCount && triumphRecord.completedCount > 0) {
-                            const index = triumphRecord.completedCount;
-                            if (role.gildedRoles && role.gildedRoles.at(index - 1) && role.gildedRoles.at(index - 1).toLowerCase() !== "null") {
-                                if (!hasRole(process.env.TITLE_CATEGORY))
-                                    roleIdsForAdding.push(process.env.TITLE_CATEGORY);
-                                if (!hasRole(role.gildedRoles.at(index - 1))) {
-                                    roleIdsForAdding.push(role.gildedRoles.at(index - 1));
-                                    roleIdForRemoval.push(role.roleId, ...role.gildedRoles.filter((r) => r !== role.gildedRoles.at(index - 1)));
-                                    if (role.available && role.available > 0) {
-                                        if (role.available === 1) {
-                                            await AutoRoleData.update({ available: 0 }, { where: { roleId: role.roleId } });
-                                        }
-                                        else {
-                                            await AutoRoleData.decrement("available", { by: 1, where: { roleId: role.roleId } });
-                                        }
-                                    }
-                                }
-                            }
-                            else {
-                                var lastKnownRole = role.roleId;
-                                for (let i = 0; i < index; i++) {
-                                    const element = role.gildedRoles[i];
-                                    if ((!element || element?.toLowerCase() === "null") && i === index - 1) {
-                                        const nonGuildedRole = member.guild.roles.cache.get(role.roleId);
-                                        if (nonGuildedRole &&
-                                            member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`) !== undefined) {
-                                            if (!hasRole(member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`).id)) {
-                                                roleIdsForAdding.push(member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`).id);
-                                                roleIdForRemoval.push(role.roleId, ...role.gildedRoles.filter((r) => r !== member.guild.roles.cache.find((r) => r.name === `⚜️${nonGuildedRole.name} ${i + 1}`).id));
-                                                return;
-                                            }
-                                            else {
-                                                return;
-                                            }
-                                        }
-                                        else if (!nonGuildedRole) {
-                                            return console.error(`[Error code: 1089] Not found previous role of ${role.triumphRequirement}`, lastKnownRole, nonGuildedRole);
-                                        }
-                                        const createdRole = await member.guild.roles.create({
-                                            name: `⚜️${nonGuildedRole.name} ${i + 1}`,
-                                            color: "#ffb300",
-                                            permissions: [],
-                                            position: nonGuildedRole.position,
-                                            reason: "Auto auto-role creation",
-                                        });
-                                        const dbRoleUpdated = await AutoRoleData.findOne({
-                                            where: { gildedTriumphRequirement: role.gildedTriumphRequirement },
-                                        });
-                                        if (!dbRoleUpdated)
-                                            return console.error("[Error code: 1756] No information about role in database");
-                                        dbRoleUpdated.gildedRoles[i] = createdRole.id;
-                                        for (let i = 0; i < index || i < dbRoleUpdated.gildedRoles.length; i++) {
-                                            const element = dbRoleUpdated.gildedRoles ? dbRoleUpdated.gildedRoles[i] : undefined;
-                                            if (!element || element === undefined || element?.toLowerCase() === "null")
-                                                dbRoleUpdated.gildedRoles[i] = "null";
-                                        }
-                                        if (!hasRole(process.env.TITLE_CATEGORY))
-                                            roleIdsForAdding.push(process.env.TITLE_CATEGORY);
-                                        roleIdsForAdding.push(createdRole.id);
-                                        roleIdForRemoval.push(role.roleId, ...dbRoleUpdated.gildedRoles.filter((r) => r !== createdRole.id));
-                                        await AutoRoleData.update({ gildedRoles: dbRoleUpdated.gildedRoles }, { where: { gildedTriumphRequirement: dbRoleUpdated.gildedTriumphRequirement } });
-                                        break;
-                                    }
-                                    else if (element && element.toLowerCase() !== "null") {
-                                        lastKnownRole = element;
-                                    }
-                                    else {
-                                        role.gildedRoles[i] = "null";
-                                    }
-                                }
-                            }
-                        }
-                        else if (response.profileRecords.data.records[Number(role.triumphRequirement)]) {
-                            const notGuidedTriumphRecord = response.profileRecords.data.records[Number(role.triumphRequirement)];
-                            if (notGuidedTriumphRecord.objectives
-                                ? notGuidedTriumphRecord.objectives?.pop()?.complete === true
-                                : notGuidedTriumphRecord.intervalObjectives?.pop()?.complete === true) {
-                                if (!hasRole(role.roleId)) {
-                                    if (role.category & 4 && !hasRole(process.env.TITLE_CATEGORY))
-                                        roleIdsForAdding.push(process.env.TITLE_CATEGORY);
-                                    roleIdsForAdding.push(role.roleId);
-                                }
-                            }
-                        }
-                    }
-                    else {
-                        console.error(`[Error code: 1090] Profile record ${role.gildedTriumphRequirement} not found for ${member.displayName}`);
-                    }
-                }
-                else if (response.characterRecords.data) {
-                    const triumphHash = role.triumphRequirement;
-                    const triumphRecord = response.profileRecords.data.records[triumphHash] ||
-                        response.characterRecords.data[Object.keys(response.characterRecords.data)[0]].records[triumphHash];
-                    const objective = triumphRecord.objectives
-                        ? triumphRecord.objectives[triumphRecord.objectives.length - 1]
-                        : triumphRecord.intervalObjectives[triumphRecord.intervalObjectives.length - 1];
-                    if (dungeonsTriumphHashes.includes(triumphHash)) {
-                        if (objective.complete === true) {
-                            if (hasRole(process.env.DUNGEON_MASTER_ROLE)) {
-                                return;
-                            }
-                            const dungeonRolesIds = (await dungeonRoles());
-                            if (member.roles.cache.hasAll(...dungeonRolesIds) && !roleIdsForAdding.includes(process.env.DUNGEON_MASTER_ROLE)) {
-                                roleIdsForAdding.push(process.env.DUNGEON_MASTER_ROLE);
-                                roleIdForRemoval.push(...dungeonRolesIds);
-                            }
-                        }
-                        else {
-                            if (hasRole(process.env.DUNGEON_MASTER_ROLE)) {
-                                roleIdForRemoval.push(process.env.DUNGEON_MASTER_ROLE);
-                                if (!roleIdsForAdding.includes(role.roleId)) {
-                                    roleIdsForAdding.push(role.roleId);
-                                }
-                            }
-                        }
-                    }
-                    if (objective && objective.complete === true) {
-                        if (role.category === 4 && !hasRole(process.env.TITLE_CATEGORY))
-                            roleIdsForAdding.push(process.env.TITLE_CATEGORY);
-                        if (role.category === 8 && !hasRole(process.env.TRIUMPHS_CATEGORY))
-                            roleIdsForAdding.push(process.env.TRIUMPHS_CATEGORY);
-                        if (role.category === 16 && !hasRole(activityRoles.category))
-                            roleIdsForAdding.push(activityRoles.category);
-                        if (!hasRole(role.roleId))
-                            roleIdsForAdding.push(role.roleId);
-                    }
-                    else if (hasRole(role.roleId)) {
-                        roleIdForRemoval.push(role.roleId);
-                    }
-                }
-            });
-        }
         if (!isEasyCheck) {
-            await triumphsChecker();
+            if (response.profileRecords.data) {
+                await triumphsChecker({
+                    hasRole,
+                    member,
+                    profileResponse: response.profileRecords.data,
+                    roleCategoriesBits,
+                    characterResponse: response.characterRecords.data,
+                    roleData: roleDataFromDatabase,
+                    roleIdsForAdding,
+                    roleIdsForRemoval,
+                });
+            }
             if (roleCategoriesBits & 2 && response.metrics.data) {
                 const metrics = response.metrics.data.metrics["1765255052"]?.objectiveProgress.progress;
                 if (metrics == null || isNaN(metrics)) {
@@ -249,7 +100,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                                 roleIdsForAdding.push(trialsRoles.category);
                             if (!hasRole(step.roleId)) {
                                 roleIdsForAdding.push(step.roleId);
-                                roleIdForRemoval.push(...trialsRoles.allRoles.filter((r) => r != step.roleId));
+                                roleIdsForRemoval.push(...trialsRoles.allRoles.filter((r) => r != step.roleId));
                             }
                             break;
                         }
@@ -259,11 +110,11 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
             if (roleCategoriesBits & 16) {
                 if (!userActivity) {
                     if (hasAnyRole(activityRoles.allVoice))
-                        roleIdForRemoval.push(...activityRoles.allVoice);
+                        roleIdsForRemoval.push(...activityRoles.allVoice);
                     if (hasAnyRole(activityRoles.allMessages))
-                        roleIdForRemoval.push(...activityRoles.allMessages);
+                        roleIdsForRemoval.push(...activityRoles.allMessages);
                     if (hasRole(activityRoles.category))
-                        roleIdForRemoval.push(activityRoles.category);
+                        roleIdsForRemoval.push(activityRoles.category);
                 }
                 else {
                     for (const step of activityRoles.voice) {
@@ -272,7 +123,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                                 if (!hasRole(activityRoles.category))
                                     roleIdsForAdding.push(activityRoles.category);
                                 roleIdsForAdding.push(step.roleId);
-                                roleIdForRemoval.push(...activityRoles.allVoice.filter((r) => r != step.roleId));
+                                roleIdsForRemoval.push(...activityRoles.allVoice.filter((r) => r != step.roleId));
                             }
                             break;
                         }
@@ -283,7 +134,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                                 if (!hasRole(activityRoles.category))
                                     roleIdsForAdding.push(activityRoles.category);
                                 roleIdsForAdding.push(step.roleId);
-                                roleIdForRemoval.push(...activityRoles.allMessages.filter((r) => r != step.roleId));
+                                roleIdsForRemoval.push(...activityRoles.allMessages.filter((r) => r != step.roleId));
                             }
                             break;
                         }
@@ -291,10 +142,10 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                 }
             }
         }
-        if (roleIdForRemoval.length > 0) {
+        if (roleIdsForRemoval.length > 0) {
             await member.roles
-                .remove(roleIdForRemoval, "Role(s) removed by autorole system")
-                .catch((e) => console.error(`[Error code: 1226] Error during removing roles`, e, roleIdForRemoval));
+                .remove(roleIdsForRemoval, "Role(s) removed by autorole system")
+                .catch((e) => console.error(`[Error code: 1226] Error during removing roles`, e, roleIdsForRemoval));
         }
         if (roleIdsForAdding.length > 0) {
             await member.roles

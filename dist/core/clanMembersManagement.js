@@ -10,8 +10,9 @@ import { completedPhases } from "../utils/general/activityCompletionChecker.js";
 import checkUserRequirements from "../utils/general/newbieRequirementsChecker/checkUserRequirements.js";
 import notifyUserNotMeetRequirements from "../utils/general/newbieRequirementsChecker/notifyUserNotMeetRequirements.js";
 import { updateClanRolesWithLogging } from "../utils/logging/clanEventLogger.js";
-import { bungieNames, clanOnline, joinDateCheckedClanMembers, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, userCharactersId, } from "../utils/persistence/dataStore.js";
+import { bungieNames, clanOnline, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, userCharactersId, } from "../utils/persistence/dataStore.js";
 let lastLoggedErrorCode = 1;
+let pastInitialLaunch = false;
 async function updateClientPresence(errorCode) {
     const activities = errorCode === 5
         ? [{ name: "API игры отключено", type: ActivityType.Custom }]
@@ -81,16 +82,17 @@ async function clanMembersManagement(databaseData) {
             }));
         }
         async function processClanMember(clanMember) {
-            const { membershipId } = clanMember.destinyUserInfo;
+            const { membershipId, membershipType, bungieGlobalDisplayName, LastSeenDisplayName, displayName } = clanMember.destinyUserInfo;
             const index = dataForProcessing.findIndex((e) => e.bungieId === membershipId);
             if (index === -1) {
                 handleNonRegisteredMembers(clanMember);
                 return;
             }
             const [memberAuthData] = dataForProcessing.splice(index, 1);
+            const { discordId } = memberAuthData;
             if (clanMember.isOnline) {
-                clanOnline.set(memberAuthData.discordId, {
-                    platform: clanMember.destinyUserInfo.membershipType,
+                clanOnline.set(discordId, {
+                    platform: membershipType,
                     membershipId,
                 });
             }
@@ -128,50 +130,48 @@ async function clanMembersManagement(databaseData) {
                     console.error(`[Error code: 1924] Received ${error.statusCode} error during checking joining requirements`);
                 }
             }
-            const destinyUserName = clanMember.destinyUserInfo.bungieGlobalDisplayName ||
-                clanMember.destinyUserInfo.LastSeenDisplayName ||
-                clanMember.destinyUserInfo.displayName;
+            const destinyUserName = bungieGlobalDisplayName || LastSeenDisplayName || displayName;
             if (memberAuthData.displayName.replace("⁣", "") !== destinyUserName) {
-                bungieNames.delete(memberAuthData.discordId);
+                bungieNames.delete(discordId);
                 memberAuthData.displayName = destinyUserName;
                 await memberAuthData.save();
             }
-            if (!joinDateCheckedClanMembers.has(membershipId)) {
-                if (!(memberAuthData.roleCategoriesBits & 8))
-                    return;
-                const userJoinDate = new Date(clanMember.joinDate).getTime();
-                const userInClanDays = (Date.now() - userJoinDate) / 1000 / 60 / 60 / 24;
-                for (const { days: daysRequiredInClan, roleId } of clanJoinDateRoles.roles) {
-                    if (daysRequiredInClan <= userInClanDays) {
-                        const rolesExceptTheNeeded = clanJoinDateRoles.allRoles.filter((r) => r !== roleId);
-                        try {
-                            const member = await client.getMember(memberAuthData.discordId);
-                            if (member.roles.cache.hasAny(...rolesExceptTheNeeded)) {
-                                await member.roles.remove(rolesExceptTheNeeded);
+            if (!(memberAuthData.roleCategoriesBits & 8))
+                return;
+            const userJoinDate = new Date(clanMember.joinDate).getTime();
+            const userInClanDays = (Date.now() - userJoinDate) / 1000 / 60 / 60 / 24;
+            for (const { days: daysRequiredInClan, roleId } of clanJoinDateRoles.roles) {
+                if (daysRequiredInClan <= userInClanDays) {
+                    const rolesExceptTheNeeded = clanJoinDateRoles.allRoles.filter((r) => r !== roleId);
+                    try {
+                        const member = await client.getMember(discordId);
+                        if (member.roles.cache.hasAny(...rolesExceptTheNeeded)) {
+                            await member.roles.remove(rolesExceptTheNeeded);
+                        }
+                        if (!member.roles.cache.has(roleId)) {
+                            if (!member.roles.cache.has(process.env.TRIUMPHS_CATEGORY)) {
+                                await member.roles.add([process.env.TRIUMPHS_CATEGORY, roleId]);
                             }
-                            if (!member.roles.cache.has(roleId)) {
-                                if (!member.roles.cache.has(process.env.TRIUMPHS_CATEGORY)) {
-                                    await member.roles.add([process.env.TRIUMPHS_CATEGORY, roleId]);
-                                }
-                                else {
-                                    await member.roles.add(roleId);
-                                }
+                            else {
+                                await member.roles.add(roleId);
                             }
                         }
-                        catch (error) {
-                            console.error("[Error code: 1238]", error);
-                        }
-                        break;
                     }
+                    catch (error) {
+                        console.error("[Error code: 1238]", error);
+                    }
+                    break;
                 }
-                joinDateCheckedClanMembers.add(membershipId);
-                const userCharacterIds = userCharactersId.get(memberAuthData.discordId);
+            }
+            if (!pastInitialLaunch) {
+                const userCharacterIds = userCharactersId.get(discordId);
                 userCharacterIds?.forEach((characterId) => {
                     if (!completedPhases.has(characterId))
                         return;
                     const phasesData = completedPhases.get(characterId);
                     if (!clanMember.isOnline) {
                         setTimeout(() => {
+                            console.debug(`Completed phases data for ${memberAuthData.displayName} was deleted since the user not online`);
                             completedPhases.delete(characterId);
                         }, 60 * 1000 * 5);
                     }
@@ -180,7 +180,8 @@ async function clanMembersManagement(databaseData) {
                             if (completedPhases.get(characterId) !== phasesData) {
                                 clearInterval(interval);
                             }
-                            else if (!clanOnline.has(memberAuthData.discordId)) {
+                            else if (!clanOnline.has(discordId)) {
+                                console.debug(`Completed phases data for ${memberAuthData.displayName} was deleted during the interval since the user not online`);
                                 clearInterval(interval);
                                 completedPhases.delete(characterId);
                             }

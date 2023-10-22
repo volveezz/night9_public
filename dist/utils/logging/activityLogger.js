@@ -316,6 +316,7 @@ async function logActivityCompletion(pgcrId) {
                     for (const characterId of raidCharactersIds) {
                         const phasesDataPerCharacter = completedPhases.get(characterId);
                         if (phasesDataPerCharacter) {
+                            console.debug(`Completed phases data for ${characterId} was deleted since his data is being processed`);
                             completedPhasesForRaidCharacters.set(characterId, phasesDataPerCharacter);
                             completedPhases.delete(characterId);
                         }

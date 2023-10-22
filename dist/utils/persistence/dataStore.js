@@ -1,5 +1,4 @@
 const recentlyNotifiedKickedMembers = new Set();
-const joinDateCheckedClanMembers = new Set();
 const recentActivityCreators = new Map();
 const recentlyExpiredAuthUsersBungieIds = new Set();
 const channelDataMap = new Map();
@@ -17,5 +16,5 @@ const raidMilestoneHashes = new Map();
 const bungieNames = new Map();
 const userTimezones = new Map();
 const clanOnline = new Map();
-export { activeRaidEventFunctions, bungieNames, channelDataMap, channelsForDeletion, clanOnline, completedRaidsData, grandmasterHashes, joinDateCheckedClanMembers, longOffline, originalTweetData, processedRssLinks, raidMilestoneHashes, recentActivityCreators, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, stringVariablesMap, twitterOriginalVoters, userCharactersId, userTimezones, };
+export { activeRaidEventFunctions, bungieNames, channelDataMap, channelsForDeletion, clanOnline, completedRaidsData, grandmasterHashes, longOffline, originalTweetData, processedRssLinks, raidMilestoneHashes, recentActivityCreators, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, stringVariablesMap, twitterOriginalVoters, userCharactersId, userTimezones, };
 //# sourceMappingURL=dataStore.js.map
