@@ -57,7 +57,7 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
         }
         catch (error) {
             if (error instanceof BungieAPIError && error.errorCode) {
-                console.error(`[Error code: 2035] Received ${error.errorCode}/${error.errorStatus} error during checking ${mode} mode of ${authData.displayName || discordId || bungieId}`);
+                console.error(`[Error code: 2108] Received ${error.errorCode}/${error.errorStatus} error during checking ${mode} mode of ${authData.displayName || discordId || bungieId}`);
                 updateEndpointStatus("activity", error.errorCode);
             }
             else {

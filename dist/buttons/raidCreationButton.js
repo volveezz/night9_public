@@ -53,7 +53,8 @@ const ButtonCommand = new Button({
             .setCustomId("RaidDescriptionField")
             .setLabel("Описание рейда")
             .setRequired(false)
-            .setStyle(TextInputStyle.Paragraph);
+            .setStyle(TextInputStyle.Paragraph)
+            .setMaxLength(1024);
         const raidJoinmentClearsRequirementField = new TextInputBuilder()
             .setCustomId("RaidClearRequirementField")
             .setLabel("Число закрытий этого рейда для записи")
