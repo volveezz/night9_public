@@ -26,7 +26,17 @@ async function findActivities(activityNameOrHash) {
         };
         matchedActivities.push(choiceData);
     }
-    return matchedActivities;
+    function validateArray(array) {
+        const nameSet = new Set();
+        return array.filter((item) => {
+            if (item.name.length > 0 && item.name.length < 100 && !nameSet.has(item.name)) {
+                nameSet.add(item.name);
+                return true;
+            }
+            return false;
+        });
+    }
+    return validateArray(matchedActivities);
 }
 const AutocompleteFile = new Autocomplete({
     name: "activity",
@@ -47,7 +57,13 @@ const AutocompleteFile = new Autocomplete({
             ]);
             return;
         }
-        await interaction.respond(resolvedActivity);
+        try {
+            await interaction.respond(resolvedActivity);
+        }
+        catch (error) {
+            console.error("[Error code: 2109] Received an error when tried to respond to the autocomplete activity interaction");
+            console.error("Error data:", resolvedActivity);
+        }
     },
 });
 export default AutocompleteFile;

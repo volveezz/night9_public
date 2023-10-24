@@ -161,10 +161,13 @@ function errorMessages(errorType, ...rest) {
         case "RAID_TIME_ERROR": {
             return {
                 embeds: [
-                    new EmbedBuilder().setColor(colors.warning).setAuthor({
+                    new EmbedBuilder()
+                        .setColor(colors.warning)
+                        .setAuthor({
                         iconURL: icons.warning,
                         name: "Ошибка. Проверьте корректность времени",
-                    }),
+                    })
+                        .setDescription("Время указывается в одном из следующих форматов:\n- `20:00 25/10` - в 20:00 по вашему часовому поясу (указанному через команду </timezone:1055308734794043503>), 25 октября\n- `25.10 20:00` - та же дата, но в другой последовательности\n- `20` - в 20:00 по вашему часовому поясу, сегодня, или на следующий день (если 20:00 уже прошло)"),
                 ],
             };
         }
