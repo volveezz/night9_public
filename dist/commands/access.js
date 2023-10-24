@@ -37,6 +37,10 @@ const SlashCommand = new Command({
                     value: process.env.CHECKPOINTS_CHANNEL_ID,
                     nameLocalizations: { ru: "Контрольные точки" },
                 },
+                {
+                    name: "The First Descendant",
+                    value: "1153427799533699185",
+                },
             ],
         },
     ],
@@ -44,7 +48,20 @@ const SlashCommand = new Command({
         const channelId = args.getString("channel", true);
         const channel = await client.getTextChannel(channelId);
         const permissionsStatus = !channel.permissionsFor(interaction.user.id)?.has("ViewChannel");
-        await updateChannelPermissionsForUser(channel, interaction.user.id, permissionsStatus);
+        if (channelId === "1153427799533699185") {
+            const tfd_news = await client.getTextChannel("1153427973018501120");
+            if (permissionsStatus) {
+                channel.permissionOverwrites.create(interaction.user.id, { ViewChannel: true });
+                tfd_news.permissionOverwrites.create(interaction.user.id, { ViewChannel: true });
+            }
+            else {
+                channel.permissionOverwrites.delete(interaction.user.id);
+                tfd_news.permissionOverwrites.delete(interaction.user.id);
+            }
+        }
+        else {
+            await updateChannelPermissionsForUser(channel, interaction.user.id, permissionsStatus);
+        }
         const embed = new EmbedBuilder().setColor(permissionsStatus ? colors.success : colors.error).setAuthor({
             name: `Вы ${permissionsStatus ? "получили" : "забрали свой"} доступ к каналу ${channel.name}`,
             iconURL: permissionsStatus ? icons.success : icons.close,

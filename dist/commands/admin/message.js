@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, AttachmentBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, StringSelectMenuBuilder, } from "discord.js";
+import { ApplicationCommandOptionType, AttachmentBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, } from "discord.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { Command } from "../../structures/command.js";
@@ -148,6 +148,11 @@ const SlashCommand = new Command({
                             description: "Specify the index of the adding button",
                         },
                         {
+                            type: ApplicationCommandOptionType.Boolean,
+                            name: "disabled",
+                            description: "Specify if the adding button is disabled",
+                        },
+                        {
                             type: ApplicationCommandOptionType.User,
                             name: "user",
                             nameLocalizations: { ru: "пользователь" },
@@ -250,20 +255,23 @@ const SlashCommand = new Command({
                 const buttonCustomId = args.getString("button-custom-id", true);
                 const buttonStyle = parseInt(args.getString("button-style") || ButtonStyle.Secondary.toString());
                 const buttonLabel = args.getString("button-label") || buttonCustomId;
-                const buttonIndex = args.getInteger("add-index") || 0;
-                const button = new ButtonBuilder().setCustomId(buttonCustomId).setLabel(buttonLabel).setStyle(buttonStyle);
-                if (buttonIndex == null)
-                    throw { name: "Проверьте корректность индекса" };
+                const buttonIndex = args.getInteger("add-index");
+                const isDisabled = args.getBoolean("disabled") ?? false;
+                const button = new ButtonBuilder()
+                    .setCustomId(buttonCustomId)
+                    .setLabel(buttonLabel)
+                    .setStyle(buttonStyle)
+                    .setDisabled(isDisabled);
                 let addedComponents;
                 if (message.components.length > 0) {
-                    message.components[Math.trunc(+buttonIndex - 1 / 5)].components.splice(buttonIndex, 0, button);
-                    addedComponents = addButtonsToMessage(message.components.flatMap((v) => v.components
-                        .map((component) => (component.type === ComponentType.Button
-                        ? ButtonBuilder.from(component)
-                        : component.type === ComponentType.StringSelect
-                            ? StringSelectMenuBuilder.from(component)
-                            : null))
-                        .filter((button) => button)));
+                    const flatMap = (message.components || []).flatMap((v) => v.components.map((c) => (c.type === ComponentType.Button ? ButtonBuilder.from(c) : null)).filter((button) => button));
+                    if (buttonIndex && flatMap.length > 0) {
+                        flatMap.splice(buttonIndex - 1, 0, button);
+                    }
+                    else {
+                        flatMap.push(button);
+                    }
+                    addedComponents = addButtonsToMessage(flatMap);
                 }
                 else {
                     addedComponents = addButtonsToMessage([button]);
@@ -275,24 +283,19 @@ const SlashCommand = new Command({
             }
             case "remove": {
                 const buttonIndentifier = args.getString("index-custom-id", true);
-                if (+buttonIndentifier) {
-                    let buttonIndex = +buttonIndentifier;
-                    if (!buttonIndentifier)
-                        throw { name: "Проверьте корректность индекса" };
-                    if (buttonIndex < 1)
-                        buttonIndex = 1;
-                    message.components[Math.trunc(+buttonIndex - 1 / 5)].components.splice(+buttonIndex - 1, 1);
+                const flatMap = message.components.flatMap((v) => v.components
+                    .map((c) => (c.type === ComponentType.Button && c.customId !== buttonIndentifier ? ButtonBuilder.from(c) : null))
+                    .filter((button) => button));
+                if (+buttonIndentifier != null && !isNaN(+buttonIndentifier)) {
+                    flatMap.splice(+buttonIndentifier, 1);
                 }
-                const addedComponents = addButtonsToMessage(message.components.flatMap((v) => v.components
-                    .map((button) => (button.type === ComponentType.Button && button.customId !== buttonIndentifier
-                    ? ButtonBuilder.from(button)
-                    : null))
-                    .filter((button) => button)));
+                const addedComponents = addButtonsToMessage(flatMap);
                 await message.edit({ components: addedComponents });
                 const embed = new EmbedBuilder()
                     .setColor(colors.success)
                     .setAuthor({ name: "Кнопка сообщения удалена", iconURL: icons.success });
                 await interaction.reply({ embeds: [embed], ephemeral: true });
+                return;
             }
         }
     },
