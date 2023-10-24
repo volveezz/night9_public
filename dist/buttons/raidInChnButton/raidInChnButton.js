@@ -13,7 +13,7 @@ import { RaidEvent } from "../../utils/persistence/sequelizeModels/raidEvent.js"
 import moveRaidVoiceMembers from "./moveRaidVoiceMembersButton.js";
 import notifyInChannelButton from "./notifyInChannelButton.js";
 import unlockRaidMessage from "./unlockRaidMessage.js";
-export async function handleDeleteRaid({ deferredUpdate, interaction, raidEvent, requireMessageReply, }) {
+export async function handleDeleteRaid({ deferredReply, interaction, raidEvent, requireMessageReply, }) {
     return new Promise(async (resolve) => {
         const embed = new EmbedBuilder()
             .setColor(colors.warning)
@@ -23,12 +23,14 @@ export async function handleDeleteRaid({ deferredUpdate, interaction, raidEvent,
             new ButtonBuilder().setCustomId("raidAddFunc_delete_confirm").setLabel("Подтвердить").setStyle(ButtonStyle.Danger),
             new ButtonBuilder().setCustomId("raidAddFunc_delete_cancel").setLabel("Отменить").setStyle(ButtonStyle.Secondary),
         ];
-        await deferredUpdate;
+        await deferredReply;
         const message = await interaction.editReply({
             embeds: [embed],
             components: addButtonsToMessage(components),
         });
-        const collector = interaction.channel.createMessageComponentCollector({
+        const collector = (interaction.channel ||
+            interaction.user.dmChannel ||
+            (await interaction.user.createDM())).createMessageComponentCollector({
             message,
             time: 60 * 1000 * 2,
             max: 1,
@@ -136,23 +138,23 @@ const ButtonCommand = new Button({
         switch (interaction.customId) {
             case "raidInChnButton_notify": {
                 const { guild, member, deferredReply } = requireParams({ interaction, member: true, guild: true, deferredReply: true });
-                notifyInChannelButton({ interaction, guild, member, raidEvent, deferredUpdate: deferredReply });
-                break;
+                await notifyInChannelButton({ interaction, guild, member, raidEvent, deferredUpdate: deferredReply });
+                return;
             }
             case "raidInChnButton_transfer": {
                 const { guild, deferredReply } = requireParams({ interaction, guild: true, deferredReply: true });
-                moveRaidVoiceMembers({ guild, interaction, raidEvent, deferredReply });
-                break;
+                await moveRaidVoiceMembers({ guild, interaction, raidEvent, deferredReply });
+                return;
             }
             case "raidInChnButton_unlock": {
                 unlockRaidMessage({ interaction, raidEvent });
                 requireParams({ interaction, deferredUpdate: true });
-                break;
+                return;
             }
             case "raidInChnButton_delete": {
-                const { deferredReply } = requireParams({ deferredReply: true, interaction });
-                handleDeleteRaid({ deferredUpdate: deferredReply, interaction, raidEvent });
-                break;
+                const deferredReply = interaction.deferReply({ ephemeral: true });
+                await handleDeleteRaid({ deferredReply, interaction, raidEvent });
+                return;
             }
             case "raidInChnButton_resend": {
                 requireParams({ interaction, deferredUpdate: true });
@@ -162,7 +164,7 @@ const ButtonCommand = new Button({
                     oldMessage: interaction.message,
                 });
                 await interaction.message.delete();
-                break;
+                return;
             }
             case "raidInChnButton_fireteamChecker_cancel": {
                 requireParams({ deferredUpdate: true, interaction });
@@ -171,10 +173,8 @@ const ButtonCommand = new Button({
                     .setTitle("Система слежки за боевой группой отключена")
                     .setColor(colors.invisible);
                 await interaction.message.edit({ embeds: [embed], components: [] });
-                break;
+                return;
             }
-            default:
-                break;
         }
     },
 });

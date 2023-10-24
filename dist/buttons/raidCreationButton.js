@@ -12,8 +12,8 @@ const ButtonCommand = new Button({
             "Клятва послушника",
             "Последнее желание",
             "Last wish",
-            "votd",
-            "пж",
+            "ик",
+            "Чертог на мастере",
             "СС нормал",
             "vault of glass",
             "vog master",
@@ -30,7 +30,7 @@ const ButtonCommand = new Button({
         const currentDay = currentTime.getDate();
         const currentMonth = currentTime.getMonth() + 1;
         const currentHours = currentTime.getHours();
-        const currentMinutes = currentTime.getMinutes();
+        const currentMinutes = currentTime.getMinutes() < 10 ? `0${currentTime.getMinutes()}` : currentTime.getMinutes();
         const HHmm = `${currentHours}:${currentMinutes}`;
         const DDdotMM = `${currentDay}.${currentMonth}`;
         const DDslashMM = `${currentDay}/${currentMonth}`;
@@ -56,7 +56,7 @@ const ButtonCommand = new Button({
             .setStyle(TextInputStyle.Paragraph);
         const raidJoinmentClearsRequirementField = new TextInputBuilder()
             .setCustomId("RaidClearRequirementField")
-            .setLabel("Минимальное число закрытий этого рейда для записи")
+            .setLabel("Число закрытий этого рейда для записи")
             .setPlaceholder("0")
             .setValue("0")
             .setRequired(false)

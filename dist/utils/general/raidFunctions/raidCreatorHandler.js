@@ -58,7 +58,12 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
         const deferredUpdate = button.deferReply({ ephemeral: true });
         sendedButtons.add(button);
         if (button.customId === "raidCreatorHandler_delete") {
-            const isRaidDeleted = await handleDeleteRaid({ interaction: button, raidEvent: raid, deferredUpdate, requireMessageReply: false });
+            const isRaidDeleted = await handleDeleteRaid({
+                interaction: button,
+                raidEvent: raid,
+                deferredReply: deferredUpdate,
+                requireMessageReply: false,
+            });
             if (isRaidDeleted === 1) {
                 sendedButtons.delete(button);
                 return collector.stop("deleted");

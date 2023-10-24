@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, AttachmentBuilder, EmbedBuilder } from "discord.js";
+import { ApplicationCommandOptionType, AttachmentBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, StringSelectMenuBuilder, } from "discord.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { Command } from "../../structures/command.js";
@@ -121,6 +121,33 @@ const SlashCommand = new Command({
                             required: true,
                         },
                         {
+                            type: ApplicationCommandOptionType.String,
+                            name: "button-custom-id",
+                            description: "Specify the custom id of the adding button",
+                            required: true,
+                        },
+                        {
+                            type: ApplicationCommandOptionType.String,
+                            name: "button-style",
+                            description: "Specify the style of the adding button",
+                            choices: [
+                                { name: "Primary", value: ButtonStyle.Primary.toString() },
+                                { name: "Secondary", value: ButtonStyle.Secondary.toString() },
+                                { name: "Danger", value: ButtonStyle.Danger.toString() },
+                                { name: "Success", value: ButtonStyle.Success.toString() },
+                            ],
+                        },
+                        {
+                            type: ApplicationCommandOptionType.String,
+                            name: "button-label",
+                            description: "Specify the label of the adding button",
+                        },
+                        {
+                            type: ApplicationCommandOptionType.Integer,
+                            name: "add-index",
+                            description: "Specify the index of the adding button",
+                        },
+                        {
                             type: ApplicationCommandOptionType.User,
                             name: "user",
                             nameLocalizations: { ru: "пользователь" },
@@ -220,13 +247,48 @@ const SlashCommand = new Command({
                 break;
             }
             case "add": {
+                const buttonCustomId = args.getString("button-custom-id", true);
+                const buttonStyle = parseInt(args.getString("button-style") || ButtonStyle.Secondary.toString());
+                const buttonLabel = args.getString("button-label") || buttonCustomId;
+                const buttonIndex = args.getInteger("add-index") || 0;
+                const button = new ButtonBuilder().setCustomId(buttonCustomId).setLabel(buttonLabel).setStyle(buttonStyle);
+                if (buttonIndex == null)
+                    throw { name: "Проверьте корректность индекса" };
+                let addedComponents;
+                if (message.components.length > 0) {
+                    message.components[Math.trunc(+buttonIndex - 1 / 5)].components.splice(buttonIndex, 0, button);
+                    addedComponents = addButtonsToMessage(message.components.flatMap((v) => v.components
+                        .map((component) => (component.type === ComponentType.Button
+                        ? ButtonBuilder.from(component)
+                        : component.type === ComponentType.StringSelect
+                            ? StringSelectMenuBuilder.from(component)
+                            : null))
+                        .filter((button) => button)));
+                }
+                else {
+                    addedComponents = addButtonsToMessage([button]);
+                }
+                await message.edit({ components: addedComponents });
+                const embed = new EmbedBuilder().setColor(colors.success).setAuthor({ name: "Кнопка добавлена", iconURL: icons.success });
+                await interaction.reply({ embeds: [embed], ephemeral: true });
+                return;
             }
             case "remove": {
-                const buttonIndex = args.getString("index-custom-id", true);
-                +buttonIndex
-                    ? message.components[Math.trunc(+buttonIndex / 5)].components.splice(+buttonIndex, 1)
-                    : message.components.map((actionRow) => actionRow.components.map((buttons) => buttons.customId !== buttonIndex));
-                await message.edit({ components: addButtonsToMessage(message.components.flatMap((v) => v.components)) });
+                const buttonIndentifier = args.getString("index-custom-id", true);
+                if (+buttonIndentifier) {
+                    let buttonIndex = +buttonIndentifier;
+                    if (!buttonIndentifier)
+                        throw { name: "Проверьте корректность индекса" };
+                    if (buttonIndex < 1)
+                        buttonIndex = 1;
+                    message.components[Math.trunc(+buttonIndex - 1 / 5)].components.splice(+buttonIndex - 1, 1);
+                }
+                const addedComponents = addButtonsToMessage(message.components.flatMap((v) => v.components
+                    .map((button) => (button.type === ComponentType.Button && button.customId !== buttonIndentifier
+                    ? ButtonBuilder.from(button)
+                    : null))
+                    .filter((button) => button)));
+                await message.edit({ components: addedComponents });
                 const embed = new EmbedBuilder()
                     .setColor(colors.success)
                     .setAuthor({ name: "Кнопка сообщения удалена", iconURL: icons.success });
