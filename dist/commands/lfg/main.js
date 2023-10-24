@@ -274,7 +274,7 @@ const SlashCommand = new Command({
                 if (!convertedTime) {
                     throw { errorType: "RAID_TIME_ERROR" };
                 }
-                if (convertedTime < Date.now() / 1000 || convertedTime > 2000000000 || convertedTime < 1000000000) {
+                if (convertedTime < Date.now() / 1000 || convertedTime >= 2147483647 || convertedTime < 1000000000) {
                     throw { errorType: "RAID_TIME_ERROR", errorData: [timeString] };
                 }
                 const description = args.getString("description", false);

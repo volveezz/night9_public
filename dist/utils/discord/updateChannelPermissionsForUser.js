@@ -3,7 +3,6 @@ export async function updateChannelPermissionsForUser(channel, userId, permissio
         await channel.permissionOverwrites.create(userId, {
             ViewChannel: true,
             ReadMessageHistory: true,
-            SendMessages: true,
         });
     }
     else {

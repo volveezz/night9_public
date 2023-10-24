@@ -2,6 +2,7 @@ import { ApplicationCommandOptionType, AttachmentBuilder, EmbedBuilder } from "d
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { Command } from "../../structures/command.js";
+import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js";
 const SlashCommand = new Command({
     name: "message",
     description: "Message related commands",
@@ -101,6 +102,63 @@ const SlashCommand = new Command({
                 },
             ],
         },
+        {
+            type: ApplicationCommandOptionType.SubcommandGroup,
+            name: "buttons",
+            description: "button-related commands",
+            options: [
+                {
+                    type: ApplicationCommandOptionType.Subcommand,
+                    name: "add",
+                    description: "add a button to a message",
+                    options: [
+                        {
+                            type: ApplicationCommandOptionType.String,
+                            name: "message-id",
+                            nameLocalizations: { ru: "id-сообщения" },
+                            description: "Id of the message to which we will add a button",
+                            descriptionLocalizations: { ru: "Id сообщения для добавления кнопки" },
+                            required: true,
+                        },
+                        {
+                            type: ApplicationCommandOptionType.User,
+                            name: "user",
+                            nameLocalizations: { ru: "пользователь" },
+                            description: "Select the user whose DM channel you want to interact with",
+                            descriptionLocalizations: { ru: "Выберите пользователя, с личными сообщенями которого вы хотите взаимодействовать" },
+                        },
+                    ],
+                },
+                {
+                    type: ApplicationCommandOptionType.Subcommand,
+                    name: "remove",
+                    description: "remove a button from a message",
+                    options: [
+                        {
+                            type: ApplicationCommandOptionType.String,
+                            name: "message-id",
+                            nameLocalizations: { ru: "id-сообщения" },
+                            description: "Id of the message from which we will remove a button",
+                            descriptionLocalizations: { ru: "Id сообщения для удаления кнопки" },
+                            required: true,
+                        },
+                        {
+                            type: ApplicationCommandOptionType.String,
+                            name: "index-custom-id",
+                            description: "Specify the index of the button or its customId to specify the deleted button",
+                            required: true,
+                        },
+                        {
+                            type: ApplicationCommandOptionType.User,
+                            name: "user",
+                            nameLocalizations: { ru: "пользователь" },
+                            description: "Select the user whose DM channel you want to interact with",
+                            descriptionLocalizations: { ru: "Выберите пользователя, с личными сообщенями которого вы хотите взаимодействовать" },
+                        },
+                    ],
+                },
+            ],
+        },
     ],
     run: async ({ client, interaction, args }) => {
         const subcommand = args.getSubcommand(true);
@@ -160,6 +218,19 @@ const SlashCommand = new Command({
                     ephemeral: true,
                 });
                 break;
+            }
+            case "add": {
+            }
+            case "remove": {
+                const buttonIndex = args.getString("index-custom-id", true);
+                +buttonIndex
+                    ? message.components[Math.trunc(+buttonIndex / 5)].components.splice(+buttonIndex, 1)
+                    : message.components.map((actionRow) => actionRow.components.map((buttons) => buttons.customId !== buttonIndex));
+                await message.edit({ components: addButtonsToMessage(message.components.flatMap((v) => v.components)) });
+                const embed = new EmbedBuilder()
+                    .setColor(colors.success)
+                    .setAuthor({ name: "Кнопка сообщения удалена", iconURL: icons.success });
+                await interaction.reply({ embeds: [embed], ephemeral: true });
             }
         }
     },

@@ -30,7 +30,7 @@ function generateLfgModal() {
     const additionalParams = new TextInputBuilder()
         .setCustomId("additionalParams")
         .setLabel("Дополнительные параметры")
-        .setPlaceholder("Их можно найти в #как делать сборы")
+        .setPlaceholder("Их можно найти в #сборы-прямо-сейчас")
         .setStyle(TextInputStyle.Short)
         .setRequired(false);
     const components = addModalComponents(userLimit, title, description, activityName, additionalParams);

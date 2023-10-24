@@ -1,6 +1,7 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, } from "discord.js";
+import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, } from "discord.js";
 import colors from "../configs/colors.js";
 import { Button } from "../structures/button.js";
+import { addModalComponents } from "../utils/general/addModalComponents.js";
 let clanLogChannel = null;
 const ButtonCommand = new Button({
     name: "clanJoinEvent",
@@ -43,13 +44,7 @@ const ButtonCommand = new Button({
                 .setPlaceholder("по желанию")
                 .setStyle(TextInputStyle.Paragraph)
                 .setRequired(false);
-            modal.setComponents(...[
-                new ActionRowBuilder().addComponents(userName),
-                new ActionRowBuilder().addComponents(userAge),
-                new ActionRowBuilder().addComponents(userMicrophone),
-                new ActionRowBuilder().addComponents(userPower),
-                new ActionRowBuilder().addComponents(additionalInfo),
-            ]);
+            modal.setComponents(addModalComponents(userName, userAge, userMicrophone, userPower, additionalInfo));
             await chatInteraction.showModal(modal);
         }
         else if (modalSubmit) {

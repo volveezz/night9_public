@@ -1,8 +1,9 @@
-import { ActionRowBuilder, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import { EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import raidsGuide from "../configs/raidGuideData.js";
 import { Button } from "../structures/button.js";
+import { addModalComponents } from "../utils/general/addModalComponents.js";
 const ButtonCommand = new Button({
     name: "editRaidGuide",
     run: async ({ selectMenu: interaction }) => {
@@ -43,11 +44,7 @@ const ButtonCommand = new Button({
         if (raidGuideEncounter.image) {
             raidGuide_image.setValue(raidGuideEncounter.image);
         }
-        modal.setComponents([
-            new ActionRowBuilder().addComponents(raidGuide_name),
-            new ActionRowBuilder().addComponents(raidGuide_description),
-            new ActionRowBuilder().addComponents(raidGuide_image),
-        ]);
+        modal.setComponents(addModalComponents(raidGuide_name, raidGuide_description, raidGuide_image));
         await interaction.showModal(modal);
     },
 });

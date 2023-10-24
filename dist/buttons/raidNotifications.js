@@ -1,5 +1,6 @@
-import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import { ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import { Button } from "../structures/button.js";
+import { addModalComponents } from "../utils/general/addModalComponents.js";
 import { sendNotificationInfo } from "../utils/general/raidFunctions/raidNotifications.js";
 import { RaidUserNotifications } from "../utils/persistence/sequelizeModels/raidUserNotifications.js";
 const ButtonCommand = new Button({
@@ -27,7 +28,7 @@ const ButtonCommand = new Button({
             if (alreadyDefinedTimeByUser) {
                 specifiedTime.setValue(alreadyDefinedTimeByUser.notificationTimes.join(" | "));
             }
-            modal.setComponents(new ActionRowBuilder().addComponents(specifiedTime));
+            modal.setComponents(addModalComponents(specifiedTime));
             return await interaction.showModal(modal);
         }
     },
