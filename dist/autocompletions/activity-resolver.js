@@ -44,12 +44,14 @@ const AutocompleteFile = new Autocomplete({
     run: async ({ interaction, option }) => {
         const activityNameOrHash = option?.value;
         if (!activityNameOrHash || activityNameOrHash.length < 1) {
-            interaction.respond([{ name: activityNameOrHash.slice(0, 100) || "Проверьте введенное название активности", value: "null" }]);
+            await interaction.respond([
+                { name: activityNameOrHash.slice(0, 100) || "Проверьте введенное название активности", value: "null" },
+            ]);
             return;
         }
         const resolvedActivity = await findActivities(activityNameOrHash);
         if (!resolvedActivity || resolvedActivity.length === 0) {
-            interaction.respond([
+            await interaction.respond([
                 {
                     name: activityNameOrHash.slice(0, 100) || "Проверьте введенное название активности",
                     value: activityNameOrHash.slice(0, 100) || "null",

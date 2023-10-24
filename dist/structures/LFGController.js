@@ -490,9 +490,9 @@ export class LFGController {
         await lfg.message.edit(messageOptions);
     }
     async createLFG({ activityName, activityHash, time, description, requiredDLC, userLimit: predefinedUserLimit, creatorId, guild, }) {
-        const userLimit = (predefinedUserLimit || activityHash
-            ? (await GetManifest("DestinyActivityDefinition"))[Number(activityHash)]?.matchmaking?.maxParty
-            : 3) ?? 3;
+        const userLimit = predefinedUserLimit ??
+            (activityHash ? (await GetManifest("DestinyActivityDefinition"))[Number(activityHash)]?.matchmaking?.maxParty : 3) ??
+            3;
         const lfgEvent = await LfgDatabase.create({
             activityHash,
             activityName,
