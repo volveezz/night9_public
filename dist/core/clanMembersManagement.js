@@ -192,6 +192,7 @@ async function clanMembersManagement(databaseData) {
                         }, 60 * 1000 * 30);
                     }
                 });
+                pastInitialLaunch = true;
             }
         }
         async function handleNonRegisteredMembers(clanMember) {
