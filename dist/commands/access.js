@@ -44,6 +44,7 @@ const SlashCommand = new Command({
             ],
         },
     ],
+    global: true,
     run: async ({ client, interaction, args }) => {
         const channelId = args.getString("channel", true);
         const channel = await client.getTextChannel(channelId);
@@ -65,6 +66,7 @@ const SlashCommand = new Command({
         const embed = new EmbedBuilder().setColor(permissionsStatus ? colors.success : colors.error).setAuthor({
             name: `Вы ${permissionsStatus ? "получили" : "забрали свой"} доступ к каналу ${channel.name}`,
             iconURL: permissionsStatus ? icons.success : icons.close,
+            url: `https://discord.com/channels/${channel.guildId}/${channelId}/`,
         });
         interaction.reply({ embeds: [embed], ephemeral: true });
     },

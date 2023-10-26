@@ -39,7 +39,7 @@ function formatRaidUserData(discordId) {
 }
 async function sendEmbed({ deferredReply, embedIndex, interaction, raidDescription, selectedRaid }) {
     const embed = new EmbedBuilder()
-        .setColor(colors.success)
+        .setColor(colors.default)
         .setTitle(`Новички в ${getRaidDetails(selectedRaid).raidName}`)
         .setDescription(raidDescription);
     await deferredReply;

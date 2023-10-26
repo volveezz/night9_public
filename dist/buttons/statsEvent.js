@@ -67,7 +67,6 @@ const ButtonCommand = new Button({
                     if (!character)
                         return;
                     const { classHash } = character;
-                    const style = classHash === 671679327 ? ButtonStyle.Primary : classHash === 2271682572 ? ButtonStyle.Secondary : ButtonStyle.Danger;
                     const emoji = classHash === 671679327
                         ? "<:hunter:995496474978824202>"
                         : classHash === 2271682572
@@ -75,7 +74,7 @@ const ButtonCommand = new Button({
                             : "<:titan:995496472722284596>";
                     const label = classHash === 671679327 ? "Охотник" : classHash === 2271682572 ? "Варлок" : "Титан";
                     components[i] = new ButtonBuilder({
-                        style,
+                        style: ButtonStyle.Secondary,
                         label,
                         customId: `statsEvent_pinnacle_char_${i}`,
                         emoji,
@@ -89,7 +88,10 @@ const ButtonCommand = new Button({
                 });
                 if (!embedDescription)
                     embedDescription = "Персонажи отсутствуют";
-                const embed = new EmbedBuilder().setTitle("Выберите персонажа").setDescription(embedDescription).setColor(colors.serious);
+                const embed = new EmbedBuilder()
+                    .setColor(colors.default)
+                    .setAuthor({ name: "Выберите персонажа" })
+                    .setDescription(embedDescription);
                 await deferredReply;
                 const int = await interaction.editReply({ embeds: [embed], components: addButtonsToMessage(components) });
                 const collector = int.channel.createMessageComponentCollector({
@@ -124,8 +126,8 @@ const ButtonCommand = new Button({
                                 if (subRew.redeemed === true || (embed.data.fields && embed.data.fields.length >= 25))
                                     return;
                                 embed.addFields({
-                                    name: `${convertModifiersPlaceholders(milestoneDefinition[mile.milestoneHash].displayProperties.name)}\n${convertModifiersPlaceholders(milestoneDefinition[mile.milestoneHash].displayProperties.description)}`,
-                                    value: `Можно выполнить и получить награду`,
+                                    name: convertModifiersPlaceholders(milestoneDefinition[mile.milestoneHash].displayProperties.name),
+                                    value: convertModifiersPlaceholders(milestoneDefinition[mile.milestoneHash].displayProperties.description),
                                 });
                             });
                         });

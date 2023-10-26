@@ -19,6 +19,7 @@ const SlashCommand = new Command({
             autocomplete: true,
         },
     ],
+    global: true,
     run: async ({ interaction, args }) => {
         const raidName = args.getString("specify-raid", true);
         const deferredReply = interaction.deferReply({ ephemeral: true });

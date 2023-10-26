@@ -251,6 +251,7 @@ const SlashCommand = new Command({
             options: [lfgIdOption],
         },
     ],
+    global: true,
     run: async ({ interaction, args }) => {
         const subcommand = args.getSubcommand(true);
         let lfgId = null;
@@ -262,7 +263,7 @@ const SlashCommand = new Command({
         switch (subcommand) {
             case "create": {
                 const deferredReply = interaction.deferReply({ ephemeral: true });
-                const memberPromise = client.getMember(interaction.member);
+                const memberPromise = client.getMember(interaction.member || interaction.user.id);
                 const guildPromise = client.getGuild(interaction.guild);
                 const activity = args.getString("activity", true);
                 let isActivityHash = false;
@@ -354,8 +355,11 @@ const SlashCommand = new Command({
                 if (user && user.bot) {
                     throw { errorType: "LFG_CANNOT_ADD_BOT" };
                 }
-                const member = client.getCachedMembers().get(user.id);
-                await LFGController.getInstance().addUserToLFG({ userId: user.id, lfgId: lfgId, requesterId: interaction.user.id });
+                const memberPromise = client.getMember(user.id);
+                const [member, _] = await Promise.all([
+                    memberPromise,
+                    LFGController.getInstance().addUserToLFG({ userId: user.id, lfgId: lfgId, requesterId: interaction.user.id }),
+                ]);
                 const embed = new EmbedBuilder().setColor(colors.success).setAuthor({
                     name: `Пользователь ${nameCleaner(member?.displayName || user.username)} был записан`,
                     iconURL: (member || user).displayAvatarURL(),

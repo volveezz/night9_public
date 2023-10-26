@@ -4,7 +4,6 @@ import { client } from "../../../../index.js";
 import { RaidEvent } from "../../../persistence/sequelizeModels/raidEvent.js";
 import { addButtonsToMessage } from "../../addButtonsToMessage.js";
 async function updateFireteamCheckerNotify(raidEventOrId, isDisabling) {
-    console.trace("Tracing");
     const raidEvent = typeof raidEventOrId === "number" ? await RaidEvent.findByPk(raidEventOrId, { attributes: ["channelId", "id"] }) : raidEventOrId;
     if (!raidEvent) {
         console.error("[Error code: 2115]", raidEventOrId, isDisabling);

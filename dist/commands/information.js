@@ -25,6 +25,7 @@ const SlashCommand = new Command({
         type: ApplicationCommandType.User,
         nameLocalizations: { "en-US": "Information", "en-GB": "Information" },
     },
+    global: true,
     run: async ({ client, interaction: commandInteraction, userMenuInteraction: userInteraction }) => {
         if (getEndpointStatus("account") !== 1) {
             throw { errorType: "API_UNAVAILABLE" };

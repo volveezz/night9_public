@@ -326,13 +326,11 @@ export class LFGController {
         let privateMessage;
         if (managementMessage) {
             privateMessage = await managementMessage.edit(messageOptions);
-            console.debug("Updated management message");
         }
         else {
             const targetChannel = channel || (await this.createLfgPrivateChannel(lfg));
             privateMessage = await targetChannel.send({ ...messageOptions, allowedMentions: { parse: [] } });
             await privateMessage.pin("LFG Management message");
-            console.debug("Sent new management message");
             lfgObject.managementMessage = privateMessage;
         }
     }

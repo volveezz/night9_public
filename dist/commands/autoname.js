@@ -1,7 +1,7 @@
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
 import colors from "../configs/colors.js";
-import icons from "../configs/icons.js";
 import { Command } from "../structures/command.js";
+import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { AuthData } from "../utils/persistence/sequelizeModels/authData.js";
 const SlashCommand = new Command({
     name: "autoname",
@@ -10,44 +10,35 @@ const SlashCommand = new Command({
         "en-US": "Enable or disable automatic nickname changes",
         "en-GB": "Enable or disable automatic nickname changes",
     },
-    run: async ({ interaction }) => {
-        const dbInfo = await AuthData.findByPk(interaction.user.id);
-        if (!dbInfo)
+    global: true,
+    run: async ({ client, interaction }) => {
+        const userDataPromise = AuthData.findByPk(interaction.user.id);
+        const memberPromise = client.getMember(interaction.member || interaction.user.id);
+        const [userData, member] = await Promise.all([userDataPromise, memberPromise]);
+        if (!userData)
             throw { errorType: "DB_USER_NOT_FOUND" };
-        const embed = new EmbedBuilder().setColor(colors.serious).setAuthor({
-            name: "Идет обработка...",
-            iconURL: icons.loading,
-        });
-        const deferredReply = interaction.deferReply({ ephemeral: true });
-        const nameStatus = dbInfo.displayName.startsWith("⁣") ? true : false;
-        embed
-            .setAuthor(null)
-            .setColor(colors.success)
-            .setTitle(!nameStatus ? "Отключите автоматическую смену ника" : "Включите автоматическую смену ника")
+        const isAutonameEnabled = userData.displayName.startsWith("⁣") ? true : false;
+        const embed = new EmbedBuilder()
+            .setColor(colors.default)
+            .setTitle(!isAutonameEnabled ? "Отключите автоматическую смену ника" : "Включите автоматическую смену ника")
             .addFields([
-            { name: "Часовой пояс", value: dbInfo.timezone ? `+${dbInfo.timezone}` : "Не указан", inline: true },
-            { name: "Сохраненный ник", value: dbInfo.displayName ? dbInfo.displayName.replace("⁣", "") : "Не найден", inline: true },
-            { name: "Текущий ник", value: interaction.member?.displayName || "Не указан", inline: true },
+            { name: "Часовой пояс", value: userData.timezone ? `+${userData.timezone}` : "Не указан", inline: true },
+            { name: "Сохраненный ник", value: userData.displayName ? userData.displayName.replace("⁣", "") : "Не сохранен", inline: true },
+            { name: "Текущий ник", value: member.displayName || "Не указан", inline: true },
         ]);
         const components = [
-            {
-                type: ComponentType.ActionRow,
-                components: [
-                    new ButtonBuilder()
-                        .setCustomId("autoname_enable")
-                        .setLabel("Включить")
-                        .setStyle(ButtonStyle.Success)
-                        .setDisabled(!nameStatus),
-                    new ButtonBuilder()
-                        .setCustomId("autoname_disable")
-                        .setLabel("Отключить")
-                        .setStyle(ButtonStyle.Danger)
-                        .setDisabled(nameStatus),
-                ],
-            },
+            new ButtonBuilder()
+                .setCustomId("autoname_enable")
+                .setLabel("Включить")
+                .setStyle(ButtonStyle.Success)
+                .setDisabled(!isAutonameEnabled),
+            new ButtonBuilder()
+                .setCustomId("autoname_disable")
+                .setLabel("Отключить")
+                .setStyle(ButtonStyle.Danger)
+                .setDisabled(isAutonameEnabled),
         ];
-        await deferredReply;
-        const collector = (await interaction.editReply({ embeds: [embed], components })).createMessageComponentCollector({
+        const collector = (await interaction.reply({ embeds: [embed], ephemeral: true, components: addButtonsToMessage(components) })).createMessageComponentCollector({
             max: 1,
             time: 60 * 2 * 1000,
             filter: (i) => i.user.id === interaction.user.id,
@@ -55,28 +46,26 @@ const SlashCommand = new Command({
         });
         collector.on("collect", async (i) => {
             i.deferUpdate();
-            if (dbInfo.displayName.replace("⁣", "").length <= 0)
+            if (userData.displayName.replace("⁣", "").length <= 0)
                 throw { name: "Ваш ник слишком короткий" };
-            if (dbInfo.displayName.startsWith("⁣") && nameStatus) {
-                dbInfo.update({ displayName: dbInfo.displayName.replace("⁣", "") }).then(async () => {
-                    embed.setColor(colors.success).setTitle("Вы включили автоматическую смену ника");
-                    interaction.editReply({ embeds: [embed], components: [] });
-                });
+            if (userData.displayName.startsWith("⁣") && isAutonameEnabled) {
+                userData.displayName = userData.displayName.replace("⁣", "");
+                embed.setTitle("Вы включили автоматическую смену ника");
             }
-            else if (!dbInfo.displayName.startsWith("⁣") && !nameStatus) {
-                dbInfo.update({ displayName: "⁣" + dbInfo.displayName }).then(async () => {
-                    embed.setColor(colors.success).setTitle("Вы отключили автоматическую смену ника");
-                    interaction.editReply({ embeds: [embed], components: [] });
-                });
+            else if (!userData.displayName.startsWith("⁣") && !isAutonameEnabled) {
+                userData.displayName = "⁣" + userData.displayName;
+                embed.setTitle("Вы отключили автоматическую смену ника");
             }
             else {
-                embed.setColor("DarkGreen").setTitle(`Автоматическая смена ника уже ${nameStatus ? "включена" : "отключена"}`);
-                interaction.editReply({ embeds: [embed], components: [] });
+                embed.setColor(colors.invisible).setTitle(`Автоматическая смена ника уже ${isAutonameEnabled ? "включена" : "отключена"}`);
             }
+            await userData.save();
+            interaction.editReply({ embeds: [embed], components: [] });
         });
         collector.on("end", (_, reason) => {
+            const embed = new EmbedBuilder().setColor(colors.invisible).setTitle("Время на выбор вышло. Повторно введите команду");
             if (reason === "time")
-                interaction.editReply({ components: [], embeds: [], content: "Время вышло" });
+                interaction.editReply({ embeds: [embed] });
         });
     },
 });

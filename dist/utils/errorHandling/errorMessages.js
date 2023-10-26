@@ -89,9 +89,9 @@ function errorMessages(errorType, ...rest) {
                     new EmbedBuilder()
                         .setAuthor({
                         iconURL: icons.error,
-                        name: "Ошибка. Вы не были найдены на сервере",
+                        name: "Ошибка. Вы не были найдены на сервере. Попробуйте позже",
                     })
-                        .setDescription("Попробуйте позже\nЭта ошибка возникает лишь в случае вашего выхода с сервера или нестабильной работой серверов Discord")
+                        .setDescription("Эта ошибка может возникнуть лишь в случае вашего выхода с сервера или нестабильной работой серверов Discord")
                         .setColor(colors.error),
                 ],
             };

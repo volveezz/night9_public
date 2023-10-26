@@ -285,10 +285,10 @@ const SlashCommand = new Command({
             descriptionLocalizations: { "en-US": "Manage notification settings", "en-GB": "Manage notification settings" },
         },
     ],
+    global: true,
     run: async ({ client, interaction, args }) => {
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const subCommand = args.getSubcommand(true);
-        const guild = client.getCachedGuild();
         const member = await client.getMember(interaction.user.id);
         if (subCommand === "создать") {
             const raid = args.getString("рейд", true);
@@ -589,8 +589,7 @@ const SlashCommand = new Command({
             stopFireteamCheckingSystem(id);
             try {
                 const privateRaidChannel = client.getCachedTextChannel(channelId);
-                privateRaidChannel &&
-                    (await privateRaidChannel.delete(`${interaction.member.displayName} deleted the raid ${id}-${raid}`));
+                privateRaidChannel && (await privateRaidChannel.delete(`${member.displayName} deleted the raid ${id}-${raid}`));
             }
             catch (e) {
                 console.error(`[Error code: 1069] Channel during raid manual delete for raidId ${id} wasn't found`);

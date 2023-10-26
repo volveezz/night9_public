@@ -150,7 +150,7 @@ const SlashCommand = new Command({
         },
     ],
     run: async ({ client, interaction, args }) => {
-        const member = interaction.member || client.getCachedMembers().get(interaction.user.id);
+        const member = await client.getMember(interaction.member || interaction.user.id);
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const subcommand = args.getSubcommand();
         const id = args.getString("id") ? (args.getString("id") === "me" ? member.id : args.getString("id", true)) : "";

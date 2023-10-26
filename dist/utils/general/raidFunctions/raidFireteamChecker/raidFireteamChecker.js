@@ -22,6 +22,8 @@ export function stopFireteamCheckingSystem(raidId) {
     }
 }
 async function raidFireteamCheckerSystem(raidId) {
+    if (process.env.NODE_ENV === "development")
+        return;
     console.debug("Initializing fireteam checker", raidId);
     stopFireteamCheckingSystem(raidId);
     const ongoingRaids = await getOngoingRaids(raidId);
