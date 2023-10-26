@@ -7,6 +7,7 @@ import { refreshManifest } from "../utils/api/ManifestManager.js";
 import { manageAdminDMChannel } from "../utils/discord/adminDmManager.js";
 import blockChannelMessage from "../utils/discord/blockChannelMessages.js";
 import { sendAdminNotification } from "../utils/discord/dmHandler.js";
+import { isUserCanSendMessageInChannel } from "../utils/discord/isUserCanSendMessageInChannel.js";
 import { handleLfgMessage } from "../utils/discord/lfgSystem/handleLFG.js";
 import { generatePatchNotes } from "../utils/discord/patchnoteGenerator.js";
 import sendRegistrationLink from "../utils/discord/registration.js";
@@ -36,16 +37,18 @@ async function handleMessage(message) {
         return;
     }
     if (message.channelId === process.env.VEX_INCURSION_CHANNEL_ID) {
-        processVexIncursionMessage(message).catch((e) => null);
+        await processVexIncursionMessage(message).catch((e) => null);
         return;
     }
     if (!message.author || message.author.bot || message.system || !(message instanceof Message))
         return;
-    if (message.channelId === process.env.RAID_CHANNEL_ID && !message.member?.permissions.has("MentionEveryone")) {
-        return blockChannelMessage(message);
+    if (isUserCanSendMessageInChannel(message.channelId, message.member?.permissions.has("MentionEveryone"))) {
+        await blockChannelMessage(message).catch((e) => null);
+        return;
     }
     if (message.channelId === process.env.PATCHNOTE_GENERATOR_CHANNEL_ID) {
-        return generatePatchNotes(message);
+        await generatePatchNotes(message);
+        return;
     }
     if (message.channelId === process.env.PVE_PARTY_CHANNEL_ID) {
         if (message.cleanContent.startsWith("+")) {

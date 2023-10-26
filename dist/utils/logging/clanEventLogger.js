@@ -6,10 +6,10 @@ import getClanMemberData from "../api/getClanMemberData.js";
 import setMemberRoles from "../discord/setRoles.js";
 import nameCleaner from "../general/nameClearer.js";
 import { escapeString } from "../general/utilities.js";
+import { clanJoinWelcomeMessages } from "../persistence/dataStore.js";
 let clanLogChannel = null;
 let generalLogChannel = null;
 const recentlyJoinedMembersIds = new Set();
-const welcomeMessageIds = new Map();
 export async function updateClanRolesWithLogging(result, join) {
     const [member, clanUserData, clanLogChannelRequest] = await Promise.all([
         client.getMember(result.discordId),
@@ -78,7 +78,7 @@ export async function updateClanRolesWithLogging(result, join) {
                 }
                 const welcomeMessage = await generalLogChannel.send(`<a:d2ghost:732676128094814228> Приветствуем нового участника клана, ${member}!`);
                 await welcomeMessage.react("<:doge_hug:1073864905129721887>");
-                welcomeMessageIds.set(member.id, welcomeMessage);
+                clanJoinWelcomeMessages.set(member.id, welcomeMessage);
             }
             catch (error) {
                 console.error("[Error code: 1925]", error);
@@ -95,11 +95,11 @@ export async function updateClanRolesWithLogging(result, join) {
                 iconURL: member.displayAvatarURL(),
             })
                 .setColor(colors.kicked);
-            const welcomeMessage = welcomeMessageIds.get(member.id);
+            const welcomeMessage = clanJoinWelcomeMessages.get(member.id);
             if (welcomeMessage) {
                 welcomeMessage.edit("https://tenor.com/view/palla-deserto-desert-hot-gif-6014273");
                 welcomeMessage.reactions.removeAll();
-                welcomeMessageIds.delete(member.id);
+                clanJoinWelcomeMessages.delete(member.id);
             }
         }
     }

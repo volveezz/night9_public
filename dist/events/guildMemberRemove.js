@@ -4,7 +4,7 @@ import { client } from "../index.js";
 import { Event } from "../structures/event.js";
 import deleteLeavedUserData from "../utils/discord/deleteLeavedUserData.js";
 import kickLeavedUserFromRaids from "../utils/general/raidFunctions/kickLeavedMemberFromRaids.js";
-import { completedRaidsData } from "../utils/persistence/dataStore.js";
+import { clanJoinWelcomeMessages, completedRaidsData } from "../utils/persistence/dataStore.js";
 let guildMemberChannel = null;
 export default new Event("guildMemberRemove", async (member) => {
     if (member.guild.bans.cache.has(member.id))
@@ -39,12 +39,16 @@ export default new Event("guildMemberRemove", async (member) => {
         });
     }
     if (!guildMemberChannel)
-        guildMemberChannel =
-            client.getCachedTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID) ||
-                (await client.getTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID));
+        guildMemberChannel = await client.getTextChannel(process.env.GUILD_MEMBER_CHANNEL_ID);
     completedRaidsData.delete(member.id);
     const message = await guildMemberChannel.send({ embeds: [embed] });
     await deleteLeavedUserData({ discordMember: member, discordMessage: message });
+    const welcomeMessage = clanJoinWelcomeMessages.get(member.id);
+    if (welcomeMessage) {
+        welcomeMessage.edit("https://tenor.com/view/palla-deserto-desert-hot-gif-6014273");
+        welcomeMessage.reactions.removeAll();
+        clanJoinWelcomeMessages.delete(member.id);
+    }
     kickLeavedUserFromRaids(member);
 });
 //# sourceMappingURL=guildMemberRemove.js.map
