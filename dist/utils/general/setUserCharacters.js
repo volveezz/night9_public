@@ -3,6 +3,7 @@ import { userCharactersId } from "../persistence/dataStore.js";
 async function fetchCharacterStatsAndCache({ discordId, platform, bungieId, accessToken }) {
     if (!bungieId || !discordId || !platform) {
         console.trace(`[Error code: 2003] Found missing data for ${discordId} during caching characters`);
+        return;
     }
     try {
         const statsRequestUrl = `/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`;
@@ -17,13 +18,7 @@ async function fetchCharacterStatsAndCache({ discordId, platform, bungieId, acce
         userCharactersId.set(discordId, validCharacters);
     }
     catch (error) {
-        const { bungieId, statusCode } = error;
-        if (statusCode >= 400 || statusCode <= 599) {
-            console.error(`[Error code: 1017] ${statusCode} error for ${bungieId}`);
-        }
-        else {
-            console.error("[Error code: 1241]", error.error?.message || error.error?.name || error.message || error.name, bungieId, statusCode);
-        }
+        console.error("[Error code: 1241]", error.error?.message || error.error?.name || error.message || error.name, bungieId, error.statusCode);
     }
 }
 export default fetchCharacterStatsAndCache;

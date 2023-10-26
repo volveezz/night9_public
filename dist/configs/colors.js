@@ -1,5 +1,5 @@
 const colors = {
-    default: "#CD1ECF",
+    default: "#dcc4ae",
     serious: "#0077C9",
     warning: "#ffca28",
     error: "#DC3545",

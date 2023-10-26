@@ -1,4 +1,4 @@
-import { ActivityType, ChannelType, Client, Collection, GatewayIntentBits, GuildMember, Partials, TextChannel, } from "discord.js";
+import { ActivityType, ChannelType, Client, Collection, GatewayIntentBits, GuildMember, Partials, TextChannel, User, } from "discord.js";
 import { join, resolve } from "path";
 import checkClanActivitiesPeriodically from "../core/periodicActivityChecker.js";
 import handleMemberStatistics from "../core/statisticsChecker/userStatisticsManagement.js";
@@ -103,7 +103,7 @@ export class ExtendedClient extends Client {
         if (memberOrId instanceof GuildMember)
             return memberOrId;
         const guild = await this.getGuild();
-        const memberId = typeof memberOrId === "string" ? memberOrId : memberOrId.user.id;
+        const memberId = typeof memberOrId === "string" ? memberOrId : memberOrId instanceof User ? memberOrId.id : memberOrId.user.id;
         const cachedMember = guild.members.cache.get(memberId);
         if (cachedMember)
             return cachedMember;

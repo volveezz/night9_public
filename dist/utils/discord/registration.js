@@ -1,12 +1,13 @@
-import { EmbedBuilder, Message } from "discord.js";
+import { EmbedBuilder, GuildMember, Message } from "discord.js";
 import icons from "../../configs/icons.js";
 import { logUserRegistrationAttempt } from "../logging/logUserRegistration.js";
 import { InitData } from "../persistence/sequelizeModels/initData.js";
-const clientId = process.env.BUNGIE_CLIENT_ID || "34432";
+const clientId = process.env.BUNGIE_CLIENT_ID;
 const EMBED_COLOR = "#cdf9ff";
 async function sendRegistrationLink(interaction) {
-    const user = interaction instanceof Message ? interaction.author : interaction.user;
-    const userId = user.id;
+    const member = (interaction.member instanceof GuildMember && interaction.member) ||
+        (interaction instanceof Message ? interaction.author : interaction.user);
+    const userId = member.id;
     const [request, created] = await InitData.findOrCreate({
         where: { discordId: userId },
         defaults: {
@@ -19,7 +20,7 @@ async function sendRegistrationLink(interaction) {
         .setAuthor({ name: "Нажмите на этот текст для перехода к авторизации", iconURL: icons.crossSave, url })
         .setColor(EMBED_COLOR)
         .setDescription(EMBED_DESCRIPTION);
-    logUserRegistrationAttempt(request.state, user, created);
+    logUserRegistrationAttempt(request.state, member, created).catch((_) => null);
     return embed;
 }
 export default sendRegistrationLink;

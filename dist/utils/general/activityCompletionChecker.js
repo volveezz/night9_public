@@ -2,12 +2,11 @@ import BungieAPIError from "../../structures/BungieAPIError.js";
 import { GetManifest } from "../api/ManifestManager.js";
 import { sendApiRequest } from "../api/sendApiRequest.js";
 import { getEndpointStatus, updateEndpointStatus } from "../api/statusCheckers/statusTracker.js";
-import { clanOnline, raidMilestoneHashes } from "../persistence/dataStore.js";
+import { clanOnline, completedPhases, raidMilestoneHashes } from "../persistence/dataStore.js";
 import { AuthData } from "../persistence/sequelizeModels/authData.js";
 import { getRaidDetails } from "./raidFunctions.js";
 import { getWeeklyRaidActivityHashes } from "./raidFunctions/gerWeeklyRaid.js";
 import { pause } from "./utilities.js";
-export const completedPhases = new Map();
 const activityDefinition = await GetManifest("DestinyActivityDefinition");
 const activityCompletionCurrentProfiles = new Map();
 const currentlyRunning = new Map();
@@ -28,13 +27,12 @@ export async function clanOnlineMemberActivityChecker() {
                 if (error instanceof BungieAPIError && error.errorCode) {
                     console.error(`[Error code: 2050] Received ${error.errorCode}/${error.errorStatus} error during checking ${platform}/${membershipId} of ${discordId}}`);
                     updateEndpointStatus("account", error.errorCode);
+                    break;
                 }
-                else {
-                    console.error(`[Error code: 1997] Error during checking ${platform}/${membershipId} of ${discordId}`);
-                }
+                console.error(`[Error code: 1997] Error during checking ${platform}/${membershipId} of ${discordId}`);
                 continue;
             }
-            if (!response || !response.characterActivities) {
+            if (!response?.characterActivities) {
                 console.error(`[Error code: 1612] ${platform}/${membershipId} of ${discordId}`, response);
                 break;
             }
@@ -51,7 +49,7 @@ export async function clanOnlineMemberActivityChecker() {
                 const authData = await AuthData.findByPk(discordId, { attributes: ["platform", "bungieId", "accessToken"] });
                 const raidMilestoneHash = raidMilestoneHashes.get(activeCharacter.currentActivityHash);
                 if (!authData) {
-                    console.error(`[Error code: 1438] No authorization data for user ${membershipId}`, raidMilestoneHash, activeCharacter);
+                    console.error(`[Error code: 1438] No authorization data for user`, membershipId, raidMilestoneHash, activeCharacter);
                     continue;
                 }
                 if (!raidMilestoneHash) {
@@ -64,7 +62,7 @@ export async function clanOnlineMemberActivityChecker() {
                     platform,
                     raid: raidMilestoneHash,
                     discordId,
-                });
+                }).catch((_) => null);
             }
             await pause(3333);
         }
@@ -150,15 +148,26 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
         }
         const characterData = response?.activities?.data;
         const currentActivityHash = characterData?.currentActivityHash;
-        if (!characterData ||
-            !response?.activities?.data ||
-            (previousActivityHash && currentActivityHash !== previousActivityHash) ||
-            currentActivityHash === 82913930 ||
+        if (!response?.activities?.data || !response.progressions.data) {
+            console.error("[Error code: 2110] Error since the response wasn't fully completed", response);
+            stopActivityHashChecker();
+            return null;
+        }
+        if (discordId && !clanOnline.has(discordId)) {
+            console.error("[Error code: 2111] User is no longer offline so his data is called to delete", discordId);
+            stopActivityHashChecker();
+            return null;
+        }
+        if (previousActivityHash && currentActivityHash !== previousActivityHash) {
+            console.error("[Error code: 2112] Current activity hash is not equal to previous. Exiting", previousActivityHash, currentActivityHash);
+            stopActivityHashChecker();
+            return null;
+        }
+        if (currentActivityHash === 82913930 ||
             activityDefinition[currentActivityHash]?.activityTypeHash !== raidActivityModeHash ||
-            !response.progressions.data ||
             (previousActivityHash &&
-                !response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash)) ||
-            (discordId && !clanOnline.has(discordId))) {
+                !response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash))) {
+            console.error("[Error code: 2113] Exiting because of one of the many reasons...", currentActivityHash, activityDefinition[currentActivityHash]?.activityTypeHash, response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash));
             stopActivityHashChecker();
             return null;
         }
@@ -166,7 +175,7 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
             if (!previousActivityHash) {
                 previousActivityHash = currentActivityHash;
                 const updatedMilestoneActivity = response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash);
-                if (updatedMilestoneActivity && updatedMilestoneActivity.phases && areAllPhasesComplete(updatedMilestoneActivity.phases)) {
+                if (updatedMilestoneActivity?.phases && areAllPhasesComplete(updatedMilestoneActivity.phases)) {
                     stopActivityHashChecker();
                     return null;
                 }
@@ -189,10 +198,7 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
             return;
         const cachedMilestoneActivity = cachedMilestone.activities.find((i) => i.activityHash === previousActivityHash);
         const updatedMilestoneActivity = updatedMilestone.activities.find((i) => i.activityHash === previousActivityHash);
-        if (!cachedMilestoneActivity?.phases ||
-            !updatedMilestoneActivity?.phases ||
-            !updatedMilestoneActivity.phases[0] ||
-            !updatedMilestoneActivity.phases[0].phaseHash) {
+        if (!cachedMilestoneActivity?.phases || !updatedMilestoneActivity?.phases?.[0]?.phaseHash) {
             console.error("[Error code: 1645]", cachedMilestoneActivity, updatedMilestoneActivity);
             return;
         }

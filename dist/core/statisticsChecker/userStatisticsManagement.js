@@ -13,7 +13,7 @@ import { UserActivityData } from "../../utils/persistence/sequelizeModels/userAc
 import clanMembersManagement from "../clanMembersManagement.js";
 import assignDlcRoles from "./assignDlcRoles.js";
 import { triumphsChecker } from "./checkUserTriumphs.js";
-const throttleSet = new Set();
+let isThrottleRequired = false;
 async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessToken, displayName, roleCategoriesBits, UserActivityData: userActivity }, member, roleDataFromDatabase, isEasyCheck = false) {
     const roleIdsForAdding = [];
     const roleIdsForRemoval = [];
@@ -22,6 +22,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
     const response = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${bungieId}/?components=100,900,1100`, accessToken);
     if (!response) {
         console.error(`[Error code: 1751] Received error for ${platform}/${bungieId} ${displayName}`);
+        isThrottleRequired = true;
         return;
     }
     try {
@@ -34,7 +35,7 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                 bungieNames.set(discordId, `${bungieName ?? displayName}#${bungieCode}`);
             }
             const lastPlayedDate = new Date(dateLastPlayed).getTime();
-            if (Date.now() - lastPlayedDate > 1000 * 60 * 60 * 2)
+            if (Date.now() - lastPlayedDate > 1000 * 60 * 60)
                 longOffline.add(member.id);
             if (!hasRole(process.env.VERIFIED))
                 roleIdsForAdding.push(process.env.VERIFIED);
@@ -88,12 +89,12 @@ async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessT
                 });
             }
             if (roleCategoriesBits & 2 && response.metrics.data) {
-                const metrics = response.metrics.data.metrics["1765255052"]?.objectiveProgress.progress;
+                const metrics = response.metrics.data.metrics["1765255052"]?.objectiveProgress?.progress;
                 if (metrics == null || isNaN(metrics)) {
                     console.error(`[Error code: 1227] ${metrics} ${member.displayName}`, response.metrics.data.metrics["1765255052"]?.objectiveProgress);
                     return;
                 }
-                if (metrics > 0) {
+                else if (metrics > 0) {
                     for (const step of trialsRoles.roles) {
                         if (step.totalFlawless <= metrics) {
                             if (!hasRole(trialsRoles.category))
@@ -166,16 +167,16 @@ async function checkUserKDRatio({ platform, bungieId, accessToken }, member) {
     try {
         const request = await sendApiRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Stats/?groups=1`, accessToken);
         if (!request) {
-            throttleSet.add(member.id);
+            isThrottleRequired = true;
             return;
         }
-        if (!request.mergedAllCharacters || !request.mergedAllCharacters?.results) {
-            throttleSet.add(member.id);
+        if (!request.mergedAllCharacters?.results) {
+            isThrottleRequired = true;
             console.error(`[Error code: 1634] Got error ${request?.ErrorStatus} during checking KD of ${member.displayName}`);
             return;
         }
         if (!request.mergedAllCharacters.results.allPvP.allTime ||
-            !request?.mergedAllCharacters?.results?.allPvP?.allTime?.killsDeathsRatio?.basic.value)
+            !request.mergedAllCharacters.results.allPvP.allTime.killsDeathsRatio?.basic?.value)
             return await member.roles.add([statisticsRoles.allKd[statisticsRoles.allKd.length - 1], process.env.STATISTICS_CATEGORY]);
         for (const step of statisticsRoles.kd) {
             if (step.kd <= request?.mergedAllCharacters?.results?.allPvP?.allTime?.killsDeathsRatio?.basic.value) {
@@ -205,7 +206,7 @@ async function checkUserKDRatio({ platform, bungieId, accessToken }, member) {
             console.error(`[Error code: 1219] ${e.statusCode} error for ${bungieId}`);
         }
         else {
-            throttleSet.add(member.id);
+            isThrottleRequired = true;
             console.error("[Error code: 1016]", e.error?.message || e.message || e.error?.name || e.name, bungieId, e.statusCode || e, e?.ErrorStatus);
         }
     }
@@ -274,68 +275,70 @@ async function handleMemberStatistics() {
                 return console.error(`[Error code: 1022] DB is ${validatedDatabaseData ? `${validatedDatabaseData.length} size` : "not available"}`);
             }
             async function processUsers() {
-                if (getEndpointStatus("account") === 1) {
-                    for (let i = 0; i < validatedDatabaseData.length; i++) {
-                        const userDatabaseData = validatedDatabaseData[i];
-                        const { discordId, displayName, roleCategoriesBits } = userDatabaseData;
-                        const randomValue = Math.floor(Math.random() * 100);
-                        if (throttleSet.has(discordId))
-                            return throttleSet.delete(discordId);
-                        if (longOffline.has(discordId)) {
-                            if (randomValue >= 90 || clanOnline.has(discordId))
-                                longOffline.delete(discordId);
-                            continue;
+                if (getEndpointStatus("account") !== 1)
+                    return;
+                for (const userData of validatedDatabaseData) {
+                    const { discordId, displayName, roleCategoriesBits } = userData;
+                    const randomValue = Math.floor(Math.random() * 100);
+                    if (isThrottleRequired) {
+                        isThrottleRequired = false;
+                        return;
+                    }
+                    else if (longOffline.has(discordId)) {
+                        if (randomValue > 90 || clanOnline.has(discordId))
+                            longOffline.delete(discordId);
+                        continue;
+                    }
+                    const member = cachedMembers.get(discordId);
+                    if (!member) {
+                        await client.getCachedGuild().members.fetch();
+                        console.error(`[Error code: 1023] Member ${displayName} not found`);
+                        continue;
+                    }
+                    if (member.roles.cache.has(process.env.CLANMEMBER) ||
+                        (userData.UserActivityData && (userData.UserActivityData.voice > 120 || userData.UserActivityData.messages > 5))) {
+                        switch (true) {
+                            case randomValue <= 30:
+                                checkUserStats();
+                                checkCompletedRaidStats();
+                                break;
+                            case randomValue <= 45:
+                                checkUserStats();
+                                break;
+                            case randomValue < 60:
+                                checkUserStats();
+                                checkTrialsKDStats();
+                                break;
+                            case randomValue <= 80:
+                                checkUserStats();
+                                break;
+                            default:
+                                checkUserKDRatioStats();
+                                break;
                         }
-                        const member = cachedMembers.get(discordId);
-                        if (!member) {
-                            await client.getCachedGuild().members.fetch();
-                            console.error(`[Error code: 1023] Member ${displayName} not found`);
-                            continue;
+                        await pause(1000);
+                    }
+                    else if (!userData.UserActivityData) {
+                        console.error("[Error code: 2114] User has no user activity data", userData.discordId);
+                    }
+                    function checkUserStats() {
+                        checkUserStatisticsRoles(userData, member, autoRoleData);
+                    }
+                    function checkUserKDRatioStats() {
+                        if (roleCategoriesBits & 1) {
+                            checkUserKDRatio(userData, member);
                         }
-                        if (member.roles.cache.has(process.env.CLANMEMBER) ||
-                            (userDatabaseData.UserActivityData &&
-                                (userDatabaseData.UserActivityData.voice > 120 || userDatabaseData.UserActivityData.messages > 5))) {
-                            const randomValue = Math.floor(Math.random() * 100);
-                            switch (true) {
-                                case randomValue <= 30:
-                                    checkUserStats();
-                                    checkCompletedRaidStats();
-                                    break;
-                                case randomValue <= 45:
-                                    checkUserStats();
-                                    break;
-                                case randomValue < 60:
-                                    checkUserStats();
-                                    checkTrialsKDStats();
-                                    break;
-                                case randomValue <= 80:
-                                    checkUserStats();
-                                    break;
-                                default:
-                                    checkUserKDRatioStats();
-                                    break;
-                            }
-                            await pause(1000);
+                    }
+                    function checkCompletedRaidStats() {
+                        if (member.roles.cache.hasAny(process.env.CLANMEMBER, process.env.MEMBER)) {
+                            destinyActivityChecker({ authData: userData, member, mode: 4 });
                         }
-                        function checkUserStats() {
-                            checkUserStatisticsRoles(userDatabaseData, member, autoRoleData);
-                        }
-                        function checkUserKDRatioStats() {
-                            if (roleCategoriesBits & 1) {
-                                checkUserKDRatio(userDatabaseData, member);
-                            }
-                        }
-                        function checkCompletedRaidStats() {
-                            if (member.roles.cache.hasAny(process.env.CLANMEMBER, process.env.MEMBER)) {
-                                destinyActivityChecker({ authData: userDatabaseData, member, mode: 4 });
-                            }
-                        }
-                        function checkTrialsKDStats() {
-                            if (roleCategoriesBits & 2 &&
-                                !member.roles.cache.has(trialsRoles.wintrader) &&
-                                member.roles.cache.has(trialsRoles.category)) {
-                                destinyActivityChecker({ authData: userDatabaseData, member, mode: 84 });
-                            }
+                    }
+                    function checkTrialsKDStats() {
+                        if (roleCategoriesBits & 2 &&
+                            !member.roles.cache.has(trialsRoles.wintrader) &&
+                            member.roles.cache.has(trialsRoles.category)) {
+                            destinyActivityChecker({ authData: userData, member, mode: 84 });
                         }
                     }
                 }

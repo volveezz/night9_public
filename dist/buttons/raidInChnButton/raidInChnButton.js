@@ -8,7 +8,8 @@ import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js"
 import nameCleaner from "../../utils/general/nameClearer.js";
 import { removeRaid } from "../../utils/general/raidFunctions.js";
 import sendRaidPrivateMessage from "../../utils/general/raidFunctions/privateMessage/sendPrivateMessage.js";
-import { stopFireteamCheckingSystem } from "../../utils/general/raidFunctions/raidFireteamChecker/raidFireteamChecker.js";
+import raidFireteamCheckerSystem, { stopFireteamCheckingSystem, } from "../../utils/general/raidFunctions/raidFireteamChecker/raidFireteamChecker.js";
+import updateFireteamCheckerNotify from "../../utils/general/raidFunctions/raidFireteamChecker/sendCheckerNotify.js";
 import { RaidEvent } from "../../utils/persistence/sequelizeModels/raidEvent.js";
 import moveRaidVoiceMembers from "./moveRaidVoiceMembersButton.js";
 import notifyInChannelButton from "./notifyInChannelButton.js";
@@ -105,6 +106,7 @@ const ButtonCommand = new Button({
             "raidInChnButton_delete",
             "raidInChnButton_resend",
             "raidInChnButton_fireteamChecker_cancel",
+            "raidInChnButton_fireteamChecker_start",
         ];
         if (!availableButtonCustomIds.includes(interaction.customId))
             return;
@@ -169,10 +171,12 @@ const ButtonCommand = new Button({
             case "raidInChnButton_fireteamChecker_cancel": {
                 requireParams({ deferredUpdate: true, interaction });
                 stopFireteamCheckingSystem(raidEvent.id);
-                const embed = EmbedBuilder.from(interaction.message.embeds[0])
-                    .setTitle("Система слежки за боевой группой отключена")
-                    .setColor(colors.invisible);
-                await interaction.message.edit({ embeds: [embed], components: [] });
+                await updateFireteamCheckerNotify(raidEvent, true);
+                return;
+            }
+            case "raidInChnButton_fireteamChecker_start": {
+                requireParams({ deferredUpdate: true, interaction });
+                await raidFireteamCheckerSystem(raidEvent.id);
                 return;
             }
         }

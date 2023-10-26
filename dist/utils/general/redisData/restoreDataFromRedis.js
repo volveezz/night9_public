@@ -1,7 +1,6 @@
 import { client } from "../../../index.js";
-import { channelDataMap, completedRaidsData } from "../../persistence/dataStore.js";
+import { channelDataMap, completedPhases, completedRaidsData } from "../../persistence/dataStore.js";
 import { redisClient } from "../../persistence/redis.js";
-import { completedPhases } from "../activityCompletionChecker.js";
 async function restoreDataFromRedis() {
     await Promise.all([restoreCompletedPhases(), restoreLfgChannelData(), restoreCompletedRaids()]);
     console.info("Data from Redis was restored!");

@@ -26,7 +26,8 @@ const AutocompleteFile = new Autocomplete({
             },
         ])
             .catch((e) => {
-            return console.error("[Error code: 1681]", e);
+            console.error("[Error code: 1681]", name, convertedTime);
+            console.error(e.stack || e);
         });
     },
 });

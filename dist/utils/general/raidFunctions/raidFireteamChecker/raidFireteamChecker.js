@@ -1,8 +1,7 @@
 import { RaidEvent } from "../../../persistence/sequelizeModels/raidEvent.js";
 import checkFireteamStatus from "./checkFireteamStatus.js";
 import getOngoingRaids from "./getOngoingRaids.js";
-import sendPrivateChannelNotify from "./sendCheckerNotify.js";
-const MINUTES_AFTER_RAID = 5;
+import updateFireteamCheckerNotify from "./sendCheckerNotify.js";
 const fireteamCheckingSystem = new Set();
 const notifyInitializerTimeoutMap = new Map();
 const notifyIntervalMap = new Map();
@@ -12,7 +11,7 @@ export function stopFireteamCheckingSystem(raidId) {
         const notifyInterval = notifyIntervalMap.get(raidId);
         notifyInitializerTimeoutMap.delete(raidId) && clearTimeout(notifyTimeout);
         notifyIntervalMap.delete(raidId) && clearInterval(notifyInterval);
-        fireteamCheckingSystem.delete(raidId);
+        fireteamCheckingSystem.delete(raidId) && updateFireteamCheckerNotify(raidId, true);
     }
     else {
         notifyInitializerTimeoutMap.forEach((timeout) => clearTimeout(timeout));
@@ -23,9 +22,7 @@ export function stopFireteamCheckingSystem(raidId) {
     }
 }
 async function raidFireteamCheckerSystem(raidId) {
-    if (process.env.NODE_ENV === "development")
-        return;
-    console.debug("Initializing fireteam checker");
+    console.debug("Initializing fireteam checker", raidId);
     stopFireteamCheckingSystem(raidId);
     const ongoingRaids = await getOngoingRaids(raidId);
     for (let i = 0; i < ongoingRaids.length; i++) {
@@ -41,13 +38,13 @@ async function raidFireteamChecker(raidParam) {
         return;
     fireteamCheckingSystem.add(raidId);
     const startTime = initialRaidTime * 1000;
-    const raidStartTimePlus5 = new Date(startTime + MINUTES_AFTER_RAID * 60 * 1000).getTime();
+    const raidStartTimePlus5 = new Date(startTime + 1000 * 60 * 5).getTime();
     console.debug(`Next step for raid ID: ${raidId} will be in ${(raidStartTimePlus5 - Date.now()) / 1000}s`);
     const timeout = setTimeout(async () => {
         console.debug("Processing with the next step for raid ID", raidId);
         try {
-            console.debug(`Trying to send a private channel notification for raid ID: ${raidId}`);
-            sendPrivateChannelNotify(initialRaidEvent);
+            console.debug("Trying to send a private channel notification for raid ID:", raidId);
+            updateFireteamCheckerNotify(initialRaidEvent, false);
         }
         catch (error) {
             console.error("[Error code: 1753]", error);

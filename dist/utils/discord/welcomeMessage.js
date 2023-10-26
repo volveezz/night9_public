@@ -3,6 +3,7 @@ import colors from "../../configs/colors.js";
 import { addButtonsToMessage } from "../general/addButtonsToMessage.js";
 import { escapeString, pause } from "../general/utilities.js";
 import { AuthData } from "../persistence/sequelizeModels/authData.js";
+const guildId = process.env.GUILD_ID;
 const welcomeEmbed = new EmbedBuilder()
     .setColor(colors.invisible)
     .setTitle(" Приветствуем Вас на сервере ")
@@ -16,15 +17,12 @@ const clanJoinEmbed = new EmbedBuilder()
 const nonClanMemberEmbed = new EmbedBuilder()
     .setColor(colors.invisible)
     .setTitle(" Я хочу ознакомиться с сервером ")
-    .setDescription(`Не проблема! Сервер доступен для всех - каждый может заходить во все [голосовые каналы](https://discord.com/channels/${process.env
-    .GUILD_ID}/604967226755383300), [записываться и создавать наборы](https://discord.com/channels/${process.env
-    .GUILD_ID}/677551388514844682), а также [писать в любом чате](https://discord.com/channels/${process.env
-    .GUILD_ID}/959129358314922044)`);
+    .setDescription(`Не проблема! Сервер доступен для всех - каждый может заходить во все [голосовые каналы](https://discord.com/channels/${guildId}/604967226755383300), [записываться и создавать наборы](https://discord.com/channels/${guildId}/677551388514844682), а также [писать в любом чате](https://discord.com/channels/${guildId}/959129358314922044)`);
 const questionsEmbed = new EmbedBuilder()
     .setColor(colors.invisible)
     .setTitle(" У меня есть вопросы по клану/серверу ")
-    .setDescription(`Вы можете задать их [в канале по вопросам](https://discord.com/channels/${process.env
-    .GUILD_ID}/694119710677008425) или написав лично лидеру клана <@${process.env.OWNER_ID}> ||(пишите даже если не в сети)||`);
+    .setDescription(`Вы можете задать их [в канале по вопросам](https://discord.com/channels/${guildId}/694119710677008425) или написав лично лидеру клана <@${process
+    .env.OWNER_ID}> ||(пишите даже если не в сети)||`);
 const components = [
     new ButtonBuilder().setCustomId("initEvent_register").setLabel("Регистрация").setStyle(ButtonStyle.Success),
     new ButtonBuilder().setCustomId("clanJoinEvent_modalBtn").setLabel("Форма на вступление").setStyle(ButtonStyle.Secondary),

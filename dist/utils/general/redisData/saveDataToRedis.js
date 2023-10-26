@@ -1,6 +1,5 @@
-import { channelDataMap, completedRaidsData } from "../../persistence/dataStore.js";
+import { channelDataMap, completedPhases, completedRaidsData } from "../../persistence/dataStore.js";
 import { redisClient } from "../../persistence/redis.js";
-import { completedPhases } from "../activityCompletionChecker.js";
 const EXPIRATION_TIMES = {
     ONE_HOUR: 60 * 60,
     HALF_HOUR: 60 * 30,

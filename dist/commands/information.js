@@ -25,11 +25,11 @@ const SlashCommand = new Command({
         type: ApplicationCommandType.User,
         nameLocalizations: { "en-US": "Information", "en-GB": "Information" },
     },
-    run: async ({ client, interaction: commandInteraction, userMenuInteraction: userInteraction, messageMenuInteraction: messageMenuInteraction, }) => {
+    run: async ({ client, interaction: commandInteraction, userMenuInteraction: userInteraction }) => {
         if (getEndpointStatus("account") !== 1) {
             throw { errorType: "API_UNAVAILABLE" };
         }
-        const interaction = messageMenuInteraction || userInteraction || commandInteraction;
+        const interaction = userInteraction || commandInteraction;
         const deferredPromise = interaction.deferReply({ ephemeral: true });
         const targetId = ("targetId" in interaction ? interaction.targetId : interaction.user.id);
         const databasePromise = AuthData.findOne({
@@ -39,14 +39,18 @@ const SlashCommand = new Command({
             include: { model: UserActivityData },
             attributes: ["platform", "bungieId", "accessToken", "membershipId"],
         });
-        const memberPromise = client.getCachedMembers().get(targetId) || client.getMember(targetId);
+        const memberPromise = client.getMember(userInteraction?.targetMember || targetId);
         const [targetMember, databaseData] = await Promise.all([memberPromise, databasePromise]);
-        if (!databaseData) {
+        if (!targetMember) {
+            await deferredPromise;
+            throw { errorType: "MEMBER_NOT_FOUND" };
+        }
+        else if (!databaseData) {
             await deferredPromise;
             throw { errorType: "DB_USER_NOT_FOUND", errorData: { isSelf: interaction.user.id === targetId } };
         }
-        const targetName = targetMember && targetMember.displayName;
-        const targetAvatar = targetMember && targetMember.displayAvatarURL();
+        const targetName = targetMember.displayName;
+        const targetAvatar = targetMember.displayAvatarURL();
         const bunigeName = bungieNames.get(targetId || interaction.user.id);
         const embed = new EmbedBuilder()
             .setAuthor({
@@ -138,12 +142,11 @@ const SlashCommand = new Command({
                 console.error(`[Error code: 1059] ${platform}/${bungieId}`, e);
             }
         };
-        await Promise.all([fetchProfileAndCharacters(), fetchClanData()]);
-        (await deferredPromise) &&
-            interaction.editReply({
-                embeds: [embed],
-                components: addButtonsToMessage(components),
-            });
+        await Promise.all([fetchProfileAndCharacters(), fetchClanData(), deferredPromise]);
+        interaction.editReply({
+            embeds: [embed],
+            components: addButtonsToMessage(components),
+        });
     },
 });
 export default SlashCommand;

@@ -6,11 +6,10 @@ import getClanMemberData from "../utils/api/getClanMemberData.js";
 import kickClanMember from "../utils/api/kickClanMember.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { getEndpointStatus, updateEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
-import { completedPhases } from "../utils/general/activityCompletionChecker.js";
 import checkUserRequirements from "../utils/general/newbieRequirementsChecker/checkUserRequirements.js";
 import notifyUserNotMeetRequirements from "../utils/general/newbieRequirementsChecker/notifyUserNotMeetRequirements.js";
 import { updateClanRolesWithLogging } from "../utils/logging/clanEventLogger.js";
-import { bungieNames, clanOnline, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, userCharactersId, } from "../utils/persistence/dataStore.js";
+import { bungieNames, clanOnline, completedPhases, recentlyExpiredAuthUsersBungieIds, recentlyNotifiedKickedMembers, userCharactersId, } from "../utils/persistence/dataStore.js";
 let lastLoggedErrorCode = 1;
 let pastInitialLaunch = false;
 async function updateClientPresence(errorCode) {
