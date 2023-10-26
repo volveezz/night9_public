@@ -1,4 +1,4 @@
-import { ActivityType, ChannelType, Client, Collection, GatewayIntentBits, GuildMember, Partials, TextChannel, User, } from "discord.js";
+import { ActivityType, Client, Collection, GatewayIntentBits, GuildMember, Partials, TextChannel, User, } from "discord.js";
 import { join, resolve } from "path";
 import checkClanActivitiesPeriodically from "../core/periodicActivityChecker.js";
 import handleMemberStatistics from "../core/statisticsChecker/userStatisticsManagement.js";
@@ -6,7 +6,8 @@ import tokenManagment from "../core/tokenManagement.js";
 import fetchNewsArticles from "../utils/api/bungieRssFetcher.js";
 import { fetchGlobalAlerts } from "../utils/api/globalAlertsFetcher.js";
 import { startRssFetcher } from "../utils/api/rssHandler.js";
-import { voiceChannelJoinTimestamps } from "../utils/discord/userActivityHandler.js";
+import { cacheGuildsVoiceAndMessagesData } from "../utils/discord/initializeVoiceActivity.js";
+import { fetchVexIncursionChannelMessages, removeNewsChannelOriginalButtons } from "../utils/discord/restoreMessageFunctions.js";
 import { clanOnlineMemberActivityChecker } from "../utils/general/activityCompletionChecker.js";
 import { updateActivityCache } from "../utils/general/cacheAvailableActivities.js";
 import cacheRaidMilestones from "../utils/general/cacheRaidMilestones.js";
@@ -56,13 +57,13 @@ export class ExtendedClient extends Client {
         this.start();
     }
     async start() {
-        const seqPromise = import("../utils/persistence/sequelize.js");
-        await Promise.all([this.login(process.env.TOKEN), seqPromise]);
+        const sequelizeImport = import("../utils/persistence/sequelize.js");
+        await Promise.all([this.login(process.env.TOKEN), sequelizeImport]);
+        this.registerModules();
         this.user.setPresence({
             activities: [this.activities[Math.floor(Math.random() * this.activities.length)]],
             status: "idle",
         });
-        this.registerModules();
     }
     startUpdatingPresence() {
         this.updatePresence();
@@ -131,6 +132,12 @@ export class ExtendedClient extends Client {
             return fetchedTextChannel;
         console.error(`[Error code: 2036] Text channel not found: ${channelId}`);
         throw { errorType: "CHANNEL_NOT_FOUND" };
+    }
+    getCachedGuildChannel(channelOrId) {
+        if (typeof channelOrId !== "string")
+            return channelOrId;
+        const channelId = channelOrId;
+        return this.getCachedGuild().channels.cache.get(channelId);
     }
     getCachedTextChannel(channelOrId) {
         if (channelOrId instanceof TextChannel)
@@ -257,7 +264,7 @@ export class ExtendedClient extends Client {
                 restoreDataFromRedis(),
                 VoteSystem.getInstance().init(),
                 LFGController.getInstance().init(),
-                this.fetchMembersAndMessages(),
+                cacheGuildsVoiceAndMessagesData(),
                 updateActivityCache(),
             ]);
         });
@@ -274,67 +281,35 @@ export class ExtendedClient extends Client {
         await pause(5000);
         this.startUpdatingPresence();
         await pause(1000);
-        tokenManagment();
+        tokenManagment().catch((error) => console.error("Received an error from the main function 1", error));
         await pause(1000);
-        clanOnlineMemberActivityChecker();
+        clanOnlineMemberActivityChecker().catch((error) => console.error("Received an error from the main function 2", error));
         await pause(1000);
-        checkClanActivitiesPeriodically();
+        checkClanActivitiesPeriodically().catch((error) => console.error("Received an error from the main function 3", error));
         await pause(1000);
-        handleMemberStatistics();
+        handleMemberStatistics().catch((error) => console.error("Received an error from the main function 4", error));
         await pause(1000);
-        restoreFetchedPGCRs();
+        restoreFetchedPGCRs().catch((error) => console.error("Received an error from the main function 5", error));
         await pause(1000);
-        loadNotifications();
+        loadNotifications().catch((error) => console.error("Received an error from the main function 6", error));
         await pause(2000);
-        cacheRaidMilestones();
+        cacheRaidMilestones().catch((error) => console.error("Received an error from the main function 7", error));
         await pause(2000);
         await pause(2000);
-        raidFireteamCheckerSystem();
+        raidFireteamCheckerSystem().catch((error) => console.error("Received an error from the main function 8", error));
         await pause(1000);
-        import("../core/guildNicknameManagement.js");
+        import("../core/guildNicknameManagement.js").catch((error) => console.error("Received an error from the main function 9", error));
         await pause(1000 * 15);
-        startRssFetcher();
+        startRssFetcher().catch((error) => console.error("Received an error from the main function 10", error));
         await pause(2000);
+        removeNewsChannelOriginalButtons().catch((error) => console.error("Received an error from the main function 11", error));
+        await pause(1000);
+        fetchVexIncursionChannelMessages().catch((error) => console.error("Received an error from the main function 12", error));
+        await pause(1000);
         setTimeout(() => {
             fetchGlobalAlerts();
-            fetchNewsArticles();
+            fetchNewsArticles().catch((error) => console.error("Received an error from the main function 13", error));
         }, 1000 * 60);
-    }
-    async fetchMembersAndMessages() {
-        await pause(1000);
-        this.guild.channels.cache.forEach(async (channel) => {
-            if (channel.type === ChannelType.GuildVoice && channel.id !== this.guild.afkChannelId) {
-                channel.members.forEach((member) => {
-                    if (member.user.bot)
-                        return;
-                    voiceChannelJoinTimestamps.set(member.id, Date.now());
-                });
-            }
-            if (channel.isTextBased()) {
-                if (channel.id === process.env.ENGLISH_NEWS_CHANNEL_ID) {
-                    setTimeout(() => {
-                        channel.messages.fetch({ limit: 100 }).then(async (messages) => {
-                            const messageWithButtons = messages.filter((m) => m.components?.[0]?.components?.[0]?.customId === "twitter_showOriginal" &&
-                                m.createdTimestamp < this.readyTimestamp);
-                            for (const [_, message] of messageWithButtons) {
-                                await message.edit({ components: [] });
-                            }
-                        });
-                    }, 1000 * 30);
-                    return;
-                }
-                else {
-                    setTimeout(async () => {
-                        try {
-                            await channel.messages.fetch({ limit: 15 });
-                        }
-                        catch (error) {
-                            console.error(`[Error code: 1991] Looks like channel ${channel.name} was deleted during caching messages. Error: ${error.code}`);
-                        }
-                    }, 10000 * Math.random());
-                }
-            }
-        });
     }
 }
 //# sourceMappingURL=client.js.map

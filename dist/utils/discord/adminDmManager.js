@@ -8,7 +8,7 @@ async function sendDirectMessage(member, isEmbed, content, originatingMessage) {
     try {
         const sentMessage = await (isEmbed
             ? member.send({
-                embeds: [new EmbedBuilder().setColor(colors.default).setDescription(content || "nothing")],
+                embeds: [new EmbedBuilder().setColor(colors.default).setDescription(content)],
             })
             : member.send(content));
         originatingMessage.delete();
@@ -42,10 +42,7 @@ export async function manageAdminDMChannel(message) {
     const lastDM = lastOpenedDM.get(message.author.id);
     if (!isSnowflake(userId) && !lastDM)
         return;
-    const guild = message.guild || client.getCachedGuild();
-    const member = (isSnowflake(userId) && !lastDM) || (isSnowflake(userId) && userId !== lastDM?.id)
-        ? guild.members.cache.get(userId) || client.getCachedMembers().get(userId) || (await client.getCachedGuild().members.fetch(userId))
-        : lastDM;
+    const member = (isSnowflake(userId) && !lastDM) || (isSnowflake(userId) && userId !== lastDM?.id) ? await client.getMember(userId) : lastDM;
     if (member && isSnowflake(userId) && userId === member.id) {
         messageContent = messageContent.slice(userId.length).trim();
     }

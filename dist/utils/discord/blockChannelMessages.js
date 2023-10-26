@@ -7,7 +7,7 @@ let recentlyNotified = false;
 async function blockChannelMessage(message) {
     const { channel, author } = message;
     setTimeout(() => {
-        message.delete().catch((e) => { });
+        message.delete().catch((_) => null);
     }, 1000 * 5);
     if (notifiedUsers.has(author.id))
         return;

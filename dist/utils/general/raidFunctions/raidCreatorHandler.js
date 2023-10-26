@@ -179,22 +179,22 @@ async function raidCreatorTransition(member, raid) {
             .setDescription("Вы получили эти права поскольку предыдущий создатель покинул рейд\n\nСоздатель рейда - участник, который имеет повышенные права в рейде\nСоздатель рейда может:\n- Изменять рейд, в который идет набор\n- Изменять время, требования по закрытым рейдам для записи, описание набора")
             .addFields({
             name: "Передача прав на рейд другому участнику",
-            value: "⁣　`/рейд изменить новый-создатель:`\n　`/raid edit new-creator:`",
+            value: "⁣　</рейд изменить:1167214345734864991> `новый-создатель:`\n　</raid edit:1167214345734864991> `new-creator:`",
         }, {
             name: "Изменение времени набора",
-            value: "⁣　`/рейд изменить новое-время:ВРЕМЯ_В_ФОРМАТЕ`\n　`/raid edit new-time:ВРЕМЯ_В_ФОРМАТЕ`\nВместо `ВРЕМЯ_В_ФОРМАТЕ` - необходимо указать время в следующем формате: `ЧАС:МИНУТЫ ДЕНЬ/МЕСЯЦ` (т.е. время разделяется двоеточием `:`, а дата точкой или слешем `/`)",
+            value: "⁣　</рейд изменить:1167214345734864991> `новое-время:ВРЕМЯ_В_ФОРМАТЕ`\n　</raid edit::1167214345734864991> `new-time:ВРЕМЯ_В_ФОРМАТЕ`\nВместо `ВРЕМЯ_В_ФОРМАТЕ` - необходимо указать время в следующем формате: `ЧАС:МИНУТЫ ДЕНЬ/МЕСЯЦ` (т.е. время разделяется двоеточием `:`, а дата точкой или слешем `/`)",
         });
         try {
             await member.send({ embeds: [embed] });
         }
         catch (error) {
             if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
-                const privateRaidChannel = client.getCachedTextChannel(raid.channelId) || (await client.getCachedGuild().channels.fetch(raid.channelId));
+                const privateRaidChannel = await client.getTextChannel(raid.channelId);
                 const modifiedDescription = embed.data.description?.slice(11);
                 embed
                     .setAuthor({ name: `${nameCleaner(member.displayName)} получил права на этот рейд`, url: embed.data.author?.url })
                     .setDescription("Он получил" + modifiedDescription);
-                privateRaidChannel.send({ embeds: [embed], content: `<@${member.id}>` });
+                await privateRaidChannel.send({ embeds: [embed], content: `<@${member.id}>` });
             }
             else {
                 console.error("[Error code: 1975]", error);

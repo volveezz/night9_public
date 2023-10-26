@@ -13,12 +13,11 @@ const ButtonCommand = new Button({
         if (!channelId) {
             throw { name: "Ошибка при указании Id канала", message: "Сообщите администрации об этой ошибке" };
         }
-        const guild = await client.getGuild();
-        const channel = guild.channels.cache.get(channelId) || (await guild.channels.fetch(channelId));
+        const channel = client.getCachedGuildChannel(channelId);
         if (!channel) {
             throw { errorType: "CHANNEL_NOT_FOUND" };
         }
-        if (isThreadChannel(channel)) {
+        else if (isThreadChannel(channel)) {
             return;
         }
         const permissionsStatus = !channel.permissionsFor(interaction.user.id)?.has("ViewChannel");
@@ -27,7 +26,7 @@ const ButtonCommand = new Button({
             name: `Вы ${permissionsStatus ? "получили" : "забрали свой"} доступ к каналу ${channel.name}`,
             iconURL: permissionsStatus ? icons.success : icons.close,
         });
-        interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], ephemeral: true });
     },
 });
 export default ButtonCommand;
