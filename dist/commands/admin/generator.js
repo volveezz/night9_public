@@ -18,7 +18,7 @@ const SlashCommand = new Command({
                     name: "code",
                     description: "Generate embed from code",
                     options: [
-                        { type: ApplicationCommandOptionType.String, name: "embed_code", description: "Embed code", required: true },
+                        { type: ApplicationCommandOptionType.String, name: "embed-code", description: "Embed code", required: true },
                         {
                             type: ApplicationCommandOptionType.String,
                             name: "message-id",
@@ -30,7 +30,7 @@ const SlashCommand = new Command({
                     type: ApplicationCommandOptionType.Subcommand,
                     name: "preset",
                     description: "Create an embed from a pre-defined preset",
-                    options: [{ type: ApplicationCommandOptionType.String, name: "preset_name", description: "Preset name", required: true }],
+                    options: [{ type: ApplicationCommandOptionType.String, name: "preset-name", description: "Preset name", required: true }],
                 },
             ],
         },
@@ -83,7 +83,7 @@ const SlashCommand = new Command({
         if (subcommandGroup === "embed") {
             const subcommand = args.getSubcommand();
             if (subcommand === "code") {
-                const embedCode = args.getString("embed_code", false);
+                const embedCode = args.getString("embed-code", false);
                 const messageId = args.getString("message-id");
                 const channelId = args.getString("channelId");
                 const embedChannel = await client.getTextChannel(interaction.channel || channelId);
@@ -138,7 +138,7 @@ const SlashCommand = new Command({
                 }
             }
             else if (subcommand === "preset") {
-                const presetName = args.getString("preset_name", true);
+                const presetName = args.getString("preset-name", true);
                 const preset = await getPreset(presetName);
                 if (!preset) {
                     throw { name: "Ошибка", description: `Искомый пресет \`${presetName}\` не найден` };

@@ -209,19 +209,11 @@ const SlashCommand = new Command({
         switch (subcommand) {
             case "fetch": {
                 const jsonMessage = JSON.stringify(message.toJSON(), null, 2);
-                if (jsonMessage.length > 2000) {
-                    const jsonFile = new AttachmentBuilder(Buffer.from(jsonMessage), { name: "message.json", description: "Message JSON file" });
-                    await interaction.reply({
-                        files: [jsonFile],
-                        ephemeral: true,
-                    });
-                }
-                else {
-                    await interaction.reply({
-                        content: `\`\`\`json\n${jsonMessage}\n\`\`\``,
-                        ephemeral: true,
-                    });
-                }
+                const jsonFile = new AttachmentBuilder(Buffer.from(jsonMessage), { name: "message.json", description: "Message JSON file" });
+                await interaction.reply({
+                    files: [jsonFile],
+                    ephemeral: true,
+                });
                 break;
             }
             case "delete": {
