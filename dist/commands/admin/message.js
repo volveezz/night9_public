@@ -229,7 +229,11 @@ const SlashCommand = new Command({
                 let content = args.getString("content") ?? undefined;
                 const embed = args.getString("embed");
                 const parsedEmbed = embed ? JSON.parse(embed) : null;
-                const embeds = parsedEmbed ? (Array.isArray(parsedEmbed) ? parsedEmbed : [parsedEmbed]) : undefined;
+                const embeds = parsedEmbed
+                    ? Array.isArray(parsedEmbed)
+                        ? parsedEmbed
+                        : [parsedEmbed.embeds || parsedEmbed.embed || parsedEmbed]
+                    : undefined;
                 if (content && ["null", "delete", "deleted", "удалить", "-", "undefined"].includes(content)) {
                     content = null;
                 }

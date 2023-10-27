@@ -6,9 +6,7 @@ const notifiedUsers = new Set();
 let recentlyNotified = false;
 async function blockChannelMessage(message) {
     const { channel, author } = message;
-    setTimeout(() => {
-        message.delete().catch((_) => null);
-    }, 1000 * 5);
+    setTimeout(() => message.delete().catch((_) => null), 1000 * 5);
     if (notifiedUsers.has(author.id))
         return;
     notifiedUsers.add(author.id);
@@ -25,9 +23,12 @@ async function blockChannelMessage(message) {
         notifyEmbed.setDescription(`В этом канале можно отправлять лишь сообщения, относящиеся к созданию сборов.\nПо вопросам создания сборов обращайтесь к <@${process
             .env.OWNER_ID}>\nПо вопросам созданных сборов обращайтесь к создателю сбора`);
     }
+    else {
+        notifyEmbed.setDescription("В этом канале нельзя отправлять сообщения. Сама возможность отправки есть для удобства ввода команд");
+    }
     const notifyMessage = await channel.send({ embeds: [notifyEmbed] });
     await pause(1000 * 10);
-    await notifyMessage.delete().catch((e) => { });
+    await notifyMessage.delete().catch((_) => null);
     recentlyNotified = false;
 }
 export default blockChannelMessage;

@@ -93,7 +93,7 @@ const SlashCommand = new Command({
                     if (embedCode) {
                         let parsedJSON = JSON.parse(embedCode);
                         content = parsedJSON.content || undefined;
-                        const embedPath = parsedJSON.embed || parsedJSON.embeds;
+                        const embedPath = parsedJSON.embed || parsedJSON.embeds || parsedJSON;
                         if (embedPath) {
                             if (Array.isArray(embedPath)) {
                                 embeds = embedPath.map((embedJSON) => EmbedBuilder.from(embedJSON));
