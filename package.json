@@ -1,6 +1,6 @@
 {
 	"name": "nightfuture",
-	"version": "2.21.13.7",
+	"version": "2.21.13.8",
 	"engines": {
 		"node": "18.x"
 	},
@@ -22,7 +22,7 @@
 		"lodash": "^4.17.21",
 		"node-cron": "^3.0.2",
 		"node-fetch": "^3.3.2",
-		"openai": "^4.12.3",
+		"openai": "^4.14.1",
 		"pg": "^8.11.3",
 		"pg-hstore": "^2.3.4",
 		"redis": "^4.6.10",

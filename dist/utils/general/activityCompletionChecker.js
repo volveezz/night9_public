@@ -124,17 +124,27 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
     let previousActivityHash;
     let uniqueId = id || Math.floor(Math.random() * 1000);
     let isDataIsBeingDeleted = false;
-    const stopActivityHashChecker = () => {
+    const stopActivityHashChecker = ({ forceDelete, forceStop }) => {
         if (isDataIsBeingDeleted)
             return;
         isDataIsBeingDeleted = true;
         const cachedData = completedPhases.get(characterId);
-        setTimeout(() => {
+        if (forceStop) {
             clearInterval(interval);
             currentlyRunning.delete(uniqueId);
             activityCompletionCurrentProfiles.delete(characterId);
+        }
+        if (forceDelete) {
+            completedPhases.delete(characterId);
+        }
+        setTimeout(() => {
+            if (!forceStop) {
+                clearInterval(interval);
+                currentlyRunning.delete(uniqueId);
+                activityCompletionCurrentProfiles.delete(characterId);
+            }
             const traceError = new Error(`StopActivityHashChecker called at:`);
-            if (completedPhases.has(characterId) && completedPhases.get(characterId) === cachedData) {
+            if (!forceDelete && completedPhases.has(characterId) && completedPhases.get(characterId) === cachedData) {
                 console.debug(`Completed phases data for ${platform}/${bungieId}/${characterId} | ${discordId} was deleted at`, traceError.stack);
                 completedPhases.delete(characterId);
             }
@@ -147,25 +157,25 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
             characterId,
             platform,
         });
-        if (!response || !response.activities || !response.progressions.data.milestones[milestoneHash].activities) {
-            stopActivityHashChecker();
+        if (!response?.activities?.data?.currentActivityHash || !response.progressions.data?.milestones[milestoneHash].activities) {
+            stopActivityHashChecker({});
             return;
         }
         const characterData = response?.activities?.data;
         const currentActivityHash = characterData?.currentActivityHash;
         if (!response?.activities?.data || !response.progressions.data) {
             console.error("[Error code: 2110] Error since the response wasn't fully completed", response);
-            stopActivityHashChecker();
+            stopActivityHashChecker({ forceStop: true });
             return;
         }
         if (discordId && !clanOnline.has(discordId)) {
-            console.error("[Error code: 2111] User is no longer offline so his data is called to delete", discordId);
-            stopActivityHashChecker();
+            console.error("[Error code: 2111] User is no longer online so his data is called to be deleted", discordId);
+            stopActivityHashChecker({ forceStop: true });
             return;
         }
         if (previousActivityHash && currentActivityHash !== previousActivityHash) {
             console.error("[Error code: 2112] Current activity hash is not equal to previous. Exiting", previousActivityHash, currentActivityHash);
-            stopActivityHashChecker();
+            stopActivityHashChecker({});
             return;
         }
         if (currentActivityHash === 82913930 ||
@@ -173,7 +183,7 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
             (previousActivityHash &&
                 !response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash))) {
             console.error("[Error code: 2113] Exiting because of one of the many reasons...", currentActivityHash, activityDefinition[currentActivityHash]?.activityTypeHash, response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash));
-            stopActivityHashChecker();
+            stopActivityHashChecker({});
             return;
         }
         try {
@@ -181,7 +191,7 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
                 previousActivityHash = currentActivityHash;
                 const updatedMilestoneActivity = response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash);
                 if (updatedMilestoneActivity?.phases && areAllPhasesComplete(updatedMilestoneActivity.phases)) {
-                    stopActivityHashChecker();
+                    stopActivityHashChecker({ forceStop: true });
                     return;
                 }
             }
@@ -249,7 +259,7 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
                     }
                 }
                 else {
-                    stopActivityHashChecker();
+                    stopActivityHashChecker({ forceStop: true });
                 }
                 completedPhases.set(characterId, alreadyCompletedPhases);
                 break;
