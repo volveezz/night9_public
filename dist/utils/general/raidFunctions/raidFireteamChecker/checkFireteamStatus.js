@@ -145,11 +145,6 @@ async function checkFireteamRoster(voiceChannelMembersAuthData, raidName, raidId
                 if ((currentActivityModeType && currentActivityModeType === 4) ||
                     (currentActivityModeTypes && currentActivityModeTypes.includes(4)) ||
                     (!currentActivityModeType && getRaidNameFromHash(currentActivityHash) !== "unknown")) {
-                    const activityName = getRaidNameFromHash(currentActivityHash).replace("Master", "");
-                    if (activityName !== raidName) {
-                        console.debug(`Character ${characterId} is in ${activityName} instead of ${raidName}`);
-                        continue;
-                    }
                     return partyMembers;
                 }
             }

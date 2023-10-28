@@ -125,10 +125,6 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
     let uniqueId = id || Math.floor(Math.random() * 1000);
     let isDataIsBeingDeleted = false;
     const stopActivityHashChecker = ({ forceDelete, forceStop }) => {
-        if (isDataIsBeingDeleted)
-            return;
-        isDataIsBeingDeleted = true;
-        const cachedData = completedPhases.get(characterId);
         if (forceStop) {
             clearInterval(interval);
             currentlyRunning.delete(uniqueId);
@@ -137,13 +133,17 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
         if (forceDelete) {
             completedPhases.delete(characterId);
         }
+        if (isDataIsBeingDeleted)
+            return;
+        isDataIsBeingDeleted = true;
+        const cachedData = completedPhases.get(characterId);
+        const traceError = new Error(`StopActivityHashChecker called at:`);
         setTimeout(() => {
             if (!forceStop) {
                 clearInterval(interval);
                 currentlyRunning.delete(uniqueId);
                 activityCompletionCurrentProfiles.delete(characterId);
             }
-            const traceError = new Error(`StopActivityHashChecker called at:`);
             if (!forceDelete && completedPhases.has(characterId) && completedPhases.get(characterId) === cachedData) {
                 console.debug(`Completed phases data for ${platform}/${bungieId}/${characterId} | ${discordId} was deleted at`, traceError.stack);
                 completedPhases.delete(characterId);
