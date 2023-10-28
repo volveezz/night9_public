@@ -16,6 +16,7 @@ import { addButtonsToMessage } from "./addButtonsToMessage.js";
 import nameCleaner from "./nameClearer.js";
 import { convertModifiersPlaceholders } from "./raidFunctions/convertModifiersPlaceholders.js";
 import { raidEmitter } from "./raidFunctions/raidEmitter.js";
+import { stopFireteamCheckingSystem } from "./raidFunctions/raidFireteamChecker/raidFireteamChecker.js";
 import { clearNotifications } from "./raidFunctions/raidNotifications.js";
 const blockedModifierHashesArray = [
     1123720291, 1783825372, 782039530, 2006149364, 197794292, 3307318061, 438106166, 2288210988, 3282103678, 3119632620,
@@ -459,6 +460,7 @@ export async function removeRaid(raid, interaction, requireMessageReply = true, 
             console.error("[Error code: 1667]", e);
         }
         raidEmitter.emit("deleted", raid);
+        stopFireteamCheckingSystem(raid.id);
         clearNotifications(raid.id);
         if (!interaction)
             return;

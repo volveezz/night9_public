@@ -40,10 +40,10 @@ async function updateFireteamCheckerNotify(raidEventOrId, isDisabling) {
         components: addButtonsToMessage([fireteamCheckingNotificationComponent]),
     };
     if (!notificationMessage) {
-        await privateRaidChannel.send(messageOptions);
+        await privateRaidChannel.send(messageOptions).catch((_) => null);
     }
     else if (notificationMessage && isDisabling === notificationMessageType) {
-        await notificationMessage.edit(messageOptions);
+        await notificationMessage.edit(messageOptions).catch((_) => null);
     }
 }
 export default updateFireteamCheckerNotify;
