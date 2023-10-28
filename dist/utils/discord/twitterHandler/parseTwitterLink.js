@@ -1,9 +1,17 @@
+import { ChannelType, EmbedBuilder } from "discord.js";
 import { pause } from "../../general/utilities.js";
-import { processedRssLinks } from "../../persistence/dataStore.js";
-import { generateAndSendTwitterEmbed } from "./twitterMessageParser.js";
+import { lastTwitterPublishedPosts, processedRssLinks } from "../../persistence/dataStore.js";
+import { convertVideoToGifAndUpdateMessage, generateAndSendTwitterEmbed } from "./twitterMessageParser.js";
 async function parseTwitterLinkMessage(message) {
     if (message.author.bot) {
-        await processEmbeds(message.embeds);
+        console.debug("Found a new automated twitter message. It is", message.content.startsWith("[⏵]"));
+        if (message.content.startsWith("[⏵]")) {
+            console.debug("Starting to process attachment-type message");
+            await processTwitterAttachment(message);
+        }
+        else if (message.embeds?.length > 0) {
+            await processEmbeds(message.embeds);
+        }
     }
     else {
         let attempts = 0;
@@ -51,6 +59,31 @@ async function parseTwitterLinkMessage(message) {
                 });
             }
         }
+    }
+}
+async function processTwitterAttachment(message) {
+    const postId = await findTwitterPostIdFromAttachmentMessage();
+    console.debug("Extracted post id:", postId);
+    if (!postId)
+        return;
+    const postData = lastTwitterPublishedPosts.get(postId);
+    console.debug("Extracted post data:", postData?.id);
+    if (!postData)
+        return;
+    const linkToVideo = message.content.match(/\]\(([^)]+)\)/)?.[1];
+    console.debug("Extracted link:", linkToVideo, message.content);
+    if (!linkToVideo)
+        return;
+    await convertVideoToGifAndUpdateMessage(linkToVideo, postData, EmbedBuilder.from(postData.embeds[0]));
+    async function findTwitterPostIdFromAttachmentMessage() {
+        const channel = message.channel.type === ChannelType.GuildText ? message.channel : null;
+        if (!channel)
+            return;
+        const messageBefore = (await channel.messages.fetch({ before: message.id, limit: 1 })).at(0);
+        if (!messageBefore || messageBefore.author.id !== message.author.id)
+            return;
+        const postId = messageBefore.content.split("/").pop();
+        return postId;
     }
 }
 function getBungieTwitterAuthor(author) {

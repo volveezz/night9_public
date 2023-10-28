@@ -66,7 +66,7 @@ __decorate([
     __metadata("design:type", Number)
 ], RaidEvent.prototype, "time", void 0);
 __decorate([
-    Column(DataType.ENUM("kf", "votd", "vog", "dsc", "gos", "lw", "ron")),
+    Column(DataType.ENUM("ce", "kf", "votd", "vog", "dsc", "gos", "lw", "ron")),
     __metadata("design:type", String)
 ], RaidEvent.prototype, "raid", void 0);
 __decorate([

@@ -4,7 +4,7 @@ import { updateLatestTweetInfoInDatabase } from "../../api/rssHandler.js";
 import translateDestinyText from "../../api/translateDestinyText.js";
 import { addButtonsToMessage } from "../../general/addButtonsToMessage.js";
 import { uploadImageToImgur } from "../../general/uploadImageToImgur.js";
-import { originalTweetData, processedRssLinks, twitterOriginalVoters } from "../../persistence/dataStore.js";
+import { lastTwitterPublishedPosts, originalTweetData, processedRssLinks, twitterOriginalVoters } from "../../persistence/dataStore.js";
 import { isNitterUrlAllowed } from "./isNitterUrlAllowed.js";
 import convertMp4ToGif from "./mp4IntoGif.js";
 import resolveAuthor from "./resolveAuthor.js";
@@ -127,6 +127,13 @@ async function generateAndSendTwitterEmbed({ twitterData, author, icon, url, ori
             }
         }
         await publicNewsChannel.send({ embeds, components: addButtonsToMessage(components) }).then((m) => {
+            if (url) {
+                const postId = url.split("/").pop();
+                if (postId) {
+                    lastTwitterPublishedPosts.set(postId, m);
+                    setTimeout(() => lastTwitterPublishedPosts.delete(postId), 1000 * 60 * 60);
+                }
+            }
             if (tranlsatedContent) {
                 const voteRecord = { original: new Set(), translation: new Set() };
                 twitterOriginalVoters.set(m.id, voteRecord);
@@ -135,7 +142,7 @@ async function generateAndSendTwitterEmbed({ twitterData, author, icon, url, ori
             const extractedVideoMedia = extractMediaUrls(content, "video")[0];
             if (extractedVideoMedia && extractedVideoMedia.endsWith(".mp4")) {
                 console.debug("Converting video to gif");
-                convertVideoToGif(extractedVideoMedia, m, embed);
+                convertVideoToGifAndUpdateMessage(extractedVideoMedia, m, embed);
             }
         });
     }
@@ -145,7 +152,7 @@ async function generateAndSendTwitterEmbed({ twitterData, author, icon, url, ori
             processedRssLinks.delete(url);
     }
 }
-async function convertVideoToGif(videoUrl, message, embed) {
+export async function convertVideoToGifAndUpdateMessage(videoUrl, message, embed) {
     const gifUrl = await convertMp4ToGif(videoUrl);
     if (!gifUrl)
         return;

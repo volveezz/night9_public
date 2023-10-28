@@ -153,16 +153,16 @@ export async function handleRaidCreatorLeaving(raid, creatorId) {
     });
 }
 async function raidCreatorTransition(member, raid) {
-    const raidMessage = await (client.getCachedTextChannel(process.env.RAID_CHANNEL_ID) ||
-        (await client.getCachedGuild().channels.fetch(process.env.RAID_CHANNEL_ID))).messages.fetch(raid.messageId);
+    const raidMessage = await client.getAsyncMessage(process.env.RAID_CHANNEL_ID, raid.messageId);
+    if (!raidMessage) {
+        console.error("[Error code: 2116]", process.env.RAID_CHANNEL_ID, raid.messageId, raid, member);
+        return;
+    }
     const raidEmbed = EmbedBuilder.from(raidMessage.embeds[0]);
     raidEmbed.setFooter({ text: `Создатель рейда: ${nameCleaner(member.displayName)}` });
-    await raidMessage.edit({ embeds: [raidEmbed] });
-    const [updateQuery] = await RaidEvent.update({ creator: member.id }, { where: { id: raid.id } });
-    if (updateQuery !== 1)
-        return console.error(`[Error code: 1675] ${updateQuery}\n`, member, raid);
+    raid.creator = member.id;
     const sendNewCreatorPrivateChannelNotify = async () => {
-        const privateRaidChannel = client.getCachedTextChannel(raid.channelId) || (await client.getCachedGuild().channels.fetch(raid.channelId));
+        const privateRaidChannel = await client.getTextChannel(raid.channelId);
         const notifyEmbed = new EmbedBuilder()
             .setColor(colors.default)
             .addFields([{ name: "Создатель рейда", value: `Права создателя были переданы ${nameCleaner(member.displayName, true)}` }])
@@ -201,8 +201,7 @@ async function raidCreatorTransition(member, raid) {
             }
         }
     };
-    await Promise.all([sendNewCreatorPrivateChannelNotify(), notifyNewCreator()]);
-    return;
+    await Promise.all([raidMessage.edit({ embeds: [raidEmbed] }), raid.save(), sendNewCreatorPrivateChannelNotify(), notifyNewCreator()]);
 }
 function isClanMember(member) {
     return member.roles.cache.has(process.env.CLANMEMBER);
@@ -224,7 +223,8 @@ async function findNewRaidCreator(raid) {
             const memberClearsData = completedRaidsData.get(member.id);
             if (!skipRequirements && !memberClearsData)
                 continue;
-            const memberTotalClears = memberClearsData?.[`${raid.raid}`] || 0 + memberClearsData?.[`${raid.raid}Master`] || 0;
+            const raidName = raid.raid;
+            const memberTotalClears = memberClearsData?.[raidName] || 0 + memberClearsData?.[`${raidName}Master`] || 0;
             if (memberTotalClears > highestClears) {
                 highestClears = memberTotalClears;
                 newCreator = member;
