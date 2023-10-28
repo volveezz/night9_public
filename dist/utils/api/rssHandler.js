@@ -37,16 +37,13 @@ function rehostLink(link) {
 }
 async function fetchAndSendLatestTweets(url, latestTweetInfo, routeName, isRetry = false) {
     try {
-        const feed = await parser.parseURL(url).catch((e) => {
-            console.error("[Error code: 1706] Error fetching RSS feed:", e.message, url);
+        const feed = await parser.parseURL(url).catch((_) => {
             if (!isRetry) {
-                console.info("Retrying another RSS request...");
                 fetchAndSendLatestTweets(url, latestTweetInfo, routeName, true);
             }
             else {
                 console.error("[Error code: 2077] Failed to fetch RSS feed twice");
             }
-            return;
         });
         if (!feed || !feed.items || feed.items.length < 2) {
             return latestTweetInfo;

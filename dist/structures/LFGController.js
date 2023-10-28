@@ -1,6 +1,7 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, } from "discord.js";
 import pkg from "lodash";
 import { Op } from "sequelize";
+import { findLFGActivityHashFromName } from "../autocompletions/activity-resolver.js";
 import colors from "../configs/colors.js";
 import { client } from "../index.js";
 import { GetManifest } from "../utils/api/ManifestManager.js";
@@ -488,6 +489,13 @@ export class LFGController {
         await lfg.message.edit(messageOptions);
     }
     async createLFG({ activityName, activityHash, time, description, requiredDLC, userLimit: predefinedUserLimit, creatorId, guild, }) {
+        if (!activityHash && activityName) {
+            const reVerifiedActivity = findLFGActivityHashFromName(activityName);
+            if (reVerifiedActivity) {
+                activityHash = reVerifiedActivity;
+                activityName = null;
+            }
+        }
         const userLimit = predefinedUserLimit ??
             (activityHash ? (await GetManifest("DestinyActivityDefinition"))[Number(activityHash)]?.matchmaking?.maxParty : 3) ??
             3;

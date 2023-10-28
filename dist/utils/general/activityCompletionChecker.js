@@ -123,17 +123,22 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
     let interval;
     let previousActivityHash;
     let uniqueId = id || Math.floor(Math.random() * 1000);
+    let isDataIsBeingDeleted = false;
     const stopActivityHashChecker = () => {
-        clearInterval(interval);
-        currentlyRunning.delete(uniqueId);
-        activityCompletionCurrentProfiles.delete(characterId);
-        const traceError = new Error(`StopActivityHashChecker called at:`);
+        if (isDataIsBeingDeleted)
+            return;
+        isDataIsBeingDeleted = true;
         const cachedData = completedPhases.get(characterId);
         setTimeout(() => {
+            clearInterval(interval);
+            currentlyRunning.delete(uniqueId);
+            activityCompletionCurrentProfiles.delete(characterId);
+            const traceError = new Error(`StopActivityHashChecker called at:`);
             if (completedPhases.has(characterId) && completedPhases.get(characterId) === cachedData) {
                 console.debug(`Completed phases data for ${platform}/${bungieId}/${characterId} | ${discordId} was deleted at`, traceError.stack);
                 completedPhases.delete(characterId);
             }
+            isDataIsBeingDeleted = false;
         }, 60 * 1000 * 30);
     };
     async function checkActivityHash() {
@@ -144,24 +149,24 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
         });
         if (!response || !response.activities || !response.progressions.data.milestones[milestoneHash].activities) {
             stopActivityHashChecker();
-            return null;
+            return;
         }
         const characterData = response?.activities?.data;
         const currentActivityHash = characterData?.currentActivityHash;
         if (!response?.activities?.data || !response.progressions.data) {
             console.error("[Error code: 2110] Error since the response wasn't fully completed", response);
             stopActivityHashChecker();
-            return null;
+            return;
         }
         if (discordId && !clanOnline.has(discordId)) {
             console.error("[Error code: 2111] User is no longer offline so his data is called to delete", discordId);
             stopActivityHashChecker();
-            return null;
+            return;
         }
         if (previousActivityHash && currentActivityHash !== previousActivityHash) {
             console.error("[Error code: 2112] Current activity hash is not equal to previous. Exiting", previousActivityHash, currentActivityHash);
             stopActivityHashChecker();
-            return null;
+            return;
         }
         if (currentActivityHash === 82913930 ||
             activityDefinition[currentActivityHash]?.activityTypeHash !== raidActivityModeHash ||
@@ -169,7 +174,7 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
                 !response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash))) {
             console.error("[Error code: 2113] Exiting because of one of the many reasons...", currentActivityHash, activityDefinition[currentActivityHash]?.activityTypeHash, response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash));
             stopActivityHashChecker();
-            return null;
+            return;
         }
         try {
             if (!previousActivityHash) {
@@ -177,7 +182,7 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
                 const updatedMilestoneActivity = response.progressions.data.milestones[milestoneHash].activities.find((i) => i.activityHash === previousActivityHash);
                 if (updatedMilestoneActivity?.phases && areAllPhasesComplete(updatedMilestoneActivity.phases)) {
                     stopActivityHashChecker();
-                    return null;
+                    return;
                 }
             }
             await characterMilestonesChecker(response);

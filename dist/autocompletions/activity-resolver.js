@@ -1,5 +1,15 @@
 import { Autocomplete } from "../structures/autocomplete.js";
 import { activityCache } from "../utils/general/cacheAvailableActivities.js";
+export function findLFGActivityHashFromName(name) {
+    for (const [hash, { displayName, recommendedPowerLevel }] of Object.entries(activityCache)) {
+        if (!displayName)
+            continue;
+        if (`${displayName} (Уровень силы: ${recommendedPowerLevel})`.toLowerCase() === name.toLowerCase()) {
+            return hash;
+        }
+    }
+    return null;
+}
 async function findActivities(activityNameOrHash) {
     const searchString = activityNameOrHash.toLowerCase();
     const matchedActivities = [];
