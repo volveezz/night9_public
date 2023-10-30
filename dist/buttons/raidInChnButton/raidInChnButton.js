@@ -8,8 +8,8 @@ import { addButtonsToMessage } from "../../utils/general/addButtonsToMessage.js"
 import nameCleaner from "../../utils/general/nameClearer.js";
 import { removeRaid } from "../../utils/general/raidFunctions.js";
 import sendRaidPrivateMessage from "../../utils/general/raidFunctions/privateMessage/sendPrivateMessage.js";
+import updateFireteamNotification from "../../utils/general/raidFunctions/raidFireteamChecker/fireteamNotificationUpdater.js";
 import raidFireteamCheckerSystem, { stopFireteamCheckingSystem, } from "../../utils/general/raidFunctions/raidFireteamChecker/raidFireteamChecker.js";
-import updateFireteamCheckerNotify from "../../utils/general/raidFunctions/raidFireteamChecker/sendCheckerNotify.js";
 import { RaidEvent } from "../../utils/persistence/sequelizeModels/raidEvent.js";
 import moveRaidVoiceMembers from "./moveRaidVoiceMembersButton.js";
 import notifyInChannelButton from "./notifyInChannelButton.js";
@@ -105,8 +105,8 @@ const ButtonCommand = new Button({
             "raidInChnButton_unlock",
             "raidInChnButton_delete",
             "raidInChnButton_resend",
-            "raidInChnButton_fireteamChecker_cancel",
-            "raidInChnButton_fireteamChecker_start",
+            "raidInChnButton_fireteamTracker_cancel",
+            "raidInChnButton_fireteamTracker_start",
         ];
         if (!availableButtonCustomIds.includes(interaction.customId))
             return;
@@ -168,13 +168,13 @@ const ButtonCommand = new Button({
                 await interaction.message.delete();
                 return;
             }
-            case "raidInChnButton_fireteamChecker_cancel": {
+            case "raidInChnButton_fireteamTracker_cancel": {
                 requireParams({ deferredUpdate: true, interaction });
                 stopFireteamCheckingSystem(raidEvent.id);
-                await updateFireteamCheckerNotify(raidEvent, true);
+                await updateFireteamNotification(raidEvent, true);
                 return;
             }
-            case "raidInChnButton_fireteamChecker_start": {
+            case "raidInChnButton_fireteamTracker_start": {
                 requireParams({ deferredUpdate: true, interaction });
                 await raidFireteamCheckerSystem(raidEvent.id);
                 return;

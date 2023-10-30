@@ -175,7 +175,7 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
         }
         if (previousActivityHash && currentActivityHash !== previousActivityHash) {
             console.error("[Error code: 2112] Current activity hash is not equal to previous. Exiting", previousActivityHash, currentActivityHash);
-            stopActivityHashChecker({});
+            stopActivityHashChecker({ forceStop: true });
             return;
         }
         if (currentActivityHash === 82913930 ||

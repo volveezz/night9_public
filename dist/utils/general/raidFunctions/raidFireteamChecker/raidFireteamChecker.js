@@ -1,7 +1,7 @@
 import { RaidEvent } from "../../../persistence/sequelizeModels/raidEvent.js";
 import checkFireteamStatus from "./checkFireteamStatus.js";
-import getOngoingRaids from "./getOngoingRaids.js";
-import updateFireteamCheckerNotify from "./sendCheckerNotify.js";
+import updateFireteamNotification from "./fireteamNotificationUpdater.js";
+import fetchOngoingRaids from "./ongoingRaidsFetcher.js";
 const fireteamCheckingSystem = new Set();
 const notifyInitializerTimeoutMap = new Map();
 const notifyIntervalMap = new Map();
@@ -11,7 +11,7 @@ export function stopFireteamCheckingSystem(raidId) {
         const notifyInterval = notifyIntervalMap.get(raidId);
         notifyInitializerTimeoutMap.delete(raidId) && clearTimeout(notifyTimeout);
         notifyIntervalMap.delete(raidId) && clearInterval(notifyInterval);
-        fireteamCheckingSystem.delete(raidId) && updateFireteamCheckerNotify(raidId, true);
+        fireteamCheckingSystem.delete(raidId) && updateFireteamNotification(raidId, true);
     }
     else {
         notifyInitializerTimeoutMap.forEach((timeout) => clearTimeout(timeout));
@@ -26,7 +26,7 @@ async function raidFireteamCheckerSystem(raidId) {
         return;
     console.debug("Initializing fireteam checker", raidId);
     stopFireteamCheckingSystem(raidId);
-    const ongoingRaids = await getOngoingRaids(raidId);
+    const ongoingRaids = await fetchOngoingRaids(raidId);
     for (let i = 0; i < ongoingRaids.length; i++) {
         const raidEvent = ongoingRaids[i];
         raidFireteamChecker(raidEvent);
@@ -46,7 +46,7 @@ async function raidFireteamChecker(raidParam) {
         console.debug("Processing with the next step for raid ID", raidId);
         try {
             console.debug("Trying to send a private channel notification for raid ID:", raidId);
-            updateFireteamCheckerNotify(initialRaidEvent, false);
+            updateFireteamNotification(initialRaidEvent, false);
         }
         catch (error) {
             console.error("[Error code: 1753]", error);

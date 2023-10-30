@@ -47,4 +47,4 @@ async function updateFireteamNotification(raidEventOrId, isDisabling) {
     }
 }
 export default updateFireteamNotification;
-//# sourceMappingURL=sendCheckerNotify.js.map
+//# sourceMappingURL=fireteamNotificationUpdater.js.map

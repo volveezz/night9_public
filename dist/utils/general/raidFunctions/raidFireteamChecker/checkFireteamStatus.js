@@ -4,11 +4,12 @@ import colors from "../../../../configs/colors.js";
 import { client } from "../../../../index.js";
 import { sendApiRequest } from "../../../api/sendApiRequest.js";
 import { getEndpointStatus } from "../../../api/statusCheckers/statusTracker.js";
+import { cachedRaidMembers } from "../../../persistence/dataStore.js";
 import { RaidEvent } from "../../../persistence/sequelizeModels/raidEvent.js";
 import nameCleaner from "../../nameClearer.js";
 import { getRaidNameFromHash, updateRaidMessage } from "../../raidFunctions.js";
 import updatePrivateRaidMessage from "../privateMessage/updatePrivateMessage.js";
-import getVoiceChannelMembersAuthData, { previouslyCheckedFireteamMembers } from "./getAuthDataOfVoiceMembers.js";
+import fetchRaidVoiceChannelMembersAuthData from "./fetchAuthDataOfVoiceMembers.js";
 import raidFireteamChecker from "./raidFireteamChecker.js";
 const countOfChecksMap = new Map();
 async function checkFireteamStatus(raidData) {
@@ -40,7 +41,7 @@ async function checkFireteamStatus(raidData) {
         return false;
     }
     const userIds = [...new Set([...raidEvent.joined, ...raidVoiceChannel.members.map((member) => member.id)])];
-    const voiceChannelMembersAuthData = await getVoiceChannelMembersAuthData(raidId, userIds);
+    const voiceChannelMembersAuthData = await fetchRaidVoiceChannelMembersAuthData(raidId, userIds);
     const partyMembers = await checkFireteamRoster(voiceChannelMembersAuthData, raidEvent.raid, raidId);
     if (!partyMembers) {
         console.error("[Error code: 2021] Didn't managed to get the fireteam activity data", raidEvent.raid, raidId);
@@ -151,7 +152,7 @@ async function checkFireteamRoster(voiceChannelMembersAuthData, raidName, raidId
         }
         catch (error) {
             console.error("[Error code: 2020]", error);
-            previouslyCheckedFireteamMembers.delete(raidId);
+            cachedRaidMembers.delete(raidId);
         }
     }
     return null;

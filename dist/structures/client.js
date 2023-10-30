@@ -61,8 +61,8 @@ export class ExtendedClient extends Client {
         await Promise.all([this.login(process.env.TOKEN), sequelizeImport]);
         this.registerModules();
         this.user.setPresence({
-            activities: [this.activities[Math.floor(Math.random() * this.activities.length)]],
             status: "idle",
+            activities: [this.activities[Math.floor(Math.random() * this.activities.length)]],
         });
     }
     startUpdatingPresence() {

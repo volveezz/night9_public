@@ -9,7 +9,7 @@ const AutocompleteFile = new Autocomplete({
     name: "identifier",
     run: async ({ interaction, option }) => {
         const { value: target } = option;
-        if (target.length === 0) {
+        if (!target || target.length <= 0) {
             interaction.respond([{ name: "Введите Bungie Id, Discord Id или ник пользователя", value: "null" }]);
             return;
         }
@@ -38,8 +38,12 @@ const AutocompleteFile = new Autocomplete({
             const responses = userData
                 .slice(0, 25)
                 .sort((a, b) => {
-                const nameA = a.displayName;
-                const nameB = b.displayName;
+                const nameFirstArray = a.displayName.split("#");
+                const nameSecondArray = b.displayName.split("#");
+                nameFirstArray.pop();
+                nameSecondArray.pop();
+                const nameA = nameFirstArray.join("#");
+                const nameB = nameSecondArray.join("#");
                 if (nameA === target && nameB !== target) {
                     return -1;
                 }
@@ -60,7 +64,7 @@ const AutocompleteFile = new Autocomplete({
                     return { name: "Discord Id не найден", value: "null" };
                 }
                 return {
-                    name: `${user.displayName}`,
+                    name: user.displayName || "incomplete displayname",
                     value: value,
                 };
             });
@@ -95,7 +99,7 @@ const AutocompleteFile = new Autocomplete({
 export default AutocompleteFile;
 const invisibleChar = "⁣";
 async function fetchUserProfile(searchTerm) {
-    const authData = await AuthData.findOne({
+    const authData = await AuthData.findAll({
         where: {
             [Op.or]: [
                 { discordId: searchTerm },
@@ -107,7 +111,7 @@ async function fetchUserProfile(searchTerm) {
         },
         attributes: ["discordId", "platform", "bungieId", "clan", "displayName"],
     });
-    if (authData) {
+    if (authData && authData.length > 0) {
         return authData;
     }
     let response;
