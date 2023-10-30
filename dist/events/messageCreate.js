@@ -22,7 +22,7 @@ async function handleMessage(message) {
     if (message.channelId === process.env.TWITTER_MESSAGES_CHANNEL_ID) {
         if (message.content.length > 0 &&
             !message.cleanContent.includes("Retweeted") &&
-            message.content.match(/(?:\[Tweeted]\(\))?https:\/\/(twitter\.com|x\.com)\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/)) {
+            message.content.match(/(?:\[Tweeted]\(\))?https:\/\/(twitter\.com|x\.com|fxtwitter\.com|vxtwitter\.com)\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/)) {
             parseTwitterLinkMessage(message);
         }
         else {

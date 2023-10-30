@@ -58,7 +58,7 @@ Translated dataset:
         top_p: 1,
         messages: [
             { role: "system", name: "prompt", content: prompt },
-            { role: "user", name: "translation", content: `Translate the following text: ###\n${sourceText}\n###` },
+            { role: "user", name: "translation", content: sourceText },
         ],
     });
     let outputText = output.choices[0].message?.content;
