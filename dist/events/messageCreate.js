@@ -22,14 +22,15 @@ async function handleMessage(message) {
     if (message.channelId === process.env.TWITTER_MESSAGES_CHANNEL_ID) {
         if (message.content.length > 0 &&
             !message.cleanContent.includes("Retweeted") &&
-            message.content.match(/(?:\[Tweeted]\(\))?https:\/\/(twitter\.com|x\.com|fxtwitter\.com|vxtwitter\.com)\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/)) {
+            (message.content.match(/(?:\[Tweeted]\(\))?https:\/\/(twitter\.com|x\.com|fxtwitter\.com|vxtwitter\.com)\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/i) ||
+                message.content.startsWith("[⏵]"))) {
             parseTwitterLinkMessage(message);
         }
         else {
             const embed = message.embeds?.[0];
             if (!embed)
                 return;
-            const regex = /(?:\[(Tweeted|Quoted)\]\()?https:\/\/(twitter\.com|x\.com)\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/;
+            const regex = /(?:\[(Tweeted|Quoted)\]\()?https:\/\/(twitter\.com|x\.com|fxtwitter\.com|vxtwitter\.com)\/[a-zA-Z0-9_]{1,15}\/status\/\d+(?:\))?/i;
             const { title: embedTitle, url: embedUrl } = embed;
             if ((embedTitle === "Tweeted" || embedTitle === "Quoted") && embedUrl?.match(regex)) {
                 parseTwitterLinkMessage(message);

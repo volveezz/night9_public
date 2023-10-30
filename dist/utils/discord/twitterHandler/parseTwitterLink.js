@@ -35,11 +35,12 @@ async function parseTwitterLinkMessage(message) {
             const url = embed.url;
             if (!url)
                 continue;
-            if (urlToImagesMap.has(url) && embed.image?.url) {
-                urlToImagesMap.get(url).push(embed.image.url);
+            const imageUrl = embed.thumbnail && embed.thumbnail.url.match(/profile_images/i)?.[0] ? embed.image?.url : embed.thumbnail?.url;
+            if (urlToImagesMap.has(url) && imageUrl) {
+                urlToImagesMap.get(url).push(imageUrl);
             }
             else {
-                urlToImagesMap.set(url, embed.image?.url ? [embed.image.url] : []);
+                urlToImagesMap.set(url, imageUrl ? [imageUrl] : []);
             }
         }
         for (const [url, images] of urlToImagesMap.entries()) {
@@ -47,12 +48,17 @@ async function parseTwitterLinkMessage(message) {
                 continue;
             const associatedEmbed = embeds.find((e) => e.url === url);
             if (associatedEmbed && associatedEmbed.description) {
-                const author = getBungieTwitterAuthor(associatedEmbed.author?.name);
-                const content = associatedEmbed.description;
+                const isVxTwitter = message.content.match(/vxtwitter\.com/i)?.[0];
+                const author = getBungieTwitterAuthor((isVxTwitter ? associatedEmbed.title : associatedEmbed.author?.name) || "none");
+                let content = associatedEmbed.description;
+                if (isVxTwitter) {
+                    content = content.replace(/\n\n💖\s*\d+/, "");
+                }
+                const embedAuthorIcon = associatedEmbed.thumbnail?.url.match(/profile_images/i)?.[0] && associatedEmbed.thumbnail?.url;
                 await generateAndSendTwitterEmbed({
                     twitterData: content,
                     author,
-                    icon: associatedEmbed.author?.iconURL,
+                    icon: isVxTwitter ? embedAuthorIcon : associatedEmbed.author?.iconURL,
                     url,
                     originalEmbed: associatedEmbed,
                     images,

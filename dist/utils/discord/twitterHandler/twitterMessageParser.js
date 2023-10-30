@@ -86,7 +86,13 @@ async function generateAndSendTwitterEmbed({ twitterData, author, icon, url, ori
         catch (error) {
             console.error("[Error code: 1967]", error);
         }
-        const embed = resolveAuthor({ author, icon, url, originalAuthor: originalEmbed?.author?.name?.replace(/\s\(@\w+\)/, "") });
+        const isVxTwitter = (url || originalEmbed?.url)?.match(/vxtwitter\.com/i)?.[0];
+        const embed = resolveAuthor({
+            author,
+            icon,
+            url,
+            originalAuthor: (isVxTwitter ? originalEmbed?.title : originalEmbed?.author?.name)?.replace(/\s\(@\w+\)/, ""),
+        });
         if (!embed) {
             console.error("[Error code: 1998]", embed, author, icon, url);
             return;
