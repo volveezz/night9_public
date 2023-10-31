@@ -266,7 +266,6 @@ export class ExtendedClient extends Client {
                 LFGController.getInstance().init(),
                 cacheGuildsVoiceAndMessagesData(),
                 updateActivityCache(),
-                startRssFetcher().catch((error) => console.error("Received an error from the main function 10", error)),
             ]);
         });
     }

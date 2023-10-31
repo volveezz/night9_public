@@ -387,7 +387,7 @@ export async function raidChallenges({ raidData, raidEvent, privateChannelMessag
     embed.data.fields[0].value = `${raidChallengesArray.join("\n")}${raidModifiersArray.length > 0
         ? `${raidChallengesArray.length > 0 ? `\n\n**Модификатор${raidModifiersArray.length === 1 ? "" : "ы"} рейда**` : ""}\n`
         : ""}${raidModifiersArray.join("\n")}${raidChallengesArray.length === 0 && raidModifiersArray.length === 0
-        ? "⁣　⁣Продается __утепленный__ гараж в восточном ГК. ***Дешево***. За подробностями в личку <@298353895258980362>, торопитесь!"
+        ? "⁣　⁣Продается __утепленный__ гараж в восточном ГК. ***Дешево***. За подробностями к Деду, торопитесь!"
         : ""}`;
     return privateChannelMessage.edit({ embeds: [embed] });
 }

@@ -50,7 +50,9 @@ Translated dataset:
 "Enhancement Prism": "Улучшающая призма",
 "Masterwork": "Абсолют",
 "Adept": "Адепт",
-"Veil Containment": "Защитная оболочка вуали",
+"Player Removal": "Отключение игроков",
+"Expected log in": "Ожидаемое время входа в игру",
+"Expected end": "Ожидаемое время завершения"
 }`;
     const output = await openai.chat.completions.create({
         model: process.env.OPENAI_GPT_MODEL,
@@ -65,7 +67,7 @@ Translated dataset:
     if (!outputText)
         return null;
     outputText = outputText.replace(/^Translate the following text[:\n]*/, "");
-    outputText = outputText.replace(/^###/, "");
+    outputText = outputText.replace(/^###/g, "");
     outputText = outputText.trim();
     return outputText;
 }

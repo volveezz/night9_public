@@ -13,6 +13,37 @@ const SlashCommand = new Command({
     options: [
         {
             type: ApplicationCommandOptionType.Subcommand,
+            name: "send",
+            nameLocalizations: { ru: "отправить" },
+            description: "Send a message",
+            descriptionLocalizations: {
+                ru: "Отправить сообщение",
+            },
+            options: [
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "embed",
+                    description: "Embed code for a message",
+                    descriptionLocalizations: { ru: "Embed код" },
+                },
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "content",
+                    nameLocalizations: { ru: "текст" },
+                    description: "Content for a message",
+                    descriptionLocalizations: { ru: "Текст сообщения" },
+                },
+                {
+                    type: ApplicationCommandOptionType.User,
+                    name: "user",
+                    nameLocalizations: { ru: "пользователь" },
+                    description: "Select the user whose DM channel you want to interact with",
+                    descriptionLocalizations: { ru: "Выберите пользователя, с личными сообщенями которого вы хотите взаимодействовать" },
+                },
+            ],
+        },
+        {
+            type: ApplicationCommandOptionType.Subcommand,
             name: "fetch",
             nameLocalizations: { ru: "получить" },
             description: "Fetch a specific message",
@@ -69,7 +100,7 @@ const SlashCommand = new Command({
             nameLocalizations: { ru: "редактировать" },
             description: "Edit a specific message",
             descriptionLocalizations: {
-                ru: "Редактировать конкретное сообщение",
+                ru: "Редактировать сообщение",
             },
             options: [
                 {
@@ -81,24 +112,24 @@ const SlashCommand = new Command({
                     required: true,
                 },
                 {
+                    type: ApplicationCommandOptionType.String,
+                    name: "embed",
+                    description: "Embed to be added/edited",
+                    descriptionLocalizations: { ru: "Embed код" },
+                },
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "content",
+                    nameLocalizations: { ru: "текст" },
+                    description: "New content for the message",
+                    descriptionLocalizations: { ru: "Текст сообщения" },
+                },
+                {
                     type: ApplicationCommandOptionType.User,
                     name: "user",
                     nameLocalizations: { ru: "пользователь" },
                     description: "Select the user whose DM channel you want to interact with",
                     descriptionLocalizations: { ru: "Выберите пользователя, с личными сообщенями которого вы хотите взаимодействовать" },
-                },
-                {
-                    type: ApplicationCommandOptionType.String,
-                    name: "content",
-                    nameLocalizations: { ru: "содержание" },
-                    description: "New content for the message",
-                    descriptionLocalizations: { ru: "Новое содержание для сообщения" },
-                },
-                {
-                    type: ApplicationCommandOptionType.String,
-                    name: "embed",
-                    description: "Embed to be added/edited",
-                    descriptionLocalizations: { ru: "Встроенное содержание для добавления/редактирования" },
                 },
             ],
         },
@@ -163,14 +194,14 @@ const SlashCommand = new Command({
                 },
                 {
                     type: ApplicationCommandOptionType.Subcommand,
-                    name: "remove",
-                    description: "remove a button from a message",
+                    name: "delete",
+                    description: "Delete a button from a message",
                     options: [
                         {
                             type: ApplicationCommandOptionType.String,
                             name: "message-id",
                             nameLocalizations: { ru: "id-сообщения" },
-                            description: "Id of the message from which we will remove a button",
+                            description: "Id of the message from which we will delete a button",
                             descriptionLocalizations: { ru: "Id сообщения для удаления кнопки" },
                             required: true,
                         },
@@ -194,7 +225,6 @@ const SlashCommand = new Command({
     ],
     run: async ({ client, interaction, args }) => {
         const subcommand = args.getSubcommand(true);
-        const messageId = args.getString("message-id", true);
         const user = args.getUser("user");
         const channel = await (user
             ? user.dmChannel || user.createDM().catch(() => null)
@@ -202,11 +232,24 @@ const SlashCommand = new Command({
         if (!channel) {
             throw { errorType: "CHANNEL_NOT_FOUND" };
         }
-        const message = await channel.messages.fetch(messageId).catch(() => null);
-        if (!message) {
+        const message = (subcommand !== "send" &&
+            (await channel.messages.fetch(args.getString("message-id", true)).catch(() => null)));
+        if (!message && subcommand !== "send") {
             throw { errorType: "SPECIFIED_MESSAGE_NOT_FOUND" };
         }
         switch (subcommand) {
+            case "send": {
+                const { content, embeds } = extractMessageData();
+                await channel.send({ content: content || undefined, embeds });
+                const responseEmbed = new EmbedBuilder()
+                    .setColor(colors.success)
+                    .setAuthor({ name: "Сообщение отправлено", iconURL: icons.success });
+                await interaction.reply({
+                    embeds: [responseEmbed],
+                    ephemeral: true,
+                });
+                break;
+            }
             case "fetch": {
                 const jsonMessage = JSON.stringify(message.toJSON(), null, 2);
                 const jsonFile = new AttachmentBuilder(Buffer.from(jsonMessage), { name: "message.json", description: "Message JSON file" });
@@ -226,17 +269,7 @@ const SlashCommand = new Command({
                 break;
             }
             case "edit": {
-                let content = args.getString("content") ?? undefined;
-                const embed = args.getString("embed");
-                const parsedEmbed = embed ? JSON.parse(embed) : null;
-                const embeds = parsedEmbed
-                    ? Array.isArray(parsedEmbed)
-                        ? parsedEmbed
-                        : [parsedEmbed.embeds || parsedEmbed.embed || parsedEmbed]
-                    : undefined;
-                if (content && ["null", "delete", "deleted", "удалить", "-", "undefined"].includes(content)) {
-                    content = null;
-                }
+                const { content, embeds } = extractMessageData();
                 await message.edit({ content, embeds });
                 const responseEmbed = new EmbedBuilder()
                     .setColor(colors.success)
@@ -277,7 +310,7 @@ const SlashCommand = new Command({
                 await interaction.reply({ embeds: [embed], ephemeral: true });
                 return;
             }
-            case "remove": {
+            case "delete": {
                 const buttonIndentifier = args.getString("index-custom-id", true);
                 const flatMap = message.components.flatMap((v) => v.components
                     .map((c) => (c.type === ComponentType.Button && c.customId !== buttonIndentifier ? ButtonBuilder.from(c) : null))
@@ -293,6 +326,20 @@ const SlashCommand = new Command({
                 await interaction.reply({ embeds: [embed], ephemeral: true });
                 return;
             }
+        }
+        function extractMessageData() {
+            let content = args.getString("content") ?? undefined;
+            const embed = args.getString("embed");
+            const parsedEmbed = embed ? JSON.parse(embed) : null;
+            const embeds = parsedEmbed
+                ? Array.isArray(parsedEmbed)
+                    ? parsedEmbed
+                    : [parsedEmbed.embeds || parsedEmbed.embed || parsedEmbed]
+                : undefined;
+            if (content && ["null", "delete", "deleted", "удалить", "-", "undefined"].includes(content)) {
+                content = null;
+            }
+            return { content, embeds };
         }
     },
 });

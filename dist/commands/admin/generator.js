@@ -83,7 +83,7 @@ const SlashCommand = new Command({
         if (subcommandGroup === "embed") {
             const subcommand = args.getSubcommand();
             if (subcommand === "code") {
-                const embedCode = args.getString("embed-code", false);
+                const embedCode = args.getString("embed-code");
                 const messageId = args.getString("message-id");
                 const channelId = args.getString("channelId");
                 const embedChannel = await client.getTextChannel(interaction.channel || channelId);
@@ -121,7 +121,7 @@ const SlashCommand = new Command({
                     }
                     else {
                         if (!content && !embeds)
-                            throw { name: "Ошибка", description: "Ни содержимое, ни embed-сообщение не были предоставлены" };
+                            throw { name: "Ошибка", description: "Ни текст, ни embed-сообщение не были предоставлены" };
                         await embedChannel.send(messageOptions);
                     }
                     await deferredReply;
@@ -168,7 +168,7 @@ const SlashCommand = new Command({
                 await channel.send({ embeds: [interactionEmbed], components: addButtonsToMessage(components) });
                 const responseEmbed = new EmbedBuilder()
                     .setColor(colors.success)
-                    .setAuthor({ name: `Кнопка ${customId} успешно отправлена`, iconURL: icons.success });
+                    .setAuthor({ name: `Кнопка ${customId} отправлена`, iconURL: icons.success });
                 interaction.editReply({ embeds: [responseEmbed] });
             }
             return;
