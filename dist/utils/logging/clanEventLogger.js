@@ -2,7 +2,6 @@ import { EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { client } from "../../index.js";
-import getClanMemberData from "../api/getClanMemberData.js";
 import setMemberRoles from "../discord/setRoles.js";
 import nameCleaner from "../general/nameClearer.js";
 import { escapeString } from "../general/utilities.js";
@@ -11,18 +10,12 @@ let clanLogChannel = null;
 let generalLogChannel = null;
 const recentlyJoinedMembersIds = new Set();
 export async function updateClanRolesWithLogging(result, join) {
-    const [member, clanUserData, clanLogChannelRequest] = await Promise.all([
+    const [member, clanLogChannelRequest] = await Promise.all([
         client.getMember(result.discordId),
-        getClanMemberData(result),
         clanLogChannel || client.getTextChannel(process.env.CLAN_CHANNEL_ID),
     ]);
     if (!clanLogChannel) {
         clanLogChannel = clanLogChannelRequest;
-    }
-    if (clanUserData?.member?.groupId && clanUserData.member.groupId !== process.env.GROUP_ID) {
-        console.error("[Error code: 1919]", clanUserData);
-        console.error(member.displayName, "wasn't updated due an error. Need manual assistance");
-        return;
     }
     const embed = new EmbedBuilder().addFields([
         { name: "BungieId", value: result.bungieId, inline: true },
