@@ -8,6 +8,7 @@ import { Command } from "../../../structures/command.js";
 import { GetManifest } from "../../../utils/api/ManifestManager.js";
 import setMemberRoles from "../../../utils/discord/setRoles.js";
 import calculateVoteResults from "../../../utils/discord/twitterHandler/twitterTranslationVotes.js";
+import { activityCompletionCurrentProfiles, currentlyRunning } from "../../../utils/general/activityCompletionChecker.js";
 import { convertSeconds } from "../../../utils/general/convertSeconds.js";
 import { pause } from "../../../utils/general/utilities.js";
 import { AuthData } from "../../../utils/persistence/sequelizeModels/authData.js";
@@ -31,6 +32,15 @@ const SlashCommand = new Command({
         const deferredReply = interaction.deferReply({ ephemeral: true });
         const scriptId = args.getString("script", true).toLowerCase();
         switch (scriptId) {
+            case "logdata": {
+                const dataForCurrentlyRunning = Array.from(currentlyRunning.keys()).join("`, `");
+                const dataForCheckedProfiles = Array.from(activityCompletionCurrentProfiles.keys()).join("`, `");
+                await deferredReply;
+                interaction.editReply({
+                    content: `Currently Running: \`${dataForCurrentlyRunning}\`\nCurrent Profiles: \`${dataForCheckedProfiles}\``,
+                });
+                return;
+            }
             case "exportraidguide": {
                 exportRaidGuide(interaction, deferredReply);
                 return;

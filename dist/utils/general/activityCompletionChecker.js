@@ -7,11 +7,12 @@ import { AuthData } from "../persistence/sequelizeModels/authData.js";
 import { getRaidDetails } from "./raidFunctions.js";
 import { getWeeklyRaidActivityHashes } from "./raidFunctions/gerWeeklyRaid.js";
 import { pause } from "./utilities.js";
-const activityDefinition = await GetManifest("DestinyActivityDefinition");
-const activityCompletionCurrentProfiles = new Map();
-const currentlyRunning = new Map();
+let activityDefinition;
+export const activityCompletionCurrentProfiles = new Map();
+export const currentlyRunning = new Map();
 const raidActivityModeHash = 2043403989;
 export async function clanOnlineMemberActivityChecker() {
+    activityDefinition = await GetManifest("DestinyActivityDefinition");
     setInterval(async () => {
         if (getEndpointStatus("activity") !== 1)
             return;
@@ -144,7 +145,10 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
                 currentlyRunning.delete(uniqueId);
                 activityCompletionCurrentProfiles.delete(characterId);
             }
-            if (!forceDelete && completedPhases.has(characterId) && completedPhases.get(characterId) === cachedData) {
+            if (!activityCompletionCurrentProfiles.has(characterId) &&
+                !forceDelete &&
+                completedPhases.has(characterId) &&
+                completedPhases.get(characterId) === cachedData) {
                 console.debug(`Completed phases data for ${platform}/${bungieId}/${characterId} | ${discordId} was deleted at`, traceError.stack);
                 completedPhases.delete(characterId);
             }

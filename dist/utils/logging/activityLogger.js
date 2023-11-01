@@ -238,7 +238,7 @@ async function logActivityCompletion(pgcrId) {
                 const miscNotes = misc.length > 0 ? `\n${misc.join("\n")}` : "";
                 embed.addFields({
                     name: escapeString(bungieName),
-                    value: `${emoji}${userRaidClears}${classHash}K+A: **${killsAndAssists}** D: **${deaths}**${participationTime}${miscNotes}`,
+                    value: `${emoji}${userRaidClears}${classHash}У+С: **${killsAndAssists}** П: **${deaths}**${participationTime}${miscNotes}`,
                     inline: true,
                 });
             }
