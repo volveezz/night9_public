@@ -5,7 +5,7 @@ import { getEndpointStatus, updateEndpointStatus } from "../api/statusCheckers/s
 import { clanOnline, completedPhases, raidMilestoneHashes } from "../persistence/dataStore.js";
 import { AuthData } from "../persistence/sequelizeModels/authData.js";
 import { getRaidDetails } from "./raidFunctions.js";
-import { getWeeklyRaidActivityHashes } from "./raidFunctions/gerWeeklyRaid.js";
+import { getWeeklyRaidActivityHashes } from "./raidFunctions/getWeeklyRaid.js";
 import { pause } from "./utilities.js";
 let activityDefinition;
 export const activityCompletionCurrentProfiles = new Map();
