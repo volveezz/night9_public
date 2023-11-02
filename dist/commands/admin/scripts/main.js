@@ -35,6 +35,8 @@ const SlashCommand = new Command({
             case "logdata": {
                 const dataForCurrentlyRunning = Array.from(currentlyRunning.keys()).join("`, `");
                 const dataForCheckedProfiles = Array.from(activityCompletionCurrentProfiles.keys()).join("`, `");
+                console.debug("Currently running", currentlyRunning.size, Array.from(currentlyRunning.keys()));
+                console.debug("Checked profiles", activityCompletionCurrentProfiles.size, Array.from(activityCompletionCurrentProfiles.keys()));
                 await deferredReply;
                 interaction.editReply({
                     content: `Currently Running: \`${dataForCurrentlyRunning}\`\nCurrent Profiles: \`${dataForCheckedProfiles}\``,
