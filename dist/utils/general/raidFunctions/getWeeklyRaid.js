@@ -13,7 +13,6 @@ const fetchWeeklyRaid = async (retryCount = 0) => {
         if (raidMilestone?.activities) {
             raidActivityHashes.normal = raidMilestone.activities[0]?.activityHash || null;
             raidActivityHashes.master = raidMilestone.activities[1]?.activityHash || null;
-            console.debug("Weekly raid is:", raidActivityHashes);
         }
         else {
             console.error("[Error code: 1934] Not managed to get raid challenge hash, creating a new timeout");

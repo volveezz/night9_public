@@ -187,7 +187,7 @@ export async function updateRaidMessage(options) {
         return;
     }
     const embed = EmbedBuilder.from(raidMessage.embeds[0]);
-    const cleanMemberName = async (id) => nameCleaner((await client.getMember(id))?.displayName || "неизвестный пользователь", true);
+    const cleanMemberName = async (id) => nameCleaner((await client.getMember(id).catch((_) => null))?.displayName || "неизвестный пользователь", true);
     const [joinedUsersText, hotJoinedUsersText, altUsersText] = await Promise.all([
         generateJoinedAdvancedRoster(joined, raidName, cleanMemberName, id, raidEvent),
         generateUsersRoster(hotJoined, cleanMemberName),
@@ -339,7 +339,7 @@ export async function raidChallenges({ raidData, raidEvent, privateChannelMessag
         await privateChannelMessage.edit({ embeds: [embed] });
         return;
     }
-    activityModifiers.forEach((modifierHash) => {
+    for (const modifierHash of activityModifiers) {
         const modifier = manifest[modifierHash];
         const modifierName = modifier.displayProperties.name;
         const manifestModifierDescription = modifier.displayProperties.description.toLowerCase();
@@ -347,7 +347,7 @@ export async function raidChallenges({ raidData, raidEvent, privateChannelMessag
             ? manifestModifierDescription.slice(0, -1)
             : manifestModifierDescription;
         if (blockedModifierHashesArray.includes(modifierHash) || (difficulty !== 1 && modifierHash === 97112028))
-            return;
+            continue;
         const modifierEndTime = new Date(raidMilestone.endDate).getTime();
         if (manifestModifierDescription.toLowerCase().startsWith("вас ждет испытание")) {
             const challenge = (modifierEndTime > startTime * 1000
@@ -359,11 +359,13 @@ export async function raidChallenges({ raidData, raidEvent, privateChannelMessag
         }
         else if (modifierEndTime > startTime * 1000) {
             const predefinedModifierDescription = findModifierDescription(modifierHash);
-            if (predefinedModifierDescription)
-                return raidModifiersArray.push(predefinedModifierDescription);
+            if (predefinedModifierDescription) {
+                raidModifiersArray.push(predefinedModifierDescription);
+                continue;
+            }
             raidModifiersArray.push(`⁣　⁣**${convertModifiersPlaceholders(modifierName)}:** ${convertModifiersPlaceholders(modifierDescription)}`);
         }
-    });
+    }
     function findModifierDescription(modifier) {
         switch (modifier) {
             case 2116552995:
@@ -378,6 +380,13 @@ export async function raidChallenges({ raidData, raidEvent, privateChannelMessag
                 return null;
         }
     }
+    raidChallengesArray.sort((a, b) => {
+        const nameA = a.match(/(\d)\s*этап/) || "0";
+        const nameB = b.match(/(\d)\s*этап/) || "9";
+        let numA = parseInt(nameA[1]);
+        let numB = parseInt(nameB[1]);
+        return numA - numB;
+    });
     embed.data.fields[0].name =
         raidChallengesArray.length > 0
             ? `**Испытани${raidChallengesArray.length === 1 ? "е" : "я"} ${new Date(raidMilestone.endDate).getTime() > startTime * 1000 ? "этой" : "следующей"} недели**`

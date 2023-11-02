@@ -16,7 +16,6 @@ import raidFireteamCheckerSystem, { stopFireteamCheckingSystem, } from "../../ut
 import { clearNotifications, sendNotificationInfo, updateNotifications, updateNotificationsForEntireRaid, } from "../../utils/general/raidFunctions/raidNotifications.js";
 import { descriptionFormatter, escapeString } from "../../utils/general/utilities.js";
 import { userTimezones } from "../../utils/persistence/dataStore.js";
-import { sequelizeInstance } from "../../utils/persistence/sequelize.js";
 import { RaidEvent } from "../../utils/persistence/sequelizeModels/raidEvent.js";
 import { createRaid } from "./createRaid.js";
 const SlashCommand = new Command({
@@ -339,6 +338,7 @@ const SlashCommand = new Command({
                 await deferredReply;
                 throw { errorType: "RAID_NOT_FOUND" };
             }
+            const oldCreatorId = raidData.creator;
             const raidInfo = getRaidDetails((newRaid || raidData.raid), newDifficulty ?? raidData.difficulty);
             if ((newDifficulty || raidData.difficulty) > raidInfo.maxDifficulty) {
                 newDifficulty = 1;
@@ -346,7 +346,6 @@ const SlashCommand = new Command({
             const changes = [];
             const raidMessage = await client.getAsyncMessage(process.env.RAID_CHANNEL_ID, raidData.messageId);
             const raidEmbed = EmbedBuilder.from(raidMessage?.embeds[0]);
-            const transaction = await sequelizeInstance.transaction();
             const changesForChannel = [];
             const raidPrivateChannel = await client.getTextChannel(raidData.channelId);
             let inChannelMessage;
@@ -373,7 +372,7 @@ const SlashCommand = new Command({
                     .setLabel("Руководство по рейду")
                     .setStyle(ButtonStyle.Primary));
             }
-            const updateDifficulty = async (newDifficulty, raidInfo, raidData, transaction) => {
+            const updateDifficulty = async (newDifficulty, raidInfo, raidData) => {
                 if (newDifficulty != null && raidInfo.maxDifficulty >= newDifficulty && newDifficulty != raidData.difficulty) {
                     const difficultyText = newDifficulty === 2 ? "Мастер" : "Нормальный";
                     changesForChannel.push({
@@ -381,10 +380,9 @@ const SlashCommand = new Command({
                         value: `Сложность рейда была изменена - \`${difficultyText}\``,
                     });
                     raidData.difficulty = newDifficulty && raidInfo.maxDifficulty >= newDifficulty ? newDifficulty : 1;
-                    await raidData.save({ transaction });
                 }
             };
-            async function updateRequiredClears(newReqClears, raidData, transaction) {
+            async function updateRequiredClears(newReqClears, raidData) {
                 if (newReqClears != null && raidData.requiredClears != newReqClears) {
                     const requiredClearsText = newReqClears === 0
                         ? "Требование для вступления `отключено`"
@@ -393,48 +391,31 @@ const SlashCommand = new Command({
                         name: "Требование для вступления",
                         value: requiredClearsText,
                     });
-                    await RaidEvent.update({ requiredClears: newReqClears }, { where: { id: raidData.id }, transaction });
+                    raidData.requiredClears = newReqClears;
                 }
             }
-            async function updateRaid(newRaid, raidInfo, raidData, transaction, raidEmbed) {
+            async function updateRaid(newRaid, raidInfo, raidData, raidEmbed) {
                 if (newRaid !== null) {
                     changesForChannel.push({
                         name: "Рейд набора был изменен",
                         value: `- Новый рейд: \`${raidInfo.raidName}\``,
                     });
-                    const [_, [updatedRaid]] = await RaidEvent.update({ raid: raidInfo.raid }, {
-                        where: { id: raidData.id },
-                        transaction,
-                        returning: [
-                            "id",
-                            "channelId",
-                            "inChannelMessageId",
-                            "creator",
-                            "messageId",
-                            "joined",
-                            "hotJoined",
-                            "alt",
-                            "raid",
-                            "difficulty",
-                        ],
-                        limit: 1,
-                    });
-                    const updatedRaidMessage = await updateRaidMessage({ raidEvent: updatedRaid, returnComponents: true });
-                    if (updatedRaidMessage) {
-                        raidEmbed.setFields(updatedRaidMessage.embeds[0].data.fields);
-                    }
-                    raidChallenges({ privateChannelMessage: inChannelMessage, raidData: raidInfo, raidEvent: raidData });
-                    const channel = await client.getTextChannel(updatedRaid.channelId);
-                    channel.edit({ name: `🔥｜${updatedRaid.id}${raidInfo.channelName}` }).catch((e) => console.error("[Error code: 1696]", e));
+                    raidData.raid = raidInfo.raid;
+                    const channel = await client.getTextChannel(raidData.channelId);
+                    channel.edit({ name: `🔥｜${raidData.id}${raidInfo.channelName}` }).catch((e) => console.error("[Error code: 1696]", e));
                 }
             }
             if ((newRaid != null && newRaid != raidData.raid) ||
                 (newDifficulty != null && newDifficulty != raidData.difficulty) ||
                 (newReqClears != null && newReqClears != raidData.requiredClears)) {
                 changes.push("Рейд был измнен");
-                await updateDifficulty(newDifficulty, raidInfo, raidData, transaction);
-                await updateRequiredClears(newReqClears, raidData, transaction);
-                await updateRaid(newRaid, raidInfo, raidData, transaction, raidEmbed);
+                await updateDifficulty(newDifficulty, raidInfo, raidData);
+                await updateRequiredClears(newReqClears, raidData);
+                await updateRaid(newRaid, raidInfo, raidData, raidEmbed);
+                const updatedRaidMessage = await updateRaidMessage({ raidEvent: raidData, returnComponents: true });
+                if (updatedRaidMessage) {
+                    raidEmbed.setFields(updatedRaidMessage.embeds[0].data.fields);
+                }
                 raidEmbed
                     .setColor(raidData.joined.length >= 6 ? colors.invisible : raidInfo.raidColor)
                     .setTitle(newReqClears != null || raidData.requiredClears >= 1 || newDifficulty != null
@@ -445,37 +426,6 @@ const SlashCommand = new Command({
                             : ` от ${raidData.requiredClears} закрытий`}`
                     : `Рейд: ${raidInfo.raidName}`)
                     .setThumbnail(raidInfo.raidBanner);
-            }
-            if (newDescription !== null) {
-                const descriptionFieldIndex = raidEmbed.data.fields?.findIndex((field) => field.name === "Описание");
-                const field = {
-                    name: "Описание",
-                    value: descriptionFormatter(newDescription),
-                };
-                if (descriptionFieldIndex !== undefined && descriptionFieldIndex !== -1) {
-                    if (newDescription !== " " && newDescription !== "-") {
-                        raidEmbed.spliceFields(descriptionFieldIndex, 1, field);
-                    }
-                    else {
-                        raidEmbed.spliceFields(descriptionFieldIndex, 1);
-                    }
-                }
-                else {
-                    raidEmbed.spliceFields(2, 0, field);
-                }
-                if (newDescription === " " || newDescription === "-") {
-                    changesForChannel.push({
-                        name: "Описание",
-                        value: "Описание было удалено",
-                    });
-                }
-                else {
-                    changesForChannel.push({
-                        name: "Описание было изменено",
-                        value: descriptionFormatter(newDescription),
-                    });
-                }
-                changes.push("Описание было изменено");
             }
             if (newTime !== null) {
                 const changedTime = convertTimeStringToNumber(newTime, userTimezones.get(interaction.user.id));
@@ -506,15 +456,42 @@ const SlashCommand = new Command({
                         value: `- Прежнее время старта: <t:${raidData.time}>, <t:${raidData.time}:R>\n- Новое время: <t:${changedTime}>, <t:${changedTime}:R>`,
                     });
                     changes.push("Время старта было изменено");
-                    const [_, updatedRaiddata] = await RaidEvent.update({
-                        time: changedTime,
-                    }, { where: { id: raidData.id }, transaction: transaction, returning: ["id", "time"], limit: 1 });
-                    updateNotificationsForEntireRaid(updatedRaiddata[0].id);
-                    raidFireteamCheckerSystem(raidData.id);
+                    raidData.time = changedTime;
                 }
                 else {
                     changes.push(`Время старта осталось без изменений\nУказаное время <t:${changedTime}>, <t:${changedTime}:R> находится в прошлом`);
                 }
+            }
+            if (newDescription !== null) {
+                const descriptionFieldIndex = raidEmbed.data.fields?.findIndex((field) => field.name === "Описание");
+                const field = {
+                    name: "Описание",
+                    value: descriptionFormatter(newDescription),
+                };
+                if (descriptionFieldIndex !== undefined && descriptionFieldIndex !== -1) {
+                    if (newDescription !== " " && newDescription !== "-") {
+                        raidEmbed.spliceFields(descriptionFieldIndex, 1, field);
+                        changesForChannel.push({
+                            name: "Описание было изменено",
+                            value: descriptionFormatter(newDescription),
+                        });
+                    }
+                    else {
+                        raidEmbed.spliceFields(descriptionFieldIndex, 1);
+                        changesForChannel.push({
+                            name: "Описание",
+                            value: "Описание было удалено",
+                        });
+                    }
+                }
+                else {
+                    raidEmbed.spliceFields(2, 0, field);
+                    changesForChannel.push({
+                        name: "Описание было установлено",
+                        value: descriptionFormatter(newDescription),
+                    });
+                }
+                changes.push("Описание было изменено");
             }
             if (newRaidLeader !== null) {
                 if (!newRaidLeader.bot) {
@@ -531,13 +508,13 @@ const SlashCommand = new Command({
                     });
                     changesForChannel.push({
                         name: "Создатель рейда",
-                        value: raidData.creator === interaction.user.id
-                            ? `${nameCleaner(interaction.guild.members.cache.get(interaction.user.id).displayName, true)} передал права создателя рейда ${escapeString(raidLeaderName)}`
-                            : `Права создателя были переданы ${escapeString(raidLeaderName)}`,
+                        value: oldCreatorId === interaction.user.id
+                            ? `\`${nameCleaner((await client.getMember(interaction.member || interaction.user.id).catch((_) => null))?.displayName ||
+                                "неизвестный пользователь", true)}\` передал права создателя рейда \`${escapeString(raidLeaderName)}\``
+                            : `Права создателя были переданы \`${escapeString(raidLeaderName)}\``,
                     });
                     changes.push("Создатель рейда был изменен");
                     raidData.creator = newRaidLeader.id;
-                    await raidData.save({ transaction: transaction });
                 }
                 else {
                     changes.push("Создатель рейда не был изменен поскольку нельзя назначить бота создателем");
@@ -545,15 +522,17 @@ const SlashCommand = new Command({
             }
             if (changes.length > 0 && changesForChannel.length > 0) {
                 try {
-                    await transaction.commit();
+                    await raidData.save();
+                    raidChallenges({ privateChannelMessage: inChannelMessage, raidData: raidInfo, raidEvent: raidData });
+                    updateNotificationsForEntireRaid(raidData.id);
+                    raidFireteamCheckerSystem(raidData.id);
                 }
                 catch (error) {
                     console.error("[Error code: 1207]", error);
-                    await transaction.rollback();
                 }
                 const messageOptions = {
                     embeds: [raidEmbed],
-                    ...(!newRaid ? { content: "" } : {}),
+                    ...(newRaid ? { content: null } : {}),
                 };
                 inChannelMessage.edit({
                     components: addButtonsToMessage([...getDefaultRaidComponents(inChannelMessage.components[0]), ...components]),
@@ -565,13 +544,12 @@ const SlashCommand = new Command({
                     .setDescription(changes.join("\n") || "изменений нет");
                 (await deferredReply) && interaction.editReply({ embeds: [replyEmbed] });
                 const editedEmbedReplyInChn = new EmbedBuilder().setColor(colors.default).setFooter({
-                    text: `Изменение ${raidData.creator === interaction.user.id ? "создателем рейда" : "администратором"}`,
+                    text: `Изменение ${oldCreatorId === interaction.user.id ? "создателем рейда" : "администратором"}`,
                 });
                 editedEmbedReplyInChn.addFields(changesForChannel);
                 notSilently && client.getCachedTextChannel(raidData.channelId).send({ embeds: [editedEmbedReplyInChn] });
             }
             else {
-                await transaction.rollback();
                 await deferredReply;
                 throw {
                     name: "Изменения не были внесены",
