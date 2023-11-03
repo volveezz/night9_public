@@ -32,37 +32,49 @@ export async function requestTokenRefresh({ userId, table = AuthData, refresh_to
         grant_type: "refresh_token",
         refresh_token: refreshToken,
     }));
-    const fetchRequest = (await fetch(BUNGIE_TOKEN_URL, {
+    const fetchRequest = await fetch(BUNGIE_TOKEN_URL, {
         method: "POST",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
             Authorization: `Basic ${process.env.AUTH}`,
         },
         body: form,
+    });
+    const json = (await fetchRequest.json().catch((e) => {
+        console.error("[Error code: 2117]", e, fetchRequest.status, fetchRequest.statusText);
     }));
-    return (await fetchRequest.json());
+    if (!json) {
+        throw fetchRequest;
+    }
+    return json;
 }
-async function bungieGrantRequest(row, table, retry = false) {
+async function bungieGrantRequest(row, retry = false) {
     try {
-        const request = await requestTokenRefresh({ refresh_token: row.refreshToken, table: table === 1 ? AuthData : LeavedUsersData });
-        if (request && request.access_token) {
+        const request = await requestTokenRefresh({ refresh_token: row.refreshToken }).catch((e) => {
+            throw e;
+        });
+        if (request?.access_token) {
             row.accessToken = request.access_token;
             row.refreshToken = request.refresh_token;
             await row.save();
             tokenRefresher.updateTokenRefreshTime();
         }
         else {
-            handleRequestError(request, row, table, retry);
+            handleRequestError(request, row, retry);
         }
     }
     catch (error) {
         console.error(`[Error code: 1744] Token refresher ${retry} for ${row.bungieId}\n`, error);
+        if (error?.error_description === "SystemDisabled") {
+            updateEndpointStatus("oauth", 5);
+            return;
+        }
         if (!retry) {
-            bungieGrantRequest(row, table, true);
+            bungieGrantRequest(row, true);
         }
     }
 }
-async function handleRequestError(request, row, table, retry) {
+async function handleRequestError(request, row, retry) {
     if (request && request.error_description === "SystemDisabled") {
         updateEndpointStatus("oauth", 5);
         return;
@@ -72,28 +84,28 @@ async function handleRequestError(request, row, table, retry) {
         if (request && request.error_description === "SystemDisabled") {
             return;
         }
-        bungieGrantRequest(row, table, true);
+        bungieGrantRequest(row, true);
     }
     else {
         console.error(`[Error code: 1231] Second error in a row for ${row.discordId}/${row.bungieId}\n`, request);
-        await handleSpecificError(request, row, table);
+        await handleSpecificError(request, row);
     }
 }
-async function handleSpecificError(request, row, table) {
+async function handleSpecificError(request, row) {
     if (request.error_description === "AuthorizationRecordRevoked") {
-        await handleAuthorizationRecordRevoked(row, table);
+        await handleAuthorizationRecordRevoked(row);
     }
     else if (request.error_description === "AuthorizationRecordExpired") {
-        await handleAuthorizationRecordExpired(row, table);
+        await handleAuthorizationRecordExpired(row);
     }
 }
-async function handleAuthorizationRecordRevoked(row, table) {
+async function handleAuthorizationRecordRevoked(row) {
     const dbPromise = row.destroy();
-    if (table === 2)
+    if (row instanceof LeavedUsersData)
         return;
     const memberPromise = client.getMember(row.discordId);
     const [member, _] = await Promise.all([memberPromise, dbPromise]);
-    console.log(`The database row for (${row.discordId}) has been removed from the ${table === 1 ? "main table" : "secondary table"}`);
+    console.log(`The database row for (${row.discordId}) has been removed from the ${row instanceof AuthData ? "main table" : "secondary table"}`);
     setMemberRoles({
         member,
         roles: [member.roles.cache.has(process.env.KICKED) ? process.env.KICKED : process.env.NEWBIE],
@@ -108,9 +120,9 @@ async function handleAuthorizationRecordRevoked(row, table) {
         .catch((e) => console.error(`[Error code: 2087] Cannot send the notification to ${nameCleaner(member.displayName)} since he closed his DM`, e));
 }
 const REGISTER_BUTTON = new ButtonBuilder().setCustomId("initEvent_register").setLabel("Регистрация").setStyle(ButtonStyle.Success);
-async function handleAuthorizationRecordExpired(row, table) {
+async function handleAuthorizationRecordExpired(row) {
     const { discordId, bungieId } = row;
-    if (table === 1) {
+    if (row instanceof AuthData) {
         recentlyExpiredAuthUsersBungieIds.add(bungieId);
         row.accessToken = null;
         row.refreshToken = null;
@@ -143,7 +155,7 @@ async function refreshTokens(table) {
     if (getEndpointStatus("oauth") !== 1)
         return;
     const attributes = ["discordId", "bungieId", "refreshToken"];
-    const data = table === 1
+    const data = table === "AuthData"
         ? await AuthData.findAll({
             attributes,
             where: {
@@ -155,7 +167,7 @@ async function refreshTokens(table) {
         : await LeavedUsersData.findAll({ attributes });
     for (const row of data) {
         try {
-            await bungieGrantRequest(row, table, false);
+            await bungieGrantRequest(row, false);
             await pause(1000);
         }
         catch (error) {
@@ -164,11 +176,11 @@ async function refreshTokens(table) {
     }
 }
 async function tokenManagment() {
-    await refreshTokens(1);
-    await refreshTokens(2);
+    await refreshTokens("AuthData");
+    await refreshTokens("LeavedUsersData");
     async function recursiveAuthDataTokenRefresh() {
         try {
-            await refreshTokens(1);
+            await refreshTokens("AuthData");
         }
         catch (error) {
             console.error("[Error code: 2085] Error during periodic token refresh:", error);

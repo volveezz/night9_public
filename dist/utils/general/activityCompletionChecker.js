@@ -145,10 +145,7 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
                 currentlyRunning.delete(uniqueId);
                 activityCompletionCurrentProfiles.delete(characterId);
             }
-            if (!activityCompletionCurrentProfiles.has(characterId) &&
-                !forceDelete &&
-                completedPhases.has(characterId) &&
-                completedPhases.get(characterId) === cachedData) {
+            if (!activityCompletionCurrentProfiles.has(characterId) && !forceDelete && completedPhases.get(characterId) === cachedData) {
                 console.debug(`Completed phases data for ${platform}/${bungieId}/${characterId} | ${discordId} was deleted at`, traceError.stack);
                 completedPhases.delete(characterId);
             }
@@ -272,11 +269,16 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
         activityCompletionCurrentProfiles.set(characterId, updatedMilestone);
     }
     interval = setInterval(async () => {
-        if (currentlyRunning.has(uniqueId)) {
-            await checkActivityHash();
+        try {
+            if (currentlyRunning.has(uniqueId)) {
+                await checkActivityHash();
+            }
+            else {
+                stopActivityHashChecker({ forceStop: true });
+            }
         }
-        else {
-            clearInterval(interval);
+        catch (error) {
+            console.error("[Error code: 2118] Error during activity completion checker", error);
         }
     }, 50000);
     currentlyRunning.set(uniqueId, interval);

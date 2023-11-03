@@ -1,6 +1,7 @@
 import fetch from "node-fetch";
 import BungieAPIError from "../../structures/BungieAPIError.js";
 import tokenRefresher from "../../structures/tokenRefresher.js";
+import { updateEndpointStatus } from "./statusCheckers/statusTracker.js";
 const bungieNetUrl = "https://www.bungie.net";
 export async function sendApiRequest(apiEndpoint, authToken, serverResponse) {
     const headers = createHeaders(authToken);
@@ -36,7 +37,7 @@ function createHeaders(authToken) {
     return {
         "X-API-KEY": process.env.XAPI,
         "Content-Type": "application/json",
-        ...(authToken && tokenRefresher.wasRefreshedRecently() ? { Authorization: `Bearer ${authToken?.accessToken || authToken}` } : {}),
+        ...(authToken && tokenRefresher.wasRefreshedRecently() ? { Authorization: `Bearer ${authToken.accessToken || authToken}` } : {}),
     };
 }
 async function parseJsonResponse(response) {
@@ -66,6 +67,9 @@ function handleFetchError(status, error) {
     };
     if (errorMessages.hasOwnProperty(status) || errorMessages.hasOwnProperty(String(status))) {
         console.error("[Error code: 1939]", errorMessages[String(status)]);
+        if (status === "401") {
+            updateEndpointStatus("oauth", 2000);
+        }
     }
     else {
         if (typeof status === "number" && status >= 400 && status <= 599) {

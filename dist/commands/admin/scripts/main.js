@@ -11,6 +11,7 @@ import calculateVoteResults from "../../../utils/discord/twitterHandler/twitterT
 import { activityCompletionCurrentProfiles, currentlyRunning } from "../../../utils/general/activityCompletionChecker.js";
 import { convertSeconds } from "../../../utils/general/convertSeconds.js";
 import { pause } from "../../../utils/general/utilities.js";
+import { completedPhases } from "../../../utils/persistence/dataStore.js";
 import { AuthData } from "../../../utils/persistence/sequelizeModels/authData.js";
 import { AutoRoleData } from "../../../utils/persistence/sequelizeModels/autoRoleData.js";
 import { UserActivityData } from "../../../utils/persistence/sequelizeModels/userActivityData.js";
@@ -35,11 +36,13 @@ const SlashCommand = new Command({
             case "logdata": {
                 const dataForCurrentlyRunning = Array.from(currentlyRunning.keys()).join("`, `");
                 const dataForCheckedProfiles = Array.from(activityCompletionCurrentProfiles.keys()).join("`, `");
+                const completedPhasesData = Array.from(completedPhases.keys()).join("`, `");
                 console.debug("Currently running", currentlyRunning.size, Array.from(currentlyRunning.keys()));
                 console.debug("Checked profiles", activityCompletionCurrentProfiles.size, Array.from(activityCompletionCurrentProfiles.keys()));
+                console.debug("Completed phases", completedPhases.size, Array.from(completedPhases.keys()));
                 await deferredReply;
                 interaction.editReply({
-                    content: `Currently Running: \`${dataForCurrentlyRunning}\`\nCurrent Profiles: \`${dataForCheckedProfiles}\``,
+                    content: `Currently Running: \`${dataForCurrentlyRunning.length === 0 ? "[]" : dataForCurrentlyRunning}\`\nCurrent Profiles: \`${dataForCheckedProfiles.length === 0 ? "[]" : dataForCheckedProfiles}\`\nCompleted phases: \`${completedPhasesData.length === 0 ? "[]" : completedPhasesData}\``,
                 });
                 return;
             }
