@@ -11,6 +11,9 @@ const redisClient = createClient({
 redisClient.on("error", (error) => {
     console.error("Redis error", error);
 });
-redisClient.connect();
+redisClient.on("connect", () => {
+    console.debug("Redis connected");
+});
+await redisClient.connect();
 export { redisClient };
 //# sourceMappingURL=redis.js.map
