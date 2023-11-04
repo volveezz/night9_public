@@ -1,7 +1,7 @@
 import { dungeonsTriumphHashes } from "../../configs/roleRequirements.js";
 import { activityRoles, statisticsRoles } from "../../configs/roles.js";
 import { AutoRoleData } from "../../utils/persistence/sequelizeModels/autoRoleData.js";
-import { dungeonRoles } from "./getDungeonRoleIds.js";
+import { getDungeonRoles } from "./getDungeonRoleIds.js";
 export async function triumphsChecker({ hasRole, hasAnyRole, member, profileResponse, roleCategoriesBits, roleData, characterResponse, roleIdsForAdding, roleIdsForRemoval, }) {
     if (roleCategoriesBits & 1) {
         const activeTriumphs = profileResponse.activeScore;
@@ -20,6 +20,7 @@ export async function triumphsChecker({ hasRole, hasAnyRole, member, profileResp
             }
         }
     }
+    const dungeonRolesIds = getDungeonRoles();
     for (const autoRole of roleData) {
         const { category, gildedTriumphRequirement, gildedRoles, roleId, available, triumphRequirement } = autoRole;
         if (category === 4 && !(roleCategoriesBits & 4))
@@ -135,11 +136,10 @@ export async function triumphsChecker({ hasRole, hasAnyRole, member, profileResp
             if (dungeonsTriumphHashes.includes(triumphRequirement)) {
                 if (objective.complete === true) {
                     if (hasRole(process.env.DUNGEON_MASTER_ROLE)) {
+                        if (hasAnyRole(dungeonRolesIds)) {
+                            roleIdsForRemoval.push(...dungeonRolesIds);
+                        }
                         continue;
-                    }
-                    const dungeonRolesIds = await dungeonRoles();
-                    if (hasAnyRole(dungeonRolesIds)) {
-                        roleIdsForRemoval.push(...dungeonRolesIds);
                     }
                     if (member.roles.cache.hasAll(...dungeonRolesIds) && !roleIdsForAdding.includes(process.env.DUNGEON_MASTER_ROLE)) {
                         roleIdsForAdding.push(process.env.DUNGEON_MASTER_ROLE);

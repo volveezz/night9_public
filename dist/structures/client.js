@@ -1,6 +1,7 @@
 import { ActivityType, Client, Collection, GatewayIntentBits, GuildMember, Partials, TextChannel, User, } from "discord.js";
 import { join, resolve } from "path";
 import checkClanActivitiesPeriodically from "../core/periodicActivityChecker.js";
+import { cacheDungeonRoles } from "../core/statisticsChecker/getDungeonRoleIds.js";
 import handleMemberStatistics from "../core/statisticsChecker/userStatisticsManagement.js";
 import tokenManagment from "../core/tokenManagement.js";
 import fetchNewsArticles from "../utils/api/bungieRssFetcher.js";
@@ -261,6 +262,7 @@ export class ExtendedClient extends Client {
             }
             console.info(`\x1b[32m${this.user.username} online since ${new Date().toLocaleString()}\x1b[0m`);
             await Promise.allSettled([
+                cacheDungeonRoles(),
                 restoreDataFromRedis(),
                 VoteSystem.getInstance().init(),
                 LFGController.getInstance().init(),
