@@ -32,22 +32,22 @@ const ButtonCommand = new Button({
 });
 function validateRaidName(input) {
     switch (input) {
-        case input.match(/(crota'?s? end|ce|crota|кк|крах|кроты|крота|кротовуха)/i)?.input:
+        case input.match(/(vow|disciple|votd|вотд|клятва|послушника|кп|рулк)/i)?.input:
+            return RaidNames.votd;
+        case input.match(/(crota'?s?|end|ce|кк|крах|крот)/i)?.input:
             return RaidNames.ce;
         case input.match(/(deep|stone|crypt|dsc|склеп|глубокого|камня|сгк|дск)/i)?.input:
             return RaidNames.dsc;
-        case input.match(/(garden|gos|сад|сс|спасения|ss)/i)?.input:
+        case input.match(/(vault|glass|vog|вог|хрустальны(й|и)|чертог|хч)/i)?.input:
+            return RaidNames.vog;
+        case input.match(/(garden|salvation|gos|сад|сс|спасения|ss)/i)?.input:
             return RaidNames.gos;
-        case input.match(/(king'?s? fall|kf|гк|гибель|короля|кингс|фолл|кф)/i)?.input:
+        case input.match(/(king'?s?|fall|kf|гк|гибель|корол|кинг|фолл|кф)/i)?.input:
             return RaidNames.kf;
         case input.match(/(last|wish|lw|пж|последнее|желание|ривен)/i)?.input:
             return RaidNames.lw;
-        case input.match(/(root of nightmares|root|ron|ик|источник|кошмаров|рут)/i)?.input:
+        case input.match(/(root|nightmare|ron|ик|источник|кошмар|рут)/i)?.input:
             return RaidNames.ron;
-        case input.match(/(vault of glass|vog|вог|хрустальны(й|и)|чертог|хч)/i)?.input:
-            return RaidNames.vog;
-        case input.match(/(vow of the disciple|votd|вотд|клятва|послушника|кп|рулк)/i)?.input:
-            return RaidNames.votd;
         default: {
             throw { name: "Ошибка названия рейда", description: `Проверьте название рейда (${input}). Оно некорректно` };
         }
