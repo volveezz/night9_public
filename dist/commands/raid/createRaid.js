@@ -44,8 +44,12 @@ export async function createRaid({ interaction, difficulty, raid, member, time, 
             raid: raidData.raid,
             difficulty,
             requiredClears: clearRequirement,
-        }, { transaction });
+        }, { transaction }).catch((e) => console.error("[Error code: 2121]", e));
         const [raidEvent, raidChannel] = await Promise.all([raidEventPromise, raidChannelPromise]);
+        if (!raidEvent || !raidChannel) {
+            console.error("[Error code: 2120]", raidEvent == null ? "raidEvent" : "raidChannel");
+            throw { name: "Произошла ошибка во время создания рейда" };
+        }
         const privateRaidChannel = await member.guild.channels.create({
             name: `🔥｜${raidEvent.id}-${raidData.channelName}`,
             parent: process.env.RAID_CATEGORY,

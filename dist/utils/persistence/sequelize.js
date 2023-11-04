@@ -11,7 +11,13 @@ import { UserActivityData } from "./sequelizeModels/userActivityData.js";
 import { VoiceChannels } from "./sequelizeModels/voiceChannels.js";
 import { VotingDatabase } from "./sequelizeModels/votingDatabase.js";
 const __dirname = resolve();
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
+if (process.env.DATABASE_PRIVATE_URL) {
+    console.debug("Connecting to the database with the private url");
+}
+else {
+    console.debug("Connecting to the database with the usual url");
+}
+const sequelize = new Sequelize((process.env.DATABASE_PRIVATE_URL || process.env.DATABASE_URL), {
     dialect: "postgres",
     ssl: true,
     dialectOptions: { ssl: { require: true, rejectUnauthorized: false } },

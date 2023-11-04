@@ -188,12 +188,14 @@ const getMergedMembers = async () => {
         .sort(sortMembers);
 };
 const handleRoster = async (interaction) => {
+    const deferredReply = interaction.deferReply({ ephemeral: true });
     const mergedMembers = await getMergedMembers();
     const embeds = createRosterEmbeds(mergedMembers);
     for (let i = 0; i < embeds.length; i++) {
         const embed = embeds[i];
         if (i === 0) {
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await deferredReply;
+            await interaction.editReply({ embeds: [embed] });
         }
         else {
             await interaction.followUp({ embeds: [embed], ephemeral: true });

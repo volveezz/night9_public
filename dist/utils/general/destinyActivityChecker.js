@@ -48,9 +48,8 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
     let isPreviousMatchWintraded = false;
     let isWintrader = false;
     for (const character of userCharactersArray) {
-        if (getEndpointStatus("activity") !== 1) {
+        if (getEndpointStatus("activity") !== 1)
             return;
-        }
         let page = 0;
         try {
             await fetchAndProcessActivities();
@@ -67,13 +66,11 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
             return;
         }
         async function fetchAndProcessActivities() {
-            if (getEndpointStatus("activity") !== 1) {
+            if (getEndpointStatus("activity") !== 1)
                 return;
-            }
             const response = await sendApiRequest(`/Platform/Destiny2/${platform}/Account/${bungieId}/Character/${character}/Stats/Activities/?count=${count}&mode=${mode}&page=${page}`, accessToken);
             if (!response) {
-                console.error(`[Error code: 1018] Response error for ${bungieId} during checking ${mode} mode`, response);
-                return;
+                return console.error(`[Error code: 1018] Response error for ${bungieId} during checking ${mode} mode`, response);
             }
             if (!response.activities || response.activities.length <= 0) {
                 return;

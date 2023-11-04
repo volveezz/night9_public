@@ -163,7 +163,7 @@ export class ExtendedClient extends Client {
             return module.default || module;
         }
         catch (error) {
-            console.error("[Error code: 2062] Failed to import file", { filePath }, error);
+            console.error("[Error code: 2062] Failed to import", filePath, error);
         }
     }
     async registerCommands({ global, commands }) {
@@ -228,7 +228,7 @@ export class ExtendedClient extends Client {
         const buttonReading = buttonFiles.map(async (filePath) => {
             const button = await this.importFile(filePath);
             if (!button) {
-                console.error("[Error code: 1140] Button file not valid", { filePath });
+                console.error("[Error code: 1140] Button file not valid", filePath);
                 return;
             }
             this.buttons.set(button.name, button);
@@ -260,7 +260,7 @@ export class ExtendedClient extends Client {
                 this.loadProdComponents();
             }
             console.info(`\x1b[32m${this.user.username} online since ${new Date().toLocaleString()}\x1b[0m`);
-            Promise.allSettled([
+            await Promise.allSettled([
                 restoreDataFromRedis(),
                 VoteSystem.getInstance().init(),
                 LFGController.getInstance().init(),

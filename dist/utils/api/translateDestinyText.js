@@ -3,7 +3,7 @@ async function translateDestinyText(sourceText) {
     if (!sourceText || sourceText.length <= 1) {
         return sourceText;
     }
-    const prompt = `Translate user text into Russian, while adhering to the context of the game Destiny
+    const prompt = `Translate the following text into Russian, while adhering to the context of the game "Destiny." Any game-specific terms, items, character names, locations, or other specialized vocabulary should remain in their original English form or use known translations provided in examples below. Your answer should be the translation of the text, do not answer with explanations or additional notes.
 
 Translated dataset:
 {

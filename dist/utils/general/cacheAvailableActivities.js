@@ -9,18 +9,16 @@ async function fetchAndCacheActivities() {
     const authDataQuery = ownerId && { where: { discordId: ownerId }, attributes: ["bungieId", "platform", "accessToken"] };
     let ownerAuthData = authDataQuery && (await AuthData.findOne(authDataQuery));
     if (!ownerAuthData) {
-        ownerAuthData = await AuthData.findOne({ attributes: ["bungieId", "platform", "accessToken"] });
+        ownerAuthData ??= await AuthData.findOne({ attributes: ["bungieId", "platform", "accessToken"] });
         if (!ownerAuthData) {
-            console.warn("[Error code: 2038] No available authentication data in the database");
-            return;
+            return console.warn("[Error code: 2038] No available authentication data in the database");
         }
     }
     const { accessToken, bungieId, platform } = ownerAuthData;
     const profileData = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${bungieId}/?components=204,1200`, accessToken);
     const characterActivities = profileData.characterActivities.data;
     if (!characterActivities) {
-        console.warn(`[Error code: 2039] No character activities found for ${platform}${bungieId} [AccessToken: ${accessToken?.length}]`);
-        return;
+        return console.warn(`[Error code: 2039] No character activities found for ${platform}${bungieId} [AccessToken: ${accessToken?.length}]`);
     }
     const mostActiveCharacterId = Object.keys(characterActivities).reduce((prevId, currId) => characterActivities[prevId].availableActivities.length > characterActivities[currId].availableActivities.length ? prevId : currId);
     const charactersStringVariablesData = profileData.characterStringVariables?.data;
@@ -53,7 +51,7 @@ async function fetchAndCacheActivities() {
     for (const activityHash in activityCache) {
         if (!newActivityCache[activityHash]) {
             delete activityCache[activityHash];
-            console.info(`Removed activity ${activityHash} from activity cache`);
+            console.info(`Removed activity ${activityHash} from the activity cache`);
         }
     }
     Object.assign(activityCache, newActivityCache);
