@@ -23,7 +23,6 @@ async function checkFireteamStatus(raidData) {
             setTimeout(() => {
                 raidFireteamChecker(raidEvent.id);
             }, 1000);
-            console.debug(`Raid with ID: ${raidId} has changed time, rescheduling update`);
         }
         return false;
     }
@@ -37,7 +36,6 @@ async function checkFireteamStatus(raidData) {
     }
     const raidVoiceChannel = voiceChannels.find((channel) => channel.members.hasAny(...raidEvent.joined));
     if (!raidVoiceChannel) {
-        console.debug(`Raid voice channel was not found with joined members of raid id: ${raidEvent.id}`);
         return false;
     }
     const userIds = [...new Set([...raidEvent.joined, ...raidVoiceChannel.members.map((member) => member.id)])];
@@ -56,7 +54,6 @@ async function checkFireteamStatus(raidData) {
     const matchingBungieIds = fireteamBungieIds.filter((id) => raidMemberBungieIds.includes(id));
     const minMembers = Math.ceil(raidEvent.joined.length / 2);
     if (matchingBungieIds.length < minMembers) {
-        console.debug(`Not enough matching Bungie IDs for raid ID: ${raidEvent.id}`);
         if (badCheckAttempt < 5) {
             countOfChecksMap.set(raidId, badCheckAttempt + 1);
             return true;
@@ -112,16 +109,13 @@ async function checkFireteamStatus(raidData) {
             }
         };
         const updateRaidMessageEmbed = async (raidEvent) => {
-            console.debug("Updating raid message embed");
             const updatedMessageOptions = await updateRaidMessage({ raidEvent });
             return updatedMessageOptions;
         };
         const isUserAdded = await updateRaidDatabase(raidEvent);
         if (isUserAdded === 1) {
-            console.debug(`User ${discordId} was updated in the raid ${raidEvent.id}`);
         }
         else if (isUserAdded === 0) {
-            console.debug(`User ${discordId} wasn't changed in the raid ${raidEvent.id}`);
         }
         else {
             console.error("[Error code: 1718]", raidEvent.id);
@@ -158,7 +152,6 @@ async function checkFireteamRoster(voiceChannelMembersAuthData, raidName, raidId
     return null;
 }
 async function updateRaidJoinedRoster(joined, raidEvent, discordId) {
-    console.debug(`Updating raid ID: ${raidEvent.id} joined roster`);
     const updateOptions = joined
         ? {
             joined: Sequelize.fn("array_append", Sequelize.col("joined"), discordId),

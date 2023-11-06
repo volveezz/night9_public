@@ -6,7 +6,6 @@ export async function createActivityVoiceInvite({ channels, creatorId, joinedUse
             const creatorChannel = channels.find((channel) => channel.members.has(creatorId));
             const existingInvite = invitesMap.get(creatorId);
             if (existingInvite) {
-                console.debug(`[DEBUG] Using existing invite for creatorId ${creatorId}`);
                 return existingInvite;
             }
             if (creatorChannel) {
@@ -23,7 +22,6 @@ export async function createActivityVoiceInvite({ channels, creatorId, joinedUse
             inviteChannel = channels.reduce((prev, curr) => (prev && prev.members.size < curr.members.size ? prev : curr));
         }
         if (inviteChannel) {
-            console.debug(`[DEBUG] Creating invite for ${inviteChannel.name}`);
             const newRaidInvite = await inviteChannel.createInvite({ reason: "Automatic invitation to members", maxAge: 60 * 120 });
             return newRaidInvite.url;
         }

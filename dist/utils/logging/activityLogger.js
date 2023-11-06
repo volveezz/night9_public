@@ -305,17 +305,13 @@ async function logActivityCompletion(pgcrId) {
             }
             function getValidatedEncounterTimes() {
                 const completedPhasesForRaidCharacters = new Map();
-                console.debug("Participated characters ids:", raidCharactersIds);
                 for (const characterId of raidCharactersIds) {
                     const phasesDataPerCharacter = completedPhases.get(characterId);
-                    console.debug(`Data for ${characterId} is ${!!phasesDataPerCharacter ? "existing" : "non-existing"}`);
                     if (phasesDataPerCharacter) {
-                        console.debug(`Completed phases data for ${characterId} was deleted since his data is being processed`);
                         completedPhasesForRaidCharacters.set(characterId, phasesDataPerCharacter);
                         completedPhases.delete(characterId);
                     }
                 }
-                console.debug("Completed phases", completedPhasesForRaidCharacters);
                 const allPhases = new Map();
                 for (const phasesData of completedPhasesForRaidCharacters.values()) {
                     for (const phaseData of phasesData) {

@@ -2,7 +2,6 @@ import { client } from "../../index.js";
 export async function processVexIncursionMessage(message) {
     if (message.author.id !== "1096872850255794176")
         return;
-    console.debug("Message in Vex channel was found");
     const timestampField = message.embeds?.[0]?.fields?.find((field) => field.value.startsWith("<t:"));
     if (!timestampField)
         return;
@@ -11,7 +10,6 @@ export async function processVexIncursionMessage(message) {
     if (!match)
         return;
     const timeout = parseInt(match[1]) * 1000 - Date.now() + 60 * 1000 * 3;
-    console.debug("Message in Vex channel was found and was set to delete in", timeout);
     setTimeout(() => {
         message.delete().catch((_) => null);
     }, timeout);

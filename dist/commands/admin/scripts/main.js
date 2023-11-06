@@ -37,9 +37,6 @@ const SlashCommand = new Command({
                 const dataForCurrentlyRunning = Array.from(currentlyRunning.keys()).join("`, `");
                 const dataForCheckedProfiles = Array.from(activityCompletionCurrentProfiles.keys()).join("`, `");
                 const completedPhasesData = Array.from(completedPhases.keys()).join("`, `");
-                console.debug("Currently running", currentlyRunning.size, Array.from(currentlyRunning.keys()));
-                console.debug("Checked profiles", activityCompletionCurrentProfiles.size, Array.from(activityCompletionCurrentProfiles.keys()));
-                console.debug("Completed phases", completedPhases.size, Array.from(completedPhases.keys()));
                 await deferredReply;
                 interaction.editReply({
                     content: `Currently Running: \`${dataForCurrentlyRunning.length === 0 ? "[]" : dataForCurrentlyRunning}\`\nCurrent Profiles: \`${dataForCheckedProfiles.length === 0 ? "[]" : dataForCheckedProfiles}\`\nCompleted phases: \`${completedPhasesData.length === 0 ? "[]" : completedPhasesData}\``,
@@ -79,7 +76,6 @@ const SlashCommand = new Command({
                         if (!userHasActivity) {
                             wasInitialCheck &&
                                 (await setMemberRoles({ member, roles: [process.env.MEMBER, process.env.VERIFIED], savePremiumRoles: true }));
-                            console.debug(`Removed roles from ${member.displayName || member.user.username}`);
                         }
                     }
                 }
@@ -98,7 +94,6 @@ const SlashCommand = new Command({
                         if (!discordIdsInDatabase.includes(member.id)) {
                             await member.roles.remove(process.env.MEMBER);
                             await member.roles.add(process.env.NEWBIE);
-                            console.debug(`Removed verified role from ${member.displayName || member.user.username}`);
                         }
                     }
                 }

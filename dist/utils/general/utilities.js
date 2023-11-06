@@ -54,7 +54,6 @@ export async function getRandomRaidGIF() {
         try {
             const savedGif = await updateSavedGif();
             if (savedGif) {
-                console.debug(`Returning saved gif`, savedGif);
                 return savedGif;
             }
             const prompts = ["military guns", "raid time", "raiding destiny2", "military+action", "breaking+bad"];
@@ -90,7 +89,6 @@ export async function getRandomRaidGIF() {
 async function updateSavedGif(gifUrl) {
     if (gifUrl) {
         gif = gifUrl;
-        console.debug(`Saving gif`, gif);
         setTimeout(() => {
             gif = null;
         }, 60 * 1000 * 2);

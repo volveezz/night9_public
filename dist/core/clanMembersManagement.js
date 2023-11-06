@@ -115,9 +115,7 @@ async function clanMembersManagement(databaseData) {
                                 await kickClanMember(platform, bungieId);
                             }
                             if (!recentlyNotifiedKickedMembers.has(bungieId)) {
-                                console.debug(`Notifing ${memberAuthData.displayName} about not meeting joining requirements`);
                                 await notifyUserNotMeetRequirements(memberAuthData, isUserMeetsRequirements);
-                                console.debug(`${memberAuthData.displayName} was notified`);
                             }
                         }
                         else {
@@ -171,7 +169,6 @@ async function clanMembersManagement(databaseData) {
                     if (!clanMember.isOnline) {
                         setTimeout(() => {
                             if (completedPhases.has(characterId)) {
-                                console.debug(`Completed phases data for ${memberAuthData.displayName} was deleted since the user not online`);
                                 completedPhases.delete(characterId);
                             }
                         }, 60 * 1000 * 5);

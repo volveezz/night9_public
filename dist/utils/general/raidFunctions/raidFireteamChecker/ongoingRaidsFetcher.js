@@ -9,7 +9,6 @@ async function fetchOngoingRaids(requestedRaidId) {
     }
     currentTime.setHours(23, 0, 0, 0);
     const endTime = Math.floor(currentTime.getTime() / 1000);
-    console.debug(`Fetching ongoing raids until ${currentTime}`);
     if (requestedRaidId) {
         const raid = await RaidEvent.findOne({
             where: {

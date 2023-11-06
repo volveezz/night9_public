@@ -31,9 +31,7 @@ let tasks = [];
 let runningTimeouts = [];
 const DEFAULT_NOTIFICATIONS_TIMES = [15, 60];
 async function scheduleNextNotification() {
-    console.debug("Scheduling the next notification task");
     if (tasks.length === 0) {
-        console.debug("No more tasks to schedule");
         return;
     }
     tasks.sort((a, b) => a.notifyTime - b.notifyTime);
@@ -47,17 +45,13 @@ async function scheduleNextNotification() {
         const sleepDuration = task.notifyTime - Date.now();
         const { discordId, notifyTime, raidId, isReadinessSystemTime } = task;
         if (isReadinessSystemTime) {
-            console.debug(`Next scheduled notification for ${discordId} is from ReadinessSystem for raidId: ${raidId}`);
             const timeout = setTimeout(async () => {
-                console.debug(`Sending readiness system message to ${discordId} for raidId: ${raidId}`);
                 askRaidReadinessNotification(discordId, raidId);
             }, sleepDuration);
             runningTimeouts.push({ discordId, timeout });
         }
         else if (sleepDuration > -2000) {
-            console.debug(`Scheduled a new notification task for ${discordId} ${new Date(notifyTime)}`);
             const timeout = setTimeout(async () => {
-                console.debug(`Sending a notification for ${discordId} ${new Date(notifyTime)}`);
                 await sendNotification(task).catch((err) => {
                     if (err.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
                         return notifyAboutClosedDM(raidId, discordId);
@@ -68,7 +62,6 @@ async function scheduleNextNotification() {
             runningTimeouts.push({ discordId: discordId, timeout });
         }
         else {
-            console.debug("Notification task is already expired.", task);
         }
     }
 }
@@ -106,12 +99,9 @@ async function sendNotification(task) {
         return;
     }
     if (!raid.joined.includes(task.discordId)) {
-        console.debug("User", task.discordId, "has left the raid", raid.id);
         return;
     }
-    console.debug("Initiating notification for", task.discordId, "for raid", raid.id);
     await announceRaidEvent(raid, task.discordId);
-    console.debug("Notification is sent. Scheduling the next notification task");
     scheduleNextNotification();
 }
 export async function loadNotifications() {
@@ -123,16 +113,13 @@ export async function loadNotifications() {
             },
         },
     });
-    console.debug("Found", raidsInNextDay.length, "raids in the next 24 hours");
     const scheduledNotifications = new Set();
     for (const raid of raidsInNextDay) {
-        console.debug(`Starting to check raid ${raid.id}`);
         const uniqueUsers = [...new Set(raid.joined)];
         for (const discordId of uniqueUsers) {
             const userNotification = await RaidUserNotifications.findOne({ where: { discordId } });
             const notificationTimes = userNotification ? userNotification.notificationTimes : DEFAULT_NOTIFICATIONS_TIMES;
             notificationTimes.forEach((minutesBefore) => {
-                console.debug(`Checking a user ${discordId} with ${minutesBefore} minutes before raid ${raid.id}`);
                 const notifyTime = (raid.time - minutesBefore * 60) * 1000;
                 const taskKey = `${discordId}_${raid.id}_${notifyTime}`;
                 if (notifyTime > Date.now() && !scheduledNotifications.has(taskKey)) {
@@ -145,7 +132,6 @@ export async function loadNotifications() {
             });
         }
     }
-    console.debug("Scheduled", tasks.length, "notification tasks");
     scheduleNextNotification();
 }
 export async function updateNotifications(discordId, joinStatus) {
@@ -199,7 +185,6 @@ async function notifyUserAboutNotifications(discordId) {
     member.send({ embeds: [embed], components: addButtonsToMessage([components]) });
 }
 export function clearNotifications(raidId) {
-    console.debug("Clearing notifications for raid", raidId);
     tasks = tasks.filter((task) => task.raidId !== raidId);
 }
 export async function updateNotificationsForEntireRaid(raidId) {
@@ -281,7 +266,6 @@ async function announceRaidEvent(oldRaidEvent, discordUserId) {
         clearNotifications(currentRaidEvent.id);
         return;
     }
-    console.debug("Sending notification to", discordUser.displayName);
     await discordUser.send({
         embeds: [raidEmbed],
         components: addButtonsToMessage(buttonComponents),

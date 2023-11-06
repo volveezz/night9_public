@@ -31,7 +31,6 @@ export async function checkEndpointStatus(endpoint) {
 async function handleApiCall(endpointURL, accessToken) {
     if (endpointURL === "oauth") {
         try {
-            console.debug("Making a Token Refresh request");
             const status = await requestTokenRefresh({ userId: process.env.OWNER_ID });
             console.debug(`Token refresh completed, status: ${status != null && status.refresh_token != null ? 1 : 5}`);
             return status != null && status.refresh_token != null ? 1 : 5;
@@ -42,12 +41,9 @@ async function handleApiCall(endpointURL, accessToken) {
         }
     }
     try {
-        console.debug("Making a request to", endpointURL);
         const request = await sendApiRequest(endpointURL, accessToken, true).catch((e) => e);
         const errorCode = request && (request.ErrorCode || request.errorCode);
-        console.debug("Made a request to", endpointURL, "and got", errorCode);
         if (request && errorCode != null) {
-            console.debug(`[Error code: 2000] Error code for ${endpointURL} is ${errorCode}`);
             return errorCode;
         }
     }

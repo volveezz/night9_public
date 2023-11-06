@@ -13,7 +13,6 @@ async function fetchRaidVoiceChannelMembersAuthData(raidId, memberIds) {
             return userDataList;
         }
         cachedRaidMembers.delete(raidId);
-        console.debug(`Cached authentication data for users in Raid ${raidId} has been removed as it has become outdated.`);
     }
     if (!latestRefreshTime) {
         console.error("[Error Code: 1994] The timestamp of the last token refresh was not found.");

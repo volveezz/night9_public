@@ -70,7 +70,6 @@ async function generateAndSendTwitterEmbed({ twitterData, author, icon, url, ori
         }
         let components = [];
         const extractedMediaUrls = extractMediaUrls(content).concat(images || []);
-        console.debug("Extracted media:", extractedMediaUrls);
         const replacedDescription = replaceTimeWithEpoch(cleanContent);
         let tranlsatedContent = "";
         try {
@@ -147,7 +146,6 @@ async function generateAndSendTwitterEmbed({ twitterData, author, icon, url, ori
             }
             const extractedVideoMedia = extractMediaUrls(content, "video")[0];
             if (extractedVideoMedia && extractedVideoMedia.endsWith(".mp4")) {
-                console.debug("Converting video to gif");
                 convertVideoToGifAndUpdateMessage(extractedVideoMedia, m, embed);
             }
         });

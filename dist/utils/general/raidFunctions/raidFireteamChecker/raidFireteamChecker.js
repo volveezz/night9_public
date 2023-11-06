@@ -27,7 +27,6 @@ export function stopFireteamCheckingSystem(raidId) {
     }
 }
 async function raidFireteamCheckerSystem(raidId) {
-    console.debug("Initializing fireteam checker", raidId);
     stopFireteamCheckingSystem(raidId);
     const ongoingRaids = await fetchOngoingRaids(raidId);
     for (let i = 0; i < ongoingRaids.length; i++) {
@@ -37,19 +36,15 @@ async function raidFireteamCheckerSystem(raidId) {
 }
 async function raidFireteamChecker(raidParam) {
     const initialRaidEvent = typeof raidParam === "number" ? (await RaidEvent.findByPk(raidParam)) : raidParam;
-    console.debug("Processing raid with ID", initialRaidEvent.id);
     const { id: raidId, time: initialRaidTime } = initialRaidEvent;
     if (fireteamCheckingSystem.has(raidId))
         return;
     fireteamCheckingSystem.add(raidId);
     const startTime = initialRaidTime * 1000;
     const raidStartTimePlus5 = new Date(startTime + 1000 * 60 * 5).getTime();
-    console.debug(`Next step for raid ID: ${raidId} will be in ${(raidStartTimePlus5 - Date.now()) / 1000}s`);
     const timeout = setTimeout(async () => {
         notifyInitializerTimeoutMap.delete(raidId);
-        console.debug("Processing with the next step for raid ID", raidId);
         try {
-            console.debug("Trying to send a private channel notification for raid ID:", raidId);
             updateFireteamNotification(initialRaidEvent, false);
         }
         catch (error) {
@@ -60,7 +55,6 @@ async function raidFireteamChecker(raidParam) {
                 const checkFireteam = await checkFireteamStatus(initialRaidEvent);
                 if (checkFireteam === false || !fireteamCheckingSystem.has(raidId)) {
                     stopFireteamCheckingSystem(raidId);
-                    console.debug(`Interval cleared for raid ID: ${raidId}`);
                 }
             }, 1000 * 60 * 5);
             clearInterval(notifyIntervalMap.get(raidId));

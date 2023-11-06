@@ -99,7 +99,6 @@ export class ExtendedClient extends Client {
     }
     async getMember(memberOrId) {
         if (!memberOrId) {
-            console.debug(`[Error code: 2053] No data provided for member. Returning null`);
             throw { errorType: "MEMBER_NOT_FOUND" };
         }
         if (memberOrId instanceof GuildMember)
@@ -109,7 +108,6 @@ export class ExtendedClient extends Client {
         const cachedMember = guild.members.cache.get(memberId);
         if (cachedMember)
             return cachedMember;
-        console.debug(`[Error code: 2033] Member not found in cache: ${memberId}`);
         const fetchedMember = await guild.members.fetch(memberId).catch(() => null);
         if (fetchedMember)
             return fetchedMember;
@@ -127,7 +125,6 @@ export class ExtendedClient extends Client {
         const cachedTextChannel = guild.channels.cache.get(channelId);
         if (cachedTextChannel)
             return cachedTextChannel;
-        console.debug(`[Error code: 2035] Text channel not found in cache: ${channelId}`);
         const fetchedTextChannel = await guild.channels.fetch(channelId).catch(() => null);
         if (fetchedTextChannel)
             return fetchedTextChannel;

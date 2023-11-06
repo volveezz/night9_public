@@ -51,11 +51,9 @@ export class LFGController {
         return LFGController.instance;
     }
     async saveToDatabaseFlush() {
-        console.debug("Received a call. Beginning of lfg database synchronization");
         this.syncCacheDebounced.flush();
     }
     async syncCacheToDb() {
-        console.debug("Syncing local cache to database");
         const cacheIds = Object.keys(this.localCache).map(Number);
         const dbRecords = await LfgDatabase.findAll({
             where: {
@@ -69,7 +67,6 @@ export class LFGController {
             dbRecordMap.set(record.id, record);
         });
         for (const id in this.localCache) {
-            console.debug(`Syncing LFG ${id} to database`);
             const cacheData = this.localCache[id];
             const dbRecord = dbRecordMap.get(Number(id));
             if (dbRecord) {
@@ -84,10 +81,8 @@ export class LFGController {
                 dbRecord.messageId = cacheData.message?.id ?? null;
                 dbRecord.requiredDLC = cacheData.requiredDLC;
                 await dbRecord.save();
-                console.debug(`Updated LFG ${id} in database`);
             }
         }
-        console.debug("Syncing local cache to database completed successfully");
     }
     async init() {
         try {

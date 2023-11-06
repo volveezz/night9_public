@@ -25,7 +25,6 @@ const ButtonCommand = new Button({
             name: "Временный заголовок",
             description: "Временное описание",
         });
-        console.debug("A new blank guide message was added");
         const embed = new EmbedBuilder().setColor(colors.success).setAuthor({ name: "Новое сообщение добавлено", iconURL: icons.success });
         interaction.reply({ embeds: [embed], ephemeral: true });
     },

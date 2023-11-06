@@ -16,7 +16,6 @@ export async function sendApiRequest(apiEndpoint, authToken, serverResponse) {
             const json = (await response.json());
             errorCode = json?.ErrorCode;
             errorStatus = json?.ErrorStatus;
-            console.debug("[Error code: 2012]", json?.ErrorStatus || json);
         }
         catch (error) {
             handleFetchError(response.status, response);

@@ -4,9 +4,7 @@ import { lastTwitterPublishedPosts, processedRssLinks } from "../../persistence/
 import { convertVideoToGifAndUpdateMessage, generateAndSendTwitterEmbed } from "./twitterMessageParser.js";
 async function parseTwitterLinkMessage(message) {
     if (message.author.bot) {
-        console.debug("Found a new automated twitter message. It is", message.content.startsWith("[⏵]"));
         if (message.content.startsWith("[⏵]")) {
-            console.debug("Starting to process attachment-type message");
             await processTwitterAttachment(message);
         }
         else if (message.embeds?.length > 0) {
@@ -69,15 +67,12 @@ async function parseTwitterLinkMessage(message) {
 }
 async function processTwitterAttachment(message) {
     const postId = await findTwitterPostIdFromAttachmentMessage();
-    console.debug("Extracted post id:", postId);
     if (!postId)
         return;
     const postData = lastTwitterPublishedPosts.get(postId);
-    console.debug("Extracted post data:", postData?.id);
     if (!postData)
         return;
     const linkToVideo = message.content.match(/\]\(([^)]+)\)/)?.[1];
-    console.debug("Extracted link:", linkToVideo, message.content);
     if (!linkToVideo)
         return;
     await convertVideoToGifAndUpdateMessage(linkToVideo, postData, EmbedBuilder.from(postData.embeds[0]));

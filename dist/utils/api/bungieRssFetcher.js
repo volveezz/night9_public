@@ -88,7 +88,6 @@ async function postArticlesToDiscord(articles) {
             lastArticlePubDate = new Date(article.PubDate).getTime();
             try {
                 redisClient.set("lastArticlePubDate", lastArticlePubDate).then(() => {
-                    console.debug(`[News] Last article pub date set to ${lastArticlePubDate}`);
                 });
             }
             catch (error) {

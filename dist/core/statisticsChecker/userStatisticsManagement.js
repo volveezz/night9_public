@@ -285,7 +285,6 @@ async function handleMemberStatistics() {
             rawDatabaseData
                 .filter((data) => !cachedMembers.has(data.discordId))
                 .forEach((val) => {
-                console.debug(`[Error code: 1021] ${val.displayName}/${val.discordId} not found on server`);
             });
             const validatedDatabaseData = rawDatabaseData.filter((data) => cachedMembers.has(data.discordId));
             if (!validatedDatabaseData || validatedDatabaseData.length === 0) {

@@ -230,7 +230,6 @@ const createRosterEmbeds = (users) => {
     return embeds;
 };
 export const getAdminAccessToken = async (interaction) => {
-    console.debug("Admin access token was requested");
     const discordId = typeof interaction === "string" ? interaction : interaction.user.id;
     const adminAuthData = await AuthData.findOne({ where: { discordId: discordId }, attributes: ["accessToken"] });
     if (adminAuthData && adminAuthData.accessToken) {

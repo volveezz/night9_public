@@ -1,25 +1,62 @@
+import { client } from "../../index.js";
 import { GetManifest } from "../api/ManifestManager.js";
 import { sendApiRequest } from "../api/sendApiRequest.js";
 import { stringVariablesMap } from "../persistence/dataStore.js";
 import { AuthData } from "../persistence/sequelizeModels/authData.js";
 import { pause } from "./utilities.js";
 const activityCache = {};
-async function fetchAndCacheActivities() {
-    const ownerId = process.env.OWNER_ID;
-    const authDataQuery = ownerId && { where: { discordId: ownerId }, attributes: ["bungieId", "platform", "accessToken"] };
-    let ownerAuthData = authDataQuery && (await AuthData.findOne(authDataQuery));
-    if (!ownerAuthData) {
-        ownerAuthData ??= await AuthData.findOne({ attributes: ["bungieId", "platform", "accessToken"] });
-        if (!ownerAuthData) {
-            return console.warn("[Error code: 2038] No available authentication data in the database");
+async function verifyAndReturnExistingRoleIds(roleIdsToVerify) {
+    const guildRoles = (await client.getGuild()).roles;
+    const existingRoleIds = [];
+    for (const roleId of roleIdsToVerify) {
+        if (guildRoles.cache.has(roleId) || (await guildRoles.fetch(roleId).catch((_) => null))) {
+            existingRoleIds.push(roleId);
         }
     }
-    const { accessToken, bungieId, platform } = ownerAuthData;
+    return existingRoleIds;
+}
+async function getMemberWithMostActivities() {
+    const members = client.getCachedMembers();
+    const env = process.env;
+    const { FORSAKEN_ROLE_ID, SHADOWKEEP_ROLE_ID, BEYONDLIGHT_ROLE_ID, THE_WITCH_QUEEN_ROLE_ID, ANNIVERSARY_ROLE_ID, LIGHTFALL_ROLE_ID, THE_FINAL_SHAPE_ROLE_ID, } = env;
+    const existingRoleIds = await verifyAndReturnExistingRoleIds([
+        FORSAKEN_ROLE_ID,
+        SHADOWKEEP_ROLE_ID,
+        BEYONDLIGHT_ROLE_ID,
+        THE_WITCH_QUEEN_ROLE_ID,
+        ANNIVERSARY_ROLE_ID,
+        LIGHTFALL_ROLE_ID,
+        THE_FINAL_SHAPE_ROLE_ID,
+    ]);
+    const memberWithAllDLCs = members.find((m) => m.roles.cache.hasAll(...existingRoleIds)) || members.find((m) => m.roles.cache.hasAny(...existingRoleIds));
+    return memberWithAllDLCs;
+}
+async function findUserActivities(memberId) {
+    const authData = await AuthData.findByPk(memberId, { attributes: ["bungieId", "platform", "accessToken"] });
+    if (!authData)
+        return null;
+    const { accessToken, bungieId, platform } = authData;
     const profileData = await sendApiRequest(`/Platform/Destiny2/${platform}/Profile/${bungieId}/?components=204,1200`, accessToken);
     const characterActivities = profileData.characterActivities.data;
     if (!characterActivities) {
         return console.warn(`[Error code: 2039] No character activities found for ${platform}${bungieId} [AccessToken: ${accessToken?.length}]`);
     }
+    return { profileData, characterActivities };
+}
+async function fetchAndCacheActivities() {
+    let processData = null;
+    const [ownerData, randomUser] = await Promise.all([findUserActivities(process.env.OWNER_ID), getMemberWithMostActivities()]);
+    const randomUserData = randomUser && (await findUserActivities(randomUser.id));
+    if (((ownerData && Object.keys(ownerData).length) || 0) >= ((randomUserData && Object.keys(randomUserData).length) || 0)) {
+        processData = ownerData || randomUserData;
+    }
+    else {
+        processData = randomUserData || ownerData;
+    }
+    if (!processData)
+        throw { name: "Failed to cache activities" };
+    console.debug("Random user is:", randomUser?.displayName, processData?.characterActivities);
+    const { characterActivities, profileData } = processData;
     const mostActiveCharacterId = Object.keys(characterActivities).reduce((prevId, currId) => characterActivities[prevId].availableActivities.length > characterActivities[currId].availableActivities.length ? prevId : currId);
     const charactersStringVariablesData = profileData.characterStringVariables?.data;
     if (charactersStringVariablesData) {
@@ -69,7 +106,6 @@ async function fetchAndRetry(attempt = 1) {
     }
 }
 async function updateActivityCache() {
-    console.debug("Updating activity cache");
     if (isUpdating)
         return;
     isUpdating = true;

@@ -27,10 +27,8 @@ class NotificationScheduler {
         if (params.raidCache)
             this.raidCache = params.raidCache;
         this.rescheduleNotificationDebounced();
-        console.debug("[NotificationScheduler] Cache updated");
     }
     async rescheduleNotifications() {
-        console.debug("[NotificationScheduler] Rescheduling notifications");
         if (this.timer)
             clearTimeout(this.timer);
         const mergedNotifications = [...this.collectNotifications("lfg"), ...this.collectNotifications("raid")];
@@ -41,21 +39,16 @@ class NotificationScheduler {
         const uniqueNotificationTimes = [...new Set(validNotifications.map((n) => n.time))];
         for (const notificationTime of uniqueNotificationTimes) {
             const notificationsAtThisTime = validNotifications.filter((n) => n.time === notificationTime);
-            console.debug("[NotificationScheduler] Notifications at", new Date(notificationTime * 1000), notificationsAtThisTime);
             const usersToNotify = notificationsAtThisTime.flatMap((n) => n.users);
-            console.debug("[NotificationScheduler] Users to Notify", usersToNotify);
             const userPreferences = await this.getUsersNotificationPreferences(usersToNotify);
             for (const notification of notificationsAtThisTime) {
                 const minTimeDifference = this.calculateMinTimeDifference(userPreferences, notification);
-                console.debug("[NotificationScheduler] Min Time Difference for Notification", minTimeDifference);
                 if (!isFinite(minTimeDifference) || minTimeDifference <= 0)
                     continue;
                 this.timer = setTimeout(() => {
                     this.processNotification(notification);
-                    console.debug("[NotificationScheduler] Processed Notification", notification);
                     this.rescheduleNotificationDebounced();
                 }, minTimeDifference * 1000);
-                console.debug("[NotificationScheduler] Rescheduled Notification", new Date(Date.now() + minTimeDifference * 1000));
             }
         }
     }
@@ -186,7 +179,6 @@ class NotificationScheduler {
                 .send({ embeds: [embed], components: addButtonsToMessage(inviteButtons) })
                 .catch((e) => console.error("[Error code: 2070] Failed to send notification", e));
         }
-        console.debug("[NotificationScheduler] Processing notification", notification);
     }
 }
 const notificationScheduler = new NotificationScheduler();

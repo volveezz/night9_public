@@ -22,7 +22,6 @@ const ButtonCommand = new Button({
                     guideEncounter[field] = v.value;
                 }
             }
-            console.debug(`Field: ${v.customId} of raidGuide ${raidEncounter} ${guideIndex} ${encounterEmbed}\nValue: [${v.value}]`);
         });
         if (guideEncounter.name == "" && guideEncounter.description == "" && guideEncounter.image == "") {
             raidGuide[raidEncounter].buttons[guideIndex].embeds.splice(encounterEmbed, 1);
