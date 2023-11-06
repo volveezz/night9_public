@@ -1,4 +1,5 @@
 import { ActivityType, Client, Collection, GatewayIntentBits, GuildMember, Partials, TextChannel, User, } from "discord.js";
+import { schedule } from "node-cron";
 import { join, resolve } from "path";
 import checkClanActivitiesPeriodically from "../core/periodicActivityChecker.js";
 import { cacheDungeonRoles } from "../core/statisticsChecker/getDungeonRoleIds.js";
@@ -22,6 +23,12 @@ import { LFGController } from "./LFGController.js";
 import VoteSystem from "./VoteSystem.js";
 const __dirname = resolve();
 const directory = process.env.NODE_ENV === "development" && process.env.LOCAL_ENV === "true" ? "src" : "dist";
+schedule("10 11 * * *", () => {
+    console.debug("Restarting");
+    process.exit(1);
+}, {
+    timezone: "GMT",
+});
 export class ExtendedClient extends Client {
     commands = new Collection();
     buttons = new Collection();

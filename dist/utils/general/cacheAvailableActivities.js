@@ -32,7 +32,8 @@ async function getMemberWithMostActivities() {
     return memberWithAllDLCs;
 }
 async function findUserActivities(memberId) {
-    const authData = await AuthData.findByPk(memberId, { attributes: ["bungieId", "platform", "accessToken"] });
+    const id = memberId || (await getMemberWithMostActivities().catch((_) => null))?.id || "298353895258980362";
+    const authData = await AuthData.findByPk(id, { attributes: ["bungieId", "platform", "accessToken"] });
     if (!authData)
         return null;
     const { accessToken, bungieId, platform } = authData;
@@ -45,8 +46,7 @@ async function findUserActivities(memberId) {
 }
 async function fetchAndCacheActivities() {
     let processData = null;
-    const [ownerData, randomUser] = await Promise.all([findUserActivities(process.env.OWNER_ID), getMemberWithMostActivities()]);
-    const randomUserData = randomUser && (await findUserActivities(randomUser.id));
+    const [ownerData, randomUserData] = await Promise.all([findUserActivities(process.env.OWNER_ID), findUserActivities()]);
     if (((ownerData && Object.keys(ownerData).length) || 0) >= ((randomUserData && Object.keys(randomUserData).length) || 0)) {
         processData = ownerData || randomUserData;
     }
@@ -55,7 +55,6 @@ async function fetchAndCacheActivities() {
     }
     if (!processData)
         throw { name: "Failed to cache activities" };
-    console.debug("Random user is:", randomUser?.displayName, processData?.characterActivities);
     const { characterActivities, profileData } = processData;
     const mostActiveCharacterId = Object.keys(characterActivities).reduce((prevId, currId) => characterActivities[prevId].availableActivities.length > characterActivities[currId].availableActivities.length ? prevId : currId);
     const charactersStringVariablesData = profileData.characterStringVariables?.data;
