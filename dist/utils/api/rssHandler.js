@@ -1,5 +1,6 @@
 import Parser from "rss-parser";
 import { generateAndSendTwitterEmbed } from "../discord/twitterHandler/twitterMessageParser.js";
+import { pause } from "../general/utilities.js";
 import { processedRssLinks } from "../persistence/dataStore.js";
 import { redisClient } from "../persistence/redis.js";
 const parser = new Parser();
@@ -37,8 +38,9 @@ function rehostLink(link) {
 }
 async function fetchAndSendLatestTweets(url, latestTweetInfo, routeName, isRetry = false) {
     try {
-        const feed = await parser.parseURL(url).catch((_) => {
+        const feed = await parser.parseURL(url).catch(async (_) => {
             if (!isRetry) {
+                await pause(10000);
                 fetchAndSendLatestTweets(url, latestTweetInfo, routeName, true);
             }
             else {

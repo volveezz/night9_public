@@ -23,8 +23,7 @@ import { LFGController } from "./LFGController.js";
 import VoteSystem from "./VoteSystem.js";
 const __dirname = resolve();
 const directory = process.env.NODE_ENV === "development" && process.env.LOCAL_ENV === "true" ? "src" : "dist";
-schedule("10 11 * * *", () => {
-    console.debug("Restarting");
+schedule("57 20 * * 4", () => {
     process.exit(1);
 }, {
     timezone: "GMT",
