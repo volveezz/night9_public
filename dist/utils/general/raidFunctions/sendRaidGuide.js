@@ -15,12 +15,12 @@ async function sendRaidGuide(interaction, raidName, deferredReply) {
             .setImage(encounter.image || null);
         const components = [];
         if (encounter.buttons) {
-            encounter.buttons
-                .filter((enc) => (enc.embeds?.length || 0) > 0 ||
-                (enc.attachments?.length || 0) > 0 ||
-                (enc.image?.length || 0) > 0 ||
-                (enc.description?.length || 0) > 0)
-                .forEach((button, buttonIndex) => {
+            encounter.buttons.forEach((button, buttonIndex) => {
+                if (!((button.embeds?.length || 0) > 0 ||
+                    (button.attachments?.length || 0) > 0 ||
+                    (button.image?.length || 0) > 0 ||
+                    (button.description?.length || 0) > 0))
+                    return;
                 components.push(new ButtonBuilder()
                     .setCustomId(`raidGuide_${raidName}_${encounterIndex}_${buttonIndex}`)
                     .setStyle(button.style || ButtonStyle.Secondary)
