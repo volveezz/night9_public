@@ -9,7 +9,8 @@ const roleRequirements = {
     4126703847: "За «Дуальность»",
     4032136335: "За «Шпиль хранителя»",
     2105117002: "За «Призраки Глубин»",
+    238037026: "За «Руины полководца»",
 };
-const dungeonsTriumphHashes = ["3718971745", "3191784400", "3205009787", "3950599483", "4126703847", "4032136335", "2105117002"];
+const dungeonsTriumphHashes = ["3718971745", "3191784400", "3205009787", "3950599483", "4126703847", "4032136335", "2105117002", "238037026"];
 export { dungeonsTriumphHashes, roleRequirements };
 //# sourceMappingURL=roleRequirements.js.map
