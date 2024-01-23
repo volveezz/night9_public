@@ -357,7 +357,7 @@ async function logActivityCompletion(pgcrId) {
                     latestStartTime = startTime;
                     latestEndTime = endTime;
                 }
-                console.debug(validatedEncounterTimes);
+                // console.debug(validatedEncounterTimes);
                 return validatedEncounterTimes;
             }
         }
