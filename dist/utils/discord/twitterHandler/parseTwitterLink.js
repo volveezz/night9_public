@@ -34,7 +34,7 @@ async function parseTwitterLinkMessage(message) {
             if (!url)
                 continue;
             const imageUrl = embed.thumbnail && embed.thumbnail.url.match(/profile_images/i)?.[0] ? embed.image?.url : embed.thumbnail?.url;
-            console.debug(`Extracted image url: ${imageUrl}`)
+            console.debug(`Extracted image url: ${imageUrl}`, JSON.stringify(embed))
             if (urlToImagesMap.has(url) && imageUrl) {
                 urlToImagesMap.get(url).push(imageUrl);
             }
