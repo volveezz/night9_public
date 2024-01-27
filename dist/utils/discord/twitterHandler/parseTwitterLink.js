@@ -33,7 +33,7 @@ async function parseTwitterLinkMessage(message) {
             const url = embed.url;
             if (!url)
                 continue;
-            const imageUrl = embed.thumbnail && embed.thumbnail.url.match(/profile_images/i)?.[0] ? embed.image?.url : embed.thumbnail?.url;
+            const imageUrl = (embed.thumbnail && embed.thumbnail.url.match(/profile_images/i)?.[0] ? embed.image?.url : embed.thumbnail?.url) || embed.image?.url;
             console.debug(`Extracted image url: ${imageUrl}`, JSON.stringify(embed))
             if (urlToImagesMap.has(url) && imageUrl) {
                 urlToImagesMap.get(url).push(imageUrl);
