@@ -1,6 +1,6 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder, RESTJSONErrorCodes } from "discord.js";
 import fetch from "node-fetch";
-import { Op } from "sequelize";
+import Sequelize from "sequelize";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { client } from "../index.js";
@@ -14,6 +14,7 @@ import { recentlyExpiredAuthUsersBungieIds } from "../utils/persistence/dataStor
 import { AuthData } from "../utils/persistence/sequelizeModels/authData.js";
 import { LeavedUsersData } from "../utils/persistence/sequelizeModels/leavedUsersData.js";
 const BUNGIE_TOKEN_URL = "https://www.bungie.net/Platform/App/OAuth/Token/";
+const { Op } = Sequelize;
 export async function requestTokenRefresh({ userId, table = AuthData, refresh_token, }) {
     let refreshToken = refresh_token;
     if (!refreshToken) {

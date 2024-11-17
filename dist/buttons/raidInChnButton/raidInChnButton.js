@@ -1,5 +1,5 @@
 import { ButtonBuilder, ButtonStyle, ChannelType, ComponentType, EmbedBuilder, } from "discord.js";
-import { Op } from "sequelize";
+import Sequelize from "sequelize";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { client } from "../../index.js";
@@ -14,6 +14,7 @@ import { RaidEvent } from "../../utils/persistence/sequelizeModels/raidEvent.js"
 import moveRaidVoiceMembers from "./moveRaidVoiceMembersButton.js";
 import notifyInChannelButton from "./notifyInChannelButton.js";
 import unlockRaidMessage from "./unlockRaidMessage.js";
+const { Op } = Sequelize;
 export async function handleDeleteRaid({ deferredReply, interaction, raidEvent, requireMessageReply, }) {
     return new Promise(async (resolve) => {
         const embed = new EmbedBuilder()
@@ -29,10 +30,7 @@ export async function handleDeleteRaid({ deferredReply, interaction, raidEvent, 
             embeds: [embed],
             components: addButtonsToMessage(components),
         });
-        const collector = (interaction.channel ||
-            interaction.user.dmChannel ||
-            (await interaction.user.createDM())).createMessageComponentCollector({
-            message,
+        const collector = message.createMessageComponentCollector({
             time: 60 * 1000 * 2,
             max: 1,
             filter: (i) => i.user.id === interaction.user.id,

@@ -77,7 +77,7 @@ const ButtonCommand = new Button({
                 activeAwaiters.delete(interaction.user.id);
         }, 1000 * 60 * 5);
         try {
-            const userInteraction = await interaction.message.channel
+            const userInteraction = await interaction.message
                 .awaitMessageComponent({
                 time: 1000 * 60 * 5,
                 filter: (btnI) => btnI.user.id === interaction.user.id,

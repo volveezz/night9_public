@@ -1,6 +1,6 @@
 import { ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder, RESTJSONErrorCodes, } from "discord.js";
 import { schedule } from "node-cron";
-import { Op } from "sequelize";
+import Sequelize from "sequelize";
 import colors from "../../../configs/colors.js";
 import icons from "../../../configs/icons.js";
 import { client } from "../../../index.js";
@@ -15,6 +15,7 @@ import { getRandomGIF, getRandomRaidGIF, pause } from "../utilities.js";
 import { createActivityVoiceInvite } from "./createRaidVoiceInvite.js";
 import raidFireteamCheckerSystem from "./raidFireteamChecker/raidFireteamChecker.js";
 import { askRaidReadinessNotification } from "./raidReadiness/askUserRaidReadiness.js";
+const { Op } = Sequelize;
 schedule("0 23 * * *", () => {
     raidFireteamCheckerSystem();
     updateActivityCache();

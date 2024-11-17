@@ -9,6 +9,7 @@ import { completedRaidsData } from "../utils/persistence/dataStore.js";
 const CLAN_MEMBER_ROLE = process.env.CLANMEMBER;
 function generateRaidClears(raidUserData) {
     const raids = [
+        { id: "se", label: "ГС" },
         { id: "ce", label: "КК" },
         { id: "ron", label: "ИК" },
         { id: "kf", label: "ГК" },

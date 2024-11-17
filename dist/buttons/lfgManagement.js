@@ -113,11 +113,11 @@ const ButtonCommand = new Button({
                     .setAuthor({ name: `Подтвердите удаление сбора ${lfgId}`, iconURL: icons.warning })
                     .setDescription(LFG_DELETION_TEXT);
                 await deferredReply;
-                await interaction.editReply({
+                const replyMessage = await interaction.editReply({
                     embeds: [embed],
                     components: addButtonsToMessage(confirmButtons),
                 });
-                const collector = interaction.channel.createMessageComponentCollector({
+                const collector = replyMessage.createMessageComponentCollector({
                     time: 60 * 1000 * 2,
                     max: 1,
                     filter: (i) => i.user.id === interaction.user.id,

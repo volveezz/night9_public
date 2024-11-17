@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import Sequelize from "sequelize";
 import { activityRoles, guardianRankRoles, seasonalRoles, statisticsRoles, trialsRoles } from "../../configs/roles.js";
 import { client } from "../../index.js";
 import BungieAPIError from "../../structures/BungieAPIError.js";
@@ -13,6 +13,7 @@ import { UserActivityData } from "../../utils/persistence/sequelizeModels/userAc
 import clanMembersManagement from "../clanMembersManagement.js";
 import assignDlcRoles from "./assignDlcRoles.js";
 import { triumphsChecker } from "./checkUserTriumphs.js";
+const { Op } = Sequelize;
 let isThrottleRequired = false;
 async function checkUserStatisticsRoles({ platform, discordId, bungieId, accessToken, displayName, roleCategoriesBits, UserActivityData: userActivity }, member, roleDataFromDatabase, isEasyCheck = false) {
     const roleIdsForAdding = [];

@@ -10,9 +10,7 @@ export function addButtonsToMessage(buttonBuilders) {
             type: ComponentType.ActionRow,
             components: [],
         };
-        for (let j = 0; j < buttonsInRow.length; j++) {
-            row.components.push(buttonsInRow[j]);
-        }
+        row.components = [...row.components, ...buttonsInRow];
         components.push(row);
     }
     return components;

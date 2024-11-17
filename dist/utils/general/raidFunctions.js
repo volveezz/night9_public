@@ -1,5 +1,6 @@
 import { ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, RESTJSONErrorCodes, } from "discord.js";
-import { Op } from "sequelize";
+import Sequelize from "sequelize";
+const { Op } = Sequelize;
 import { RaidNames } from "../../configs/Raids.js";
 import colors from "../../configs/colors.js";
 import destinyRaidsChallenges from "../../configs/destinyRaidsChallenges.js";
@@ -43,6 +44,18 @@ export function generateRaidCompletionText(clears = 0) {
 const MASTER_DIFFICULTY_COLOR = "#FF063A";
 export function getRaidDetails(raid, difficulty = 1) {
     switch (raid) {
+        case RaidNames.se: {
+            return {
+                raid,
+                raidName: difficulty != 1 ? "Грань спасения: Мастер" : "Грань спасения",
+                maxDifficulty: 2,
+                raidBanner: "https://www.bungie.net/img/destiny_content/pgcr/raid_splinter.jpg",
+                raidColor: (difficulty >= 2 ? MASTER_DIFFICULTY_COLOR : "#582d3a"),
+                channelName: "-грань-спасения",
+                requiredRole: dlcRoles.theFinalShape,
+                milestoneHash: 4196566271,
+            };
+        }
         case RaidNames.ce: {
             return {
                 raid,
@@ -495,9 +508,15 @@ export async function removeRaid(raid, interaction, requireMessageReply = true, 
 }
 export function getRaidNameFromHash(activityHash) {
     switch (activityHash) {
+        case 1541433876:
+        case 2192826039:
+            return RaidNames.ce;
+        case 4129614942:
+            return "seMaster";
         case 4179289725:
         case 4103176774:
         case 156253568:
+        case 107319834:
             return RaidNames.ce;
         case 1507509200:
             return "ceMaster";

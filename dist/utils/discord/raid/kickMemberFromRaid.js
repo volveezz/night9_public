@@ -1,4 +1,4 @@
-import { Op, Sequelize } from "sequelize";
+import SequelizeModule, { Sequelize } from "sequelize";
 import { client } from "../../../index.js";
 import { updateRaidMessage } from "../../general/raidFunctions.js";
 import updatePrivateRaidMessage from "../../general/raidFunctions/privateMessage/updatePrivateMessage.js";
@@ -8,6 +8,7 @@ import { updateNotifications } from "../../general/raidFunctions/raidNotificatio
 import { RaidEvent } from "../../persistence/sequelizeModels/raidEvent.js";
 import moveUserFromHotJoinedIntoJoined from "./handleHotJoinedTransfer.js";
 import raidActionMessageHandler from "./raidActionMessageHandler.js";
+const { Op } = SequelizeModule;
 async function kickMemberFromRaid({ kickedMember, cachedRaidEvent, raidId }) {
     const raidDataBeforeLeave = cachedRaidEvent ||
         (await RaidEvent.findByPk(raidId, {

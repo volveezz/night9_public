@@ -57,9 +57,10 @@ export default async function welcomeMessage(member) {
         .setColor(colors.invisible)
         .setTitle(" Регистрация восстановлена ")
         .setDescription(`Ранее Вы уже были на нашем сервере - все данные сохранены!\n\n\`${escapeString(databaseData.displayName)}\` - ${bungieUrl}`);
-    const messagePromise = message.channel.send({
-        embeds: [registrationRestoredEmbed],
-    });
+    const messagePromise = message.channel.isSendable() &&
+        message.channel.send({
+            embeds: [registrationRestoredEmbed],
+        });
     const messageEditPromise = message.edit({
         components: addButtonsToMessage(clanJoinButton),
     });

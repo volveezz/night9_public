@@ -33,10 +33,11 @@ async function parseTwitterLinkMessage(message) {
             const url = embed.url;
             if (!url)
                 continue;
-            const imageUrl = (embed.thumbnail && embed.thumbnail.url.match(/profile_images/i)?.[0] ? embed.image?.url : embed.thumbnail?.url) || embed.image?.url;
-            console.debug(`Extracted image url: ${imageUrl}`, JSON.stringify(embed))
-            if (urlToImagesMap.has(url) && imageUrl) {
-                urlToImagesMap.get(url).push(imageUrl);
+            const imageUrl = (embed.thumbnail && embed.thumbnail.url.match(/profile_images/i)?.[0] ? embed.image?.url : embed.thumbnail?.url) ||
+                embed.image?.url;
+            const imagesUrls = urlToImagesMap.get(url);
+            if (imagesUrls && imageUrl) {
+                imagesUrls.push(imageUrl);
             }
             else {
                 urlToImagesMap.set(url, imageUrl ? [imageUrl] : []);
@@ -54,7 +55,6 @@ async function parseTwitterLinkMessage(message) {
                     content = content.replace(/\n\n💖\s*\d+/, "");
                 }
                 const embedAuthorIcon = associatedEmbed.thumbnail?.url.match(/profile_images/i)?.[0] && associatedEmbed.thumbnail?.url;
-                console.debug('Continuing execution with', images.length, 'images')
                 await generateAndSendTwitterEmbed({
                     twitterData: content,
                     author,

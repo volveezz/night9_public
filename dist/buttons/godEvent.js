@@ -1,11 +1,12 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder, Role, TextChannel, VoiceChannel } from "discord.js";
-import { Op } from "sequelize";
+import Sequelize from "sequelize";
 import colors from "../configs/colors.js";
 import icons from "../configs/icons.js";
 import { Button } from "../structures/button.js";
 import { addButtonsToMessage } from "../utils/general/addButtonsToMessage.js";
 import { updateRaidMessage } from "../utils/general/raidFunctions.js";
 import { RaidEvent } from "../utils/persistence/sequelizeModels/raidEvent.js";
+const { Op } = Sequelize;
 let raidChannel = null;
 const ButtonCommand = new Button({
     name: "godEvent",

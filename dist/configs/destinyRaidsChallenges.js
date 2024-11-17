@@ -1,4 +1,11 @@
 const destinyRaidChallanges = {
+    se: [
+        {
+            hash: 3621023005,
+            encounter: 1,
+            description: "If Taken Psions spawn on your route, do not defeat the <:overload:1090473013398491236> Overload Minotaur. Await a third Keeper, and open the fourth room for the other team, and let them defeat their champion.",
+        },
+    ],
     ce: [
         {
             hash: 3636591526,

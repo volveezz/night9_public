@@ -1,5 +1,5 @@
 import { EmbedBuilder, GuildMember } from "discord.js";
-import { Op, Sequelize } from "sequelize";
+import SequelizeModule from "sequelize";
 import colors from "../../../configs/colors.js";
 import { client } from "../../../index.js";
 import { RaidEvent } from "../../persistence/sequelizeModels/raidEvent.js";
@@ -7,6 +7,7 @@ import nameCleaner from "../nameClearer.js";
 import { updateRaidMessage } from "../raidFunctions.js";
 import updatePrivateRaidMessage from "./privateMessage/updatePrivateMessage.js";
 import { transferRaidCreator } from "./raidCreatorHandler.js";
+const { Op, Sequelize } = SequelizeModule;
 export default async function kickLeavedUserFromRaids(member) {
     const userId = member.user.id;
     const updateQuery = {

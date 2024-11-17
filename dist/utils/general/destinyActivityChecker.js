@@ -122,6 +122,8 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
             }
             return counts;
         }, {
+            se: 0,
+            seMaster: 0,
             ce: 0,
             ceMaster: 0,
             ron: 0,
@@ -143,14 +145,16 @@ export async function destinyActivityChecker({ authData, mode, member, count = 2
         if (member.roles.cache.has(CLANMEMBER) ||
             (member.roles.cache.has(MEMBER) && member.roles.cache.hasAny(...activityRoles.allMessages, ...activityRoles.allVoice)) ||
             authData.UserActivityData !== undefined) {
-            const { ce, ceMaster, ron, ronMaster, kf, kfMaster, votd, votdMaster, dsc, gos, vog, vogMaster, lw, totalRaidClears } = completedRaidsData.get(discordId);
+            const { se, seMaster, ce, ceMaster, ron, ronMaster, kf, kfMaster, votd, votdMaster, dsc, gos, vog, vogMaster, lw, totalRaidClears, } = completedRaidsData.get(discordId);
+            const seClears = se + seMaster;
             const ceClears = ce + ceMaster;
             const ronClears = ron + ronMaster;
             const kfClears = kf + kfMaster;
             const votdClears = votd + votdMaster;
             const vogClears = vog + vogMaster;
             for (const { individualClears, roleId, totalClears } of raidRoles.roles) {
-                if ((ceClears >= individualClears &&
+                if ((seClears >= individualClears &&
+                    ceClears >= individualClears &&
                     ronClears >= individualClears &&
                     kfClears >= individualClears &&
                     votdClears >= individualClears &&

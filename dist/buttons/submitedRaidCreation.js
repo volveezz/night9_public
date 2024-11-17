@@ -32,6 +32,8 @@ const ButtonCommand = new Button({
 });
 function validateRaidName(input) {
     switch (input) {
+        case input.match(/(se|salvation edge|edge|гс|грань|грань спасения)/i)?.input:
+            return RaidNames.se;
         case input.match(/(vow|disciple|votd|вотд|клятва|послушника|кп|рулк)/i)?.input:
             return RaidNames.votd;
         case input.match(/(crota'?s?|end|ce|кк|крах|крот)/i)?.input:
@@ -40,7 +42,7 @@ function validateRaidName(input) {
             return RaidNames.dsc;
         case input.match(/(vault|glass|vog|вог|хрустальны(й|и)|чертог|хч)/i)?.input:
             return RaidNames.vog;
-        case input.match(/(garden|salvation|gos|сад|сс|спасения|ss)/i)?.input:
+        case input.match(/(garden|salvation|gos|сс|сад|сад спасения|ss)/i)?.input:
             return RaidNames.gos;
         case input.match(/(king'?s?|fall|kf|гк|гибель|корол|кинг|фолл|кф)/i)?.input:
             return RaidNames.kf;

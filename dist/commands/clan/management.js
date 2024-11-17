@@ -163,8 +163,7 @@ export async function handleManagementClanAction(interaction, clanMembers, defer
     await deferredReply;
     const messageOptions = (await updateMessage());
     const message = await interaction.editReply(messageOptions);
-    const collector = interaction.channel.createMessageComponentCollector({
-        message,
+    const collector = message.createMessageComponentCollector({
         filter: (i) => i.user.id === interaction.user.id,
         idle: 1000 * 60 * 5,
         componentType: ComponentType.Button,

@@ -1,5 +1,6 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
-import { Op } from "sequelize";
+import Sequelize from "sequelize";
+const { Op } = Sequelize;
 import colors from "../../configs/colors.js";
 import { activityIcons } from "../../configs/icons.js";
 import { client } from "../../index.js";
@@ -357,7 +358,6 @@ async function logActivityCompletion(pgcrId) {
                     latestStartTime = startTime;
                     latestEndTime = endTime;
                 }
-                // console.debug(validatedEncounterTimes);
                 return validatedEncounterTimes;
             }
         }

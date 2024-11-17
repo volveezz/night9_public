@@ -1,6 +1,7 @@
 import { ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder } from "discord.js";
 import pkg from "lodash";
-import { Op } from "sequelize";
+import Sequelize from "sequelize";
+const { Op } = Sequelize;
 import colors from "../configs/colors.js";
 import { activityIcons } from "../configs/icons.js";
 import { client } from "../index.js";

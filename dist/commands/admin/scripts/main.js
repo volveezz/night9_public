@@ -132,8 +132,8 @@ const SlashCommand = new Command({
                 })
                     .join("\n")
                     .slice(0, 2048)}`);
-                await deferredReply;
-                await interaction.channel?.send({ embeds: [msgEmbed, voiceEmbed] });
+                const r = await deferredReply;
+                await r.edit({ embeds: [msgEmbed, voiceEmbed] });
                 return;
             }
             case "roles": {

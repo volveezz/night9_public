@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, ChannelType, ComponentType, EmbedBuilder } from "discord.js";
 import colors from "../../configs/colors.js";
 import VoteSystem from "../../structures/VoteSystem.js";
 import createModalCollector from "../../utils/discord/modalCollector.js";
@@ -42,8 +42,7 @@ async function createVoteFromParams({ interaction, question, description, answer
         value: convertAnswersInButtonLabels(validatedAnswers),
     });
     const reply = await interaction.reply({ embeds: [embed], components: addButtonsToMessage(components), ephemeral: true });
-    const collector = interaction.channel.createMessageComponentCollector({
-        message: await reply.fetch(),
+    const collector = reply.createMessageComponentCollector({
         componentType: ComponentType.Button,
         filter: (buttonInteraction) => buttonInteraction.user.id === interaction.user.id,
         time: 1000 * 60 * 5,
@@ -101,6 +100,10 @@ async function createVoteFromParams({ interaction, question, description, answer
             interaction.deleteReply(buttonInteraction.message);
             const { uniqueId, components } = generateComponents(validatedAnswers);
             embed.data.fields?.pop();
+            if (buttonInteraction.channel?.type != ChannelType.GuildText && buttonInteraction.channel?.type != ChannelType.DM) {
+                console.error("Channel does not support sending messages.");
+                return;
+            }
             const message = await buttonInteraction.channel.send({ embeds: [embed], components: addButtonsToMessage(components) });
             const query = VotingDatabase.create({
                 uniqueId,

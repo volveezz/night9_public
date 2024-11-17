@@ -1,5 +1,6 @@
 export var RaidNames;
 (function (RaidNames) {
+    RaidNames["se"] = "se";
     RaidNames["ce"] = "ce";
     RaidNames["ron"] = "ron";
     RaidNames["kf"] = "kf";
@@ -10,6 +11,7 @@ export var RaidNames;
     RaidNames["lw"] = "lw";
 })(RaidNames || (RaidNames = {}));
 export const raidSelectionOptions = [
+    { name: "Грань спасения", nameLocalizations: { "en-US": "Salvation's Edge", "en-GB": "Salvation's Edge" }, value: "se" },
     { name: "Крах Кроты", nameLocalizations: { "en-US": "Crota's End", "en-GB": "Crota's End" }, value: "ce" },
     {
         name: "Источник кошмаров",
@@ -49,8 +51,8 @@ export const raidSelectionOptions = [
 ];
 export const raidDifficultiesChoices = [
     {
-        name: "Нормальный",
-        nameLocalizations: { "en-US": "Normal", "en-GB": "Normal" },
+        name: "Стандартный",
+        nameLocalizations: { "en-US": "Standard", "en-GB": "Standard" },
         value: 1,
     },
     {

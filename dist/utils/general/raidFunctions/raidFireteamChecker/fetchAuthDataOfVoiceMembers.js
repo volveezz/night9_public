@@ -1,7 +1,8 @@
-import { Op } from "sequelize";
+import Sequelize from "sequelize";
 import tokenRefresher from "../../../../structures/tokenRefresher.js";
 import { cachedRaidMembers } from "../../../persistence/dataStore.js";
 import { AuthData } from "../../../persistence/sequelizeModels/authData.js";
+const { Op } = Sequelize;
 async function fetchRaidVoiceChannelMembersAuthData(raidId, memberIds) {
     const cachedRaid = cachedRaidMembers.get(raidId);
     const latestRefreshTime = tokenRefresher.getLatestRefreshTime();

@@ -98,7 +98,6 @@ async function generateAndSendTwitterEmbed({ twitterData, author, icon, url, ori
         }
         embed.setDescription(tranlsatedContent && tranlsatedContent.length > 1 ? tranlsatedContent : replacedDescription.length > 0 ? replacedDescription : null);
         const embeds = [embed];
-        console.debug(`${extractedMediaUrls.length} were extracted`)
         if (extractedMediaUrls.length > 0) {
             const embedURL = url ? url : `https://x.com/${getTwitterAccountNameFromAuthor(author)}`;
             for (let i = 0; i < extractedMediaUrls.length; i++) {
@@ -111,12 +110,10 @@ async function generateAndSendTwitterEmbed({ twitterData, author, icon, url, ori
                     });
                 if (i === 0) {
                     embed.setImage(imgUrl);
-                    console.debug('Initial image was set')
                     if (extractedMediaUrls.length > 1)
                         embed.setURL(embedURL);
                 }
                 else {
-                    console.debug('Sub-image was set')
                     embeds.push(new EmbedBuilder().setURL(embedURL).setImage(imgUrl));
                 }
             }

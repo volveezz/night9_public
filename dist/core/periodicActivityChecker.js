@@ -1,4 +1,5 @@
-import { Op } from "sequelize";
+import Sequelize from "sequelize";
+const { Op } = Sequelize;
 import { client } from "../index.js";
 import { getEndpointStatus } from "../utils/api/statusCheckers/statusTracker.js";
 import { destinyActivityChecker } from "../utils/general/destinyActivityChecker.js";

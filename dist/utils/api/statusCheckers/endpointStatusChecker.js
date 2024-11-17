@@ -32,7 +32,6 @@ async function handleApiCall(endpointURL, accessToken) {
     if (endpointURL === "oauth") {
         try {
             const status = await requestTokenRefresh({ userId: process.env.OWNER_ID });
-            // console.debug(`Token refresh completed, status: ${status != null && status.refresh_token != null ? 1 : 5}`);
             return status != null && status.refresh_token != null ? 1 : 5;
         }
         catch (error) {

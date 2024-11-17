@@ -1,5 +1,5 @@
 import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, } from "discord.js";
-import { Op } from "sequelize";
+import Sequelize from "sequelize";
 import colors from "../../configs/colors.js";
 import icons from "../../configs/icons.js";
 import { activityRoles, raidRoles } from "../../configs/roles.js";
@@ -13,6 +13,7 @@ import { sequelizeInstance } from "../../utils/persistence/sequelize.js";
 import { AuthData } from "../../utils/persistence/sequelizeModels/authData.js";
 import { AutoRoleData } from "../../utils/persistence/sequelizeModels/autoRoleData.js";
 import { UserActivityData } from "../../utils/persistence/sequelizeModels/userActivityData.js";
+const { Op } = Sequelize;
 const SlashCommand = new Command({
     name: "db",
     description: "Database",
@@ -383,8 +384,7 @@ const SlashCommand = new Command({
                 embeds: [embed],
                 components: addButtonsToMessage(components),
             });
-            const collector = interaction.channel.createMessageComponentCollector({
-                message: interactionReply,
+            const collector = interactionReply.createMessageComponentCollector({
                 time: 60 * 2 * 1000,
                 filter: (int) => interaction.user.id == int.user.id,
                 componentType: ComponentType.Button,

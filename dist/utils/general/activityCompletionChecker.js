@@ -132,7 +132,6 @@ async function activityCompletionChecker({ bungieId, characterId, id, platform, 
         const traceError = new Error(`StopActivityHashChecker called at:`);
         setTimeout(() => {
             if (!activityCompletionCurrentProfiles.has(characterId) && completedPhases.get(characterId) === cachedData) {
-                // console.debug(`Completed phases data for ${platform}/${bungieId}/${characterId} | ${discordId} was deleted at`, traceError.stack);
                 completedPhases.delete(characterId);
             }
         }, 1000 * 60 * 30);

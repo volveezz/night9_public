@@ -94,8 +94,7 @@ const ButtonCommand = new Button({
                     .setDescription(embedDescription);
                 await deferredReply;
                 const int = await interaction.editReply({ embeds: [embed], components: addButtonsToMessage(components) });
-                const collector = int.channel.createMessageComponentCollector({
-                    message: int,
+                const collector = int.createMessageComponentCollector({
                     filter: ({ user }) => user.id === interaction.user.id,
                     time: 60 * 1000 * 2,
                     max: 1,

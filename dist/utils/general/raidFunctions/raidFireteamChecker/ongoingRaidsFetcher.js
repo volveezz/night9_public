@@ -1,5 +1,6 @@
-import { Op } from "sequelize";
+import Sequelize from "sequelize";
 import { RaidEvent } from "../../../persistence/sequelizeModels/raidEvent.js";
+const { Op } = Sequelize;
 const raidAttributes = ["id", "time", "joined", "hotJoined", "alt", "channelId", "inChannelMessageId", "messageId"];
 async function fetchOngoingRaids(requestedRaidId) {
     const currentTime = new Date();

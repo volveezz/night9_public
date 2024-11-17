@@ -1,4 +1,29 @@
 const raidGuide = {
+    se: [
+        {
+            name: "4 этап рейда - Истина",
+            description: "Истина",
+            buttons: [
+                {
+                    label: "Симулятор 4 этапа",
+                    style: 1,
+                    name: "Симулятор 4 этапа",
+                    description: "https://necrondow.github.io/Encounter4.html",
+                },
+            ],
+        },
+        {
+            name: "Полезная информация по рейду",
+            buttons: [
+                {
+                    label: "Награды за этапы рейда",
+                    style: 2,
+                    name: "Награды за этапы рейда",
+                    image: "https://media.discordapp.net/attachments/1134620378615001178/1307608179819024394/se.webp?ex=673aec84&is=67399b04&hm=cb0efb74f1c0fe01059baff091eeeffcb1b711cd9add802b5a53b6e811594eb4&=",
+                },
+            ],
+        },
+    ],
     ce: [
         {
             name: "1 этап рейда - Бездна",

@@ -32,7 +32,7 @@ async function sendDirectMessage(member, isEmbed, content, originatingMessage) {
             errorEmbed.setTitle("Произошла неожиданная ошибка во время отправки сообщения");
         }
         originatingMessage.delete();
-        return originatingMessage.channel.send({ embeds: [errorEmbed] });
+        return originatingMessage.channel.isSendable() && originatingMessage.channel.send({ embeds: [errorEmbed] });
     }
 }
 export async function manageAdminDMChannel(message) {

@@ -1,4 +1,4 @@
-import { Op, Sequelize } from "sequelize";
+import SequelizeModule from "sequelize";
 import { Button } from "../structures/button.js";
 import moveUserFromHotJoinedIntoJoined from "../utils/discord/raid/handleHotJoinedTransfer.js";
 import raidActionMessageHandler from "../utils/discord/raid/raidActionMessageHandler.js";
@@ -9,7 +9,8 @@ import { raidEmitter } from "../utils/general/raidFunctions/raidEmitter.js";
 import { updateNotifications } from "../utils/general/raidFunctions/raidNotifications.js";
 import { completedRaidsData } from "../utils/persistence/dataStore.js";
 import { RaidEvent } from "../utils/persistence/sequelizeModels/raidEvent.js";
-const raidGuideSentUsers = new Map();
+const { Op, Sequelize } = SequelizeModule;
+const raidGuideSentUser = new Map();
 const ButtonCommand = new Button({
     name: "raidButton",
     run: async ({ client, interaction }) => {
@@ -151,13 +152,13 @@ const ButtonCommand = new Button({
                     throw { errorType: "RAID_NOT_ENOUGH_CLEARS", errorData: [raidClears, raidEvent.requiredClears] };
                 }
             }
-            const sentUserSet = raidGuideSentUsers.get(raidEvent.raid) ?? new Set();
+            const sentUserSet = raidGuideSentUser.get(raidEvent.raid) ?? new Set();
             if (!sentUserSet.has(interaction.user.id)) {
                 if (raidClears <= 5) {
                     sendUserRaidGuideNoti(interaction.user, raidEvent.raid, raidEvent.channelId);
                 }
                 sentUserSet.add(interaction.user.id);
-                raidGuideSentUsers.set(raidEvent.raid, sentUserSet);
+                raidGuideSentUser.set(raidEvent.raid, sentUserSet);
             }
         }
         else if (userAlreadyAlt) {

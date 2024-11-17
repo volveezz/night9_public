@@ -1,10 +1,11 @@
-import { Op } from "sequelize";
+import Sequelize from "sequelize";
 import { client } from "../index.js";
 import { Autocomplete } from "../structures/autocomplete.js";
 import { sendApiPostRequest } from "../utils/api/sendApiPostRequest.js";
 import { sendApiRequest } from "../utils/api/sendApiRequest.js";
 import { isBungieId, isMembershipId } from "../utils/general/utilities.js";
 import { AuthData } from "../utils/persistence/sequelizeModels/authData.js";
+const { Op } = Sequelize;
 const AutocompleteFile = new Autocomplete({
     name: "identifier",
     run: async ({ interaction, option }) => {

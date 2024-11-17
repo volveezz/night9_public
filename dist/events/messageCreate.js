@@ -73,7 +73,7 @@ async function handleMessage(message) {
     }
 }
 async function handleDirectMessage(message) {
-    if (message.content.includes("init")) {
+    if (message.content.includes("init") && message.channel.isSendable()) {
         return message.channel.send({ embeds: [await sendRegistrationLink(message)] });
     }
     sendAdminNotification(message);

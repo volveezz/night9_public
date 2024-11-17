@@ -26,10 +26,15 @@ async function blockChannelMessage(message) {
     else {
         notifyEmbed.setDescription("В этом канале нельзя отправлять сообщения. Сама возможность отправки есть для удобства ввода команд");
     }
-    const notifyMessage = await channel.send({ embeds: [notifyEmbed] });
-    await pause(1000 * 10);
-    await notifyMessage.delete().catch((_) => null);
-    recentlyNotified = false;
+    const notifyMessage = channel.isSendable() && (await channel.send({ embeds: [notifyEmbed] }));
+    if (notifyMessage) {
+        await pause(1000 * 10);
+        await notifyMessage.delete().catch((_) => null);
+        recentlyNotified = false;
+    }
+    else {
+        console.error("[Error code: 2122] User's channel isn't sendable.", author.id);
+    }
 }
 export default blockChannelMessage;
 //# sourceMappingURL=blockChannelMessages.js.map

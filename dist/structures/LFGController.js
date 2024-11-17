@@ -1,6 +1,7 @@
 import { ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, } from "discord.js";
 import pkg from "lodash";
-import { Op } from "sequelize";
+import Sequelize from "sequelize";
+const { Op } = Sequelize;
 import { findLFGActivityHashFromName } from "../autocompletions/activity-resolver.js";
 import colors from "../configs/colors.js";
 import { client } from "../index.js";

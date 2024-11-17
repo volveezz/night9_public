@@ -1,5 +1,5 @@
 import { ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
-import { Op, Sequelize } from "sequelize";
+import SequelizeModule from "sequelize";
 import { raidDifficultiesChoices, raidSelectionOptions } from "../../configs/Raids.js";
 import colors from "../../configs/colors.js";
 import raidsGuide from "../../configs/raidGuideData.js";
@@ -18,6 +18,7 @@ import { descriptionFormatter, escapeString } from "../../utils/general/utilitie
 import { userTimezones } from "../../utils/persistence/dataStore.js";
 import { RaidEvent } from "../../utils/persistence/sequelizeModels/raidEvent.js";
 import { createRaid } from "./createRaid.js";
+const { Op, Sequelize } = SequelizeModule;
 const SlashCommand = new Command({
     name: "рейд",
     nameLocalizations: {

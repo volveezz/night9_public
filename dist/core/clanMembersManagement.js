@@ -181,7 +181,6 @@ async function clanMembersManagement(databaseData) {
                             else if (!clanOnline.has(discordId)) {
                                 clearInterval(interval);
                                 if (completedPhases.has(characterId)) {
-                                    // console.debug(`Completed phases data for ${memberAuthData.displayName} was deleted during the interval since the user not online`);
                                     completedPhases.delete(characterId);
                                 }
                             }

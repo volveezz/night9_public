@@ -48,7 +48,7 @@ const getTotalEmbedsSize = (embeds) => {
     }, 0);
 };
 export default new Event("messageDeleteBulk", async (messages) => {
-    const messagesArray = messages.reverse();
+    const messagesArray = messages.filter((c) => !c.partial).reverse();
     const createNewEmbed = () => {
         return new EmbedBuilder().setColor(colors.error).setAuthor({
             name: "Группа сообщений удалена",

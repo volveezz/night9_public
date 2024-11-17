@@ -1,4 +1,5 @@
-import { Op } from "sequelize";
+import Sequelize from "sequelize";
+const { Op } = Sequelize;
 import { AuthData } from "../persistence/sequelizeModels/authData.js";
 import { sendApiRequest } from "./sendApiRequest.js";
 async function getClanMemberData(id) {

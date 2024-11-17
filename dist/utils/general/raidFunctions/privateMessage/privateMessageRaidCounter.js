@@ -19,6 +19,7 @@ const getUserRaidStatusString = async (discordId) => {
         return count > 0 ? `${count}${masterCount > 0 ? `(${masterCount})` : ""} ${shortName}` : "";
     };
     const raidClears = [
+        formatRaidData(userRaidData.se, userRaidData.seMaster, "ГС"),
         formatRaidData(userRaidData.ce, userRaidData.ceMaster, "КК"),
         formatRaidData(userRaidData.ron, userRaidData.ronMaster, "ИК"),
         formatRaidData(userRaidData.kf, userRaidData.kfMaster, "ГК"),
