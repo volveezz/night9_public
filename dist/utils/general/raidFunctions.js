@@ -522,23 +522,27 @@ export function getRaidNameFromHash(activityHash) {
             return "ceMaster";
         case 2381413764:
         case 1191701339:
+        case 4169648182:
             return RaidNames.ron;
         case 2918919505:
             return "ronMaster";
         case 1374392663:
         case 1063970578:
         case 2897223272:
+        case 4169648176:
             return RaidNames.kf;
         case 2964135793:
         case 3257594522:
             return "kfMaster";
         case 1441982566:
+        case 4169648177:
             return RaidNames.votd;
         case 4217492330:
         case 3889634515:
             return "votdMaster";
         case 910380154:
         case 3976949817:
+        case 4169648179:
             return RaidNames.dsc;
         case 3458480158:
         case 2497200493:
