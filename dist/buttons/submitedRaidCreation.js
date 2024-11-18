@@ -32,7 +32,7 @@ const ButtonCommand = new Button({
 });
 function validateRaidName(input) {
     switch (input) {
-        case input.match(/(se|salvation edge|edge|гс|грань|грань спасения)/i)?.input:
+        case input.match(/(se|salvation'?s? edge|edge|гс|грань|грань спасения)/i)?.input:
             return RaidNames.se;
         case input.match(/(vow|disciple|votd|вотд|клятва|послушника|кп|рулк)/i)?.input:
             return RaidNames.votd;

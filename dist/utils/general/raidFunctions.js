@@ -510,7 +510,8 @@ export function getRaidNameFromHash(activityHash) {
     switch (activityHash) {
         case 1541433876:
         case 2192826039:
-            return RaidNames.ce;
+        case 940375169:
+            return RaidNames.se;
         case 4129614942:
             return "seMaster";
         case 4179289725:
