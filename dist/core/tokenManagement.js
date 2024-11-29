@@ -51,14 +51,16 @@ export async function requestTokenRefresh({ userId, table = AuthData, refresh_to
 }
 async function bungieGrantRequest(row, retry = false) {
     try {
-        const request = await requestTokenRefresh({ refresh_token: row.refreshToken }).catch((e) => {
-            throw e;
-        });
+        const request = await requestTokenRefresh({ refresh_token: row.refreshToken });
         if (request?.access_token) {
             row.accessToken = request.access_token;
             row.refreshToken = request.refresh_token;
             await row.save();
             tokenRefresher.updateTokenRefreshTime();
+        }
+        else if (request?.error_description === "AuthorizationRecordExpired") {
+            console.info(`${row.discordId}/${row.bungieId} authorization token has expiried`);
+            handleAuthorizationRecordExpired(row);
         }
         else {
             handleRequestError(request, row, retry);
