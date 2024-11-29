@@ -279,7 +279,7 @@ export default async function webHandler(code, state, res) {
         catch (e) {
             console.error("[Error code: 1802]", e);
         }
-        console.error(`[Error code: 1234] State: ${state} / Code:${code}`, body, error);
+        console.error(`[Error code: 1234] State: ${state} / Code: ${code}\n`, body, error);
     }
 }
 //# sourceMappingURL=webHandler.js.map

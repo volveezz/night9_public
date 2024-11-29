@@ -36,10 +36,8 @@ Translated dataset:
 "Grasp of Avarice": "Тиски алчности",
 "Spire of the Watcher": "Шпиль хранителя",
 "Ghosts of the Deep": "Призраки Глубин",
-"The Lightblade": "Клинок Света",
 "Heist Battleground": "Поля сражений",
 "Auto rifle": "Автомат",
-"Seraph's Shield": "Щит Серафима",
 "Handcannon": "Револьвер",
 "Vanguard": "Авангард",
 "Taken": "Одержимые",
@@ -50,6 +48,7 @@ Translated dataset:
 "Enhancement Prism": "Улучшающая призма",
 "Masterwork": "Абсолют",
 "Adept": "Адепт",
+"Saint-14": "Сейнт-14",
 "Player Removal": "Отключение игроков",
 "Expected log in": "Ожидаемое время входа в игру",
 "Expected end": "Ожидаемое время завершения"

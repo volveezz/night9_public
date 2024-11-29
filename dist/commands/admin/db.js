@@ -402,7 +402,7 @@ const SlashCommand = new Command({
                     return changeRoleName();
                 }
                 async function cancelRoleAdd() {
-                    await interaction.reply({ ephemeral: true, content: "Отменено" });
+                    await interaction.editReply({ content: "Отменено", embeds: [], components: [] });
                     collector.stop("Canceled");
                 }
                 async function confromRoleAdd() {

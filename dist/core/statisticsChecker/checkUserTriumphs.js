@@ -136,9 +136,8 @@ export async function triumphsChecker({ hasRole, hasAnyRole, member, profileResp
             if (dungeonsTriumphHashes.includes(triumphRequirement)) {
                 if (objective.complete === true) {
                     if (hasRole(process.env.DUNGEON_MASTER_ROLE)) {
-                        if (hasAnyRole(dungeonRolesIds)) {
+                        if (hasAnyRole(dungeonRolesIds))
                             roleIdsForRemoval.push(...dungeonRolesIds);
-                        }
                         continue;
                     }
                     if (member.roles.cache.hasAll(...dungeonRolesIds) && !roleIdsForAdding.includes(process.env.DUNGEON_MASTER_ROLE)) {
@@ -147,12 +146,9 @@ export async function triumphsChecker({ hasRole, hasAnyRole, member, profileResp
                 }
                 else if (hasRole(process.env.DUNGEON_MASTER_ROLE)) {
                     roleIdsForRemoval.push(process.env.DUNGEON_MASTER_ROLE);
-                    if (!roleIdsForAdding.includes(roleId)) {
-                        roleIdsForAdding.push(roleId);
-                    }
                 }
             }
-            if (objective && objective.complete === true) {
+            if (objective?.complete === true) {
                 if (category === 4 && !hasRole(process.env.TITLE_CATEGORY)) {
                     roleIdsForAdding.push(process.env.TITLE_CATEGORY);
                 }
