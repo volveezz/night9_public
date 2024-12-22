@@ -1,0 +1,41 @@
+import { LfgEventSummary, RedisIterableDataToSave } from "redisTypes.js";
+import { LfgEvent } from "../../../interfaces/ChannelData.js";
+import { channelDataMap, completedPhases, completedRaidsData } from "../../persistence/dataStore.js";
+import { redisClient } from "../../persistence/redis.js";
+
+const EXPIRATION_TIMES = {
+	ONE_HOUR: 60 * 60,
+	HALF_HOUR: 60 * 30,
+};
+
+async function saveDataToRedis() {
+	await Promise.all([
+		saveIterableToRedis(completedPhases.entries(), "completedPhasesKey", EXPIRATION_TIMES.HALF_HOUR),
+		saveIterableToRedis(channelDataMap, "lfgData", EXPIRATION_TIMES.HALF_HOUR, mapLfgData),
+		saveIterableToRedis(completedRaidsData, "completedRaidsData", null),
+	]);
+	return true;
+}
+
+async function saveIterableToRedis(
+	data: RedisIterableDataToSave,
+	key: string,
+	expiration: number | null,
+	transformFunc?: (data: any) => any
+) {
+	if ((data instanceof Map && !data.size) || (data[Symbol.iterator] && ![...data].length)) return;
+
+	const serializedData = JSON.stringify(transformFunc ? transformFunc(data) : [...data]);
+	await redisClient.set(key, serializedData, expiration ? { EX: expiration } : {});
+}
+
+function mapLfgData(dataMap: Map<string, LfgEvent>): LfgEventSummary[] {
+	return Array.from(dataMap.values()).map((value) => ({
+		lfgMessageId: value.channelMessage.id,
+		voiceChannelId: value.voiceChannel.id,
+		isDeletable: value.isDeletable,
+		creator: value.creator,
+	}));
+}
+
+export default saveDataToRedis;

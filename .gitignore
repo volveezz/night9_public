@@ -3,14 +3,9 @@ node_modules/
 .env.*
 .vscode/
 .git/
-tsconfig.json
-src/
-.prettierignore
 public/**/*.max.*
 *.d.ts
 generateEnvDeclarations.js
 *.js.map
 nodemon.json
 exported-raids-guides.json
-dist/commands/admin/auth.js
-dist/commands/admin/commandresolver.js

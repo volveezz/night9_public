@@ -1,0 +1,304 @@
+import {
+	ButtonBuilder,
+	ButtonInteraction,
+	ButtonStyle,
+	ComponentType,
+	EmbedBuilder,
+	GuildMember,
+	Message,
+	RESTJSONErrorCodes,
+	Snowflake,
+} from "discord.js";
+import { handleDeleteRaid } from "../../../buttons/raidInChnButton/raidInChnButton.js";
+import { RaidButtons } from "../../../configs/Buttons.js";
+import colors from "../../../configs/colors.js";
+import icons from "../../../configs/icons.js";
+import { client } from "../../../index.js";
+import { completedRaidsData } from "../../persistence/dataStore.js";
+import { RaidEvent } from "../../persistence/sequelizeModels/raidEvent.js";
+import { addButtonsToMessage } from "../addButtonsToMessage.js";
+import nameCleaner from "../nameClearer.js";
+import { removeRaid } from "../raidFunctions.js";
+
+export async function handleRaidCreatorLeaving(raid: RaidEvent, creatorId: Snowflake) {
+	const creator =
+		client.users.cache.get(creatorId) ||
+		(await client.users.fetch(creatorId)) ||
+		(await client.getCachedGuild().members.fetch(creatorId)).user;
+	if (!creator) {
+		console.error("[Error code: 1674] Creator not found");
+		return;
+	}
+
+	const embed = new EmbedBuilder()
+		.setAuthor({ name: `Вы покинули рейд ${raid.id}-${raid.raid} являясь его создателем`, iconURL: icons.error })
+		.setDescription(
+			"Права на рейд будут переданы другому участнику в течение 10 минут\n\nПри желании вы можете выполнить одно из трех действий:\n　1. Отменить передачу прав, если вы знаете, что делаете\n　2. Удалить рейд\n　3. Передать права другому участнику вручную"
+		)
+		.setColor(colors.error);
+
+	const cancelButton = new ButtonBuilder()
+		.setLabel("Отменить передачу прав")
+		.setStyle(ButtonStyle.Primary)
+		.setCustomId(RaidButtons.transitionCancel);
+
+	const deleteButton = new ButtonBuilder().setLabel("Удалить рейд").setStyle(ButtonStyle.Danger).setCustomId(RaidButtons.transitionDelete);
+
+	const buttons = addButtonsToMessage([cancelButton, deleteButton]);
+
+	let message: Message<boolean> | null = null;
+	try {
+		message = await creator.send({ embeds: [embed], components: buttons });
+	} catch (error: any) {
+		if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
+			const raidChannel = await client.getTextChannel(process.env.RAID_CHANNEL_ID!);
+			message = await raidChannel.send({ content: `<@${creator.id}>`, embeds: [embed], components: buttons });
+		} else {
+			console.error("[Error code: 1963] Unexpected error", error);
+		}
+	}
+
+	if (!message) {
+		console.error("[Error code: 1964] Not managed to send a message about raid creator leaving, exiting", raid.channelId, creator.id);
+		return;
+	}
+
+	const collector = (creator.dmChannel || (await creator.createDM())).createMessageComponentCollector({
+		componentType: ComponentType.Button,
+		filter: (i) => i.user.id === creator.id,
+		time: 1000 * 60 * 10,
+		message,
+	});
+
+	const sendedButtons = new Set<ButtonInteraction>();
+
+	collector.on("collect", async (button) => {
+		if (button.customId === RaidButtons.transitionCancel) {
+			button.deferUpdate();
+			return collector.stop("canceled");
+		}
+		const deferredUpdate = button.deferReply({ ephemeral: true });
+		sendedButtons.add(button);
+		if (button.customId === RaidButtons.transitionDelete) {
+			const isRaidDeleted = await handleDeleteRaid({
+				interaction: button,
+				raidEvent: raid,
+				deferredReply: deferredUpdate,
+				requireMessageReply: false,
+			});
+
+			if (isRaidDeleted === 1) {
+				sendedButtons.delete(button);
+				return collector.stop("deleted");
+			} else if (isRaidDeleted === 2) {
+				sendedButtons.delete(button);
+				setTimeout(() => button.deleteReply(), 1500);
+			} else if (isRaidDeleted === 3) {
+				button.deleteReply();
+				sendedButtons.delete(button);
+			} else {
+				if ((await button.message.fetch()).embeds[0].author?.name === embed.data.author?.name) {
+					return collector.stop("deleteError");
+				} else {
+					return collector.stop("deleted");
+				}
+			}
+		}
+	});
+
+	collector.on("end", async (_, reason) => {
+		sendedButtons.forEach((i) =>
+			i.deleteReply().catch((e) => {
+				return console.error("[Error code: 1679]", e);
+			})
+		);
+		sendedButtons.clear();
+		const handleEndReason = () => {
+			const embed = new EmbedBuilder().setColor(colors.invisible);
+			if (reason === "canceled") {
+				return embed.setTitle(`Вы отменили передачу прав рейда ${raid.id}-${raid.raid}`);
+			} else if (reason === "deleted") {
+				return embed.setTitle(`Вы удалили рейд ${raid.id}-${raid.raid}`);
+			} else if (reason === "deleteError") {
+				return embed
+					.setColor(colors.error)
+					.setTitle(`Произошла ошибка во время удаления ${raid.id}-${raid.raid}`)
+					.setDescription("Скорее всего, рейд уже был удален");
+			}
+		};
+		if (reason === "time") {
+			const updatedRaidData = await RaidEvent.findByPk(raid.id);
+
+			if (
+				!updatedRaidData ||
+				updatedRaidData.creator !== raid.creator ||
+				[...updatedRaidData.joined, ...updatedRaidData.hotJoined, ...updatedRaidData.alt].includes(raid.creator)
+			) {
+				if (updatedRaidData && updatedRaidData.creator !== raid.creator) {
+					const embed = new EmbedBuilder()
+						.setColor(colors.serious)
+						.setTitle(`Вы передали права создателя рейда ${updatedRaidData.id}-${updatedRaidData.raid}`);
+					await message!.edit({ embeds: [embed], components: [] });
+					return;
+				} else if (!updatedRaidData) {
+					const embed = new EmbedBuilder().setColor(colors.serious).setTitle(`Рейд ${raid.id}-${raid.raid} был удален`);
+					await message!.edit({ embeds: [embed], components: [] });
+					return;
+				}
+				await message!.delete().catch((e) => {
+					return console.error("[Error code: 1680]", e);
+				});
+				return;
+			}
+
+			const newRaidCreator = await findNewRaidCreator(updatedRaidData);
+
+			const timeEndEmbed = new EmbedBuilder().setColor(colors.serious);
+
+			if (newRaidCreator != null) {
+				timeEndEmbed.setAuthor({ name: `Время вышло. Права на рейд ${raid.id}-${raid.raid} были переданы`, iconURL: icons.notify });
+			} else {
+				timeEndEmbed.setAuthor({ name: `Время вышло. Рейд ${raid.id}-${raid.raid} был удален` });
+			}
+
+			await message!.edit({ embeds: [timeEndEmbed], components: [] });
+
+			if (!newRaidCreator) {
+				await removeRaid(raid).catch((e) => {
+					console.error("[Error code: 1677]", e);
+				});
+				return;
+			}
+
+			return await raidCreatorTransition(newRaidCreator, raid);
+		} else {
+			const embed =
+				handleEndReason() || new EmbedBuilder().setColor(colors.error).setAuthor({ name: "Произошла ошибка", iconURL: icons.error });
+			await message!.edit({ embeds: [embed], components: [] });
+			return;
+		}
+	});
+}
+
+async function raidCreatorTransition(member: GuildMember, raid: RaidEvent) {
+	const raidMessage = await client.getAsyncMessage(process.env.RAID_CHANNEL_ID!, raid.messageId);
+
+	if (!raidMessage) {
+		console.error("[Error code: 2116]", process.env.RAID_CHANNEL_ID, raid.messageId, raid, member);
+		return;
+	}
+
+	const raidEmbed = EmbedBuilder.from(raidMessage.embeds[0]);
+
+	raidEmbed.setFooter({ text: `Создатель рейда: ${nameCleaner(member.displayName)}` });
+
+	raid.creator = member.id;
+
+	const sendNewCreatorPrivateChannelNotify = async () => {
+		const privateRaidChannel = await client.getTextChannel(raid.channelId);
+
+		const notifyEmbed = new EmbedBuilder()
+			.setColor(colors.default)
+			.addFields([{ name: "Создатель рейда", value: `Права создателя были переданы ${nameCleaner(member.displayName, true)}` }])
+			.setFooter({ text: "Изменение системой" });
+
+		await privateRaidChannel.send({ embeds: [notifyEmbed] });
+	};
+	const notifyNewCreator = async () => {
+		const embed = new EmbedBuilder()
+			.setColor(colors.default)
+			.setAuthor({
+				name: `Вам были переданы права на рейд ${raid.id}-${raid.raid}`,
+				url: `https://discord.com/channels/${process.env.GUILD_ID!}/${process.env.RAID_CHANNEL_ID!}/${raid.messageId}`,
+			})
+			.setDescription(
+				"Вы получили эти права поскольку предыдущий создатель покинул рейд\n\nСоздатель рейда - участник, который имеет повышенные права в рейде\nСоздатель рейда может:\n- Изменять рейд, в который идет набор\n- Изменять время, требования по закрытым рейдам для записи, описание набора"
+			)
+			.addFields(
+				{
+					name: "Передача прав на рейд другому участнику",
+					value: "⁣　</рейд изменить:1167214345734864991> `новый-создатель:`\n　</raid edit:1167214345734864991> `new-creator:`",
+				},
+				{
+					name: "Изменение времени набора",
+					value: "⁣　</рейд изменить:1167214345734864991> `новое-время:ВРЕМЯ_В_ФОРМАТЕ`\n　</raid edit::1167214345734864991> `new-time:ВРЕМЯ_В_ФОРМАТЕ`\nВместо `ВРЕМЯ_В_ФОРМАТЕ` - необходимо указать время в следующем формате: `ЧАС:МИНУТЫ ДЕНЬ/МЕСЯЦ` (т.е. время разделяется двоеточием `:`, а дата точкой или слешем `/`)",
+				}
+			);
+
+		try {
+			await member.send({ embeds: [embed] });
+		} catch (error: any) {
+			if (error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
+				const privateRaidChannel = await client.getTextChannel(raid.channelId);
+				const modifiedDescription = embed.data.description?.slice(11);
+				embed
+					.setAuthor({ name: `${nameCleaner(member.displayName)} получил права на этот рейд`, url: embed.data.author?.url })
+					.setDescription("Он получил" + modifiedDescription);
+				await privateRaidChannel.send({ embeds: [embed], content: `<@${member.id}>` });
+			} else {
+				console.error("[Error code: 1975]", error);
+			}
+		}
+	};
+
+	await Promise.all([raidMessage.edit({ embeds: [raidEmbed] }), raid.save(), sendNewCreatorPrivateChannelNotify(), notifyNewCreator()]);
+}
+
+function isClanMember(member: GuildMember): boolean {
+	return member.roles.cache.has(process.env.CLANMEMBER!);
+}
+
+async function findNewRaidCreator(raid: RaidEvent): Promise<GuildMember | null> {
+	let newCreator: GuildMember | null = null;
+	let highestClears = -1;
+
+	const guild = client.getCachedGuild();
+	const joinedUsersId = [...raid.joined, ...raid.hotJoined];
+	const altUsersId = raid.alt;
+
+	async function findCreatorForMemberList(memberIds: Snowflake[], searchOffline: boolean, skipRequirements: boolean = false) {
+		for (const userId of memberIds) {
+			const member = client.getCachedMembers().get(userId) || (await guild.members.fetch(userId));
+			const presence = member.presence;
+
+			if (!skipRequirements && (!presence || (!searchOffline && presence.status === "offline"))) continue;
+			if (!skipRequirements && !isClanMember(member)) continue;
+
+			const memberClearsData = completedRaidsData.get(member.id)!;
+			if (!skipRequirements && !memberClearsData) continue;
+
+			const raidName = raid.raid;
+			const memberTotalClears = memberClearsData?.[raidName] || 0 + memberClearsData?.[`${raidName}Master`] || 0;
+			if (memberTotalClears > highestClears) {
+				highestClears = memberTotalClears;
+				newCreator = member;
+			}
+		}
+	}
+
+	// Prioritize online clan members who joined or hotJoined
+	await findCreatorForMemberList(joinedUsersId, false);
+
+	// If no suitable online clan member is found, search among offline clan members who joined or hotJoined
+	if (!newCreator) {
+		await findCreatorForMemberList(joinedUsersId, true);
+	}
+
+	// If still no suitable clan member is found, search among alt users
+	if (!newCreator) {
+		await findCreatorForMemberList(altUsersId, true);
+	}
+
+	if (!newCreator) {
+		await findCreatorForMemberList([...joinedUsersId, ...altUsersId], true, true);
+	}
+
+	return newCreator;
+}
+
+export async function transferRaidCreator(raid: RaidEvent) {
+	const newCreator = await findNewRaidCreator(raid);
+	if (!newCreator) return;
+
+	await raidCreatorTransition(newCreator, raid);
+}
